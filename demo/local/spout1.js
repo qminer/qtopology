@@ -8,7 +8,6 @@ class DataGenerator {
     constructor() {
         this._enabled = false;
         this._data = [];
-        this._nextTs = Date.now() + 5000 * Math.random();
     }
     enable() {
         this._enabled = true;
@@ -20,14 +19,12 @@ class DataGenerator {
         if (!this._enabled) {
             return false;
         }
-        let d = Date.now();
-        if (d >= this._nextTs) {
-            let cnt = Math.round(10 * Math.random() + 1);
-            for (let i = 0; i < cnt; i++) {
-                this._data.push({ d: d, n: d * 13 % 17 });
-            }
-        }
         if (this._data.length === 0) {
+            this._data = [
+                { a: 1 },
+                { a: 2 },
+                { a: 11 }
+            ];
             return null;
         } else {
             return this._data.pop();
@@ -38,7 +35,7 @@ let generator = new DataGenerator();
 
 
 // simple spout
-const prefix="[Spout1]";
+const prefix = "[Spout1]";
 
 let topology_context = new tn.TopologyContextSpout();
 topology_context.on("shutdown", () => {

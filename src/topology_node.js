@@ -39,7 +39,7 @@ class TopologyContext extends EventEmitter {
     }
 
     /** Method for sending "data" message to parent
-     * @param {*} data - data object to send
+     * @param {object} data - data object to send
      */
     sendData(data) {
         this._sendInternal("data", data);
