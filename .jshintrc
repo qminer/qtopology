@@ -91,7 +91,7 @@
     "nomen": false, // Prohibit use of initial or trailing underbars in names.
     "onevar": false, // Allow only one `var` statement per function.
     "passfail": false, // Stop on first error.
-    "white": false, // Check against strict whitespace and indentation rules.
+    "white": true, // Check against strict whitespace and indentation rules.
     // == Undocumented Options ============================================
     //
     // While I've found these options in [example1][2] and [example2][3]

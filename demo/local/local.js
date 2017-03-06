@@ -43,7 +43,17 @@ async.series(
         },
         (xcallback) => {
             console.log("Init done");
-            xcallback();
+            topology.run();
+            setTimeout(function () {
+                xcallback();
+            }, 5000);
+        },
+        (xcallback) => {
+            console.log("Sending heartbeat");
+            topology._heartbeat();
+            setTimeout(function () {
+                xcallback();
+            }, 5000);
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");

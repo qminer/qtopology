@@ -108,6 +108,7 @@ class TopologySpout extends TopologyNode {
         this._nextPending = false;
         this._empty = true;
         this._nextCallback = null;
+        this._nextTs = Date.now();
 
         this.on("emit", (msg) => {
             this._nextPending = false;
@@ -121,7 +122,13 @@ class TopologySpout extends TopologyNode {
             if (this._nextCallback) {
                 this._nextCallback(null, null);
             }
+            this._nextTs = Date.now() + 1 * 1000;
         });
+    }
+
+    /** Check if spout can be queried. */
+    canQuery() {
+        return !this.isNextPending() && Date.now() >= this._nextTs;
     }
 
     /** Returns true if next command is pending */
@@ -134,10 +141,24 @@ class TopologySpout extends TopologyNode {
         return this._empty;
     }
 
-    /** Sends run signal */
+    /** Sends run signal and starts the "pump"" */
     run() {
+        let self = this;
         this._isPaused = false;
         this._empty = true;
+        async.whilst(
+            () => { return !self._isPaused; },
+            (xcallback) => {
+                if (Date.now() < this._nextTs) {
+                    // is empty, sleep for a while
+                    setTimeout(function () {
+                        xcallback();
+                    }, this._nextTs - Date.now());
+                } else {
+                    self.next(xcallback);
+                }
+            },
+            () => { });
     }
 
     /** Requests next data message */
@@ -169,9 +190,6 @@ class TopologyLocal {
         this._spouts = [];
         this._bolts = [];
         this._config = null;
-
-        this._isRunning = false;
-        this._shouldStop = false;
     }
 
     /** Initialization that sets up internal structure and starts underlaying processes */
@@ -192,26 +210,12 @@ class TopologyLocal {
     }
 
     /** Sends run signal to all spouts */
-    run(callback) {
+    run() {
         console.log("Local topology started");
         for (let spout of this._spouts) {
             spout.run();
         }
         let self = this;
-        self._isRunning = true;
-        async.whilst(
-            () => {
-                return self._isRunning;
-            },
-            (xcallback) => {
-                self._loopOverSpouts(xcallback);
-            },
-            (err) => {
-                console.log("Local topology stopped");
-            }
-        );
-
-        callback();
     }
 
     /** Sends pause signal to all spouts */
@@ -248,15 +252,6 @@ class TopologyLocal {
         for (let bolt of this._bolts) {
             bolt.heartbeat();
         }
-    }
-
-    /**
-     * Loop over all spouts until all of them report empty status.
-     * @param {Function} callback - Standard callback
-     */
-    _loopOverSpouts(callback) {
-        let all_empty = false;
-        //async
     }
 }
 

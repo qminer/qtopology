@@ -27,7 +27,7 @@ class DataGenerator {
                 this._data.push({ d: d, n: d * 13 % 17 });
             }
         }
-        if (this._data.length == 0) {
+        if (this._data.length === 0) {
             return null;
         } else {
             return this._data.pop();
