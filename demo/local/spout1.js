@@ -1,5 +1,9 @@
 "use strict";
 
+const tn = require("../../src/topology_node");
+
+/////////////////////////////////////////////////////////////////////////////
+
 class DataGenerator {
     constructor() {
         this._enabled = false;
@@ -34,7 +38,6 @@ let generator = new DataGenerator();
 
 
 // simple spout
-const tn = require("../../src/topology/topology_node");
 const prefix="[Spout1]";
 
 let topology_context = new tn.TopologyContextSpout();

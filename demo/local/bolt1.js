@@ -1,7 +1,7 @@
 "use strict";
 
 // simple console bolt
-const tn = require("../../src/topology/topology_node");
+const tn = require("../../src/topology_node");
 const prefix="[Bolt1]";
 
 let topology_context = new tn.TopologyContextBolt();

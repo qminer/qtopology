@@ -2,7 +2,7 @@
 
 const EventEmitter = require("events");
 
-/** Child process wrapper - should be instantiated in child process
+/** Topology context in child process - should be instantiated in child process
  * to handle communication with local topology. */
 class TopologyContext extends EventEmitter {
 
@@ -18,6 +18,9 @@ class TopologyContext extends EventEmitter {
             try {
                 let cmd = msg.cmd;
                 if (cmd) {
+                    if (cmd == "init"){
+                        this._name = msg.name;
+                    }
                     self.emit(cmd, msg.data);
                 }
             } catch (e) {
@@ -36,7 +39,7 @@ class TopologyContext extends EventEmitter {
     }
 
     /** Method for sending "data" message to parent
-     * @param {*} data
+     * @param {*} data - data object to send
      */
     sendData(data) {
         this._sendInternal("data", data);
