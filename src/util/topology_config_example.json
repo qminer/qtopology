@@ -1,0 +1,120 @@
+{
+    "general": {
+        "name": "Topology name",
+        "coordination_port": 9289,
+        "heartbeat": 5000
+    },
+    "workers": [
+        {
+            "name": "srv1"
+        },
+        {
+            "name": "srv2"
+        },
+        {
+            "name": "srv3"
+        }
+    ],
+    "spouts": [
+        {
+            "name": "pump1_1",
+            "worker": "srv1",
+            "working_dir": "${DIR_PUMP}",
+            "cmd": "${PROC_PUMP}",
+            "init": {
+                "field1": "val1"
+            }
+        },
+        {
+            "name": "pump1_2",
+            "worker": "srv1",
+            "working_dir": "${DIR_PUMP}",
+            "cmd": "${PROC_PUMP}",
+            "init": {
+                "field1": "val2"
+            }
+        },
+        {
+            "name": "pump2_1",
+            "worker": "srv2",
+            "working_dir": "${DIR_PUMP}",
+            "cmd": "${PROC_PUMP}",
+            "init": {
+                "field1": "val3"
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "worker": "srv1",
+            "working_dir": "${DIR_WORKER}",
+            "cmd": "my_worker1.js",
+            "args": ["-n", "1"],
+            "inputs": [
+                {
+                    "source": "pump1_1",
+                    "stream_id": "1"
+                },
+                {
+                    "source": "pump2_1",
+                    "stream_id": "1"
+                }
+            ],
+            "init": {
+                "field1": "val3"
+            }
+        },
+        {
+            "name": "bolt2",
+            "worker": "srv2",
+            "working_dir": "${DIR_WORKER}",
+            "cmd": "my_worker1.js",
+            "args": ["-n", "2"],
+            "inputs": [
+                {
+                    "source": "pump1_2",
+                    "stream_id": "1"
+                }
+            ],
+            "init": {
+                "field1": "val3"
+            }
+        },
+        {
+            "name": "publisher1",
+            "worker": "srv1",
+            "working_dir": "${DIR_WORKER}",
+            "cmd": "my_publisher1.js",
+            "args": ["-a", ""],
+            "inputs": [
+                {
+                    "source": "bolt1"
+                }
+            ],
+            "init": {
+                "field1": "val3"
+            }
+        },
+        {
+            "name": "publisher2",
+            "worker": "srv2",
+            "working_dir": "${DIR_WORKER}",
+            "cmd": "my_publisher2.js",
+            "inputs": [
+                {
+                    "source": "bolt2"
+                }
+            ],
+            "init": {
+                "field1": "val4"
+            }
+        }
+    ],
+    "variables": {
+        "PROC_PUMP": "my_pump1.js",
+        "PROC_WORKER": "my_worker1.js",
+        "PROC_PUBLISHER1": "my_publisher1.js",
+        "PROC_PUBLISHER2": "my_publisher2.js"
+    }
+}
