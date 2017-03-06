@@ -2,7 +2,11 @@
 
 // simple console bolt
 const tn = require("../../src/topology_node");
-const prefix="[Bolt1]";
+
+let prefix = "[Bolt1]";
+let sum = 0;
+
+///////////////////////////////////////////////////////////////
 
 let topology_context = new tn.TopologyContextBolt();
 
@@ -11,7 +15,7 @@ topology_context.on("shutdown", (data) => {
     process.exit(0);
 });
 topology_context.on("heartbeat", () => {
-    console.log(prefix, "Inside heartbeat.");
+    console.log(prefix, "Inside heartbeat. sum=" + sum);
 });
 topology_context.on("init", (data) => {
     console.log(prefix, "Inside init:", data);
@@ -25,6 +29,7 @@ topology_context.on("pause", () => {
 });
 topology_context.on("data", (data) => {
     console.log(prefix, "Received data:", data);
+    sum += data.data.a;
 });
 
 topology_context.start();

@@ -164,9 +164,8 @@ class TopologySpout extends TopologyNode {
             (xcallback) => {
                 if (Date.now() < this._nextTs) {
                     // if empty, sleep for a while
-                    setTimeout(function () {
-                        xcallback();
-                    }, this._nextTs - Date.now());
+                    let sleep = this._nextTs - Date.now();
+                    setTimeout(() => { xcallback(); }, sleep);
                 } else {
                     self.next(xcallback);
                 }
@@ -315,7 +314,6 @@ class TopologyLocal {
      */
     _redirect(source, data) {
         let destinations = this._router.getDestinationsForSource(source);
-        //console.log("In redirect", source, data, destinations, this._bolts);
         for (let destination of destinations) {
             this._getBolt(destination).send(data);
         }
