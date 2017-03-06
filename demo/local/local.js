@@ -1,40 +1,16 @@
 "use strict";
 
 const async = require("async");
-const loc = require("../../src/topology_local");
+const tn = require("../../").local;
+const validator = require("../../").validation;
 
 // demo configuration
 
-let config = {
-    spouts: [
-        {
-            name: "pump1",
-            worker: "srv1",
-            working_dir: ".",
-            cmd: "spout1.js",
-            args: ["-a", "action1"],
-            init: { timeout: 10000 }
-        }
-    ],
-    bolts: [
-        {
-            name: "bolt1",
-            worker: "srv1",
-            working_dir: ".",
-            cmd: "bolt1.js",
-            args: ["-n", "1"],
-            inputs: [
-                {
-                    source: "pump1"
-                }
-            ],
-            init: { timeout: 25000 }
-        }
-    ],
-    variables: {}
-};
+let config = require("./topology.json");
+validator.validate({ config: config, exitOnError: true });
 
-let topology = new loc.TopologyLocal();
+
+let topology = new tn.TopologyLocal();
 
 async.series(
     [

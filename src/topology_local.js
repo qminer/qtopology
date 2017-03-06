@@ -38,7 +38,9 @@ class TopologyNode extends EventEmitter {
     }
 
     /** Returns name of this node */
-    getName() { return this._name; };
+    getName() {
+        return this._name;
+    }
 
     /** Handler for heartbeat signal */
     heartbeat() {
@@ -118,7 +120,7 @@ class TopologySpout extends TopologyNode {
     constructor(config) {
         super(config);
         let self = this;
-        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb") });
+        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
         self._isPaused = true;
         self._nextPending = false;
         self._empty = true;
@@ -231,7 +233,11 @@ class TopologyLocal {
         this._spouts = [];
         this._bolts = [];
         this._config = null;
+        this._heartbeatTimeout = 10000;
         this._router = new OutputRouter();
+
+        this._isRunning = false;
+        this._isShuttingDown = false;
     }
 
     /** Initialization that sets up internal structure and
@@ -240,6 +246,7 @@ class TopologyLocal {
     init(config, callback) {
         let self = this;
         self._config = config;
+        self._heartbeatTimeout = config.general.heartbeat;
         let tasks = [];
         self._config.bolts.forEach((bolt_config) => {
             bolt_config.onEmit = (data) => {
@@ -260,6 +267,7 @@ class TopologyLocal {
             self._spouts.push(spout);
             tasks.push((xcallback) => { spout.init(xcallback); });
         });
+        self._runHeartbeat();
         async.series(tasks, callback);
     }
 
@@ -269,7 +277,7 @@ class TopologyLocal {
         for (let spout of this._spouts) {
             spout.run();
         }
-        let self = this;
+        this._isRunning = true;
     }
 
     /** Sends pause signal to all spouts */
@@ -277,11 +285,13 @@ class TopologyLocal {
         for (let spout of this._spouts) {
             spout.pause();
         }
+        this._isRunning = false;
         callback();
     }
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
+        this._isShuttingDown = true;
         this.pause((err) => {
             let tasks = [];
             this._spouts.forEach((spout) => {
@@ -296,6 +306,27 @@ class TopologyLocal {
             });
             async.series(tasks, callback);
         });
+    }
+
+    /** Runs heartbeat pump until this object shuts down */
+    _runHeartbeat() {
+        let self = this;
+        async.whilst(
+            () => {
+                return !self._isShuttingDown;
+            },
+            (xcallback) => {
+                setTimeout(
+                    () => {
+                        if (self._isRunning) {
+                            self._heartbeat();
+                        }
+                        xcallback();
+                    },
+                    self._heartbeatTimeout);
+            },
+            () => { }
+        );
     }
 
     /** Sends heartbeat signal to all child processes */
@@ -324,7 +355,7 @@ class TopologyLocal {
      */
     _getBolt(name) {
         let hits = this._bolts.filter(x => x.getName() == name);
-        if (hits.length == 0) {
+        if (hits.length === 0) {
             return null;
         }
         return hits[0];

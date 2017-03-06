@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require("fs");
-const Validator = require("jsonschema").Validator;
+const validator = require("./topology_validation");
 const tsm = require("./topology_msgs");
 const tc = require("./topology_compiler");
 
@@ -145,20 +145,13 @@ class TopologyCoordinator {
     start() {
         let self = this;
 
-        // read topology from file
+        // read topology from file and validate it
         let config = fs.readFileSync(this._fname);
         config = JSON.parse(config);
-        let schema = require("./topology_config_schema.json");
-
-        let v = new Validator();
-        let validation_result = v.validate(config, schema);
-        if (validation_result.errors.length > 0) {
-            console.error("Errors while parsing topology schema:");
-            for (let error of validation_result.errors) {
-                console.error(error.stack || error.property + " " + error.message);
-            }
-            process.exit(1);
-        }
+        validator.validate({
+            config: config,
+            exitOnError: true
+        });
 
         // compile and check topology
         this._compiler = new tc.TopologyCompiler(config);

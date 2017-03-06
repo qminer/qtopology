@@ -1,0 +1,60 @@
+{
+    "general": {
+        "name": "Topology name",
+        "coordination_port": 9289,
+        "heartbeat": 3200
+    },
+    "workers": [
+        {
+            "name": "srv1"
+        }
+    ],
+    "spouts": [
+        {
+            "name": "pump1",
+            "worker": "srv1",
+            "working_dir": ".",
+            "cmd": "spout1.js",
+            "args": [
+                "-a",
+                "action1"
+            ],
+            "init": {}
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "worker": "srv1",
+            "working_dir": ".",
+            "cmd": "bolt1.js",
+            "args": [
+                "-n",
+                "name1"
+            ],
+            "inputs": [
+                {
+                    "source": "pump1"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt2",
+            "worker": "srv1",
+            "working_dir": ".",
+            "cmd": "bolt1.js",
+            "args": [
+                "-n",
+                "name2"
+            ],
+            "inputs": [
+                {
+                    "source": "pump1"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
