@@ -140,21 +140,6 @@ class TopologySpout extends TopologyNode {
         });
     }
 
-    /** Check if spout can be queried. */
-    canQuery() {
-        return !this.isNextPending() && Date.now() >= this._nextTs;
-    }
-
-    /** Returns true if next command is pending */
-    isNextPending() {
-        return this._nextPending;
-    }
-
-    /** Returns true if there was no new data during last call. */
-    isEmpty() {
-        return this._empty;
-    }
-
     /** Sends run signal and starts the "pump"" */
     run() {
         let self = this;
