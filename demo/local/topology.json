@@ -70,7 +70,25 @@
                     "source": "pump2"
                 }
             ],
-            "init": {}
+            "init": {
+                "forward": true
+            }
+        },
+        {
+            "name": "bolt3",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "inproc",
+            "cmd": "bolt_inproc.js",
+            "args": [],
+            "inputs": [
+                {
+                    "source": "bolt2"
+                }
+            ],
+            "init": {
+                "forward": false
+            }
         }
     ],
     "variables": {}

@@ -1,8 +1,6 @@
 # How to write in-proc bolts and spouts
 
-In-process bolts and spouts have the advantage of the quickest communication.
-
-The down-side is that in the case of error or unhandeled exceptions, they can bring down the entire `qtopology` engine.
+In-process bolts and spouts have the advantage of the quickest communication. The down-side is that in the case of error or unhandeled exceptions, they can bring down the entire `qtopology` engine.
 
 ## Bolts
 
