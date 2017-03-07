@@ -30,7 +30,7 @@ class TopologySpoutInproc {
             this._child = require(module_path).create({});
             this._isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc spout", e)
+            console.error("Error while creating an inproc spout", e);
             this._isStarted = true;
             this._isClosed = true;
             this._isExit = true;
@@ -133,7 +133,7 @@ class TopologyBoltInproc {
             this._child = require(module_path).create({});
             this._isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc bolt", e)
+            console.error("Error while creating an inproc bolt", e);
             this._isStarted = true;
             this._isClosed = true;
             this._isExit = true;
