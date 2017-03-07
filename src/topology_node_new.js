@@ -1,53 +1,53 @@
 "use strict";
 
-const EventEmitter = require("events");
+/** Base class for topology-node contexts */
+class TopologyContextNode {
 
-/** Topology context in child process - should be instantiated in child process
- * to handle communication with local topology. */
-class TopologyContext extends EventEmitter {
-
-    /** Constructor that establishes callbacks for possible parent-process requests.
-     */
-    constructor() {
+    /** Creates new instance of node context */
+    constructor(child, bindEmit) {
         super();
-        this._allowed_cmds = ["shutdown", "heartbeat", "init", "run", "pause"];
-        this._send = process.send || ((obj) => { console.log(obj); });
+        this._child = child;
         this._name = null;
+
         let self = this;
         process.on('message', (msg) => {
-            try {
-                let cmd = msg.cmd;
-                if (cmd) {
-                    if (cmd == "init"){
-                        this._name = msg.name;
+            let cmd = msg.cmd;
+            if (cmd) {
+                if (cmd == "init") {
+                    self._name = msg.data.name;
+                    if (bindEmit) {
+                        msg.data.init.onEmit = (data) => {
+                            self.send("data", data);
+                        };
                     }
-                    self.emit(cmd, msg.data);
+                    self._child.init(self._name, msg.data.init, (err) => {
+                        if (err) {
+                            self.send("init_failed", err);
+                        } else {
+                            self.send("init_completed", {});
+                        }
+                    });
+                } else if ("shutdown") {
+                    self._child.shutdown((err) => {
+                        process.exit(0);
+                    });
+                } else if ("heartbeat") {
+                    self._child.heartbeat();
+                } else if ("run") {
+                    self._child.run();
+                } else if ("pause") {
+                    self._child.heartbeat();
                 }
-            } catch (e) {
-                console.log('Exception while processing message from parent:', e);
             }
         });
     }
 
-    /** Sends a message to the parent.
-     * @param {string} cmd - command to execute
-     * @param {Object} data - the message content
+    /** Sends command to parent process.
+     * @param {string} cmd - command to send
+     * @param {Object} data - data to send
      */
-    _sendInternal(cmd, data) {
-        //this._send({ cmd: cmd, data: data });
+    send(cmd, data) {
         process.send({ cmd: cmd, data: data });
-    }
-
-    /** Method for sending "data" message to parent
-     * @param {object} data - data object to send
-     */
-    sendData(data) {
-        this._sendInternal("data", data);
-    }
-
-    /** Sends init completed event to parent */
-    sendInitCompleted() {
-        this._sendInternal("init_completed", {});
     }
 
     /** Starts infinite loop by reading messages from parent or console */
@@ -69,28 +69,47 @@ class TopologyContext extends EventEmitter {
     }
 }
 
-/** Spout context */
-class TopologyContextSpout extends TopologyContext {
+/** Spout context object - handles communication with parent. */
+class TopologyContextSpout extends TopologyContextNode {
 
-    /** Constructor for spout. */
-    constructor() {
-        super();
-        this._allowed_cmds.push("next");
-    }
-
-    /** Method for sending "empty" message to parent. */
-    sendEmpty() {
-        this._sendInternal("empty", {});
+    /** Creates new instance of spout context */
+    constructor(child) {
+        super(child, false);
+        let self = this;
+        process.on('message', (msg) => {
+            let cmd = msg.cmd;
+            if (cmd == "next") {
+                self._child.next((err, data) => {
+                    if (err) {
+                        // TODO what do we do here
+                        return;
+                    }
+                    if (data) {
+                        self.send("data", err);
+                    } else {
+                        self.send("empty", err);
+                    }
+                });
+            }
+        });
     }
 }
 
-/** Bolt context */
-class TopologyContextBolt extends TopologyContext {
+/** Bolt context object - handles communication with parent. */
+class TopologyContextBolt extends TopologyContextNode {
 
-    /** Constructor for bolt. */
-    constructor() {
-        super();
-        this._allowed_cmds.push("data");
+    /** Creates new instance of bolt context */
+    constructor(child) {
+        super(child, true);
+        let self = this;
+        process.on('message', (msg) => {
+            let cmd = msg.cmd;
+            if (cmd == "data") {
+                self._child.receive(msg.data, (err) => {
+                    self.send("ack", err);
+                });
+            }
+        });
     }
 }
 
