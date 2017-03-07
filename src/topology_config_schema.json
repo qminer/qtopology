@@ -47,6 +47,13 @@
                     "worker": {
                         "type": "string"
                     },
+                    "type": {
+                        "enum": [
+                            "subproc",
+                            "inproc"
+                        ],
+                        "default": "subproc"
+                    },
                     "working_dir": {
                         "type": "string"
                     },
@@ -83,6 +90,16 @@
                     },
                     "worker": {
                         "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "subproc",
+                            "inproc"
+                        ]
+                    },
+                    "disabled": {
+                        "type": "boolean",
+                        "default": true
                     },
                     "working_dir": {
                         "type": "string"

@@ -2,6 +2,7 @@
 
 const async = require("async");
 const top_sub = require("./topology_local_subprocess");
+const top_inproc = require("./topology_local_inprocess");
 
 ////////////////////////////////////////////////////////////////////
 
@@ -57,10 +58,18 @@ class TopologyLocal {
         self._heartbeatTimeout = config.general.heartbeat;
         let tasks = [];
         self._config.bolts.forEach((bolt_config) => {
+            if (bolt_config.disabled) {
+                return;
+            }
             bolt_config.onEmit = (data) => {
                 self._redirect(bolt_config.name, data);
             };
-            let bolt = new top_sub.TopologyBolt(bolt_config);
+            let bolt = null;
+            if (bolt_config.type == "inproc") {
+                bolt = new top_inproc.TopologyBoltInproc(bolt_config);
+            } else {
+                bolt = new top_sub.TopologyBolt(bolt_config);
+            }
             self._bolts.push(bolt);
             tasks.push((xcallback) => { bolt.init(xcallback); });
             for (let input of bolt_config.inputs) {
@@ -71,7 +80,12 @@ class TopologyLocal {
             spout_config.onEmit = (data) => {
                 self._redirect(spout_config.name, data);
             };
-            let spout = new top_sub.TopologySpout(spout_config);
+            let spout = null;
+            if (spout_config.type == "inproc") {
+                spout = new top_inproc.TopologySpoutInproc(spout_config);
+            } else {
+                spout = new top_sub.TopologySpout(spout_config);
+            }
             self._spouts.push(spout);
             tasks.push((xcallback) => { spout.init(xcallback); });
         });

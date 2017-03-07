@@ -34,8 +34,9 @@ topology_context.on("pause", () => {
     //console.log(prefix, "Inside pause");
 });
 topology_context.on("data", (data) => {
-    //console.log(prefix, "Received data:", data);
-    sum += data.data.a;
+    console.log(prefix, "Received data:", data);
+    //sum += data.data.a;
+    sum += data.a;
 });
 
 topology_context.start();

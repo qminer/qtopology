@@ -7,14 +7,160 @@ const EventEmitter = require("events");
 
 ////////////////////////////////////////////////////////////////////
 
-/** Base class for communication with in-process object */
-class TopologyNodeInproc extends EventEmitter {
+// /** Base class for communication with in-process object */
+// class TopologyNodeInproc extends EventEmitter {
 
-    /** Constructor needs to receive basic data */
+//     /** Constructor needs to receive basic data */
+//     constructor(config) {
+//         super();
+//         this._name = config.name;
+//         this._working_dir = config.working_dir;
+//         this._cmd = config.cmd;
+//         this._args = config.args || [];
+//         this._init = config.init || {};
+
+//         this._isStarted = false;
+//         this._isClosed = false;
+//         this._isExit = false;
+//         this._isError = false;
+//         this._onExit = null;
+
+//         this._pendingInitCallback = null;
+
+//         let self = this;
+//         try {
+//             let module_path = path.join(this.working_dir, this._cmd);
+//             this._child = require(module_path).create({
+//                 onEmit: (data) => {
+//                     self.emit("data", data);
+//                 }
+//             });
+//             this._isStarted = true;
+//         } catch (e) {
+//             this._isStarted = true;
+//             this._isClosed = true;
+//             this._isExit = true;
+//             this._isError = true;
+//         }
+//     }
+
+//     /** Returns name of this node */
+//     getName() {
+//         return this._name;
+//     }
+
+//     /** Handler for heartbeat signal */
+//     heartbeat() {
+//         this._child.heartbeat();
+//     }
+
+//     /** Shuts down the process */
+//     shutdown(callback) {
+//         this._child.shutdown(callback);
+//     }
+
+//     /** Initializes system object that represents child process.
+//      * Attaches to all relevant alerts. Sends init data to child process.
+//     */
+//     init(callback) {
+//         this._child.init(self._init, callback);
+//     }
+// }
+
+// /** Wrapper for "bolt" - in-process */
+// class TopologyBoltInproc extends TopologyNodeInproc {
+
+//     /** Constructor needs to receive all data */
+//     constructor(config) {
+//         super(config);
+//         this._emitCallback = config.onEmit || (() => { });
+//         let self = this;
+//         this.on("data", (msg) => {
+//             self._emitCallback(msg);
+//         });
+//     }
+
+//     /** Sends data tuple to child process */
+//     send(data) {
+//         this._child.emit({ cmd: "data", data: data });
+//     }
+// }
+
+// /** Wrapper for "spout" in-process */
+// class TopologySpoutInproc extends TopologyNodeInproc {
+
+//     /** Constructor needs to receive all data */
+//     constructor(config) {
+//         super(config);
+//         let self = this;
+//         self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
+//         self._isPaused = true;
+//         self._nextTs = Date.now();
+
+//         self.on("data", (msg) => {
+//             self._nextPending = false;
+//             self._emitCallback(msg);
+//             self._nextCallback();
+//         });
+//         self.on("empty", () => {
+//             self._nextPending = false;
+//             self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
+//             self._nextCallback(null);
+//         });
+//     }
+
+//     /** Sends run signal and starts the "pump"" */
+//     run() {
+//         let self = this;
+//         this._isPaused = false;
+//         this._child.send({ cmd: "run" });
+//         async.whilst(
+//             () => { return !self._isPaused; },
+//             (xcallback) => {
+//                 if (Date.now() < this._nextTs) {
+//                     let sleep = this._nextTs - Date.now();
+//                     setTimeout(() => { xcallback(); }, sleep);
+//                 } else {
+//                     self.next(xcallback);
+//                 }
+//             },
+//             () => { });
+//     }
+
+//     /** Requests next data message */
+//     next(callback) {
+//         if (this._isPaused) {
+//             callback();
+//         } else {
+//             this._child.next((err, data) => {
+//                 if (err) {
+//                     console.error(err);
+//                     callback();
+//                     return;
+//                 }
+//                 if (!data) {
+//                     self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
+//                 }
+//                 self._emitCallback(data);
+//                 callback();
+//             });
+//         }
+//     }
+
+//     /** Sends pause signal to child */
+//     pause() {
+//         this._isPaused = true;
+//         this._child.pause();
+//     }
+// }
+
+/** Wrapper for "spout" in-process */
+class TopologySpoutInproc {
+
+    /** Constructor needs to receive all data */
     constructor(config) {
-        super();
         this._name = config.name;
-        this._working_dir = config.working_dir;
+        this._working_dir = path.resolve(config.working_dir); // path may be relative to current working dir
         this._cmd = config.cmd;
         this._args = config.args || [];
         this._init = config.init || {};
@@ -28,26 +174,21 @@ class TopologyNodeInproc extends EventEmitter {
         this._pendingInitCallback = null;
 
         let self = this;
-
         try {
-            let module_path = path.join(this.working_dir, this._cmd);
-            this._child = require(module_path).create({
-                onEmit: (data) => {
-                    self.emit("data", data);
-                }
-            });
+            let module_path = path.join(this._working_dir, this._cmd);
+            this._child = require(module_path).create({});
             this._isStarted = true;
         } catch (e) {
+            console.error("Error while creating an inproc spout", e)
             this._isStarted = true;
             this._isClosed = true;
             this._isExit = true;
             this._isError = true;
         }
-    }
 
-    /** Returns name of this node */
-    getName() {
-        return this._name;
+        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
+        self._isPaused = true;
+        self._nextTs = Date.now();
     }
 
     /** Handler for heartbeat signal */
@@ -60,61 +201,16 @@ class TopologyNodeInproc extends EventEmitter {
         this._child.shutdown(callback);
     }
 
-    /** Initializes system object that represents child process.
-     * Attaches to all relevant alerts. Sends init data to child process.
-    */
+    /** Initializes child object. */
     init(callback) {
-        this._child.init(self._init, callback);
-    }
-}
-
-/** Wrapper for "bolt" process */
-class TopologyBoltInproc extends TopologyNodeInproc {
-
-    /** Constructor needs to receive all data */
-    constructor(config) {
-        super(config);
-        this._emitCallback = config.onEmit || (() => { });
-        let self = this;
-        this.on("data", (msg) => {
-            self._emitCallback(msg);
-        });
-    }
-
-    /** Sends data tuple to child process */
-    send(data) {
-        this._child.emit({ cmd: "data", data: data });
-    }
-}
-
-/** Wrapper for "spout" process */
-class TopologySpoutInproc extends TopologyNodeInproc {
-
-    /** Constructor needs to receive all data */
-    constructor(config) {
-        super(config);
-        let self = this;
-        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
-        self._isPaused = true;
-        self._nextTs = Date.now();
-
-        self.on("data", (msg) => {
-            self._nextPending = false;
-            self._emitCallback(msg);
-            self._nextCallback();
-        });
-        self.on("empty", () => {
-            self._nextPending = false;
-            self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
-            self._nextCallback(null);
-        });
+        this._child.init(this._name, this._init, callback);
     }
 
     /** Sends run signal and starts the "pump"" */
     run() {
         let self = this;
         this._isPaused = false;
-        this._child.send({ cmd: "run" });
+        this._child.run();
         async.whilst(
             () => { return !self._isPaused; },
             (xcallback) => {
@@ -122,14 +218,15 @@ class TopologySpoutInproc extends TopologyNodeInproc {
                     let sleep = this._nextTs - Date.now();
                     setTimeout(() => { xcallback(); }, sleep);
                 } else {
-                    self.next(xcallback);
+                    self._next(xcallback);
                 }
             },
             () => { });
     }
 
     /** Requests next data message */
-    next(callback) {
+    _next(callback) {
+        let self = this;
         if (this._isPaused) {
             callback();
         } else {
@@ -141,8 +238,9 @@ class TopologySpoutInproc extends TopologyNodeInproc {
                 }
                 if (!data) {
                     self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
+                } else {
+                    self._emitCallback(data);
                 }
-                self._emitCallback(data);
                 callback();
             });
         }
@@ -157,5 +255,5 @@ class TopologySpoutInproc extends TopologyNodeInproc {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-exports.TopologyBoltInproc = TopologyBoltInproc;
+//exports.TopologyBoltInproc = TopologyBoltInproc;
 exports.TopologySpoutInproc = TopologySpoutInproc;

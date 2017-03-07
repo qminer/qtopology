@@ -22,7 +22,7 @@ class DataGenerator {
         }
         if (this._data.length === 0) {
             this._data = [];
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 17; i++) {
                 this._data.push({ a: i });
             }
             return null;

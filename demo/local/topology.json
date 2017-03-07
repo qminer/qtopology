@@ -13,8 +13,21 @@
         {
             "name": "pump1",
             "worker": "srv1",
+            "type": "subproc",
             "working_dir": ".",
             "cmd": "spout1.js",
+            "args": [
+                "-a",
+                "action1"
+            ],
+            "init": {}
+        },
+        {
+            "name": "pump2",
+            "worker": "srv1",
+            "type": "inproc",
+            "working_dir": ".",
+            "cmd": "spout_inproc.js",
             "args": [
                 "-a",
                 "action1"
@@ -51,6 +64,9 @@
             "inputs": [
                 {
                     "source": "pump1"
+                },
+                {
+                    "source": "pump2"
                 }
             ],
             "init": {}

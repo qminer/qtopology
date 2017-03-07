@@ -129,7 +129,7 @@ class TopologySpout extends TopologyNode {
 
         self.on("data", (msg) => {
             self._nextPending = false;
-            self._emitCallback(msg);
+            self._emitCallback(msg.data);
             self._nextCallback();
         });
         self.on("empty", () => {
