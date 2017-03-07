@@ -54,6 +54,10 @@
                         ],
                         "default": "subproc"
                     },
+                    "disabled": {
+                        "type": "boolean",
+                        "default": true
+                    },
                     "working_dir": {
                         "type": "string"
                     },

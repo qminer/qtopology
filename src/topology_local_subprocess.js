@@ -108,7 +108,7 @@ class TopologyBolt extends TopologyNode {
     }
 
     /** Sends data tuple to child process */
-    send(data) {
+    send(data, callback) {
         this._child.send({ cmd: "data", data: data });
     }
 }

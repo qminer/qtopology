@@ -1,8 +1,5 @@
 "use strict";
 
-const tn = require("../../").child;
-const cmdline = require("../../src/util/cmdline");
-
 /////////////////////////////////////////////////////////////////////////////
 
 class DataGenerator {
@@ -22,7 +19,7 @@ class DataGenerator {
         }
         if (this._data.length === 0) {
             this._data = [];
-            for (let i = 0; i < 31; i++) {
+            for (let i = 0; i < 5; i++) {
                 this._data.push({ a: i });
             }
             return null;

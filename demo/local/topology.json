@@ -56,7 +56,8 @@
             "name": "bolt2",
             "worker": "srv1",
             "working_dir": ".",
-            "cmd": "bolt1.js",
+            "type": "inproc",
+            "cmd": "bolt_inproc.js",
             "args": [
                 "-n",
                 "name2"

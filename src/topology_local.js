@@ -77,6 +77,9 @@ class TopologyLocal {
             }
         });
         self._config.spouts.forEach((spout_config) => {
+            if (spout_config.disabled) {
+                return;
+            }
             spout_config.onEmit = (data) => {
                 self._redirect(spout_config.name, data);
             };
