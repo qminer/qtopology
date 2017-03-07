@@ -1,0 +1,29 @@
+{
+  "name": "qtopology",
+  "version": "0.1.0",
+  "description": "Distributed stream processing engine.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests --recursive"
+  },
+  "repository": "https://github.com/qminer/qtopology.git",
+  "keywords": [
+    "node.js"
+  ],
+  "author": "Viktor Jovanoski",
+  "contributors": [
+    {
+      "name": "Viktor Jovanoski",
+      "email": "viktor@carvic.si"
+    }
+  ],
+  "license": "BSD-2-Clause",
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {
+    "async": "2.1.4",
+    "jsonschema": "1.1.1"
+  }
+}

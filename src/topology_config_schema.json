@@ -1,0 +1,169 @@
+{
+    "id": "https://github.com/bergloman/NodeProcessManager:topology",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "general": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "coordination_port": {
+                    "type": "integer"
+                },
+                "heartbeat": {
+                    "type": "integer",
+                    "default": 0
+                }
+            },
+            "required": [
+                "name",
+                "coordination_port"
+            ]
+        },
+        "workers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            }
+        },
+        "spouts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "worker": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "subproc",
+                            "inproc"
+                        ],
+                        "default": "subproc"
+                    },
+                    "disabled": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "working_dir": {
+                        "type": "string"
+                    },
+                    "cmd": {
+                        "type": "string"
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "init": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "required": [
+                    "name",
+                    "worker",
+                    "working_dir",
+                    "cmd",
+                    "init"
+                ]
+            }
+        },
+        "bolts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "worker": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "subproc",
+                            "inproc"
+                        ]
+                    },
+                    "disabled": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "working_dir": {
+                        "type": "string"
+                    },
+                    "cmd": {
+                        "type": "string"
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "inputs": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "source": {
+                                    "type": "string"
+                                },
+                                "stream_id": {
+                                    "type": "string",
+                                    "default": "$default"
+                                }
+                            },
+                            "required": [
+                                "source"
+                            ]
+                        }
+                    },
+                    "init": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "required": [
+                    "name",
+                    "worker",
+                    "working_dir",
+                    "cmd",
+                    "inputs",
+                    "init"
+                ]
+            }
+        },
+        "variables": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "general",
+        "workers",
+        "spouts",
+        "bolts",
+        "variables"
+    ]
+}
