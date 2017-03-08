@@ -7,7 +7,6 @@ const EventEmitter = require("events");
 
 ////////////////////////////////////////////////////////////////////
 
-
 /** Wrapper for "spout" in-process */
 class TopologySpoutInproc {
 
@@ -31,7 +30,7 @@ class TopologySpoutInproc {
             this._child = require(module_path).create({});
             this._isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc spout", e)
+            console.error("Error while creating an inproc spout", e);
             this._isStarted = true;
             this._isClosed = true;
             this._isExit = true;
@@ -120,6 +119,7 @@ class TopologyBoltInproc {
         this._cmd = config.cmd;
         this._args = config.args || [];
         this._init = config.init || {};
+        this._init.onEmit = config.onEmit || (() => { console.log("Empty emit cb"); });
 
         this._isStarted = false;
         this._isClosed = false;
@@ -133,7 +133,7 @@ class TopologyBoltInproc {
             this._child = require(module_path).create({});
             this._isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc bolt", e)
+            console.error("Error while creating an inproc bolt", e);
             this._isStarted = true;
             this._isClosed = true;
             this._isExit = true;
@@ -160,7 +160,6 @@ class TopologyBoltInproc {
 
     /** Initializes child object. */
     init(callback) {
-        this._init.onEmit = this._init.onEmit || (() => { console.log("Empty emit cb"); });
         this._child.init(this._name, this._init, callback);
     }
 
@@ -178,7 +177,7 @@ class TopologyBoltInproc {
 
     /** Sends data to child object. */
     send(data, callback) {
-        this._child.send(data, callback || (() => { }));
+        this._child.receive(data, callback || (() => { }));
     }
 }
 

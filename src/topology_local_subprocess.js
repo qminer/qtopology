@@ -17,6 +17,7 @@ class TopologyNode extends EventEmitter {
         this._cmd = config.cmd;
         this._args = config.args || [];
         this._init = config.init || {};
+        this._init.name = config.name;
 
         this._isStarted = false;
         this._isClosed = false;
