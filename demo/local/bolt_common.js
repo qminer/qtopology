@@ -44,7 +44,6 @@ class MyBolt {
         this._sum += data.a;
         if (this._forward) {
             data.sum = this._sum;
-            console.log("##", "Emiting", data);
             this._onEmit(data); // emit same data, with addition of sum
         }
         callback(null);

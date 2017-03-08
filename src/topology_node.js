@@ -13,7 +13,6 @@ class TopologyContextNode {
         this._handlers = {
             init: (data) => {
                 self._name = data.name;
-                console.log("TopologyContextNode", data)                
                 if (bindEmit) {
                     data.onEmit = (data) => {
                         self.send("data", data);
