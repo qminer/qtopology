@@ -22,7 +22,7 @@
     ],
     "bolts": [
         {
-            "name": "bolt_qm",
+            "name": "bolt_qm1",
             "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
@@ -34,6 +34,22 @@
                 }
             ],
             "init": {}
+        },
+        {
+            "name": "bolt_qm2",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "inproc",
+            "cmd": "bolt_qm.js",
+            "args": [],
+            "inputs": [
+                {
+                    "source": "pump1"
+                }
+            ],
+            "init": {
+                "use_target2": true
+            }
         }
     ],
     "variables": {}

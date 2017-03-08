@@ -18,7 +18,10 @@ class DataGenerator {
         if (this._data.length === 0) {
             this._data = [];
             for (let i = 0; i < 500; i++) {
-                this._data.push({ a: Math.sin(i) });
+                this._data.push({
+                    a: Math.sin(i),
+                    b: Math.cos(i)
+                });
             }
             return null;
         } else {
