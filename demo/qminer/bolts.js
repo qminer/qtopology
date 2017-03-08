@@ -2,22 +2,20 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-class MyBolt {
+class QMinerBolt {
 
     constructor() {
         this._name = null;
         this._prefix = "";
         this._sum = 0;
-        this._forward = true;
         this._onEmit = null;
     }
 
     init(name, config, callback) {
         this._name = name;
-        this._prefix = `[InprocBolt ${this._name}]`;
+        this._prefix = `[QmBolt ${this._name}]`;
         console.log(this._prefix, "Inside init:", config);
         this._onEmit = config.onEmit;
-        this._forward = config.forward;
         callback();
     }
 
@@ -40,16 +38,12 @@ class MyBolt {
     }
 
     receive(data, callback) {
-        console.log(this._prefix, "Inside receive", data);
+        //console.log(this._prefix, "Inside receive", data);
         this._sum += data.a;
-        if (this._forward) {
-            data.sum = this._sum;
-            this._onEmit(data); // emit same data, with addition of sum
-        }
         callback(null);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.MyBolt = MyBolt;
+exports.QMinerBolt = QMinerBolt;
