@@ -14,8 +14,7 @@ class OutputRouter {
         this._sources = {};
     }
 
-    /**
-     * This method registers binding between source and destination
+    /** This method registers binding between source and destination
      * @param {string} source - Name of source
      * @param {string} destination - Name of destination
      */
