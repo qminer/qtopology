@@ -50,7 +50,6 @@ class QMinerBolt {
     init(name, config, callback) {
         this._name = name;
         this._prefix = `[QmBolt ${this._name}]`;
-        //console.log(this._prefix, "Inside init:", config);
 
         this._target_field_name = (config.use_target2 ? "target2" : "target1");
         this._onEmit = config.onEmit;
@@ -74,7 +73,7 @@ class QMinerBolt {
     heartbeat() {
         let report = this._report();
         console.log(this._prefix, "Inside heartbeat. sum=" + JSON.stringify(report, null, "    "));
-        this._onEmit(report);
+        this._onEmit(report, () => { });
     }
 
     shutdown(callback) {
@@ -218,7 +217,7 @@ class QMinerBolt {
             min: this._aggr_min.getFloat(),
             max: this._aggr_max.getFloat(),
             ema: this._aggr_ema.getFloat()
-        }
+        };
         return res;
     }
 }

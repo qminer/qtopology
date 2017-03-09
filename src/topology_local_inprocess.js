@@ -37,7 +37,7 @@ class TopologySpoutInproc {
             this._isError = true;
         }
 
-        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
+        self._emitCallback = config.onEmit;
         self._isPaused = true;
         self._nextTs = Date.now();
     }
@@ -94,10 +94,10 @@ class TopologySpoutInproc {
                 }
                 if (!data) {
                     self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
+                    callback();
                 } else {
-                    self._emitCallback(data);
+                    self._emitCallback(data, callback);
                 }
-                callback();
             });
         }
     }
@@ -119,7 +119,10 @@ class TopologyBoltInproc {
         this._cmd = config.cmd;
         this._args = config.args || [];
         this._init = config.init || {};
-        this._init.onEmit = config.onEmit || (() => { console.log("Empty emit cb"); });
+        this._init.onEmit = (data, callback) => {
+            console.log("--", config.name);
+            config.onEmit(data, callback);
+        };
 
         this._isStarted = false;
         this._isClosed = false;
@@ -177,7 +180,7 @@ class TopologyBoltInproc {
 
     /** Sends data to child object. */
     send(data, callback) {
-        this._child.receive(data, callback || (() => { }));
+        this._child.receive(data, callback);
     }
 }
 

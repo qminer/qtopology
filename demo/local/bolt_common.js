@@ -23,7 +23,7 @@ class MyBolt {
 
     heartbeat() {
         console.log(this._prefix, "Inside heartbeat. sum=" + this._sum);
-        this._onEmit({ sum: this._sum });
+        //this._onEmit({ sum: this._sum }, () => { });
     }
 
     shutdown(callback) {
@@ -40,13 +40,17 @@ class MyBolt {
     }
 
     receive(data, callback) {
+        let self = this;
         console.log(this._prefix, "Inside receive", data);
         this._sum += data.a;
-        if (this._forward) {
-            data.sum = this._sum;
-            this._onEmit(data); // emit same data, with addition of sum
-        }
-        callback(null);
+        setTimeout(function () {
+            if (self._forward) {
+                data.sum = self._sum;
+                self._onEmit(data, callback); // emit same data, with addition of sum
+            } else {
+                callback(null);
+            }
+        }, Math.round(100 * Math.random()));
     }
 }
 
