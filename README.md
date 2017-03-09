@@ -9,6 +9,7 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 - **Spout** - Node in topology that reads data from external sources and emits the data into the topology.
 
 
+
 When running in distributed mode, we also use the following:
 
 - **Coordinator** - reads global settings, receives worker registrations and send them initialization data. Also send shutdown signal.
