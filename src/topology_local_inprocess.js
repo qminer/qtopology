@@ -120,6 +120,7 @@ class TopologyBoltInproc {
         this._args = config.args || [];
         this._init = config.init || {};
         this._init.onEmit = (data, callback) => {
+            console.log("--", config.name);
             config.onEmit(data, callback);
         };
 
