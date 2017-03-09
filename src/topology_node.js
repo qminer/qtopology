@@ -8,14 +8,23 @@ class TopologyContextNode {
         this._child = child;
         this._name = null;
 
+        this._req_cnt = 0;
+        this._pendingAcks = [];
+
         let self = this;
         // set up default handlers for incomming messages
         this._handlers = {
             init: (data) => {
                 self._name = data.name;
                 if (bindEmit) {
-                    data.onEmit = (data) => {
-                        self.send("data", data);
+                    data.onEmit = (data, callback) => {
+                        self._req_cnt++;
+                        let req_id = self._req_cnt;
+                        this._pendingAcks.push({
+                            id: req_id,
+                            callback: callback
+                        });
+                        self.send("data", { data: data, id: req_id });
                     };
                 }
                 self._child.init(self._name, data, (err) => {
@@ -39,6 +48,16 @@ class TopologyContextNode {
             },
             pause: () => {
                 self._child.heartbeat();
+            },
+            ack: (data) => {
+                for (let i = 0; i < self._pendingAcks.length; i++) {
+                    if (self._pendingAcks[i] && self._pendingAcks[i].id == data.id) {
+                        let cb = self._pendingAcks[i].callback;
+                        self._pendingAcks[i] = null;
+                        cb();
+                    }
+                }
+                self._pendingAcks = self._pendingAcks.filter(x => x != null);
             }
         };
 
@@ -99,8 +118,8 @@ class TopologyContextSpout extends TopologyContextNode {
     /** Creates new instance of spout context */
     constructor(child) {
         super(child, false);
-        let self = this;
 
+        let self = this;
         self._handlers.next = (data) => {
             self._child.next((err, data) => {
                 if (err) {
@@ -123,6 +142,10 @@ class TopologyContextBolt extends TopologyContextNode {
     /** Creates new instance of bolt context */
     constructor(child) {
         super(child, true);
+
+        this._req_cnt = 0;
+        this._pending_acks = [];
+
         let self = this;
         self._handlers.data = (data) => {
             self._child.receive(data, (err) => {

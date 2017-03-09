@@ -120,7 +120,6 @@ class TopologyBoltInproc {
         this._args = config.args || [];
         this._init = config.init || {};
         this._init.onEmit = (data, callback) => {
-            console.log("--", config.name);
             config.onEmit(data, callback);
         };
 
@@ -129,6 +128,11 @@ class TopologyBoltInproc {
         this._isExit = false;
         this._isError = false;
         this._onExit = null;
+
+        this._isPaused = true;
+
+        this._inSend = false;
+        this._pendingSendRequests = [];
 
         let self = this;
         try {
@@ -142,8 +146,6 @@ class TopologyBoltInproc {
             this._isExit = true;
             this._isError = true;
         }
-
-        self._isPaused = true;
     }
 
     /** Returns name of this node */
@@ -180,7 +182,24 @@ class TopologyBoltInproc {
 
     /** Sends data to child object. */
     send(data, callback) {
-        this._child.receive(data, callback);
+        let self = this;
+        if (self._inSend) {
+            self._pendingSendRequests.push({
+                data: data,
+                callback: callback
+            });
+        } else {
+            self._inSend = true;
+            self._child.receive(data, (err) => {
+                callback(err);
+                self._inSend = false;
+                if (self._pendingSendRequests.length > 0) {
+                    let d = self._pendingSendRequests[0];
+                    self._pendingSendRequests = self._pendingSendRequests.slice(1);
+                    self.send(d.data, d.callback);
+                }
+            });
+        }
     }
 }
 

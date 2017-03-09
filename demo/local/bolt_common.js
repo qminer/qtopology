@@ -50,7 +50,7 @@ class MyBolt {
             } else {
                 callback(null);
             }
-        }, Math.round(100 * Math.random()));
+        }, Math.round(700 * Math.random()));
     }
 }
 
