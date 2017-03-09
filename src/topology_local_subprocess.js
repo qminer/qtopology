@@ -169,26 +169,49 @@ class TopologyBolt extends TopologyNode {
     /** Constructor needs to receive all data */
     constructor(config) {
         super(config);
-        this._emitCallback = config.onEmit || (() => { });
+        this._emitCallback = config.onEmit;
+
+        this._inSend = false; // this field can be true even when _ackCallback is null
+        this._pendingSendRequests = [];
         this._ackCallback = null;
+
         let self = this;
         this.on("data", (msg) => {
-            self._emitCallback(msg);
+            console.log("da", msg)
+            self._emitCallback(msg.data.data, (err) => {
+                self._child.send({ cmd: "ack", data: { id: msg.data.id } });
+            });
         });
-        this.on("ack", (msg) => {
-            let cb = self._ackCallback;
+        this.on("ack", () => {
+            console.log("Got ack", self._name, self._pendingSendRequests.length)
+            self._ackCallback();
             self._ackCallback = null;
-            cb(null, msg);
+            self._inSend = false;
+            if (self._pendingSendRequests.length > 0) {
+                console.log("Running pending req", self._name, self._pendingSendRequests[0].data)
+                let d = self._pendingSendRequests[0];
+                self._pendingSendRequests = self._pendingSendRequests.slice(1);
+                self.send(d.data, d.callback);
+            }
         });
     }
 
     /** Sends data tuple to child process */
     send(data, callback) {
-        if (this._ackCallback) {
-            throw new Error("_ackCallback not null");
+        console.log("in send")
+        let self = this;
+        if (self._inSend) {
+            console.log("in send - going to queue", self._name, self._pendingSendRequests)
+            self._pendingSendRequests.push({
+                data: data,
+                callback: callback
+            });
+        } else {
+            console.log("in send - direct call", self._name)
+            self._inSend = true;
+            self._ackCallback = callback;
+            self._child.send({ cmd: "data", data: data });
         }
-        this._ackCallback = callback;
-        this._child.send({ cmd: "data", data: data });
     }
 }
 
