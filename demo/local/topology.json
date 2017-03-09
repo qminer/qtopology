@@ -13,18 +13,6 @@
         {
             "name": "pump1",
             "worker": "srv1",
-            "type": "subproc",
-            "working_dir": ".",
-            "cmd": "spout_subproc.js",
-            "args": [
-                "-a",
-                "action1"
-            ],
-            "init": {}
-        },
-        {
-            "name": "pump2",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
@@ -37,54 +25,15 @@
     ],
     "bolts": [
         {
-            "name": "bolt1",
-            "worker": "srv1",
-            "working_dir": ".",
-            "type": "inproc",
-            "cmd": "bolt_inproc.js",
-            "args": [
-                "-n",
-                "name1"
-            ],
-            "inputs": [
-                {
-                    "source": "pump1"
-                }
-            ],
-            "init": {}
-        },
-        {
-            "name": "bolt2",
-            "worker": "srv1",
-            "working_dir": ".",
-            "type": "inproc",
-            "cmd": "bolt_inproc.js",
-            "args": [
-                "-n",
-                "name2"
-            ],
-            "inputs": [
-                {
-                    "source": "pump1"
-                },
-                {
-                    "source": "pump2"
-                }
-            ],
-            "init": {
-                "forward": true
-            }
-        },
-        {
             "name": "bolt3",
             "worker": "srv1",
             "working_dir": ".",
-            "type": "subproc",
-            "cmd": "bolt_subproc.js",
+            "type": "inproc",
+            "cmd": "bolt_inproc.js",
             "args": [],
             "inputs": [
                 {
-                    "source": "bolt2"
+                    "source": "pump1"
                 }
             ],
             "init": {

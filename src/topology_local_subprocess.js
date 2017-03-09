@@ -95,25 +95,6 @@ class TopologyNode extends EventEmitter {
     }
 }
 
-/** Wrapper for "bolt" process */
-class TopologyBolt extends TopologyNode {
-
-    /** Constructor needs to receive all data */
-    constructor(config) {
-        super(config);
-        this._emitCallback = config.onEmit || (() => { });
-        let self = this;
-        this.on("data", (msg) => {
-            self._emitCallback(msg);
-        });
-    }
-
-    /** Sends data tuple to child process */
-    send(data, callback) {
-        this._child.send({ cmd: "data", data: data });
-    }
-}
-
 /** Wrapper for "spout" process */
 class TopologySpout extends TopologyNode {
 
@@ -121,23 +102,25 @@ class TopologySpout extends TopologyNode {
     constructor(config) {
         super(config);
         let self = this;
-        self._emitCallback = config.onEmit || (() => { console.log("Empty emit cb"); });
+        self._emitCallback = config.onEmit;
         self._isPaused = true;
-        self._nextPending = false;
-        self._empty = true;
         self._nextCallback = null;
         self._nextTs = Date.now();
 
         self.on("data", (msg) => {
-            self._nextPending = false;
-            self._emitCallback(msg.data);
-            self._nextCallback();
+            // data was received from child process, send it into topology
+            self._emitCallback(msg.data, () => {
+                // only call callback when topology signals that processing is done
+                let cb = self._nextCallback;
+                self._nextCallback = null;
+                cb();
+            });
         });
         self.on("empty", () => {
-            self._nextPending = false;
-            self._empty = true;
             self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
-            self._nextCallback(null);
+            let cb = self._nextCallback;
+            self._nextCallback = null;
+            cb();
         });
     }
 
@@ -145,7 +128,6 @@ class TopologySpout extends TopologyNode {
     run() {
         let self = this;
         this._isPaused = false;
-        this._empty = true;
         this._child.send({ cmd: "run" });
         async.whilst(
             () => { return !self._isPaused; },
@@ -163,14 +145,12 @@ class TopologySpout extends TopologyNode {
 
     /** Requests next data message */
     next(callback) {
-        if (this._nextPending) {
-            throw new Error("Cannot call next() when previous call is still pending.");
+        if (this._nextCallback) {
+            throw new Error("Callback for next() is non-null.");
         }
         if (this._isPaused) {
             callback();
         } else {
-            this._empty = false;
-            this._nextPending = true;
             this._nextCallback = callback;
             this._child.send({ cmd: "next" });
         }
@@ -180,6 +160,35 @@ class TopologySpout extends TopologyNode {
     pause() {
         this._isPaused = true;
         this._child.send({ cmd: "pause" });
+    }
+}
+
+/** Wrapper for "bolt" process */
+class TopologyBolt extends TopologyNode {
+
+    /** Constructor needs to receive all data */
+    constructor(config) {
+        super(config);
+        this._emitCallback = config.onEmit || (() => { });
+        this._ackCallback = null;
+        let self = this;
+        this.on("data", (msg) => {
+            self._emitCallback(msg);
+        });
+        this.on("ack", (msg) => {
+            let cb = self._ackCallback;
+            self._ackCallback = null;
+            cb(null, msg);
+        });
+    }
+
+    /** Sends data tuple to child process */
+    send(data, callback) {
+        if (this._ackCallback) {
+            throw new Error("_ackCallback not null");
+        }
+        this._ackCallback = callback;
+        this._child.send({ cmd: "data", data: data });
     }
 }
 

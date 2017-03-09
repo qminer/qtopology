@@ -60,8 +60,8 @@ class TopologyLocal {
             if (bolt_config.disabled) {
                 return;
             }
-            bolt_config.onEmit = (data) => {
-                self._redirect(bolt_config.name, data);
+            bolt_config.onEmit = (data, callback) => {
+                self._redirect(bolt_config.name, data, callback);
             };
             let bolt = null;
             if (bolt_config.type == "inproc") {
@@ -79,8 +79,8 @@ class TopologyLocal {
             if (spout_config.disabled) {
                 return;
             }
-            spout_config.onEmit = (data) => {
-                self._redirect(spout_config.name, data);
+            spout_config.onEmit = (data, callback) => {
+                self._redirect(spout_config.name, data, callback);
             };
             let spout = null;
             if (spout_config.type == "inproc") {
@@ -164,14 +164,23 @@ class TopologyLocal {
     }
 
     /** This method redirects/broadcasts message from source to other nodes.
+     * It is done in async/parallel manner.
      * @param {string} source - Name of the source that emitted this data
      * @param {Object} data - Data content of the message
+     * @param {Function} callback - standard callback
      */
-    _redirect(source, data) {
-        let destinations = this._router.getDestinationsForSource(source);
-        for (let destination of destinations) {
-            this._getBolt(destination).send(data);
-        }
+    _redirect(source, data, callback) {
+        let self = this;
+        let destinations = self._router.getDestinationsForSource(source);
+        async.each(
+            destinations,
+            (destination, xcallback) => {
+                let data_clone = {};
+                Object.assign(data_clone, data);
+                self._getBolt(destination).send(data_clone, xcallback);
+            },
+            callback
+        );
     }
 
     /** Find bolt with given name.

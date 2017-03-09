@@ -59,7 +59,7 @@ class TopologyContextNode {
         if (process.send) {
             process.send({ cmd: cmd, data: data });
         } else {
-            // we're running in dev/test mode a s standalone process
+            // we're running in dev/test mode as a standalone process
             console.log("Sending command", { cmd: cmd, data: data });
         }
     }
