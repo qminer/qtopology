@@ -60,8 +60,8 @@ class TopologyLocal {
             if (bolt_config.disabled) {
                 return;
             }
-            bolt_config.onEmit = (data, callback) => {
-                self._redirect(bolt_config.name, data, callback);
+            bolt_config.onEmit = (data, stream_id, callback) => {
+                self._redirect(bolt_config.name, data, stream_id, callback);
             };
             let bolt = null;
             if (bolt_config.type == "inproc") {
@@ -79,8 +79,8 @@ class TopologyLocal {
             if (spout_config.disabled) {
                 return;
             }
-            spout_config.onEmit = (data, callback) => {
-                self._redirect(spout_config.name, data, callback);
+            spout_config.onEmit = (data, stream_id, callback) => {
+                self._redirect(spout_config.name, data, stream_id, callback);
             };
             let spout = null;
             if (spout_config.type == "inproc") {
@@ -167,9 +167,10 @@ class TopologyLocal {
      * It is done in async/parallel manner.
      * @param {string} source - Name of the source that emitted this data
      * @param {Object} data - Data content of the message
+     * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    _redirect(source, data, callback) {
+    _redirect(source, data, stream_id, callback) {
         let self = this;
         let destinations = self._router.getDestinationsForSource(source);
         async.each(
@@ -177,7 +178,8 @@ class TopologyLocal {
             (destination, xcallback) => {
                 let data_clone = {};
                 Object.assign(data_clone, data);
-                self._getBolt(destination).send(data_clone, xcallback);
+                self._getBolt(destination)
+                    .receive(data_clone, stream_id, xcallback);
             },
             callback
         );

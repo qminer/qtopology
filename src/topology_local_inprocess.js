@@ -37,7 +37,9 @@ class TopologySpoutInproc {
             this._isError = true;
         }
 
-        self._emitCallback = config.onEmit;
+        self._emitCallback = (data, stream_id, callback) => {
+            config.onEmit(data, stream_id, callback);
+        };
         self._isPaused = true;
         self._nextTs = Date.now();
     }
@@ -86,7 +88,7 @@ class TopologySpoutInproc {
         if (this._isPaused) {
             callback();
         } else {
-            this._child.next((err, data) => {
+            this._child.next((err, data, stream_id) => {
                 if (err) {
                     console.error(err);
                     callback();
@@ -96,7 +98,7 @@ class TopologySpoutInproc {
                     self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
                     callback();
                 } else {
-                    self._emitCallback(data, callback);
+                    self._emitCallback(data, stream_id, callback);
                 }
             });
         }
@@ -119,8 +121,8 @@ class TopologyBoltInproc {
         this._cmd = config.cmd;
         this._args = config.args || [];
         this._init = config.init || {};
-        this._init.onEmit = (data, callback) => {
-            config.onEmit(data, callback);
+        this._init.onEmit = (data, stream_id, callback) => {
+            config.onEmit(data, stream_id, callback);
         };
 
         this._isStarted = false;
@@ -133,6 +135,7 @@ class TopologyBoltInproc {
 
         this._inSend = false;
         this._pendingSendRequests = [];
+        this._pendingShutdownCallback = null;
 
         let self = this;
         try {
@@ -160,7 +163,12 @@ class TopologyBoltInproc {
 
     /** Shuts down the child */
     shutdown(callback) {
-        this._child.shutdown(callback);
+        if (!this._inSend) {
+            return this._child.shutdown(callback);
+        } else {
+            console.log("storing shutdown cb")
+            this._pendingShutdown = callback;
+        }
     }
 
     /** Initializes child object. */
@@ -181,22 +189,25 @@ class TopologyBoltInproc {
     }
 
     /** Sends data to child object. */
-    send(data, callback) {
+    receive(data, stream_id, callback) {
         let self = this;
         if (self._inSend) {
             self._pendingSendRequests.push({
                 data: data,
+                stream_id: stream_id,
                 callback: callback
             });
         } else {
             self._inSend = true;
-            self._child.receive(data, (err) => {
+            self._child.receive(data, stream_id, (err) => {
                 callback(err);
                 self._inSend = false;
                 if (self._pendingSendRequests.length > 0) {
                     let d = self._pendingSendRequests[0];
                     self._pendingSendRequests = self._pendingSendRequests.slice(1);
-                    self.send(d.data, d.callback);
+                    self.receive(d.data, stream_id, d.callback);
+                } else if (self._pendingShutdownCallback) {
+                    self.shutdown(self._pendingShutdownCallback);
                 }
             });
         }

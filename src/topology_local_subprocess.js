@@ -109,7 +109,7 @@ class TopologySpout extends TopologyNode {
 
         self.on("data", (msg) => {
             // data was received from child process, send it into topology
-            self._emitCallback(msg.data, () => {
+            self._emitCallback(msg.data, msg.stream_id, () => {
                 // only call callback when topology signals that processing is done
                 let cb = self._nextCallback;
                 self._nextCallback = null;
@@ -169,42 +169,47 @@ class TopologyBolt extends TopologyNode {
     /** Constructor needs to receive all data */
     constructor(config) {
         super(config);
-        this._emitCallback = config.onEmit;
+        this._emitCallback = (data, callback) => {
+            config.onEmit(data, null, callback);
+        };
 
-        this._inSend = false; // this field can be true even when _ackCallback is null
-        this._pendingSendRequests = [];
+        this._inReceive = false; // this field can be true even when _ackCallback is null
+        this._pendingReceiveRequests = [];
         this._ackCallback = null;
 
         let self = this;
         this.on("data", (msg) => {
-            self._emitCallback(msg.data.data, (err) => {
-                self._child.send({ cmd: "ack", data: { id: msg.data.id } });
+            let id = msg.data.id;
+            self._emitCallback(msg.data.data, msg.data.stream_id, (err) => {
+                self._child.send({ cmd: "ack", data: { id: id } });
             });
         });
         this.on("ack", () => {
+            console.log("ack", self._name);
             self._ackCallback();
             self._ackCallback = null;
-            self._inSend = false;
-            if (self._pendingSendRequests.length > 0) {
-                let d = self._pendingSendRequests[0];
-                self._pendingSendRequests = self._pendingSendRequests.slice(1);
-                self.send(d.data, d.callback);
+            self._inReceive = false;
+            if (self._pendingReceiveRequests.length > 0) {
+                let d = self._pendingReceiveRequests[0];
+                self._pendingReceiveRequests = self._pendingReceiveRequests.slice(1);
+                self.receive(d.data, d.stream_id, d.callback);
             }
         });
     }
 
     /** Sends data tuple to child process */
-    send(data, callback) {
+    receive(data, stream_id, callback) {
         let self = this;
-        if (self._inSend) {
-            self._pendingSendRequests.push({
+        if (self._inReceive) {
+            self._pendingReceiveRequests.push({
                 data: data,
+                stream_id: stream_id,
                 callback: callback
             });
         } else {
-            self._inSend = true;
+            self._inReceive = true;
             self._ackCallback = callback;
-            self._child.send({ cmd: "data", data: data });
+            self._child.send({ cmd: "data", data: { data: data, stream_id: stream_id } });
         }
     }
 }
