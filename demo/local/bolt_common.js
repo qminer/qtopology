@@ -27,7 +27,7 @@ class MyBolt {
     }
 
     shutdown(callback) {
-        console.log(this._prefix, "Shutting down gracefully.");
+        console.log(this._prefix, "Shutting down gracefully. sum=" + this._sum);
         callback();
     }
 
@@ -39,18 +39,19 @@ class MyBolt {
         console.log(this._prefix, "Inside pause");
     }
 
-    receive(data, callback) {
+    receive(data, stream_id, callback) {
         let self = this;
-        console.log(this._prefix, "Inside receive", data);
+        console.log(this._prefix, "Inside receive", data, "$" + stream_id + "$");
         this._sum += data.a;
         setTimeout(function () {
             if (self._forward) {
                 data.sum = self._sum;
-                self._onEmit(data, callback); // emit same data, with addition of sum
+                let xstream_id = (data.sum % 2 === 0 ? "Even" : "Odd");
+                self._onEmit(data, xstream_id, callback); // emit same data, with addition of sum
             } else {
-                callback(null);
+                callback();
             }
-        }, Math.round(700 * Math.random()));
+        }, Math.round(80 * Math.random()));
     }
 }
 

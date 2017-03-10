@@ -1,3 +1,10 @@
+# Topology definition
+
+Topology is defined via `JSON`.
+
+An example:
+
+```````````json
 {
     "general": {
         "name": "Topology name",
@@ -5,9 +12,7 @@
         "heartbeat": 3200
     },
     "workers": [
-        {
-            "name": "srv1"
-        }
+        { "name": "srv1" }
     ],
     "spouts": [
         {
@@ -16,7 +21,7 @@
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
-            "args": [ ],
+            "args": [],
             "init": {}
         },
         {
@@ -25,7 +30,7 @@
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
-            "args": [ ],
+            "args": [],
             "init": {}
         }
     ],
@@ -36,28 +41,20 @@
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
-            "args": [ ],
-            "inputs": [
-                {
-                    "source": "pump1"
-                }
-            ],
+            "args": [],
+            "inputs": [{ "source": "pump1" }],
             "init": {}
         },
         {
             "name": "bolt2",
             "worker": "srv1",
             "working_dir": ".",
-            "type": "subproc",
-            "cmd": "bolt_subproc.js",
-            "args": [   ],
+            "type": "inproc",
+            "cmd": "bolt_inproc.js",
+            "args": [],
             "inputs": [
-                {
-                    "source": "pump1"
-                },
-                {
-                    "source": "pump2"
-                }
+                { "source": "pump1" },
+                { "source": "pump2" }
             ],
             "init": {
                 "forward": true
@@ -70,12 +67,7 @@
             "type": "inproc",
             "cmd": "bolt_inproc.js",
             "args": [],
-            "inputs": [
-                {
-                    "source": "bolt2",
-                    "stream_id": "Odd"
-                }
-            ],
+            "inputs": [{ "source": "bolt2" }],
             "init": {
                 "forward": false
             }
@@ -83,3 +75,16 @@
     ],
     "variables": {}
 }
+```````````
+
+Topology can be validated using validator:
+
+``````````javascript
+"use strict";
+
+let config = {....};
+
+// Run validator and abort process if topology doesn't meet the schema.
+const validator = require("qtopology").validation;
+validator.validate({ config: config, exitOnError: true });
+``````````

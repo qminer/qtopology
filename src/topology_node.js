@@ -17,21 +17,21 @@ class TopologyContextNode {
             init: (data) => {
                 self._name = data.name;
                 if (bindEmit) {
-                    data.onEmit = (data, callback) => {
+                    data.onEmit = (data, stream_id, callback) => {
                         self._req_cnt++;
                         let req_id = self._req_cnt;
                         this._pendingAcks.push({
                             id: req_id,
                             callback: callback
                         });
-                        self.send("data", { data: data, id: req_id });
+                        self._send("data", { data: data, id: req_id, stream_id: stream_id });
                     };
                 }
                 self._child.init(self._name, data, (err) => {
                     if (err) {
-                        self.send("init_failed", err);
+                        self._send("init_failed", err);
                     } else {
-                        self.send("init_completed", {});
+                        self._send("init_completed", {});
                     }
                 });
             },
@@ -57,11 +57,11 @@ class TopologyContextNode {
                         cb();
                     }
                 }
-                self._pendingAcks = self._pendingAcks.filter(x => x != null);
+                self._pendingAcks = self._pendingAcks.filter(x => x !== null);
             }
         };
 
-        // route incomming messages from parent process to internal 
+        // route incomming messages from parent process to internal
         process.on('message', (msg) => {
             let cmd = msg.cmd;
             if (cmd) {
@@ -74,7 +74,7 @@ class TopologyContextNode {
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    send(cmd, data) {
+    _send(cmd, data) {
         if (process.send) {
             process.send({ cmd: cmd, data: data });
         } else {
@@ -121,15 +121,14 @@ class TopologyContextSpout extends TopologyContextNode {
 
         let self = this;
         self._handlers.next = (data) => {
-            self._child.next((err, data) => {
+            self._child.next((err, data, stream_id) => {
                 if (err) {
-                    // TODO what do we do here
-                    return;
-                }
-                if (data) {
-                    self.send("data", data);
+                    // TODO is there a better option
+                    self._send("empty", {});
+                } else if (data) {
+                    self._send("data", { data: data, stream_id: stream_id });
                 } else {
-                    self.send("empty", {});
+                    self._send("empty", {});
                 }
             });
         };
@@ -148,8 +147,8 @@ class TopologyContextBolt extends TopologyContextNode {
 
         let self = this;
         self._handlers.data = (data) => {
-            self._child.receive(data, (err) => {
-                self.send("ack", err);
+            self._child.receive(data.data, data.stream_id, (err) => {
+                self._send("ack", err);
             });
         };
     }

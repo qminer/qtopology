@@ -67,7 +67,7 @@ class DummySpout {
     next(callback) {
         //console.log(this._prefix, "Inside next");
         let data = this._generator.next();
-        callback(null, data);
+        callback(null, data, null);
     }
 }
 

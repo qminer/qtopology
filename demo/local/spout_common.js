@@ -17,7 +17,7 @@ class DataGenerator {
         }
         if (this._data.length === 0) {
             this._data = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 15; i++) {
                 this._data.push({ a: i });
             }
             return null;
@@ -64,7 +64,7 @@ class MySpout {
     next(callback) {
         console.log(this._prefix, "Inside next");
         let data = this._generator.next();
-        callback(null, data);
+        callback(null, data, null);
     }
 }
 

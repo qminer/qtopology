@@ -17,19 +17,26 @@ class OutputRouter {
     /** This method registers binding between source and destination
      * @param {string} source - Name of source
      * @param {string} destination - Name of destination
+     * @param {string} stream_id - Stream ID used for routing
      */
-    register(source, destination) {
+    register(source, destination, stream_id) {
         if (!this._sources[source]) {
             this._sources[source] = [];
         }
-        this._sources[source].push(destination);
+        this._sources[source].push({ destination: destination, stream_id: stream_id || null });
     }
 
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
+     * @param {string} stream_id - Stream ID used for routing
      */
-    getDestinationsForSource(source) {
-        return this._sources[source] || [];
+    getDestinationsForSource(source, stream_id) {
+        if (!this._sources[source]) {
+            return [];
+        }
+        return this._sources[source]
+            .filter(x => { return x.stream_id === stream_id; })
+            .map(x => x.destination);
     }
 }
 
@@ -60,8 +67,8 @@ class TopologyLocal {
             if (bolt_config.disabled) {
                 return;
             }
-            bolt_config.onEmit = (data, callback) => {
-                self._redirect(bolt_config.name, data, callback);
+            bolt_config.onEmit = (data, stream_id, callback) => {
+                self._redirect(bolt_config.name, data, stream_id, callback);
             };
             let bolt = null;
             if (bolt_config.type == "inproc") {
@@ -72,15 +79,15 @@ class TopologyLocal {
             self._bolts.push(bolt);
             tasks.push((xcallback) => { bolt.init(xcallback); });
             for (let input of bolt_config.inputs) {
-                self._router.register(input.source, bolt_config.name);
+                self._router.register(input.source, bolt_config.name, input.stream_id);
             }
         });
         self._config.spouts.forEach((spout_config) => {
             if (spout_config.disabled) {
                 return;
             }
-            spout_config.onEmit = (data, callback) => {
-                self._redirect(spout_config.name, data, callback);
+            spout_config.onEmit = (data, stream_id, callback) => {
+                self._redirect(spout_config.name, data, stream_id, callback);
             };
             let spout = null;
             if (spout_config.type == "inproc") {
@@ -167,17 +174,19 @@ class TopologyLocal {
      * It is done in async/parallel manner.
      * @param {string} source - Name of the source that emitted this data
      * @param {Object} data - Data content of the message
+     * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    _redirect(source, data, callback) {
+    _redirect(source, data, stream_id, callback) {
         let self = this;
-        let destinations = self._router.getDestinationsForSource(source);
+        let destinations = self._router.getDestinationsForSource(source, stream_id);
         async.each(
             destinations,
             (destination, xcallback) => {
                 let data_clone = {};
                 Object.assign(data_clone, data);
-                self._getBolt(destination).send(data_clone, xcallback);
+                self._getBolt(destination)
+                    .receive(data_clone, stream_id, xcallback);
             },
             callback
         );
