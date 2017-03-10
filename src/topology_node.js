@@ -57,7 +57,7 @@ class TopologyContextNode {
                         cb();
                     }
                 }
-                self._pendingAcks = self._pendingAcks.filter(x => x != null);
+                self._pendingAcks = self._pendingAcks.filter(x => x !== null);
             }
         };
 
@@ -121,7 +121,6 @@ class TopologyContextSpout extends TopologyContextNode {
 
         let self = this;
         self._handlers.next = (data) => {
-            console.log("Next", data)
             self._child.next((err, data, stream_id) => {
                 if (err) {
                     // TODO is there a better option

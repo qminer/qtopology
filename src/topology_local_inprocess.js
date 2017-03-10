@@ -15,7 +15,6 @@ class TopologySpoutInproc {
         this._name = config.name;
         this._working_dir = path.resolve(config.working_dir); // path may be relative to current working dir
         this._cmd = config.cmd;
-        this._args = config.args || [];
         this._init = config.init || {};
 
         this._isStarted = false;
@@ -119,7 +118,6 @@ class TopologyBoltInproc {
         this._name = config.name;
         this._working_dir = path.resolve(config.working_dir); // path may be relative to current working dir
         this._cmd = config.cmd;
-        this._args = config.args || [];
         this._init = config.init || {};
         this._init.onEmit = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
@@ -166,7 +164,6 @@ class TopologyBoltInproc {
         if (!this._inSend) {
             return this._child.shutdown(callback);
         } else {
-            console.log("storing shutdown cb")
             this._pendingShutdown = callback;
         }
     }

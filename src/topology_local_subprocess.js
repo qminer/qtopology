@@ -15,7 +15,6 @@ class TopologyNode extends EventEmitter {
         this._name = config.name;
         this._working_dir = config.working_dir;
         this._cmd = config.cmd;
-        this._args = config.args || [];
         this._init = config.init || {};
         this._init.name = config.name;
 
@@ -28,7 +27,7 @@ class TopologyNode extends EventEmitter {
         this._pendingInitCallback = null;
 
         try {
-            this._child = cp.fork(this._cmd, this._args, { cwd: this._working_dir });
+            this._child = cp.fork(this._cmd, [], { cwd: this._working_dir });
             this._isStarted = true;
         } catch (e) {
             this._isStarted = true;
