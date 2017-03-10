@@ -61,7 +61,7 @@ class TopologyContextNode {
             }
         };
 
-        // route incomming messages from parent process to internal 
+        // route incomming messages from parent process to internal
         process.on('message', (msg) => {
             let cmd = msg.cmd;
             if (cmd) {
@@ -124,11 +124,10 @@ class TopologyContextSpout extends TopologyContextNode {
             console.log("Next", data)
             self._child.next((err, data, stream_id) => {
                 if (err) {
-                    // TODO what do we do here
-                    return;
-                }
-                if (data) {
-                    self._send("data", { data: data.data, stream_id: data.stream_id });
+                    // TODO is there a better option
+                    self._send("empty", {});
+                } else if (data) {
+                    self._send("data", { data: data, stream_id: stream_id });
                 } else {
                     self._send("empty", {});
                 }
