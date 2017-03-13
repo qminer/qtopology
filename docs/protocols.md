@@ -13,9 +13,7 @@ When started, needs to be given:
 - address of the coordinator (server and port)
 - logical name
 
-It opens connection to the coordinator, awaiting instructions.
-
-After registration with coordinator succeeds, it starts local topology.
+It opens connection to the coordinator, awaiting instructions. When registration with coordinator succeeds, it starts local topology.
 
 ## Local topology
 
@@ -50,11 +48,11 @@ This object:
 | Sends `init` command | |
 | | Initializes and send `init_completed` |
 | Sends `data` command | |
-| | Processes data and optionally emits `data` command (zero, one or many) |
+| | Processes data and optionally emits `data` command (zero, one or many). When finished with this data item, emits `ack` event. |
 | Sends `heartbeat` command | |
 | | Reacts to heartbeat and optionally emits `data` command (zero, one or many) |
 | Sends `shutdown` command| |
-| | Must gracefully stop the process |
+| | Must gracefully stop the process. |
 
 ### Spouts
 
