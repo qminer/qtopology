@@ -1,0 +1,17 @@
+sudo: false
+
+language: node_js
+
+node_js:
+  - 6
+
+install:
+  - npm install
+
+script:
+  - npm install -g mocha
+  - npm test
+
+notifications:
+  email:  
+  - viktor@carvic.si
