@@ -17,19 +17,26 @@ class OutputRouter {
     /** This method registers binding between source and destination
      * @param {string} source - Name of source
      * @param {string} destination - Name of destination
+     * @param {string} stream_id - Stream ID used for routing
      */
-    register(source, destination) {
+    register(source, destination, stream_id) {
         if (!this._sources[source]) {
             this._sources[source] = [];
         }
-        this._sources[source].push(destination);
+        this._sources[source].push({ destination: destination, stream_id: stream_id || null });
     }
 
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
+     * @param {string} stream_id - Stream ID used for routing
      */
-    getDestinationsForSource(source) {
-        return this._sources[source] || [];
+    getDestinationsForSource(source, stream_id) {
+        if (!this._sources[source]) {
+            return [];
+        }
+        return this._sources[source]
+            .filter(x => { return x.stream_id === stream_id; })
+            .map(x => x.destination);
     }
 }
 
@@ -72,7 +79,7 @@ class TopologyLocal {
             self._bolts.push(bolt);
             tasks.push((xcallback) => { bolt.init(xcallback); });
             for (let input of bolt_config.inputs) {
-                self._router.register(input.source, bolt_config.name);
+                self._router.register(input.source, bolt_config.name, input.stream_id);
             }
         });
         self._config.spouts.forEach((spout_config) => {
@@ -172,7 +179,7 @@ class TopologyLocal {
      */
     _redirect(source, data, stream_id, callback) {
         let self = this;
-        let destinations = self._router.getDestinationsForSource(source);
+        let destinations = self._router.getDestinationsForSource(source, stream_id);
         async.each(
             destinations,
             (destination, xcallback) => {

@@ -64,12 +64,6 @@
                     "cmd": {
                         "type": "string"
                     },
-                    "args": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "init": {
                         "type": "object",
                         "additionalProperties": true
@@ -111,12 +105,6 @@
                     "cmd": {
                         "type": "string"
                     },
-                    "args": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "inputs": {
                         "type": "array",
                         "items": {
@@ -126,8 +114,7 @@
                                     "type": "string"
                                 },
                                 "stream_id": {
-                                    "type": "string",
-                                    "default": "$default"
+                                    "type": "string"
                                 }
                             },
                             "required": [

@@ -46,11 +46,12 @@ class MyBolt {
         setTimeout(function () {
             if (self._forward) {
                 data.sum = self._sum;
-                self._onEmit(data, "SomeOtherStreamId", callback); // emit same data, with addition of sum
+                let xstream_id = (data.sum % 2 === 0 ? "Even" : "Odd");
+                self._onEmit(data, xstream_id, callback); // emit same data, with addition of sum
             } else {
                 callback();
             }
-        }, Math.round(100 * Math.random()));
+        }, Math.round(80 * Math.random()));
     }
 }
 

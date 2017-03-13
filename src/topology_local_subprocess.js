@@ -15,7 +15,6 @@ class TopologyNode extends EventEmitter {
         this._name = config.name;
         this._working_dir = config.working_dir;
         this._cmd = config.cmd;
-        this._args = config.args || [];
         this._init = config.init || {};
         this._init.name = config.name;
 
@@ -28,7 +27,7 @@ class TopologyNode extends EventEmitter {
         this._pendingInitCallback = null;
 
         try {
-            this._child = cp.fork(this._cmd, this._args, { cwd: this._working_dir });
+            this._child = cp.fork(this._cmd, [], { cwd: this._working_dir });
             this._isStarted = true;
         } catch (e) {
             this._isStarted = true;
@@ -109,7 +108,7 @@ class TopologySpout extends TopologyNode {
 
         self.on("data", (msg) => {
             // data was received from child process, send it into topology
-            self._emitCallback(msg.data, msg.stream_id, () => {
+            self._emitCallback(msg.data.data, msg.data.stream_id, () => {
                 // only call callback when topology signals that processing is done
                 let cb = self._nextCallback;
                 self._nextCallback = null;
@@ -169,8 +168,8 @@ class TopologyBolt extends TopologyNode {
     /** Constructor needs to receive all data */
     constructor(config) {
         super(config);
-        this._emitCallback = (data, callback) => {
-            config.onEmit(data, null, callback);
+        this._emitCallback = (data, stream_id, callback) => {
+            config.onEmit(data, stream_id, callback);
         };
 
         this._inReceive = false; // this field can be true even when _ackCallback is null
@@ -185,7 +184,6 @@ class TopologyBolt extends TopologyNode {
             });
         });
         this.on("ack", () => {
-            console.log("ack", self._name);
             self._ackCallback();
             self._ackCallback = null;
             self._inReceive = false;
