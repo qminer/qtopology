@@ -1,9 +1,10 @@
 "use strict";
 
+/*global describe, it, before, beforeEach, after, afterEach */
+
 const assert = require("assert");
 const async = require("async");
 const tli = require("../src/topology_local_inprocess");
-
 
 describe('TopologyBoltInproc', function () {
     describe('Construction', function () {
@@ -41,7 +42,7 @@ describe('TopologyBoltInproc', function () {
             };
             let target = new tli.TopologyBoltInproc(config);
             target.init((err) => {
-                assert.ok(err == null);
+                assert.ok(!err);
                 assert.equal(emits.length, 0);
                 assert.equal(target._child._init_called, 1);
                 assert.equal(target._child._name, config.name);
@@ -65,7 +66,7 @@ describe('TopologyBoltInproc', function () {
             };
             let target = new tli.TopologyBoltInproc(config);
             target.init((err) => {
-                assert.ok(err == null);
+                assert.ok(!err);
                 assert.equal(emits.length, 0);
                 assert.equal(target._child._init_called, 1);
                 assert.equal(target._child._name, config.name);
@@ -103,7 +104,7 @@ describe('TopologyBoltInproc', function () {
                     }
                 ],
                 (err) => {
-                    assert.ok(err == null);
+                    assert.ok(!err);
                     assert.equal(emits.length, 0);
                     assert.equal(target._child._receive_list.length, 1);
                     assert.deepEqual(target._child._receive_list, [
@@ -140,7 +141,7 @@ describe('TopologyBoltInproc', function () {
                     }
                 ],
                 (err) => {
-                    assert.ok(err == null);
+                    assert.ok(!err);
                     assert.equal(emits.length, 0);
                     assert.equal(target._child._receive_list.length, 1);
                     assert.deepEqual(target._child._receive_list, [
@@ -182,7 +183,7 @@ describe('TopologyBoltInproc', function () {
                     }
                 ],
                 (err) => {
-                    assert.ok(err == null);
+                    assert.ok(!err);
                     assert.equal(emits.length, 1);
                     assert.deepEqual(emits, [
                         { data: data2, stream_id: data_stream2 }

@@ -48,7 +48,7 @@ class InprocHelper {
     _setupEmit(data, stream_id) {
         this._emit_list.push({ data, stream_id });
     }
-};
+}
 
 exports.create = function () {
     return new InprocHelper();

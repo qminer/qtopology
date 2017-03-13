@@ -1,5 +1,7 @@
 "use strict";
 
+/*global describe, it, before, beforeEach, after, afterEach */
+
 const assert = require("assert");
 const tc = require("../src/topology_compiler");
 
@@ -270,30 +272,30 @@ describe('TopologyCompiler', function () {
                     }],
                 variables: {}
             };
-        }
+        };
         it('1 worker, 1 spout, 1 bolt - bad worker name', function () {
             let config = create();
             config.bolts[0].worker = "wrkrx";
             let tcc = new tc.TopologyCompiler(config);
-            assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+            assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
         });
         it('1 worker, 1 spout, 1 bolt - bad input source reference', function () {
             let config = create();
             config.bolts[0].inputs[0].source = "spoutx";
             let tcc = new tc.TopologyCompiler(config);
-            assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+            assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
         });
         it('1 worker, 1 spout, 1 bolt - duplicate bolt name', function () {
             let config = create();
             config.bolts.push(JSON.parse(JSON.stringify(config.bolts[0])));
             let tcc = new tc.TopologyCompiler(config);
-            assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+            assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
         });
         it('1 worker, 1 spout, 1 bolt - duplicate spout name', function () {
             let config = create();
             config.spouts.push(JSON.parse(JSON.stringify(config.spouts[0])));
             let tcc = new tc.TopologyCompiler(config);
-            assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+            assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
         });
     });
 });
