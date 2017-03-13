@@ -72,6 +72,64 @@ describe('TopologyCompiler', function () {
             });
             //assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
         });
+        it('1 worker, 1 spout, 1 bolt + variables', function () {
+            let config = {
+                general: {},
+                workers: [
+                    { name: "wrkr1" }
+                ],
+                spouts: [
+                    {
+                        name: "spout1",
+                        worker: "wrkr1",
+                        type: "inproc",
+                        working_dir: "/${MY_VAR}/dir1",
+                        cmd: "${MY_VAR2}.js",
+                        init: {}
+                    }
+                ],
+                bolts: [
+                    {
+                        name: "bolt1",
+                        worker: "wrkr1",
+                        type: "inproc",
+                        working_dir: "/${MY_VAR}/dir1",
+                        cmd: "${MY_VAR2}_bolt.js",
+                        inputs: [{ source: "spout1" }],
+                        init: {}
+                    }],
+                variables: { 
+                    MY_VAR: "my_var",
+                    MY_VAR2: "my_var2"
+                }
+            };
+            let tcc = new tc.TopologyCompiler(config);
+            tcc.compile();
+            assert.deepEqual(tcc.getWorkerNames(), ["wrkr1"]);
+            assert.deepEqual(tcc.getConfigForWorker("wrkr1"), {
+                spouts: [
+                    {
+                        name: "spout1",
+                        worker: "wrkr1",
+                        type: "inproc",
+                        working_dir: "/my_var/dir1",
+                        cmd: "my_var2.js",
+                        init: {}
+                    }
+                ],
+                bolts: [
+                    {
+                        name: "bolt1",
+                        worker: "wrkr1",
+                        type: "inproc",
+                        working_dir: "/my_var/dir1",
+                        cmd: "my_var2_bolt.js",
+                        inputs: [{ source: "spout1" }],
+                        init: {}
+                    }]
+            });
+            //assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+        });
         it('2 workers, 2 spouts, 2 bolts', function () {
             let config = {
                 general: {},
