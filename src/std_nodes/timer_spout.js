@@ -17,10 +17,7 @@ class HeartbeatSpout {
     }
 
     heartbeat() {
-        this._next_tuple = {
-            title: "heartbeat",
-            ts: new Date().toISOString()
-        }
+        this._next_tuple = { title: "heartbeat", ts: new Date().toISOString() };
     }
 
     shutdown(callback) {

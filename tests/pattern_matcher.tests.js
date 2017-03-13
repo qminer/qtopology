@@ -5,7 +5,6 @@
 const assert = require("assert");
 const pm = require("../src/util/pattern_matcher");
 
-
 describe('PaternMatcher', function () {
     it('empty filter - empty data', function () {
         let data = {};
