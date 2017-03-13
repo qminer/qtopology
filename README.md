@@ -1,8 +1,6 @@
 # qtopology
 
-![Build status](https://travis-ci.org/bergloman/qtopology.svg?branch=master "Travis CI status")
-
-
+![Build status](https://travis-ci.org/qminer/qtopology.svg?branch=master "Travis CI status")
 
 QTopology is a distributed stream processing layer, written in `node.js`.
 
