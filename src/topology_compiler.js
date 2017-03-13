@@ -73,8 +73,8 @@ class TopologyCompiler {
         this._config.workers.forEach((worker) => {
             let name = worker.name;
             this._per_worker[name] = {
-                spouts: this._config.bolts.filter(x => x.worker == name),
-                bolts: this._config.spouts.filter(x => x.worker == name)
+                spouts: this._config.spouts.filter(x => x.worker == name),
+                bolts: this._config.bolts.filter(x => x.worker == name)
             };
         });
 
@@ -86,8 +86,6 @@ class TopologyCompiler {
                 }
             }
         });
-
-        console.log("Compile done");
     }
 
     /** Returns compiled configurations for all workers. */
