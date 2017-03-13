@@ -8,8 +8,6 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 - **Bolt** - Node in topology that receives input data from other nodes and emits new data into the topology.
 - **Spout** - Node in topology that reads data from external sources and emits the data into the topology.
 
-
-
 When running in distributed mode, `qtopology` also use the following:
 
 - **Coordinator** - reads global settings, receives worker registrations and send them the initialization data. Also sends shutdown signal.
