@@ -4,9 +4,19 @@
  * Case-insensitive.
  */
 function injectVars(target, vars) {
-    for (let v in vars) {
-        if (vars.hasOwnProperty(v)) {
-            target = target.replace(new RegExp("\\${" + v + "}", "i"), vars[v]);
+    if (target) {
+        if (typeof target == "string") {
+            for (let v in vars) {
+                if (vars.hasOwnProperty(v)) {
+                    target = target.replace(new RegExp("\\${" + v + "}", "i"), vars[v]);
+                }
+            }
+        } else if (typeof target === 'object') {
+            for (let f in target) {
+                if (target.hasOwnProperty(f)) {
+                    target[f] = injectVars(target[f], vars);
+                }
+            }
         }
     }
     return target;
@@ -51,6 +61,7 @@ class TopologyCompiler {
             // inject variables
             spout.working_dir = injectVars(spout.working_dir, vars);
             spout.cmd = injectVars(spout.cmd, vars);
+            spout.init = injectVars(spout.init, vars);
         }
 
         for (let bolt of this._config.bolts) {
@@ -68,6 +79,7 @@ class TopologyCompiler {
             // inject variables
             bolt.working_dir = injectVars(bolt.working_dir, vars);
             bolt.cmd = injectVars(bolt.cmd, vars);
+            bolt.init = injectVars(bolt.init, vars);
         }
 
         // check bolt inputs

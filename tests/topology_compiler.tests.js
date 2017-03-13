@@ -85,7 +85,9 @@ describe('TopologyCompiler', function () {
                         type: "inproc",
                         working_dir: "/${MY_VAR}/dir1",
                         cmd: "${MY_VAR2}.js",
-                        init: {}
+                        init: {
+                            a: "-${MY_VAR2}-"
+                        }
                     }
                 ],
                 bolts: [
@@ -96,9 +98,13 @@ describe('TopologyCompiler', function () {
                         working_dir: "/${MY_VAR}/dir1",
                         cmd: "${MY_VAR2}_bolt.js",
                         inputs: [{ source: "spout1" }],
-                        init: {}
+                        init: {
+                            b: {
+                                a: "-${MY_VAR2}-"
+                            }
+                        }
                     }],
-                variables: { 
+                variables: {
                     MY_VAR: "my_var",
                     MY_VAR2: "my_var2"
                 }
@@ -114,7 +120,9 @@ describe('TopologyCompiler', function () {
                         type: "inproc",
                         working_dir: "/my_var/dir1",
                         cmd: "my_var2.js",
-                        init: {}
+                        init: {
+                            a: "-my_var2-"
+                        }
                     }
                 ],
                 bolts: [
@@ -125,7 +133,11 @@ describe('TopologyCompiler', function () {
                         working_dir: "/my_var/dir1",
                         cmd: "my_var2_bolt.js",
                         inputs: [{ source: "spout1" }],
-                        init: {}
+                        init: {
+                            b: {
+                                a: "-my_var2-"
+                            }
+                        }
                     }]
             });
             //assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
