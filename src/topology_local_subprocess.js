@@ -26,6 +26,9 @@ class TopologyNode extends EventEmitter {
 
         this._pendingInitCallback = null;
 
+        this._telemetry = new tel.Telemetry();
+        this._telemetry_total = new tel.Telemetry();
+
         try {
             this._child = cp.fork(this._cmd, [], { cwd: this._working_dir });
             this._isStarted = true;

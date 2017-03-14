@@ -8,6 +8,7 @@ const EventEmitter = require("events");
 const fb = require("./std_nodes/filter_bolt");
 const cb = require("./std_nodes/console_bolt");
 const ts = require("./std_nodes/timer_spout");
+const tel = require("./util/telemetry");
 
 ////////////////////////////////////////////////////////////////////
 
@@ -26,6 +27,9 @@ class TopologySpoutInproc {
         this._isExit = false;
         this._isError = false;
         this._onExit = null;
+
+        this._telemetry = new tel.Telemetry();
+        this._telemetry_total = new tel.Telemetry();
 
         let self = this;
         try {
@@ -96,7 +100,9 @@ class TopologySpoutInproc {
         if (this._isPaused) {
             callback();
         } else {
+            let ts_start = Date.now();
             this._child.next((err, data, stream_id) => {
+                self._telemetryAdd(Date.now() - ts_start);
                 if (err) {
                     console.error(err);
                     callback();
@@ -125,6 +131,12 @@ class TopologySpoutInproc {
             default: throw new Error("Unknown sys spout type:", spout_config.cmd);
         }
     }
+
+    /** Adds duration to internal telemetry */
+    _telemetryAdd(duration) {
+        this._telemetry.add(duration);
+        this._telemetry_total.add(duration);
+    }
 }
 
 /** Wrapper for "bolt" in-process */
@@ -149,6 +161,9 @@ class TopologyBoltInproc {
         this._inSend = false;
         this._pendingSendRequests = [];
         this._pendingShutdownCallback = null;
+
+        this._telemetry = new tel.Telemetry();
+        this._telemetry_total = new tel.Telemetry();
 
         let self = this;
         try {
@@ -196,11 +211,15 @@ class TopologyBoltInproc {
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
         let self = this;
+        let ts_start = Date.now();
         if (self._inSend) {
             self._pendingSendRequests.push({
                 data: data,
                 stream_id: stream_id,
-                callback: callback
+                callback: (err) => {
+                    self._telemetryAdd(Date.now() - ts_start);
+                    callback(err);
+                }
             });
         } else {
             self._inSend = true;
@@ -225,6 +244,12 @@ class TopologyBoltInproc {
             case "filter": return new fb.FilterBolt();
             default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
         }
+    }
+
+    /** Adds duration to internal telemetry */
+    _telemetryAdd(duration) {
+        this._telemetry.add(duration);
+        this._telemetry_total.add(duration);
     }
 }
 
