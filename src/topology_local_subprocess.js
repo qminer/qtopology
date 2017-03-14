@@ -3,6 +3,7 @@
 const async = require("async");
 const cp = require("child_process");
 const EventEmitter = require("events");
+const tel = require("./util/telemetry");
 
 ////////////////////////////////////////////////////////////////////
 
@@ -95,6 +96,12 @@ class TopologyNode extends EventEmitter {
         });
         self._child.send({ cmd: "init", data: self._init });
     }
+
+    /** Adds duration to internal telemetry */
+    _telemetryAdd(duration) {
+        this._telemetry.add(duration);
+        this._telemetry_total.add(duration);
+    }
 }
 
 /** Wrapper for "spout" process */
@@ -108,8 +115,10 @@ class TopologySpout extends TopologyNode {
         self._isPaused = true;
         self._nextCallback = null;
         self._nextTs = Date.now();
+        self._nextCalledTs = null;
 
         self.on("data", (msg) => {
+            self._telemetryAdd(Date.now() - self._nextCalledTs);
             // data was received from child process, send it into topology
             self._emitCallback(msg.data.data, msg.data.stream_id, () => {
                 // only call callback when topology signals that processing is done
@@ -154,6 +163,7 @@ class TopologySpout extends TopologyNode {
             callback();
         } else {
             this._nextCallback = callback;
+            this._nextCalledTs = Date.now();
             this._child.send({ cmd: "next" });
         }
     }
@@ -193,23 +203,37 @@ class TopologyBolt extends TopologyNode {
             if (self._pendingReceiveRequests.length > 0) {
                 let d = self._pendingReceiveRequests[0];
                 self._pendingReceiveRequests = self._pendingReceiveRequests.slice(1);
-                self.receive(d.data, d.stream_id, d.callback);
+                self._receive(d.data, d.stream_id, true, d.callback);
             }
         });
     }
 
-    /** Sends data tuple to child process */
+    /** Sends data tuple to child process - wrapper for internal method _receive() */
     receive(data, stream_id, callback) {
+        this._receive(data, stream_id, false, callback);
+    }
+
+    /** Internal method - sends data tuple to child process */
+    _receive(data, stream_id, from_waitlist, callback) {
         let self = this;
+        let ts_start = Date.now();
         if (self._inReceive) {
             self._pendingReceiveRequests.push({
                 data: data,
                 stream_id: stream_id,
-                callback: callback
+                callback: (err) => {
+                    self._telemetryAdd(Date.now() - ts_start);
+                    callback(err);
+                }
             });
         } else {
             self._inReceive = true;
-            self._ackCallback = callback;
+            self._ackCallback = (err) => {
+                if (!from_waitlist) {
+                    self._telemetryAdd(Date.now() - ts_start);
+                }
+                callback();
+            };
             self._child.send({ cmd: "data", data: { data: data, stream_id: stream_id } });
         }
     }

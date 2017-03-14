@@ -1,5 +1,6 @@
 "use strict";
 
+/** Simple class for collecting telemetry statistics for call durations */
 class Telemetry {
 
     constructor() {
@@ -10,7 +11,7 @@ class Telemetry {
     }
 
     add(duration) {
-        if (this._cnt == 0) {
+        if (this._cnt === 0) {
             this._avg = duration;
             this._cnt = 1;
             this._min = duration;

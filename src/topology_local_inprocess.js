@@ -63,7 +63,13 @@ class TopologySpoutInproc {
 
     /** Handler for heartbeat signal */
     heartbeat() {
-        this._child.heartbeat();
+        let self = this;
+        self._child.heartbeat();
+
+        // emit telemetry
+        self._emitCallback(self._telemetry.get(), "$telemetry", () => { });
+        self._telemetry.reset();
+        self._emitCallback(self._telemetry_total.get(), "$telemetry", () => { });
     }
 
     /** Shuts down the process */
@@ -151,6 +157,7 @@ class TopologyBoltInproc {
         this._init.onEmit = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
+        this._emitCallback = this._init.onEmit;
 
         this._isStarted = false;
         this._isClosed = false;
@@ -191,7 +198,13 @@ class TopologyBoltInproc {
 
     /** Handler for heartbeat signal */
     heartbeat() {
-        this._child.heartbeat();
+        let self = this;
+        self._child.heartbeat();
+
+        // emit telemetry
+        self._emitCallback(self._telemetry.get(), "$telemetry", () => { });
+        self._telemetry.reset();
+        self._emitCallback(self._telemetry_total.get(), "$telemetry-total", () => { });
     }
 
     /** Shuts down the child */
