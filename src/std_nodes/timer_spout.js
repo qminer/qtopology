@@ -1,7 +1,7 @@
 "use strict";
 
 /** This spout emits single tuple each heartbeat */
-class HeartbeatSpout {
+class TimerSpout {
 
     constructor() {
         this._name = null;
@@ -52,4 +52,4 @@ class HeartbeatSpout {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.HeartbeatSpout = HeartbeatSpout;
+exports.TimerSpout = TimerSpout;
