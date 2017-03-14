@@ -35,7 +35,7 @@ class OutputRouter {
             return [];
         }
         return this._sources[source]
-            .filter(x => { return x.stream_id === stream_id; })
+            .filter(x => { return x.stream_id == stream_id; })
             .map(x => x.destination);
     }
 }
@@ -71,7 +71,7 @@ class TopologyLocal {
                 self._redirect(bolt_config.name, data, stream_id, callback);
             };
             let bolt = null;
-            if (bolt_config.type == "inproc") {
+            if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
                 bolt = new top_inproc.TopologyBoltInproc(bolt_config);
             } else {
                 bolt = new top_sub.TopologyBolt(bolt_config);
@@ -90,7 +90,8 @@ class TopologyLocal {
                 self._redirect(spout_config.name, data, stream_id, callback);
             };
             let spout = null;
-            if (spout_config.type == "inproc") {
+
+            if (spout_config.type == "sys" || spout_config.type == "inproc") {
                 spout = new top_inproc.TopologySpoutInproc(spout_config);
             } else {
                 spout = new top_sub.TopologySpout(spout_config);

@@ -50,7 +50,8 @@
                     "type": {
                         "enum": [
                             "subproc",
-                            "inproc"
+                            "inproc",
+                            "sys"
                         ],
                         "default": "subproc"
                     },
@@ -92,7 +93,8 @@
                     "type": {
                         "enum": [
                             "subproc",
-                            "inproc"
+                            "inproc",
+                            "sys"
                         ]
                     },
                     "disabled": {

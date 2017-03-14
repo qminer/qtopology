@@ -6,6 +6,8 @@ class HeartbeatSpout {
     constructor() {
         this._name = null;
         this._stream_id = null;
+        this._extra_fields = null;
+
         this._next_tuple = null;
         this._run = false;
     }
@@ -13,11 +15,20 @@ class HeartbeatSpout {
     init(name, config, callback) {
         this._name = name;
         this._stream_id = config.stream_id;
+        this._extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));
         callback();
     }
 
     heartbeat() {
-        this._next_tuple = { title: "heartbeat", ts: new Date().toISOString() };
+        this._next_tuple = {
+            title: "heartbeat",
+            ts: new Date().toISOString()
+        };
+        for (let f in this._extra_fields) {
+            if (this._extra_fields.hasOwnProperty(f)) {
+                this._next_tuple[f] = this._extra_fields[f];
+            }
+        }
     }
 
     shutdown(callback) {
