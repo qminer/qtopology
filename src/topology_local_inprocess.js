@@ -5,6 +5,10 @@ const path = require("path");
 const cp = require("child_process");
 const EventEmitter = require("events");
 
+const fb = require("./std_nodes/filter_bolt");
+const cb = require("./std_nodes/console_bolt");
+const ts = require("./std_nodes/timer_spout");
+
 ////////////////////////////////////////////////////////////////////
 
 /** Wrapper for "spout" in-process */
@@ -13,7 +17,7 @@ class TopologySpoutInproc {
     /** Constructor needs to receive all data */
     constructor(config) {
         this._name = config.name;
-        this._working_dir = path.resolve(config.working_dir); // path may be relative to current working dir
+        this._working_dir = config.working_dir;
         this._cmd = config.cmd;
         this._init = config.init || {};
 
@@ -25,8 +29,13 @@ class TopologySpoutInproc {
 
         let self = this;
         try {
-            let module_path = path.join(this._working_dir, this._cmd);
-            this._child = require(module_path).create({});
+            if (config.type == "sys") {
+                this._child = this._createSysSpout(config);
+            } else {
+                this._working_dir = path.resolve(this._working_dir); // path may be relative to current working dir
+                let module_path = path.join(this._working_dir, this._cmd);
+                this._child = require(module_path).create({});
+            }
             this._isStarted = true;
         } catch (e) {
             console.error("Error while creating an inproc spout", e);
@@ -108,6 +117,14 @@ class TopologySpoutInproc {
         this._isPaused = true;
         this._child.pause();
     }
+
+    /** Factory method for sys spouts */
+    _createSysSpout(spout_config) {
+        switch (spout_config.cmd) {
+            case "timer": return new ts.HeartbeatSpout();
+            default: throw new Error("Unknown sys spout type:", spout_config.cmd);
+        }
+    }
 }
 
 /** Wrapper for "bolt" in-process */
@@ -116,7 +133,7 @@ class TopologyBoltInproc {
     /** Constructor needs to receive all data */
     constructor(config) {
         this._name = config.name;
-        this._working_dir = path.resolve(config.working_dir); // path may be relative to current working dir
+        this._working_dir = config.working_dir;
         this._cmd = config.cmd;
         this._init = config.init || {};
         this._init.onEmit = (data, stream_id, callback) => {
@@ -129,16 +146,19 @@ class TopologyBoltInproc {
         this._isError = false;
         this._onExit = null;
 
-        this._isPaused = true;
-
         this._inSend = false;
         this._pendingSendRequests = [];
         this._pendingShutdownCallback = null;
 
         let self = this;
         try {
-            let module_path = path.join(this._working_dir, this._cmd);
-            this._child = require(module_path).create({});
+            if (config.type == "sys") {
+                this._child = this._createSysBolt(config);
+            } else {
+                this._working_dir = path.resolve(this._working_dir); // path may be relative to current working dir
+                let module_path = path.join(this._working_dir, this._cmd);
+                this._child = require(module_path).create({});
+            }
             this._isStarted = true;
         } catch (e) {
             console.error("Error while creating an inproc bolt", e);
@@ -173,18 +193,6 @@ class TopologyBoltInproc {
         this._child.init(this._name, this._init, callback);
     }
 
-    /** Sends run signal and starts the "pump"" */
-    run() {
-        this._isPaused = false;
-        this._child.run();
-    }
-
-    /** Sends pause signal to child */
-    pause() {
-        this._isPaused = true;
-        this._child.pause();
-    }
-
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
         let self = this;
@@ -207,6 +215,15 @@ class TopologyBoltInproc {
                     self.shutdown(self._pendingShutdownCallback);
                 }
             });
+        }
+    }
+
+    /** Factory method for sys bolts */
+    _createSysBolt(bolt_config) {
+        switch (bolt_config.cmd) {
+            case "console": return new cb.ConsoleBolt();
+            case "filter": return new fb.FilterBolt();
+            default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
         }
     }
 }

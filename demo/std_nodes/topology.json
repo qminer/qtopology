@@ -1,0 +1,87 @@
+{
+    "general": {
+        "name": "Demo of std nodes",
+        "coordination_port": 9289,
+        "heartbeat": 1000
+    },
+    "workers": [
+        {
+            "name": "srv1"
+        }
+    ],
+    "spouts": [
+        {
+            "name": "pump1",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        },
+        {
+            "name": "pump2",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "b"
+                }
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1"
+                },
+                {
+                    "source": "pump2"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt2",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "filter",
+            "inputs": [
+                {
+                    "source": "bolt1"
+                }
+            ],
+            "init": {
+                "filter": {
+                    "field1": "b"
+                }
+            }
+        },
+        {
+            "name": "bolt3",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "bolt2"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

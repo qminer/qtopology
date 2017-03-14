@@ -14,26 +14,14 @@ class ConsoleBolt {
     init(name, config, callback) {
         this._name = name;
         this._prefix = `[InprocBolt ${this._name}]`;
-        console.log(this._prefix, "Inside init:", config);
         this._onEmit = config.onEmit;
         callback();
     }
 
-    heartbeat() {
-        console.log(this._prefix, "Inside heartbeat.");
-    }
+    heartbeat() { }
 
     shutdown(callback) {
-        console.log(this._prefix, "Shutting down gracefully.");
         callback();
-    }
-
-    run() {
-        console.log(this._prefix, "Inside run");
-    }
-
-    pause() {
-        console.log(this._prefix, "Inside pause");
     }
 
     receive(data, stream_id, callback) {

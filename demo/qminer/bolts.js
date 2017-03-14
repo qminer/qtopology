@@ -93,14 +93,6 @@ class QMinerBolt {
         }
     }
 
-    run() {
-        console.log(this._prefix, "Inside run");
-    }
-
-    pause() {
-        console.log(this._prefix, "Inside pause");
-    }
-
     receive(data, callback) {
         this._cnt++;
         let rec = this._store.newRecord({
