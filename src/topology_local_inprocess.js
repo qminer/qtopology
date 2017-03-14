@@ -121,7 +121,7 @@ class TopologySpoutInproc {
     /** Factory method for sys spouts */
     _createSysSpout(spout_config) {
         switch (spout_config.cmd) {
-            case "timer": return new ts.HeartbeatSpout();
+            case "timer": return new ts.TimerSpout();
             default: throw new Error("Unknown sys spout type:", spout_config.cmd);
         }
     }
