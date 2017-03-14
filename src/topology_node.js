@@ -43,12 +43,6 @@ class TopologyContextNode {
             heartbeat: () => {
                 self._child.heartbeat();
             },
-            run: () => {
-                self._child.run();
-            },
-            pause: () => {
-                self._child.heartbeat();
-            },
             ack: (data) => {
                 for (let i = 0; i < self._pendingAcks.length; i++) {
                     if (self._pendingAcks[i] && self._pendingAcks[i].id == data.id) {
@@ -123,7 +117,7 @@ class TopologyContextSpout extends TopologyContextNode {
         self._handlers.next = (data) => {
             self._child.next((err, data, stream_id) => {
                 if (err) {
-                    // TODO is there a better option
+                    // TODO is there a better option?
                     self._send("empty", {});
                 } else if (data) {
                     self._send("data", { data: data, stream_id: stream_id });
@@ -131,6 +125,12 @@ class TopologyContextSpout extends TopologyContextNode {
                     self._send("empty", {});
                 }
             });
+        };
+        self._handlers.run = () => {
+            self._child.run();
+        };
+        self._handlers.pause = () => {
+            self._child.pause();
         };
     }
 }

@@ -31,14 +31,6 @@ class MyBolt {
         callback();
     }
 
-    run() {
-        console.log(this._prefix, "Inside run");
-    }
-
-    pause() {
-        console.log(this._prefix, "Inside pause");
-    }
-
     receive(data, stream_id, callback) {
         let self = this;
         console.log(this._prefix, "Inside receive", data, "$" + stream_id + "$");

@@ -146,8 +146,6 @@ class TopologyBoltInproc {
         this._isError = false;
         this._onExit = null;
 
-        this._isPaused = true;
-
         this._inSend = false;
         this._pendingSendRequests = [];
         this._pendingShutdownCallback = null;
@@ -193,18 +191,6 @@ class TopologyBoltInproc {
     /** Initializes child object. */
     init(callback) {
         this._child.init(this._name, this._init, callback);
-    }
-
-    /** Sends run signal and starts the "pump"" */
-    run() {
-        this._isPaused = false;
-        this._child.run();
-    }
-
-    /** Sends pause signal to child */
-    pause() {
-        this._isPaused = true;
-        this._child.pause();
     }
 
     /** Sends data to child object. */

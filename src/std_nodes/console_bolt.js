@@ -24,10 +24,6 @@ class ConsoleBolt {
         callback();
     }
 
-    run() { }
-
-    pause() { }
-
     receive(data, stream_id, callback) {
         console.log(this._prefix, "Inside receive", data, "$" + stream_id + "$");
         this._onEmit(data, stream_id, callback);

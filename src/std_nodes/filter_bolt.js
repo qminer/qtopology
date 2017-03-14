@@ -28,10 +28,6 @@ class FilterBolt {
         callback();
     }
 
-    run() { }
-
-    pause() { }
-
     receive(data, stream_id, callback) {
         if (this._matcher.isMatch(data)) {
             this._onEmit(data, stream_id, callback);
