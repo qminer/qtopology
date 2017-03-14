@@ -3,11 +3,12 @@
 /** Simple class for collecting telemetry statistics for call durations */
 class Telemetry {
 
-    constructor() {
+    constructor(name) {
         this._cnt = 0;
         this._avg = 0;
         this._min = 0;
         this._max = 0;
+        this._name = name;
     }
 
     add(duration) {
@@ -35,6 +36,7 @@ class Telemetry {
 
     get() {
         return {
+            name: this._name,
             cnt: this._cnt,
             avg: this._avg
         };

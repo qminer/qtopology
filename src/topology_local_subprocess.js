@@ -27,8 +27,9 @@ class TopologyNode extends EventEmitter {
 
         this._pendingInitCallback = null;
 
-        this._telemetry = new tel.Telemetry();
-        this._telemetry_total = new tel.Telemetry();
+        this._telemetry = new tel.Telemetry(config.name);
+        this._telemetry_total = new tel.Telemetry(config.name);
+        this._telemetry_callback = null;
 
         try {
             this._child = cp.fork(this._cmd, [], { cwd: this._working_dir });
@@ -48,7 +49,13 @@ class TopologyNode extends EventEmitter {
 
     /** Handler for heartbeat signal */
     heartbeat() {
+        let self = this;
         this._child.send({ cmd: "heartbeat" });
+
+        // emit telemetry
+        self._telemetry_callback(self._telemetry.get(), "$telemetry");
+        self._telemetry.reset();
+        self._telemetry_callback(self._telemetry_total.get(), "$telemetry-total");
     }
 
     /** Shuts down the process */
@@ -116,6 +123,9 @@ class TopologySpout extends TopologyNode {
         self._nextCallback = null;
         self._nextTs = Date.now();
         self._nextCalledTs = null;
+        self._telemetry_callback = (data, stream_id) => {
+            self._emitCallback(data, stream_id, () => { });
+        }
 
         self.on("data", (msg) => {
             self._telemetryAdd(Date.now() - self._nextCalledTs);
@@ -188,6 +198,9 @@ class TopologyBolt extends TopologyNode {
         this._inReceive = false; // this field can be true even when _ackCallback is null
         this._pendingReceiveRequests = [];
         this._ackCallback = null;
+        this._telemetry_callback = (data, stream_id) => {
+            self._emitCallback(data, stream_id, () => { });
+        }
 
         let self = this;
         this.on("data", (msg) => {

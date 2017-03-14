@@ -28,8 +28,8 @@ class TopologySpoutInproc {
         this._isError = false;
         this._onExit = null;
 
-        this._telemetry = new tel.Telemetry();
-        this._telemetry_total = new tel.Telemetry();
+        this._telemetry = new tel.Telemetry(config.name);
+        this._telemetry_total = new tel.Telemetry(config.name);
 
         let self = this;
         try {
@@ -69,7 +69,7 @@ class TopologySpoutInproc {
         // emit telemetry
         self._emitCallback(self._telemetry.get(), "$telemetry", () => { });
         self._telemetry.reset();
-        self._emitCallback(self._telemetry_total.get(), "$telemetry", () => { });
+        self._emitCallback(self._telemetry_total.get(), "$telemetry-total", () => { });
     }
 
     /** Shuts down the process */
