@@ -16,10 +16,6 @@
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
-            "args": [
-                "-a",
-                "action1"
-            ],
             "init": {}
         },
         {
@@ -28,10 +24,6 @@
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
-            "args": [
-                "-a",
-                "action1"
-            ],
             "init": {}
         }
     ],
@@ -42,10 +34,6 @@
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
-            "args": [
-                "-n",
-                "name1"
-            ],
             "inputs": [
                 {
                     "source": "pump1"
@@ -59,10 +47,6 @@
             "working_dir": ".",
             "type": "subproc",
             "cmd": "bolt_subproc.js",
-            "args": [
-                "-n",
-                "name2"
-            ],
             "inputs": [
                 {
                     "source": "pump1"
@@ -81,7 +65,6 @@
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
-            "args": [],
             "inputs": [
                 {
                     "source": "bolt2"
