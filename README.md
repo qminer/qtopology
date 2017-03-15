@@ -2,6 +2,16 @@
 
 ![Build status](https://travis-ci.org/qminer/qtopology.svg?branch=master "Travis CI status")
 
+NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/package/qtopology)
+
+### Installation
+
+`````````````bash
+npm install qtopology
+`````````````
+
+## Intro
+
 QTopology is a distributed stream processing layer, written in `node.js`.
 
 It uses the following terminology, originating in [Storm](http://storm.apache.org/) project:
