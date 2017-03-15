@@ -81,6 +81,24 @@
                 }
             ],
             "init": {}
+        },
+        {
+            "name": "bolt4",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "pump1",
+                    "stream_id": "$telemetry-total"
+                }
+            ],
+            "init": {}
         }
     ],
     "variables": {}
