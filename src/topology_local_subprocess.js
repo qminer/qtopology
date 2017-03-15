@@ -125,7 +125,7 @@ class TopologySpout extends TopologyNode {
         self._nextCalledTs = null;
         self._telemetry_callback = (data, stream_id) => {
             self._emitCallback(data, stream_id, () => { });
-        }
+        };
 
         self.on("data", (msg) => {
             self._telemetryAdd(Date.now() - self._nextCalledTs);
@@ -191,6 +191,8 @@ class TopologyBolt extends TopologyNode {
     /** Constructor needs to receive all data */
     constructor(config) {
         super(config);
+        let self = this;
+
         this._emitCallback = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
@@ -200,9 +202,8 @@ class TopologyBolt extends TopologyNode {
         this._ackCallback = null;
         this._telemetry_callback = (data, stream_id) => {
             self._emitCallback(data, stream_id, () => { });
-        }
+        };
 
-        let self = this;
         this.on("data", (msg) => {
             let id = msg.data.id;
             self._emitCallback(msg.data.data, msg.data.stream_id, (err) => {
