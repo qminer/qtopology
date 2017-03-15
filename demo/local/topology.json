@@ -22,9 +22,9 @@
         {
             "name": "pump2",
             "worker": "srv1",
-            "type": "inproc",
+            "type": "subproc",
             "working_dir": ".",
-            "cmd": "spout_inproc.js",
+            "cmd": "spout_subproc.js",
             "args": [ ],
             "init": {}
         }
@@ -79,6 +79,36 @@
             "init": {
                 "forward": false
             }
+        },
+        {
+            "name": "bolt4",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "pump2",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "bolt1",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "bolt2",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "bolt3",
+                    "stream_id": "$telemetry"
+                }
+            ],
+            "init": {}
         }
     ],
     "variables": {}

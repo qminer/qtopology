@@ -169,8 +169,8 @@ class TopologyBoltInproc {
         this._pendingSendRequests = [];
         this._pendingShutdownCallback = null;
 
-        this._telemetry = new tel.Telemetry();
-        this._telemetry_total = new tel.Telemetry();
+        this._telemetry = new tel.Telemetry(config.name);
+        this._telemetry_total = new tel.Telemetry(config.name);
 
         let self = this;
         try {
