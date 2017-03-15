@@ -180,3 +180,10 @@ topology.init(config, (err) => {
     }, 4000);
 });
 ``````````````````````
+
+## Further reading
+
+- [Topology definition](topology-definition.md)
+- [Standard nodes](std-nodes.md)
+- [How to write bolts and spouts](how-to-write-bolts-and-spouts.md)
+- [Internal protocols](protocols.md)
