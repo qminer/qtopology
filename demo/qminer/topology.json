@@ -16,7 +16,6 @@
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_1.js",
-            "args": [],
             "init": {}
         }
     ],
@@ -27,7 +26,6 @@
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_qm.js",
-            "args": [],
             "inputs": [
                 {
                     "source": "pump1"
@@ -41,7 +39,6 @@
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_qm.js",
-            "args": [],
             "inputs": [
                 {
                     "source": "pump1"
