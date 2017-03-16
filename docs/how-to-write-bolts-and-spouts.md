@@ -93,7 +93,6 @@ and define the bolt in the topology like this:
     "working_dir": ".",
     "type": "inproc",
     "cmd": "bolt_inproc.js",
-    "args": [],
     "inputs": [{ "source": "pump1" }],
     "init": {}
 }
@@ -115,7 +114,6 @@ and define the spout in the topology like this:
     "type": "inproc",
     "working_dir": ".",
     "cmd": "spout_file.js",
-    "args": [],
     "init": {}
 }
 ```````````
