@@ -16,12 +16,23 @@ This spout emits new record on every heartbeat. The record contains title (`titl
     "type": "sys",
     "cmd": "timer",
     "init": {
+        "title": "some title",
         "extra_fields": {
             "field1": "a"
         }
     }
 }
 ```````````````````````````````
+
+This spout will emit message like this:
+
+``````````````````````````````json
+{
+    "title": "some title",
+    "ts": "2017-03-16T12:34:33.942Z",
+    "field1": "a"
+}
+``````````````````````````````
 
 ## Attacher bolt - `cmd="attacher"`
 
@@ -44,6 +55,18 @@ This bolt just attaches fixed data fields to every incoming message and forwards
     }
 }
 ```````````````````````````````
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{ "previous_data": "some text" }
+``````````````````````````````
+
+Emit a new message like this:
+
+``````````````````````````````json
+{ "previous_data": "some text", "field1": "a" }
+``````````````````````````````
 
 ## Console bolt - `cmd="console"`
 
