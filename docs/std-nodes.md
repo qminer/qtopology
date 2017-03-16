@@ -23,6 +23,28 @@ This spout emits new record on every heartbeat. The record contains title (`titl
 }
 ```````````````````````````````
 
+## Attacher bolt - `cmd="attacher"`
+
+This bolt just attaches fixed data fields to every incoming message and forwards it on to listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "attacher",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "extra_fields": {
+            "field1": "a"
+        }
+    }
+}
+```````````````````````````````
+
 ## Console bolt - `cmd="console"`
 
 This bolt just logs every incoming message to `stdout` and forwards it on to listeners.

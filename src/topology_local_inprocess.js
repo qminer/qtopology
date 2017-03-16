@@ -7,6 +7,7 @@ const EventEmitter = require("events");
 
 const fb = require("./std_nodes/filter_bolt");
 const cb = require("./std_nodes/console_bolt");
+const ab = require("./std_nodes/attacher_bolt");
 const ts = require("./std_nodes/timer_spout");
 const tel = require("./util/telemetry");
 
@@ -255,6 +256,7 @@ class TopologyBoltInproc {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
+            case "attacher": return new ab.AttacherBolt();
             default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
         }
     }
