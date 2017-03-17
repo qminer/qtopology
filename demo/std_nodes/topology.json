@@ -33,6 +33,17 @@
                     "field1": "b"
                 }
             }
+        },
+        {
+            "name": "pump3",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "get",
+            "init": {
+                "repeat": 5000,
+                "url": "http://siol.net"
+            }
         }
     ],
     "bolts": [
@@ -96,6 +107,9 @@
                 {
                     "source": "pump1",
                     "stream_id": "$telemetry-total"
+                },
+                {
+                    "source": "pump3"
                 }
             ],
             "init": {}

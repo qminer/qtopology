@@ -38,7 +38,7 @@ class GetSpout {
         }
         if (this._next_ts < Date.now()) {
             let self = this;
-            request.get(self._url, (error, response, body) => {
+            rq.get(self._url, (error, response, body) => {
                 if (!error) {
                     this._next_tuple = { body: body };
                     self._next_ts = Date.now() + self._repeat;
@@ -68,4 +68,4 @@ class GetSpout {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.FilterBolt = PostBolt;
+exports.GetSpout = GetSpout;

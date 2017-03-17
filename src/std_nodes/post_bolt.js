@@ -30,14 +30,14 @@ class PostBolt {
 
     receive(data, stream_id, callback) {
         if (this._fixed_url) {
-            request.post(
+            rq.post(
                 { uri: this._fixed_url, json: data },
                 (error, response, body) => {
                     if (error) { return callback(error); }
                     self._onEmit({ body: body }, null, callback);
                 });
         } else {
-            request.post(
+            rq.post(
                 { uri: data.url, json: data.body },
                 (error, response, body) => {
                     if (error) { return callback(error); }
@@ -49,4 +49,4 @@ class PostBolt {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.FilterBolt = PostBolt;
+exports.PostBolt = PostBolt;

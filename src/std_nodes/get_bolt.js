@@ -32,14 +32,14 @@ class GetBolt {
     receive(data, stream_id, callback) {
         let self = this;
         if (self._fixed_url) {
-            request.get(
+            rq.get(
                 self._fixed_url,
                 (error, response, body) => {
                     if (error) { return callback(error); }
                     self._onEmit({ body: body }, null, callback);
                 });
         } else {
-            request.post(
+            rq.post(
                 data.url,
                 (error, response, body) => {
                     if (error) { return callback(error); }
@@ -51,4 +51,4 @@ class GetBolt {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.FilterBolt = PostBolt;
+exports.GetBolt = GetBolt;

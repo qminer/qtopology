@@ -218,7 +218,7 @@ This way the bolt will send the `GET` request to the URL, specified by the `url`
 
 This spout sends GET request without any request-body to a specified url (fixed or provided inside data) in regualr time intervals and forwards the response.
 
-The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
+The result of the call will be emitted into the topology after each time interval (the `repeat` parameter), with a single property `body` that will contain the body of the response.
 
 ```````````````````````````````json
 {
