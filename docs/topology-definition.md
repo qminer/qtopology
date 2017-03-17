@@ -2,7 +2,7 @@
 
 Topology is defined via `JSON`. It follows this structure:
 
-- `general`: geenral information about the topology
+- `general`: general information about the topology
     - `name`: name of the topology
     - `coordination_port`: Port where coordinator listens to worker registrations
     - `heartbeat`: Defines heartbeat frequency in msec

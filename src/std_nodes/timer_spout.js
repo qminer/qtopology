@@ -6,6 +6,7 @@ class TimerSpout {
     constructor() {
         this._name = null;
         this._stream_id = null;
+        this._title = null;
         this._extra_fields = null;
 
         this._next_tuple = null;
@@ -15,13 +16,14 @@ class TimerSpout {
     init(name, config, callback) {
         this._name = name;
         this._stream_id = config.stream_id;
+        this._title = config.title || "heartbeat";
         this._extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));
         callback();
     }
 
     heartbeat() {
         this._next_tuple = {
-            title: "heartbeat",
+            title: this._title,
             ts: new Date().toISOString()
         };
         for (let f in this._extra_fields) {

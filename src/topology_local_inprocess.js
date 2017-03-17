@@ -6,9 +6,14 @@ const cp = require("child_process");
 const EventEmitter = require("events");
 
 const fb = require("./std_nodes/filter_bolt");
+const pb = require("./std_nodes/post_bolt");
 const cb = require("./std_nodes/console_bolt");
 const ab = require("./std_nodes/attacher_bolt");
+const gb = require("./std_nodes/get_bolt");
+
 const ts = require("./std_nodes/timer_spout");
+const gs = require("./std_nodes/get_spout");
+
 const tel = require("./util/telemetry");
 
 ////////////////////////////////////////////////////////////////////
@@ -135,6 +140,7 @@ class TopologySpoutInproc {
     _createSysSpout(spout_config) {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
+            case "get": return new gs.GetSpout();
             default: throw new Error("Unknown sys spout type:", spout_config.cmd);
         }
     }
@@ -257,6 +263,8 @@ class TopologyBoltInproc {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
+            case "post": return new pb.PostBolt();
+            case "get": return new gb.GetBolt();
             default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
         }
     }

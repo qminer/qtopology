@@ -1,6 +1,6 @@
 {
   "name": "qtopology",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Distributed stream processing engine.",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "async": "^1.5.2",
-    "jsonschema": "1.1.1"
+    "jsonschema": "^1.1.1",
+    "request": "^2.0.0"
   }
 }
