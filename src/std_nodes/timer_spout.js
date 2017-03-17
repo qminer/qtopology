@@ -6,7 +6,7 @@ class TimerSpout {
     constructor() {
         this._name = null;
         this._stream_id = null;
-        this._title=null;
+        this._title = null;
         this._extra_fields = null;
 
         this._next_tuple = null;

@@ -111,3 +111,126 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
     }
 }
 ```````````````````````````````
+
+## POST bolt - `cmd="post"`
+
+This bolt sends POST request to specified url (fixed or provided inside data) and forwards the response.
+
+The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
+
+### Sending using fixed URL
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "post",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "url": "http://my.server.com/api"
+    }
+}
+```````````````````````````````
+
+This way the bolt will send complete, unmodified incoming request to specified URL.
+
+### Sending using dynamic URL
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "post",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": { }
+}
+```````````````````````````````
+
+This way the bolt will send the `body` property of the incomming message to the URL, specified by the `url` property:
+
+`````````````````````````````````json
+{
+    "url": "http://my.server.com/api2",
+    "body": {
+        "a": true,
+        "b": 12
+    }
+}
+`````````````````````````````````
+
+## GET bolt - `cmd="get"`
+
+This bolt sends GET request without any request-body to a specified url (fixed or provided inside data) and forwards the response.
+
+The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
+
+### Sending using fixed URL
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "get",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "url": "http://my.server.com/api"
+    }
+}
+```````````````````````````````
+
+### Sending using dynamic URL
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "post",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": { }
+}
+```````````````````````````````
+
+This way the bolt will send the `GET` request to the URL, specified by the `url` property:
+
+`````````````````````````````````json
+{
+    "url": "http://my.server.com/api2"
+}
+`````````````````````````````````
+
+## GET spout - `cmd="get"`
+
+This spout sends GET request without any request-body to a specified url (fixed or provided inside data) in regualr time intervals and forwards the response.
+
+The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
+
+```````````````````````````````json
+{
+    "name": "spout1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "get",
+    "init": {
+        "url": "http://my.server.com/api",
+        "repeat": 60000,
+        "stream_id": "SomeStreamId"
+    }
+}
+```````````````````````````````
