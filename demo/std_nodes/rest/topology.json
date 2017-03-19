@@ -1,0 +1,67 @@
+{
+    "general": {
+        "name": "Demo of POST and REST nodes",
+        "coordination_port": 9289,
+        "heartbeat": 1000
+    },
+    "workers": [
+        {
+            "name": "srv1"
+        }
+    ],
+    "spouts": [
+        {
+            "name": "pump_timer",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        },
+        {
+            "name": "pump_rest",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "rest",
+            "init": {
+                "port": 6789
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "post",
+            "inputs": [
+                {
+                    "source": "pump_timer"
+                }
+            ],
+            "init": {
+                "url": "http://localhost:6789"
+            }
+        },
+        {
+            "name": "bolt2",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump_rest"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
