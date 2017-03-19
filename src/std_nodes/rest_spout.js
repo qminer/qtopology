@@ -30,7 +30,7 @@ class RestSpout {
         this._server = http.createServer((req, res) => {
             if (self._run) {
                 let body = [];
-                request
+                req
                     .on('data', (chunk) => { body.push(chunk); })
                     .on('end', () => {
                         body = Buffer.concat(body).toString();
@@ -41,10 +41,10 @@ class RestSpout {
                 res.end();
             }
         });
-        server.on('clientError', (err, socket) => {
+        this._server.on('clientError', (err, socket) => {
             socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
         });
-        server.listen(this._port, callback);
+        this._server.listen(this._port, callback);
     }
 
     heartbeat() { }
