@@ -44,6 +44,12 @@ class TopologyCompiler {
             workers[name] = true;
             this._worker_names.push(name);
         }
+        if (this._config.general.initialization) {
+            let init_top = this._config.general.initialization;
+            if (init_top.init) {
+                init_top.init = injectVars(init_top.init, vars);
+            }
+        }
 
         let names = {};
         for (let spout of this._config.spouts) {
@@ -109,6 +115,11 @@ class TopologyCompiler {
     /** Returns compiled configuration for specific worker. */
     getConfigForWorker(name) {
         return JSON.parse(JSON.stringify(this._per_worker[name]));
+    }
+
+    /** Returns compiled configuration . */
+    getWholeConfig(name) {
+        return JSON.parse(JSON.stringify(this._config));
     }
 
     /** Returns names of workers. */

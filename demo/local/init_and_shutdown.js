@@ -4,7 +4,7 @@ let common_context = {
     cnt: 0
 };
 
-exports.init = function (callback) {
+exports.init = function (config, callback) {
     console.log("Common initialization");
     callback(null, common_context);
 };

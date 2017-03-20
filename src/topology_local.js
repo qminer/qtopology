@@ -224,7 +224,7 @@ class TopologyLocal {
             let init_conf = self._config.general.initialization;
             let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
             let module_path = path.join(dir, init_conf.cmd);
-            require(module_path).init((err, context) => {
+            require(module_path).init(init_conf.init, (err, context) => {
                 if (err) { return callback(err); }
                 callback(null, context);
             });

@@ -174,8 +174,8 @@ Initialization code can create a "context" object, which will be sent to all `in
 ````````````````````````````````javascript
 "use strict";
 
-exports.init = function(callback) {
-    // e.g. open DB conenction
+exports.init = function(config, callback) {
+    // use config parameter and e.g. open DB conenction
     callback(null, db_wrapper);
 }
 ````````````````````````````````
@@ -237,7 +237,10 @@ exports.shutdown = function(callback) {
         "heartbeat": 3200,
         "initialization": {
             "working_dir": ".",
-            "cmd": "init.js"
+            "cmd": "init.js",
+            "init": {
+                "connection_string": "connection-string-to-my-database"
+            }
         },
         "shutdown": {
             "working_dir": ".",

@@ -23,6 +23,10 @@
                         },
                         "cmd": {
                             "type": "string"
+                        },
+                        "init": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "required": [

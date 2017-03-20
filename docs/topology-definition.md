@@ -7,7 +7,12 @@ Topology is defined via `JSON`. It follows this structure:
     - `coordination_port`: Port where coordinator listens to worker registrations
     - `heartbeat`: Defines heartbeat frequency in msec
     - `initialization`: Optional. File where initialization code resides.
+        - `working_dir`: working directory where initialization file is located.
+        - `cmd`: name of the file where initialization code resides.
+        - `init`: initialization object that is sent to initialization code in `init()` method
     - `shutdown`: Optional. File where shutdown code resides.
+        - `working_dir`: working directory where initialization file is located.
+        - `cmd`: name of the file where initialization code resides.
 - `workers`: array of worker definitions (with logical names, not physical addresses)
     - `name`: worker name
 - `spouts`: array of spout definitions
