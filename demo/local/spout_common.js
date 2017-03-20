@@ -29,8 +29,9 @@ class DataGenerator {
 
 class MySpout {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
+        this._context = context;
         this._prefix = "";
         this._generator = new DataGenerator();
     }
@@ -43,7 +44,7 @@ class MySpout {
     }
 
     heartbeat() {
-        console.log(this._prefix, "Inside heartbeat.");
+        console.log(this._prefix, "Inside heartbeat. context=", this._context);
     }
 
     shutdown(callback) {

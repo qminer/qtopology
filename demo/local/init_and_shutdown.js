@@ -1,11 +1,15 @@
 "use strict";
 
+let common_context = {
+    cnt: 0
+};
+
 exports.init = function (callback) {
     console.log("Common initialization");
-    callback();
+    callback(null, common_context);
 };
 
 exports.shutdown = function (callback) {
-    console.log("Common shutdown");
+    console.log("Common shutdown", common_context);
     callback();
 };

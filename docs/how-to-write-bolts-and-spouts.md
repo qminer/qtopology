@@ -170,13 +170,51 @@ An example of the code:
 
 ### init.js
 
+Initialization code can create a "context" object, which will be sent to all `inproc` bolts and spouts as single parameter in `create()` method.
+
 ````````````````````````````````javascript
 "use strict";
 
 exports.init = function(callback) {
     // e.g. open DB conenction
-    callback();
+    callback(null, db_wrapper);
 }
+````````````````````````````````
+
+In bolt code it can be then used as follows:
+
+````````````````````````````````javascript
+"use strict"
+
+class MyBolt {
+
+    constructor(context) {
+        this._name = null;
+        this._context = context; // store reference to context
+        this._onEmit = null;
+    }
+
+    init(name, config, callback) {
+        this._name = name;
+        this._onEmit = config.onEmit;
+        // do some other initialization
+        callback();
+    }
+
+    heartbeat() { }
+
+    shutdown(callback) {
+        callback();
+    }
+
+    receive(data, stream_id, callback) {
+        // use this._context for database access
+        callback();
+    }
+}
+exports.create = function (context) {
+    return new bolt.MyBolt(context);
+};
 ````````````````````````````````
 
 ### shutdown.js
