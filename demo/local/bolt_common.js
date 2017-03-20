@@ -4,8 +4,9 @@
 
 class MyBolt {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
+        this._context = context;
         this._prefix = "";
         this._sum = 0;
         this._forward = true;
@@ -22,7 +23,7 @@ class MyBolt {
     }
 
     heartbeat() {
-        console.log(this._prefix, "Inside heartbeat. sum=" + this._sum);
+        console.log(this._prefix, "Inside heartbeat. sum=" + this._sum, "Context", this._context);
         //this._onEmit({ sum: this._sum }, () => { });
     }
 
@@ -33,6 +34,9 @@ class MyBolt {
 
     receive(data, stream_id, callback) {
         let self = this;
+        if (self._context) {
+            self._context.cnt++;
+        }
         console.log(this._prefix, "Inside receive", data, "$" + stream_id + "$");
         this._sum += data.a;
         setTimeout(function () {

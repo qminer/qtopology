@@ -63,51 +63,47 @@ class TopologyLocal {
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
-        let tasks = [];
-        if (self._config.general.initialization) {
-            let init_conf = self._config.general.initialization;
-            let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
-            let module_path = path.join(dir, init_conf.cmd);
-            tasks.push((xcallback) => { require(module_path).init(xcallback); });
-        }
-        self._config.bolts.forEach((bolt_config) => {
-            if (bolt_config.disabled) {
-                return;
-            }
-            bolt_config.onEmit = (data, stream_id, callback) => {
-                self._redirect(bolt_config.name, data, stream_id, callback);
-            };
-            let bolt = null;
-            if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
-                bolt = new top_inproc.TopologyBoltInproc(bolt_config);
-            } else {
-                bolt = new top_sub.TopologyBolt(bolt_config);
-            }
-            self._bolts.push(bolt);
-            tasks.push((xcallback) => { bolt.init(xcallback); });
-            for (let input of bolt_config.inputs) {
-                self._router.register(input.source, bolt_config.name, input.stream_id);
-            }
-        });
-        self._config.spouts.forEach((spout_config) => {
-            if (spout_config.disabled) {
-                return;
-            }
-            spout_config.onEmit = (data, stream_id, callback) => {
-                self._redirect(spout_config.name, data, stream_id, callback);
-            };
-            let spout = null;
+        self._initContext((err, context) => {
+            let tasks = [];
+            self._config.bolts.forEach((bolt_config) => {
+                if (bolt_config.disabled) {
+                    return;
+                }
+                bolt_config.onEmit = (data, stream_id, callback) => {
+                    self._redirect(bolt_config.name, data, stream_id, callback);
+                };
+                let bolt = null;
+                if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
+                    bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
+                } else {
+                    bolt = new top_sub.TopologyBolt(bolt_config, context);
+                }
+                self._bolts.push(bolt);
+                tasks.push((xcallback) => { bolt.init(xcallback); });
+                for (let input of bolt_config.inputs) {
+                    self._router.register(input.source, bolt_config.name, input.stream_id);
+                }
+            });
+            self._config.spouts.forEach((spout_config) => {
+                if (spout_config.disabled) {
+                    return;
+                }
+                spout_config.onEmit = (data, stream_id, callback) => {
+                    self._redirect(spout_config.name, data, stream_id, callback);
+                };
+                let spout = null;
 
-            if (spout_config.type == "sys" || spout_config.type == "inproc") {
-                spout = new top_inproc.TopologySpoutInproc(spout_config);
-            } else {
-                spout = new top_sub.TopologySpout(spout_config);
-            }
-            self._spouts.push(spout);
-            tasks.push((xcallback) => { spout.init(xcallback); });
+                if (spout_config.type == "sys" || spout_config.type == "inproc") {
+                    spout = new top_inproc.TopologySpoutInproc(spout_config, context);
+                } else {
+                    spout = new top_sub.TopologySpout(spout_config, context);
+                }
+                self._spouts.push(spout);
+                tasks.push((xcallback) => { spout.init(xcallback); });
+            });
+            self._runHeartbeat();
+            async.series(tasks, callback);
         });
-        self._runHeartbeat();
-        async.series(tasks, callback);
     }
 
     /** Sends run signal to all spouts */
@@ -216,6 +212,25 @@ class TopologyLocal {
             return null;
         }
         return hits[0];
+    }
+
+    /** This method optionally runs context initialization code
+     * and returns the context object.
+     * @param {Function} callback - standard callback
+     */
+    _initContext(callback) {
+        let self = this;
+        if (self._config.general.initialization) {
+            let init_conf = self._config.general.initialization;
+            let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
+            let module_path = path.join(dir, init_conf.cmd);
+            require(module_path).init((err, context) => {
+                if (err) { return callback(err); }
+                callback(null, context);
+            });
+        } else {
+            callback(null, null);
+        }
     }
 }
 
