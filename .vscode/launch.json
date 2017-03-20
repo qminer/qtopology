@@ -23,7 +23,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch Program - demo local",
             "program": "${workspaceRoot}\\demo\\local\\local.js",
             "cwd": "${workspaceRoot}\\demo\\local\\"
         },

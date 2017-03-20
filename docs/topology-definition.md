@@ -6,6 +6,8 @@ Topology is defined via `JSON`. It follows this structure:
     - `name`: name of the topology
     - `coordination_port`: Port where coordinator listens to worker registrations
     - `heartbeat`: Defines heartbeat frequency in msec
+    - `initialization`: Optional. File where initialization code resides.
+    - `shutdown`: Optional. File where shutdown code resides.
 - `workers`: array of worker definitions (with logical names, not physical addresses)
     - `name`: worker name
 - `spouts`: array of spout definitions
@@ -34,7 +36,15 @@ An example:
     "general": {
         "name": "Topology name",
         "coordination_port": 9289,
-        "heartbeat": 3200
+        "heartbeat": 3200,
+        "initialization": {
+            "working_dir": ".",
+            "cmd": "init.js"
+        },
+        "shutdown": {
+            "working_dir": ".",
+            "cmd": "shutdown.js"
+        }
     },
     "workers": [
         { "name": "srv1" }

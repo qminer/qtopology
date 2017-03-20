@@ -19,15 +19,16 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 - **Topology** - Organization of nodes into a graph that determines paths where messages must travel.
 - **Bolt** - Node in topology that receives input data from other nodes and emits new data into the topology.
 - **Spout** - Node in topology that reads data from external sources and emits the data into the topology.
+- **Stream** - When data flows through the topology, it is optionaly tagged with stream ID. This can be used for routing.
 
-When running in distributed mode, `qtopology` also use the following:
+When running in distributed mode, `qtopology` also uses the following:
 
 - **Coordinator** - reads global settings, receives worker registrations and send them the initialization data. Also sends shutdown signal.
 - **Worker** - registers with coordinator, receives initialization data and instantiates local topology.
 
 ## Quick start
 
-Define your spouts and bolts and connect them into topology.
+Define your spouts and bolts and connect them into topology. Bolts and spouts can run as `inproc` (in-process) or `subproc` (in its own process).
 
 ### Topology definition
 
