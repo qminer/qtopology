@@ -70,12 +70,11 @@ class MySpout {
 }
 ```````````
 
-
 > Method `next()` should return single data tuple or null if no data is available.
 
 ## When using nodes inprocess
 
-### Bolts
+### Inproc Bolts
 
 To create an inprocess bolt or spout, create a `.js` file with single exported parameterless function named `create()`.
 
@@ -98,7 +97,7 @@ and define the bolt in the topology like this:
 }
 ```````````
 
-### Spouts
+### Inproc Spouts
 
 `````````javascript
 "use strict";
