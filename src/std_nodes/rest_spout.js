@@ -62,7 +62,7 @@ class RestSpout {
     }
 
     next(callback) {
-        if (this._queue.length == 0) {
+        if (this._queue.length === 0) {
             return callback();
         }
         let data = this._queue[0];

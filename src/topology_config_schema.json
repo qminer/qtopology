@@ -13,13 +13,43 @@
                     "type": "integer"
                 },
                 "heartbeat": {
-                    "type": "integer",
-                    "default": 0
+                    "type": "integer"
+                },
+                "initialization": {
+                    "type": "object",
+                    "properties": {
+                        "working_dir": {
+                            "type": "string"
+                        },
+                        "cmd": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "working_dir",
+                        "cmd"
+                    ]
+                },
+                "shutdown": {
+                    "type": "object",
+                    "properties": {
+                        "working_dir": {
+                            "type": "string"
+                        },
+                        "cmd": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "working_dir",
+                        "cmd"
+                    ]
                 }
             },
             "required": [
                 "name",
-                "coordination_port"
+                "coordination_port",
+                "heartbeat"
             ]
         },
         "workers": {

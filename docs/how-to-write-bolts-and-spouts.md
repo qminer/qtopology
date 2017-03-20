@@ -157,3 +157,57 @@ context.start();
 ````````````
 
 Configuration is the same as for the inproc version, except the `type` field. It should be set to `subproc`.
+
+## Common initialization code
+
+QTopology allows for common initialization and shutdown code. Initialization is ran before any of the bolts and spouts is created, while shutdown code runs when all nodes have already shutdown.
+
+This functionality is used for managing common resources like database connections, cached data etc.
+
+> Nodes that run in `subproc` mode need to handle this on their own.
+
+An example of the code:
+
+### init.js
+
+````````````````````````````````javascript
+"use strict";
+
+exports.init = function(callback) {
+    // e.g. open DB conenction
+    callback();
+}
+````````````````````````````````
+
+### shutdown.js
+
+````````````````````````````````javascript
+"use strict";
+
+exports.shutdown = function(callback) {
+    // e.g. close DB conenction
+    callback();
+}
+````````````````````````````````
+
+### Topology definition
+
+```````````````````````````````json
+{
+    "general": {
+        "name": "Topology name",
+        "coordination_port": 9289,
+        "heartbeat": 3200,
+        "initialization": {
+            "working_dir": ".",
+            "cmd": "init.js"
+        },
+        "shutdown": {
+            "working_dir": ".",
+            "cmd": "shutdown.js"
+        }
+    },
+    ...
+    ...
+}
+```````````````````````````````

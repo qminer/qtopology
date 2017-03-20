@@ -1,6 +1,7 @@
 "use strict";
 
 const async = require("async");
+const path = require("path");
 const top_sub = require("./topology_local_subprocess");
 const top_inproc = require("./topology_local_inprocess");
 
@@ -63,6 +64,12 @@ class TopologyLocal {
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
         let tasks = [];
+        if (self._config.general.initialization) {
+            let init_conf = self._config.general.initialization;
+            let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
+            let module_path = path.join(dir, init_conf.cmd);
+            tasks.push((xcallback) => { require(module_path).init(xcallback); });
+        }
         self._config.bolts.forEach((bolt_config) => {
             if (bolt_config.disabled) {
                 return;
@@ -123,19 +130,26 @@ class TopologyLocal {
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
-        this._isShuttingDown = true;
-        this.pause((err) => {
+        let self = this;
+        self._isShuttingDown = true;
+        self.pause((err) => {
             let tasks = [];
-            this._spouts.forEach((spout) => {
+            self._spouts.forEach((spout) => {
                 tasks.push((xcallback) => {
                     spout.shutdown(xcallback);
                 });
             });
-            this._bolts.forEach((bolt) => {
+            self._bolts.forEach((bolt) => {
                 tasks.push((xcallback) => {
                     bolt.shutdown(xcallback);
                 });
             });
+            if (self._config.general.shutdown) {
+                let shutdown_conf = self._config.general.shutdown;
+                let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                let module_path = path.join(dir, shutdown_conf.cmd);
+                tasks.push((xcallback) => { require(module_path).shutdown(xcallback); });
+            }
             async.series(tasks, callback);
         });
     }
