@@ -11,6 +11,7 @@ const cb = require("./std_nodes/console_bolt");
 const ab = require("./std_nodes/attacher_bolt");
 const gb = require("./std_nodes/get_bolt");
 
+const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
 
@@ -141,6 +142,7 @@ class TopologySpoutInproc {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
+            case "rest": return new rs.RestSpout();
             default: throw new Error("Unknown sys spout type:", spout_config.cmd);
         }
     }

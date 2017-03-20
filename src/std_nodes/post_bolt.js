@@ -29,6 +29,7 @@ class PostBolt {
     }
 
     receive(data, stream_id, callback) {
+        let self = this;
         if (this._fixed_url) {
             rq.post(
                 { uri: this._fixed_url, json: data },
