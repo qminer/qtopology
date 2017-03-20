@@ -4,7 +4,21 @@ QTopology contains some already implemented spouts and bolts that are ready to u
 
 To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriate value - see below for values.
 
-## Timer spout - `cmd="timer"`
+List of standard spouts:
+
+- [Timer spout](#timer-spout)
+- [GET spout](#get-spout)
+
+List of standard bolts:
+
+- [Attacher bolt](#attacher-bolt)
+- [Filter bolt](#filter-bolt)
+- [GET bolt](#get-bolt)
+- [POST bolt](#post-bolt)
+
+## Timer spout
+
+`cmd="timer"`
 
 This spout emits new record on every heartbeat. The record contains title (`title`) and and timestamp (`ts`) fields. Additional constant fields can be defined via configuration - these fields are simply attached to the message.
 
@@ -34,7 +48,9 @@ This spout will emit message like this:
 }
 ``````````````````````````````
 
-## Attacher bolt - `cmd="attacher"`
+## Attacher bolt
+
+`cmd="attacher"`
 
 This bolt just attaches fixed data fields to every incoming message and forwards it on to listeners.
 
@@ -68,7 +84,9 @@ Emit a new message like this:
 { "previous_data": "some text", "field1": "a" }
 ``````````````````````````````
 
-## Console bolt - `cmd="console"`
+## Console bolt
+
+`cmd="console"`
 
 This bolt just logs every incoming message to `stdout` and forwards it on to listeners.
 
@@ -86,7 +104,9 @@ This bolt just logs every incoming message to `stdout` and forwards it on to lis
 }
 ```````````````````````````````
 
-## Filter bolt - `cmd="filter"`
+## Filter bolt
+
+`cmd="filter"`
 
 This bolt filters incoming messages and only forwards the ones that pass its filter.
 
@@ -112,10 +132,11 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 }
 ```````````````````````````````
 
-## POST bolt - `cmd="post"`
+## POST bolt
 
-This bolt sends POST request to specified url (fixed or provided inside data) and forwards the response.
+`cmd="post"`
 
+This bolt sends POST request to specified url (fixed or provided inside data) and forwards the response. 
 The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
 
 ### Sending using fixed URL
@@ -166,7 +187,9 @@ This way the bolt will send the `body` property of the incomming message to the 
 }
 `````````````````````````````````
 
-## GET bolt - `cmd="get"`
+## GET bolt
+
+`cmd="get"`
 
 This bolt sends GET request without any request-body to a specified url (fixed or provided inside data) and forwards the response.
 
@@ -214,7 +237,9 @@ This way the bolt will send the `GET` request to the URL, specified by the `url`
 }
 `````````````````````````````````
 
-## GET spout - `cmd="get"`
+## GET spout
+
+`cmd="get"`
 
 This spout sends GET request without any request-body to a specified url (fixed or provided inside data) in regualr time intervals and forwards the response.
 
