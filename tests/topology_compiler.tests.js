@@ -76,7 +76,14 @@ describe('TopologyCompiler', function () {
         });
         it('1 worker, 1 spout, 1 bolt + variables', function () {
             let config = {
-                general: {},
+                general: {
+                    initialization: {
+                        init: {
+                            a: "--${MY_VAR}--",
+                            b: "--${MY_VAR2}--"
+                        }
+                    }
+                },
                 workers: [
                     { name: "wrkr1" }
                 ],
@@ -113,6 +120,11 @@ describe('TopologyCompiler', function () {
             };
             let tcc = new tc.TopologyCompiler(config);
             tcc.compile();
+            let output_config = tcc.getWholeConfig();
+            assert.deepEqual(output_config.general.initialization.init, {
+                            a: "--my_var--",
+                            b: "--my_var2--"
+                        });
             assert.deepEqual(tcc.getWorkerNames(), ["wrkr1"]);
             assert.deepEqual(tcc.getConfigForWorker("wrkr1"), {
                 spouts: [
