@@ -1,7 +1,7 @@
 "use strict";
 
 const pm = require("../util/pattern_matcher");
-const rq = require("request");
+const rest = require('node-rest-client');
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,6 +20,7 @@ class GetBolt {
         this._name = name;
         this._onEmit = config.onEmit;
         this._fixed_url = config.url;
+        this._client = new rest.Client();
         callback();
     }
 
@@ -32,19 +33,24 @@ class GetBolt {
     receive(data, stream_id, callback) {
         let self = this;
         if (self._fixed_url) {
-            rq.get(
+            let req = self._client.get(
                 self._fixed_url,
-                (error, response, body) => {
-                    if (error) { return callback(error); }
-                    self._onEmit({ body: body }, null, callback);
+                (new_data, response) => {
+                    self._onEmit({ body: new_data }, null, callback);
                 });
+            req.on('error', function (err) {
+                callback(err);
+            });
         } else {
-            rq.post(
+            let req = self._client.get(
                 data.url,
-                (error, response, body) => {
+                (new_data, response) => {
                     if (error) { return callback(error); }
                     self._onEmit({ body: body }, null, callback);
                 });
+            req.on('error', function (err) {
+                callback(err);
+            });
         }
     }
 }

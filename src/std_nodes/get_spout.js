@@ -1,7 +1,7 @@
 "use strict";
 
 const pm = require("../util/pattern_matcher");
-const rq = require("request");
+const rest = require('node-rest-client');
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +29,7 @@ class GetSpout {
         this._url = config.url;
         this._repeat = config.repeat;
         this._stream_id = config.stream_id;
+        this._client = new rest.Client();
         callback();
     }
 
@@ -38,11 +39,9 @@ class GetSpout {
         }
         if (this._next_ts < Date.now()) {
             let self = this;
-            rq.get(self._url, (error, response, body) => {
-                if (!error) {
-                    this._next_tuple = { body: body };
-                    self._next_ts = Date.now() + self._repeat;
-                }
+            let req = self._client.get(self._url, (new_data, response) => {
+                this._next_tuple = { body: new_data };
+                self._next_ts = Date.now() + self._repeat;
             });
         }
     }
