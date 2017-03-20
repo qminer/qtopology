@@ -8,6 +8,7 @@ List of standard spouts:
 
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
+- [REST spout](#rest-spout)
 
 List of standard bolts:
 
@@ -47,6 +48,28 @@ This spout will emit message like this:
     "field1": "a"
 }
 ``````````````````````````````
+
+## REST spout
+
+`cmd="rest"`
+
+This spout opens `HTTP` server on specified port and emits new record on every `POST` request.
+
+Incoming data is expected to be in JSON format. Optionally, fixed stream ID can be assigned to data tuple.
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "rest",
+    "init": {
+        "port": 6789,
+        "stream_id": "SomeOptionalStreamId"
+    }
+}
+```````````````````````````````
 
 ## Attacher bolt
 
