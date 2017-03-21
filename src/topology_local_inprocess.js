@@ -10,6 +10,7 @@ const pb = require("./std_nodes/post_bolt");
 const cb = require("./std_nodes/console_bolt");
 const ab = require("./std_nodes/attacher_bolt");
 const gb = require("./std_nodes/get_bolt");
+const rb = require("./std_nodes/router_bolt");
 
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
@@ -271,6 +272,7 @@ class TopologyBoltInproc {
             case "attacher": return new ab.AttacherBolt(context);
             case "post": return new pb.PostBolt(context);
             case "get": return new gb.GetBolt(context);
+            case "router": return new rb.RouterBolt(context);
             default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
         }
     }

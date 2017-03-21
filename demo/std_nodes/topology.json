@@ -90,6 +90,25 @@
             "init": {}
         },
         {
+            "name": "bolt_router",
+            "worker": "srv1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "router",
+            "inputs": [
+                {
+                    "source": "pump4"
+                }
+            ],
+            "init": {
+                "routes": {
+                    "extra_stream": {
+                        "a": 15
+                    }
+                }
+            }
+        },
+        {
             "name": "bolt2",
             "worker": "srv1",
             "working_dir": ".",
@@ -136,6 +155,10 @@
                 },
                 {
                     "source": "pump3"
+                },
+                {
+                    "source": "bolt_router",
+                    "stream_id": "extra_stream"
                 }
             ],
             "init": {}
