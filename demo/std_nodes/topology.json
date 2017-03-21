@@ -44,6 +44,29 @@
                 "repeat": 5000,
                 "url": "http://siol.net"
             }
+        },
+        {
+            "name": "pump4",
+            "worker": "srv1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "test",
+            "init": {
+                "tuples": [
+                    {
+                        "ts": "2017-03-16T12:34:33.942Z",
+                        "a": 12
+                    },
+                    {
+                        "ts": "2017-03-16T12:35:33.947Z",
+                        "a": 15
+                    },
+                    {
+                        "ts": "2017-03-16T12:36:33.952Z",
+                        "a": 14.3
+                    }
+                ]
+            }
         }
     ],
     "bolts": [
@@ -59,6 +82,9 @@
                 },
                 {
                     "source": "pump2"
+                },
+                {
+                    "source": "pump4"
                 }
             ],
             "init": {}

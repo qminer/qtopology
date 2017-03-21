@@ -9,6 +9,7 @@ List of standard spouts:
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
+- [Test spout](#test-spout)
 
 List of standard bolts:
 
@@ -16,6 +17,39 @@ List of standard bolts:
 - [Filter bolt](#filter-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
+
+## Test spout
+
+`cmd="test"`
+
+This spout emits pre-defined records. The records need to be defined in the configuration, in field `tuples`.
+
+> This spout is primarily meant for testing.
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "timer",
+    "init": {
+        "tuples": [
+            { "ts": "2017-03-16T12:34:33.942Z", "a": 12 },
+            { "ts": "2017-03-16T12:35:33.947Z", "a": 15 },
+            { "ts": "2017-03-16T12:36:33.952Z", "a": 14.3 }
+        ]
+    }
+}
+```````````````````````````````
+
+This spout will emit these messages:
+
+``````````````````````````````json
+{ "ts": "2017-03-16T12:34:33.942Z", "a": 12 }
+{ "ts": "2017-03-16T12:35:33.947Z", "a": 15 }
+{ "ts": "2017-03-16T12:36:33.952Z", "a": 14.3 }
+``````````````````````````````
 
 ## Timer spout
 
@@ -159,7 +193,7 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 
 `cmd="post"`
 
-This bolt sends POST request to specified url (fixed or provided inside data) and forwards the response. 
+This bolt sends POST request to specified url (fixed or provided inside data) and forwards the response.
 The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
 
 ### Sending using fixed URL
@@ -218,7 +252,7 @@ This bolt sends GET request without any request-body to a specified url (fixed o
 
 The result of the call will be emitted into topology, with a single property `body` that will contain the body of the response.
 
-### Sending using fixed URL
+### GET bolt - Sending using fixed URL
 
 ```````````````````````````````json
 {
@@ -236,7 +270,7 @@ The result of the call will be emitted into topology, with a single property `bo
 }
 ```````````````````````````````
 
-### Sending using dynamic URL
+### GET bolt - Sending using dynamic URL
 
 ```````````````````````````````json
 {

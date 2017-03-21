@@ -14,6 +14,7 @@ const gb = require("./std_nodes/get_bolt");
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
+const tss = require("./std_nodes/test_spout");
 
 const tel = require("./util/telemetry");
 
@@ -144,6 +145,7 @@ class TopologySpoutInproc {
             case "timer": return new ts.TimerSpout(context);
             case "get": return new gs.GetSpout(context);
             case "rest": return new rs.RestSpout(context);
+            case "test": return new tss.TestSpout(context);
             default: throw new Error("Unknown sys spout type:", spout_config.cmd);
         }
     }
