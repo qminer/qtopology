@@ -45,8 +45,7 @@ class GetBolt {
             let req = self._client.get(
                 data.url,
                 (new_data, response) => {
-                    if (error) { return callback(error); }
-                    self._onEmit({ body: body }, null, callback);
+                    self._onEmit({ body: new_data }, null, callback);
                 });
             req.on('error', function (err) {
                 callback(err);
