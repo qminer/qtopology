@@ -43,6 +43,7 @@ class RouterBolt {
         let tasks = [];
         for (let item of self._matchers) {
             if (item.matcher.isMatch(data)) {
+                /* jshint loopfunc:true */
                 tasks.push((xcallback) => {
                     self._onEmit(data, item.stream_id, xcallback);
                 });
