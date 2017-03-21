@@ -15,6 +15,7 @@ List of standard bolts:
 
 - [Attacher bolt](#attacher-bolt)
 - [Filter bolt](#filter-bolt)
+- [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 
@@ -183,6 +184,39 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
             "my_field2": ["target_value2", "target_value3"],
             "my_field3": {
                 "$like": "regex expression"
+            }
+        }
+    }
+}
+```````````````````````````````
+
+## Router bolt
+
+`cmd="filter"`
+
+This bolt routes incoming messages to separate stream ids, depending on the filters.
+If filters for several routes succeed, the message is sent to all stream ids.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "worker": "srv1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "filter",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "routes": {
+            "stream1": {
+                "field1": "a"
+            },
+            "stream2": {
+                "field1": "b"
+            },
+            "stream3": {
+                "field1": ["a", "c"]
             }
         }
     }
