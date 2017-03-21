@@ -20,6 +20,7 @@ class TopologyNode extends EventEmitter {
         this._init.name = config.name;
 
         this._isStarted = false;
+        this._isShuttingDown = false;
         this._isClosed = false;
         this._isExit = false;
         this._isError = false;
@@ -60,6 +61,7 @@ class TopologyNode extends EventEmitter {
 
     /** Shuts down the process */
     shutdown(callback) {
+        this._isShuttingDown = true;
         this._child.send({ cmd: "shutdown" });
         this._onExit = callback;
     }
@@ -194,6 +196,9 @@ class TopologyBolt extends TopologyNode {
         let self = this;
 
         this._emitCallback = (data, stream_id, callback) => {
+            if (self._isShuttingDown) {
+                return callback("Bolt is shutting down:", self._name);
+            }
             config.onEmit(data, stream_id, callback);
         };
 

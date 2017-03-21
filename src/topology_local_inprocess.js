@@ -169,11 +169,15 @@ class TopologyBoltInproc {
         this._cmd = config.cmd;
         this._init = config.init || {};
         this._init.onEmit = (data, stream_id, callback) => {
+            if (self._isShuttingDown) {
+                return callback("Bolt is shutting down:", self._name);
+            }
             config.onEmit(data, stream_id, callback);
         };
         this._emitCallback = this._init.onEmit;
 
         this._isStarted = false;
+        this._isShuttingDown = false;
         this._isClosed = false;
         this._isExit = false;
         this._isError = false;
@@ -223,6 +227,7 @@ class TopologyBoltInproc {
 
     /** Shuts down the child */
     shutdown(callback) {
+        this._isShuttingDown = true;
         if (!this._inSend) {
             return this._child.shutdown(callback);
         } else {
