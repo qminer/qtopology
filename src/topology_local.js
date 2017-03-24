@@ -7,7 +7,7 @@ const top_inproc = require("./topology_local_inprocess");
 
 ////////////////////////////////////////////////////////////////////
 
-/** Class that perform redirection of messages after they are emited from nodes */
+/** Class that performs redirection of messages after they are emited from nodes */
 class OutputRouter {
 
     /** Constructor prepares the object before any information is received. */
