@@ -132,8 +132,8 @@ class TopologyLocal {
         self._isShuttingDown = true;
         if (self._heartbeatTimer) {
             clearInterval(self._heartbeatTimer);
-            self._heartbeatCallback()
-        };
+            self._heartbeatCallback();
+        }
         self.pause((err) => {
             let tasks = [];
             self._spouts.forEach((spout) => {

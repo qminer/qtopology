@@ -161,6 +161,9 @@
                     "init": {
                         "type": "object",
                         "additionalProperties": true
+                    },
+                    "allow_parallel": {
+                        "type": "boolean"
                     }
                 },
                 "required": [

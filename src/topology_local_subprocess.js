@@ -194,6 +194,7 @@ class TopologyBolt extends TopologyNode {
     constructor(config) {
         super(config);
         let self = this;
+        this._allow_parallel = config.allow_parallel || false;
 
         this._emitCallback = (data, stream_id, callback) => {
             if (self._isShuttingDown) {
@@ -202,9 +203,9 @@ class TopologyBolt extends TopologyNode {
             config.onEmit(data, stream_id, callback);
         };
 
-        this._inReceive = false; // this field can be true even when _ackCallback is null
+        this._inReceive = 0; // this field can be non-zero even when _ackCallback is null
         this._pendingReceiveRequests = [];
-        this._ackCallback = null;
+        this._ackCallbacks = [];
         this._telemetry_callback = (data, stream_id) => {
             self._emitCallback(data, stream_id, () => { });
         };
@@ -215,10 +216,10 @@ class TopologyBolt extends TopologyNode {
                 self._child.send({ cmd: "ack", data: { id: id } });
             });
         });
-        this.on("ack", () => {
-            self._ackCallback();
-            self._ackCallback = null;
-            self._inReceive = false;
+        this.on("ack", (msg) => {
+            self._ackCallbacks[msg.data.ack_id](msg.err);
+            self._ackCallbacks[msg.data.ack_id] = null;
+            self._inReceive--;
             if (self._pendingReceiveRequests.length > 0) {
                 let d = self._pendingReceiveRequests[0];
                 self._pendingReceiveRequests = self._pendingReceiveRequests.slice(1);
@@ -236,7 +237,7 @@ class TopologyBolt extends TopologyNode {
     _receive(data, stream_id, from_waitlist, callback) {
         let self = this;
         let ts_start = Date.now();
-        if (self._inReceive) {
+        if (self._inReceive > 0 && !self._allow_parallel) {
             self._pendingReceiveRequests.push({
                 data: data,
                 stream_id: stream_id,
@@ -246,15 +247,31 @@ class TopologyBolt extends TopologyNode {
                 }
             });
         } else {
-            self._inReceive = true;
-            self._ackCallback = (err) => {
+            self._inReceive++;
+            let cb = (err) => {
                 if (!from_waitlist) {
                     self._telemetryAdd(Date.now() - ts_start);
                 }
-                callback();
+                callback(err);
             };
-            self._child.send({ cmd: "data", data: { data: data, stream_id: stream_id } });
+            let ack_index = self._addAckCallback(cb);
+            self._child.send({
+                cmd: "data",
+                data: { data: data, stream_id: stream_id, ack_id: ack_index }
+            });
         }
+    }
+
+    /** Adds given callback to internal array */
+    _addAckCallback(cb) {
+        for (let i = 0; i < this._ackCallbacks.length; i++) {
+            if (!this._ackCallbacks[i]) {
+                this._ackCallbacks[i] = cb;
+                return i;
+            }
+        }
+        this._ackCallbacks.push(cb);
+        return this._ackCallbacks.length - 1;
     }
 }
 

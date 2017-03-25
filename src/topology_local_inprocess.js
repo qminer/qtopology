@@ -163,6 +163,7 @@ class TopologyBoltInproc {
 
     /** Constructor needs to receive all data */
     constructor(config, context) {
+        let self = this;
         this._name = config.name;
         this._context = context;
         this._working_dir = config.working_dir;
@@ -175,6 +176,7 @@ class TopologyBoltInproc {
             config.onEmit(data, stream_id, callback);
         };
         this._emitCallback = this._init.onEmit;
+        this._allow_parallel = config.allow_parallel || false;
 
         this._isStarted = false;
         this._isShuttingDown = false;
@@ -183,14 +185,13 @@ class TopologyBoltInproc {
         this._isError = false;
         this._onExit = null;
 
-        this._inSend = false;
+        this._inSend = 0;
         this._pendingSendRequests = [];
         this._pendingShutdownCallback = null;
 
         this._telemetry = new tel.Telemetry(config.name);
         this._telemetry_total = new tel.Telemetry(config.name);
 
-        let self = this;
         try {
             if (config.type == "sys") {
                 this._child = this._createSysBolt(config, context);
@@ -228,7 +229,7 @@ class TopologyBoltInproc {
     /** Shuts down the child */
     shutdown(callback) {
         this._isShuttingDown = true;
-        if (!this._inSend) {
+        if (this._inSend === 0) {
             return this._child.shutdown(callback);
         } else {
             this._pendingShutdown = callback;
@@ -244,7 +245,7 @@ class TopologyBoltInproc {
     receive(data, stream_id, callback) {
         let self = this;
         let ts_start = Date.now();
-        if (self._inSend) {
+        if (self._inSend > 0 && !self._allow_parallel) {
             self._pendingSendRequests.push({
                 data: data,
                 stream_id: stream_id,
@@ -254,16 +255,18 @@ class TopologyBoltInproc {
                 }
             });
         } else {
-            self._inSend = true;
+            self._inSend++;
             self._child.receive(data, stream_id, (err) => {
                 callback(err);
-                self._inSend = false;
-                if (self._pendingSendRequests.length > 0) {
-                    let d = self._pendingSendRequests[0];
-                    self._pendingSendRequests = self._pendingSendRequests.slice(1);
-                    self.receive(d.data, stream_id, d.callback);
-                } else if (self._pendingShutdownCallback) {
-                    self.shutdown(self._pendingShutdownCallback);
+                self._inSend--;
+                if (self._inSend === 0) {
+                    if (self._pendingSendRequests.length > 0) {
+                        let d = self._pendingSendRequests[0];
+                        self._pendingSendRequests = self._pendingSendRequests.slice(1);
+                        self.receive(d.data, stream_id, d.callback);
+                    } else if (self._pendingShutdownCallback) {
+                        self.shutdown(self._pendingShutdownCallback);
+                    }
                 }
             });
         }
