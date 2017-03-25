@@ -7,7 +7,7 @@ const top_inproc = require("./topology_local_inprocess");
 
 ////////////////////////////////////////////////////////////////////
 
-/** Class that perform redirection of messages after they are emited from nodes */
+/** Class that performs redirection of messages after they are emited from nodes */
 class OutputRouter {
 
     /** Constructor prepares the object before any information is received. */
@@ -54,6 +54,8 @@ class TopologyLocal {
 
         this._isRunning = false;
         this._isShuttingDown = false;
+        this._heartbeatTimer = null;
+        this._heartbeatCallback = null;
     }
 
     /** Initialization that sets up internal structure and
@@ -128,6 +130,10 @@ class TopologyLocal {
     shutdown(callback) {
         let self = this;
         self._isShuttingDown = true;
+        if (self._heartbeatTimer) {
+            clearInterval(self._heartbeatTimer);
+            self._heartbeatCallback();
+        }
         self.pause((err) => {
             let tasks = [];
             self._spouts.forEach((spout) => {
@@ -158,7 +164,8 @@ class TopologyLocal {
                 return !self._isShuttingDown;
             },
             (xcallback) => {
-                setTimeout(
+                self._heartbeatCallback = xcallback;
+                self._heartbeatTimer = setTimeout(
                     () => {
                         if (self._isRunning) {
                             self._heartbeat();
@@ -196,8 +203,8 @@ class TopologyLocal {
             (destination, xcallback) => {
                 let data_clone = {};
                 Object.assign(data_clone, data);
-                self._getBolt(destination)
-                    .receive(data_clone, stream_id, xcallback);
+                let bolt = self._getBolt(destination);
+                bolt.receive(data_clone, stream_id, xcallback);
             },
             callback
         );
