@@ -34,6 +34,7 @@ class MySpout {
         this._context = context;
         this._prefix = "";
         this._generator = new DataGenerator();
+        this._waiting_for_ack = false;
     }
 
     init(name, config, callback) {
@@ -64,8 +65,17 @@ class MySpout {
 
     next(callback) {
         console.log(this._prefix, "Inside next");
+        if (this._waiting_for_ack) {
+            return callback(null, null, null); // no data
+        }
         let data = this._generator.next();
-        callback(null, data, null);
+        this._waiting_for_ack = (data != null);
+        callback(null, data, null, (err, xcallback) => {
+            this._waiting_for_ack = false;
+            if (xcallback) {
+                xcallback();
+            }
+        });
     }
 }
 

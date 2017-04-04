@@ -136,6 +136,7 @@ class TopologySpout extends TopologyNode {
                 // only call callback when topology signals that processing is done
                 let cb = self._nextCallback;
                 self._nextCallback = null;
+                self._child.send({ cmd: "spout_ack" });
                 cb();
             });
         });
