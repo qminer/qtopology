@@ -156,7 +156,7 @@ class TopologyContextBolt extends TopologyContextNode {
         let self = this;
         self._handlers.data = (data) => {
             self._child.receive(data.data, data.stream_id, (err) => {
-                self._send("ack", err);
+                self._send("ack", { err: err, ack_id: data.ack_id });
             });
         };
     }
