@@ -135,7 +135,6 @@ class TopologyContextSpout extends TopologyContextNode {
             self._child.pause();
         };
         self._handlers.spout_ack = () => {
-console.log("ACK received");
             if (self._pending_ack_cb) {
                 self._pending_ack_cb();
             }
