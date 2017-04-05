@@ -113,13 +113,15 @@ class TopologyContextSpout extends TopologyContextNode {
     constructor(child) {
         super(child, false);
 
+        this._pending_ack_cb = null;
         let self = this;
         self._handlers.next = (data) => {
-            self._child.next((err, data, stream_id) => {
+            self._child.next((err, data, stream_id, cb) => {
                 if (err) {
                     // TODO is there a better option?
                     self._send("empty", {});
                 } else if (data) {
+                    this._pending_ack_cb = cb;
                     self._send("data", { data: data, stream_id: stream_id });
                 } else {
                     self._send("empty", {});
@@ -131,6 +133,11 @@ class TopologyContextSpout extends TopologyContextNode {
         };
         self._handlers.pause = () => {
             self._child.pause();
+        };
+        self._handlers.spout_ack = () => {
+            if (self._pending_ack_cb) {
+                self._pending_ack_cb();
+            }
         };
     }
 }

@@ -117,7 +117,7 @@ class TopologySpoutInproc {
             callback();
         } else {
             let ts_start = Date.now();
-            this._child.next((err, data, stream_id) => {
+            this._child.next((err, data, stream_id, xcallback) => {
                 self._telemetryAdd(Date.now() - ts_start);
                 if (err) {
                     console.error(err);
@@ -125,10 +125,17 @@ class TopologySpoutInproc {
                     return;
                 }
                 if (!data) {
-                    self._nextTs = Date.now() + 1 * 1000; // sleep for 1sec if spout is empty
+                    self._nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
                     callback();
                 } else {
-                    self._emitCallback(data, stream_id, callback);
+                    self._emitCallback(data, stream_id, (err) => {
+                        // in case child object expects confirmation call for this tuple
+                        if (xcallback) {
+                            xcallback(err, callback);
+                        } else {
+                            callback();
+                        }
+                    });
                 }
             });
         }
