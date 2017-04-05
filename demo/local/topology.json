@@ -3,14 +3,18 @@
         "name": "Topology name",
         "coordination_port": 9289,
         "heartbeat": 4000,
-        "initialization": {
-            "working_dir": ".",
-            "cmd": "init_and_shutdown.js"
-        },
-        "shutdown": {
-            "working_dir": ".",
-            "cmd": "init_and_shutdown.js"
-        }
+        "initialization": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            }
+        ],
+        "shutdown": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            }
+        ]
     },
     "workers": [
         {

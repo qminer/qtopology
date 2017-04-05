@@ -5,9 +5,8 @@ const Validator = require("jsonschema").Validator;
 
 ////////////////////////////////////////////////////////////////////
 
-
 let instance = JSON.parse(fs.readFileSync("./topology_config_example.json"));
-let schema = JSON.parse(fs.readFileSync("./topology_config_schema.json"));
+let schema = JSON.parse(fs.readFileSync("../topology_config_schema.json"));
 
 let v = new Validator();
 let validation_result = v.validate(instance, schema);
@@ -17,4 +16,6 @@ if (validation_result.errors.length > 0) {
         console.error(error.stack || error.property + " " + error.message);
     }
     process.exit(1);
+} else {
+    console.log("Schema is valid.");
 }

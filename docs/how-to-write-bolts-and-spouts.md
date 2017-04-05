@@ -204,6 +204,8 @@ Configuration is the same as for the inproc version, except the `type` field. It
 
 QTopology allows for common initialization and shutdown code. Initialization is ran before any of the bolts and spouts is created, while shutdown code runs when all nodes have already shutdown.
 
+> There can be several initialization scripts. They will be executed sequentially in the order of declaration. This is usefull when there is common initialization for multiple topologies and a specific initialization step for single topology.
+
 This functionality is used for managing common resources like database connections, cached data etc.
 
 > Nodes that run in `subproc` mode need to handle this on their own.
@@ -212,14 +214,15 @@ An example of the code:
 
 ### init.js
 
-Initialization code can create a "context" object, which will be sent to all `inproc` bolts and spouts as single parameter in `create()` method.
+Initialization code can fill a "context" object, which will be sent to all `inproc` bolts and spouts as single parameter in `create()` method.
 
 ````````````````````````````````javascript
 "use strict";
 
-exports.init = function(config, callback) {
+exports.init = function(config, context, callback) {
     // use config parameter and e.g. open DB conenction
-    callback(null, db_wrapper);
+    // store data into context if it is needed further down the topology
+    callback(null);
 }
 ````````````````````````````````
 
@@ -261,6 +264,8 @@ exports.create = function (context) {
 
 ### shutdown.js
 
+Shutdown sequence is executed after all bolts and spouts shut down. Again, there can be several scripts listed here and they are executed sequentially in the order of declaration.
+
 ````````````````````````````````javascript
 "use strict";
 
@@ -278,17 +283,21 @@ exports.shutdown = function(callback) {
         "name": "Topology name",
         "coordination_port": 9289,
         "heartbeat": 3200,
-        "initialization": {
-            "working_dir": ".",
-            "cmd": "init.js",
-            "init": {
-                "connection_string": "connection-string-to-my-database"
+        "initialization": [
+            {
+                "working_dir": ".",
+                "cmd": "init.js",
+                "init": {
+                    "connection_string": "connection-string-to-my-database"
+                }
             }
-        },
-        "shutdown": {
-            "working_dir": ".",
-            "cmd": "shutdown.js"
-        }
+        ],
+        "shutdown": [
+            {
+                "working_dir": ".",
+                "cmd": "shutdown.js"
+            }
+        ]
     },
     ...
     ...

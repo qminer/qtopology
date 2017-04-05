@@ -16,38 +16,44 @@
                     "type": "integer"
                 },
                 "initialization": {
-                    "type": "object",
-                    "properties": {
-                        "working_dir": {
-                            "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "working_dir": {
+                                "type": "string"
+                            },
+                            "cmd": {
+                                "type": "string"
+                            },
+                            "init": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
                         },
-                        "cmd": {
-                            "type": "string"
-                        },
-                        "init": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "required": [
-                        "working_dir",
-                        "cmd"
-                    ]
+                        "required": [
+                            "working_dir",
+                            "cmd"
+                        ]
+                    }
                 },
                 "shutdown": {
-                    "type": "object",
-                    "properties": {
-                        "working_dir": {
-                            "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "working_dir": {
+                                "type": "string"
+                            },
+                            "cmd": {
+                                "type": "string"
+                            }
                         },
-                        "cmd": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "working_dir",
-                        "cmd"
-                    ]
+                        "required": [
+                            "working_dir",
+                            "cmd"
+                        ]
+                    }
                 }
             },
             "required": [
