@@ -63,6 +63,8 @@ This object:
 | | Initializes and send `init_completed` |
 | Sends `next` command | |
 | | Either emits exactly one `data` command or `empty` command |
+| When tuple is processed, sends `spout_ack` command | |
+| | Optionally handles `spout_ack` command |
 | Sends `heartbeat` command | |
 | | Reacts to heartbeat and optionally emits `data` command (zero, one or many) |
 | Sends `shutdown` command| |

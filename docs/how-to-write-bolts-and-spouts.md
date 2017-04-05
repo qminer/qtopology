@@ -4,7 +4,7 @@ Depending on the execution we have to options for running bolts and spouts - **i
 
 **In-process** bolts and spouts have the advantage of the quickest communication. The down-side is that in the case of error or unhandeled exceptions, they can bring down the entire `qtopology` engine.
 
-The engine expects the same implementation regardless of the way it executes (inprocess or subprocess). There is just aminor difference at how the code is included into the topology/engine.
+The engine expects the same implementation regardless of the way it executes (inprocess or subprocess). There is just a minor difference at how the code is included into the topology/engine.
 
 ## Implementations
 
@@ -41,6 +41,10 @@ class MyBolt {
 Callback in `send()` method should not be called until all emitted tuples have been
 acknowledged via callback (`onEmit()` function, received in config).
 
+**`onEmit()` function**
+
+The usage of this funcion is:
+
 ### Spouts
 
 To create a spout, create a `.js` file with single exported parameterless function named `create()`.
@@ -56,7 +60,9 @@ class MySpout {
     // parameterless constructor
     constructor() {}
     // initialization with custom configuration
-    init(name, config, callback) { }
+    init(name, config, callback) {
+        // callback(errr)
+    }
     // heartbeat signal
     heartbeat() { }
     // this call should gracefully stop the object, saving its state if needed
@@ -66,11 +72,48 @@ class MySpout {
     // disable this object
     pause() { }
     // called to fetch next tuple from spout
-    next(callback) { }
+    next(callback) {
+        //callback(err, data, stream_id, ack_callback)
+    }
 }
 ```````````
 
-> Method `next()` should return single data tuple or null if no data is available.
+**Callback in `next()` **
+
+Method `next()` should return single data tuple or null if no data is available. Method signature is as follows:
+
+``````javascript
+callback(err, data, stream_id, ack_callback);
+``````
+
+When there is not data to return:
+
+``````javascript
+callback(null, null);
+// or simply
+callback();
+``````
+
+When there is data to return on default stream, without need for acknowledgement:
+
+``````javascript
+callback(null, my_data);
+``````
+
+When there is data to return on stream named `"my_stream"`, without need for acknowledgement:
+
+``````javascript
+callback(null, my_data, "my_stream");
+``````
+
+When there is data to return on stream named `"my_stream"` and we need acknowledgement for the data:
+
+``````javascript
+callback(null, my_data, "my_stream", (err, callback) => {
+    // handle err - this might involve deletion from queue or DB
+    callback(); // this one has to be called
+});
+``````
 
 ## When using nodes inprocess
 
