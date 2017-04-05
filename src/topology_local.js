@@ -147,10 +147,11 @@ class TopologyLocal {
                 });
             });
             if (self._config.general.shutdown) {
-                let shutdown_conf = self._config.general.shutdown;
-                let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
-                let module_path = path.join(dir, shutdown_conf.cmd);
-                tasks.push((xcallback) => { require(module_path).shutdown(xcallback); });
+                for (let shutdown_conf of self._config.general.shutdown) {
+                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    let module_path = path.join(dir, shutdown_conf.cmd);
+                    tasks.push((xcallback) => { require(module_path).shutdown(xcallback); });
+                }
             }
             async.series(tasks, callback);
         });
@@ -228,13 +229,18 @@ class TopologyLocal {
     _initContext(callback) {
         let self = this;
         if (self._config.general.initialization) {
-            let init_conf = self._config.general.initialization;
-            let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
-            let module_path = path.join(dir, init_conf.cmd);
-            require(module_path).init(init_conf.init, (err, context) => {
-                if (err) { return callback(err); }
-                callback(null, context);
-            });
+            let common_context = {};
+            async.eachSeries(
+                self._config.general.initialization,
+                (init_conf, xcallback) => {
+                    let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
+                    let module_path = path.join(dir, init_conf.cmd);
+                    require(module_path).init(init_conf.init, common_context, xcallback);
+                },
+                (err) => {
+                    callback(null, common_context);
+                }
+            );
         } else {
             callback(null, null);
         }
