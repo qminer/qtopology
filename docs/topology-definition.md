@@ -6,13 +6,15 @@ Topology is defined via `JSON`. It follows this structure:
     - `name`: name of the topology
     - `coordination_port`: Port where coordinator listens to worker registrations
     - `heartbeat`: Defines heartbeat frequency in msec
-    - `initialization`: Optional. File where initialization code resides.
-        - `working_dir`: working directory where initialization file is located.
-        - `cmd`: name of the file where initialization code resides.
-        - `init`: initialization object that is sent to initialization code in `init()` method
-    - `shutdown`: Optional. File where shutdown code resides.
-        - `working_dir`: working directory where initialization file is located.
-        - `cmd`: name of the file where initialization code resides.
+    - `initialization`: Optional. List of initialization scripts:
+        - Single initialization script
+            - `working_dir`: working directory where initialization file is located.
+            - `cmd`: name of the file where initialization code resides.
+            - `init`: initialization object that is sent to initialization code in `init()` method
+    - `shutdown`: Optional. List of shutdown scripts:
+        - Single shutdown script
+            - `working_dir`: working directory where initialization file is located.
+            - `cmd`: name of the file where initialization code resides.
 - `workers`: array of worker definitions (with logical names, not physical addresses)
     - `name`: worker name
 - `spouts`: array of spout definitions
@@ -42,14 +44,12 @@ An example:
         "name": "Topology name",
         "coordination_port": 9289,
         "heartbeat": 3200,
-        "initialization": {
-            "working_dir": ".",
-            "cmd": "init.js"
-        },
-        "shutdown": {
-            "working_dir": ".",
-            "cmd": "shutdown.js"
-        }
+        "initialization": [
+            { "working_dir": ".", "cmd": "init.js" }
+        ],
+        "shutdown": [
+            { "working_dir": ".", "cmd": "shutdown.js" }
+        ]
     },
     "workers": [
         { "name": "srv1" }
