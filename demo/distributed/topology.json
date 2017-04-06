@@ -4,11 +4,6 @@
         "coordination_port": 9289,
         "heartbeat": 5000
     },
-    "workers": [
-        {
-            "name": "worker1"
-        }
-    ],
     "spouts": [],
     "bolts": [],
     "variables": {}

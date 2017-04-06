@@ -4,15 +4,9 @@
         "coordination_port": 9289,
         "heartbeat": 1000
     },
-    "workers": [
-        {
-            "name": "srv1"
-        }
-    ],
     "spouts": [
         {
             "name": "pump1",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "timer",
@@ -24,7 +18,6 @@
         },
         {
             "name": "pump2",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "timer",
@@ -36,7 +29,6 @@
         },
         {
             "name": "pump3",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "get",
@@ -47,7 +39,6 @@
         },
         {
             "name": "pump4",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "test",
@@ -72,7 +63,6 @@
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",
@@ -91,7 +81,6 @@
         },
         {
             "name": "bolt_router",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "router",
@@ -110,7 +99,6 @@
         },
         {
             "name": "bolt2",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "filter",
@@ -127,7 +115,6 @@
         },
         {
             "name": "bolt3",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",
@@ -140,7 +127,6 @@
         },
         {
             "name": "bolt4",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",

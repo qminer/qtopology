@@ -7,7 +7,7 @@ const tc = require("./topology_compiler");
 
 ////////////////////////////////////////////////////////////////////////////
 
-/** This class performs TCP coordination */
+/** This class performs TCP-based coordination */
 class TopologyListener {
 
     /** Constructor for getting  */

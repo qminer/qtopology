@@ -4,21 +4,9 @@
         "coordination_port": 9289,
         "heartbeat": 5000
     },
-    "workers": [
-        {
-            "name": "srv1"
-        },
-        {
-            "name": "srv2"
-        },
-        {
-            "name": "srv3"
-        }
-    ],
     "spouts": [
         {
             "name": "pump1_1",
-            "worker": "srv1",
             "working_dir": "${DIR_PUMP}",
             "cmd": "${PROC_PUMP}",
             "init": {
@@ -27,7 +15,6 @@
         },
         {
             "name": "pump1_2",
-            "worker": "srv1",
             "working_dir": "${DIR_PUMP}",
             "cmd": "${PROC_PUMP}",
             "init": {
@@ -36,7 +23,6 @@
         },
         {
             "name": "pump2_1",
-            "worker": "srv2",
             "working_dir": "${DIR_PUMP}",
             "cmd": "${PROC_PUMP}",
             "init": {
@@ -47,7 +33,6 @@
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": "${DIR_WORKER}",
             "cmd": "my_worker1.js",
             "args": ["-n", "1"],
@@ -67,7 +52,6 @@
         },
         {
             "name": "bolt2",
-            "worker": "srv2",
             "working_dir": "${DIR_WORKER}",
             "cmd": "my_worker1.js",
             "args": ["-n", "2"],
@@ -83,7 +67,6 @@
         },
         {
             "name": "publisher1",
-            "worker": "srv1",
             "working_dir": "${DIR_WORKER}",
             "cmd": "my_publisher1.js",
             "args": ["-a", ""],
@@ -98,7 +81,6 @@
         },
         {
             "name": "publisher2",
-            "worker": "srv2",
             "working_dir": "${DIR_WORKER}",
             "cmd": "my_publisher2.js",
             "inputs": [
@@ -112,9 +94,7 @@
         }
     ],
     "variables": {
-        "PROC_PUMP": "my_pump1.js",
-        "PROC_WORKER": "my_worker1.js",
-        "PROC_PUBLISHER1": "my_publisher1.js",
-        "PROC_PUBLISHER2": "my_publisher2.js"
+        "DIR_WORKER": "/some/target/dir/",
+        "PROC_PUMP": "my_pump1.js"
     }
 }

@@ -62,29 +62,12 @@
                 "heartbeat"
             ]
         },
-        "workers": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "name"
-                ]
-            }
-        },
         "spouts": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
-                    },
-                    "worker": {
                         "type": "string"
                     },
                     "type": {
@@ -112,7 +95,6 @@
                 },
                 "required": [
                     "name",
-                    "worker",
                     "working_dir",
                     "cmd",
                     "init"
@@ -125,9 +107,6 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
-                    },
-                    "worker": {
                         "type": "string"
                     },
                     "type": {
@@ -174,7 +153,6 @@
                 },
                 "required": [
                     "name",
-                    "worker",
                     "working_dir",
                     "cmd",
                     "inputs",
@@ -193,7 +171,6 @@
     },
     "required": [
         "general",
-        "workers",
         "spouts",
         "bolts",
         "variables"
