@@ -1,7 +1,6 @@
 {
     "general": {
         "name": "QMiner demo",
-        "coordination_port": 9289,
         "heartbeat": 2000
     },
     "spouts": [

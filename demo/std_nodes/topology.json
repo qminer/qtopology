@@ -1,7 +1,6 @@
 {
     "general": {
         "name": "Demo of std nodes",
-        "coordination_port": 9289,
         "heartbeat": 1000
     },
     "spouts": [

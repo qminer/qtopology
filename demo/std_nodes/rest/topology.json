@@ -1,18 +1,11 @@
 {
     "general": {
         "name": "Demo of POST and REST nodes",
-        "coordination_port": 9289,
         "heartbeat": 1000
     },
-    "workers": [
-        {
-            "name": "srv1"
-        }
-    ],
     "spouts": [
         {
             "name": "pump_timer",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "timer",
@@ -24,7 +17,6 @@
         },
         {
             "name": "pump_rest",
-            "worker": "srv1",
             "type": "sys",
             "working_dir": "",
             "cmd": "rest",
@@ -36,7 +28,6 @@
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "post",
@@ -51,7 +42,6 @@
         },
         {
             "name": "bolt2",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",

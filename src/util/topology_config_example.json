@@ -1,7 +1,6 @@
 {
     "general": {
         "name": "Topology name",
-        "coordination_port": 9289,
         "heartbeat": 5000
     },
     "spouts": [

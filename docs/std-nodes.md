@@ -30,7 +30,6 @@ This spout emits pre-defined records. The records need to be defined in the conf
 ```````````````````````````````json
 {
     "name": "pump1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "timer",
@@ -61,7 +60,6 @@ This spout emits new record on every heartbeat. The record contains title (`titl
 ```````````````````````````````json
 {
     "name": "pump1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "timer",
@@ -95,7 +93,6 @@ Incoming data is expected to be in JSON format. Optionally, fixed stream ID can 
 ```````````````````````````````json
 {
     "name": "pump1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "rest",
@@ -115,7 +112,6 @@ This bolt just attaches fixed data fields to every incoming message and forwards
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "attacher",
@@ -151,7 +147,6 @@ This bolt just logs every incoming message to `stdout` and forwards it on to lis
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "console",
@@ -171,7 +166,6 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "filter",
@@ -200,7 +194,6 @@ If filters for several routes succeed, the message is sent to all stream ids.
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "filter",
@@ -235,7 +228,6 @@ The result of the call will be emitted into topology, with a single property `bo
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "post",
@@ -255,7 +247,6 @@ This way the bolt will send complete, unmodified incoming request to specified U
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "post",
@@ -291,7 +282,6 @@ The result of the call will be emitted into topology, with a single property `bo
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "get",
@@ -309,7 +299,6 @@ The result of the call will be emitted into topology, with a single property `bo
 ```````````````````````````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "post",
@@ -339,7 +328,6 @@ The result of the call will be emitted into the topology after each time interva
 ```````````````````````````````json
 {
     "name": "spout1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "get",

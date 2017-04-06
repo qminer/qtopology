@@ -23,8 +23,8 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 
 When running in distributed mode, `qtopology` also uses the following:
 
-- **Coordinator** - reads global settings, receives worker registrations and send them the initialization data. Also sends shutdown signal.
-- **Worker** - registers with coordinator, receives initialization data and instantiates local topology.
+- **Coordination storage** - must be resilient, receives worker registrations and send them the initialization data. Also sends shutdown signals.
+- **Worker** - Runs on single server. registers with coordination storage, receives initialization data and instantiates local topologies.
 
 ## Quick start
 
@@ -36,16 +36,11 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ca
 {
     "general": {
         "name": "Topology name",
-        "coordination_port": 12345,
         "heartbeat": 1000
     },
-    "workers": [
-        { "name": "srv1" }
-    ],
     "spouts": [
         {
             "name": "pump1",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "my_spout.js",
@@ -55,7 +50,6 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ca
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "my_bolt.js",
@@ -172,7 +166,7 @@ topology.init(config, (err) => {
     if (err) { console.log(err); return; }
 
     // let topology run for 4 seconds
-    topology.run();    
+    topology.run();
     setTimeout(() => {
         topology.shutdown((err) => {
             if (err) { console.log(err); }

@@ -9,9 +9,6 @@
                 "name": {
                     "type": "string"
                 },
-                "coordination_port": {
-                    "type": "integer"
-                },
                 "heartbeat": {
                     "type": "integer"
                 },
@@ -58,7 +55,6 @@
             },
             "required": [
                 "name",
-                "coordination_port",
                 "heartbeat"
             ]
         },
