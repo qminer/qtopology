@@ -51,7 +51,7 @@ class TopologyLocalProxy {
             self._child_exit_callback(e);
         });
         self._child.on("close", (code) => {
-            let e = new Error("CLOSE Child process exited with code" + code);
+            let e = new Error("CLOSE Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -59,7 +59,7 @@ class TopologyLocalProxy {
             self._child_exit_callback(e);
         });
         self._child.on("exit", (code) => {
-            let e = new Error("EXIT Child process exited with code" + code);
+            let e = new Error("EXIT Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -68,6 +68,7 @@ class TopologyLocalProxy {
         });
     }
 
+    /** Calls all pending callbacks with given error and clears them. */
     _callPendingCallbacks(e) {
         if (this._init_cb) {
             this._init_cb(e);
@@ -87,6 +88,7 @@ class TopologyLocalProxy {
         }
     }
 
+    /** Sends initialization signal to underlaying process */
     init(config, callback) {
         if (this._init_cb) {
             return callback(new Error("Pending init callback already exists."));
@@ -95,6 +97,7 @@ class TopologyLocalProxy {
         this._child.send({ cmd: "init", data: config });
     }
 
+    /** Sends run signal to underlaying process */
     run(callback) {
         if (this._run_cb) {
             return callback(new Error("Pending run callback already exists."));
@@ -102,6 +105,8 @@ class TopologyLocalProxy {
         this._run_cb = callback;
         this._child.send({ cmd: "run", data: {} });
     }
+
+    /** Sends pause signal to underlaying process */
     pause(callback) {
         if (this._pause_cb) {
             return callback(new Error("Pending pause callback already exists."));
@@ -109,6 +114,8 @@ class TopologyLocalProxy {
         this._pause_cb = callback;
         this._child.send({ cmd: "pause", data: {} });
     }
+
+    /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
         if (this._shutdown_cb) {
             return callback(new Error("Pending shutdown callback already exists."));

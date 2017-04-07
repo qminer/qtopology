@@ -58,7 +58,7 @@ class TopologyWorker {
                     }
                 });
             }
-        })
+        });
     }
 
     /** Remove specified topology from internal list */
