@@ -1,8 +1,24 @@
 "use strict";
 
-// content of index.js
 const http = require('http');
+const express = require('express');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+
 const port = 3000;
+
+//////////////////////////////////////////////////////////////////////
+// Storage implementation
+//
+// Broad schema:
+// Workers: uuid, title, last_ping, status, lstatus
+// Topologies: uuid, config, status, worker
+// Msgs: worker, cmd, content
+//
+// Worker status: alive, dead, unloaded
+// worker lstatus: leader, candidate, ""
+// Topology status: unassigned, waiting, running, error, stopped
+
 
 class SimpleCoordinationStorage {
 
@@ -10,37 +26,53 @@ class SimpleCoordinationStorage {
         this._workers = [];
         this._topologies = [];
         this._messages = [];
+
+        // load single topology
+        let topo1 = require("./topology.json");
+        this._topologies.push({
+            uuid: topo1.general.name,
+            config: topo1,
+            status: "unassigned",
+            worker: null,
+            last_ping: Date.now()
+        });
     }
 
     registerWorker(name) {
+        let rec = null;
         for (let worker of this._workers) {
             if (worker.name == name) {
+                rec = worker;
                 worker.last_ping = Date.now();
                 worker.status = "inactive";
                 worker.lstatus = "";
                 worker.lstatus_ts = null;
-                return;
+                break;
             }
         }
-        this._workers.push({
-            name: name,
-            last_ping: Date.now(),
-            status: "inactive",
-            lstatus: "",
-            lstatus_ts: null
-        });
+        if (!rec) {
+            rec = {
+                name: name,
+                last_ping: Date.now(),
+                status: "inactive",
+                lstatus: "",
+                lstatus_ts: null
+            };
+            this._workers.push(rec);
+        }
+        return { success: true };
     }
 
     getLeadershipStatus() {
         this._disableDefunctLeaders();
 
         let hits = this._workers.filter(x => x.lstatus == "leader");
-        if (hits.length > 0) return "ok";
+        if (hits.length > 0) return { leadership_status: "ok" };
 
         hits = this._workers.filter(x => x.lstatus == "candidate");
-        if (hits.length > 0) return "pending";
+        if (hits.length > 0) return { leadership_status: "pending" };
 
-        return "vacant";
+        return { leadership_status: "vacant" };
     }
 
     announceLeaderCandidacy(name) {
@@ -59,23 +91,27 @@ class SimpleCoordinationStorage {
             if (worker.name == name) {
                 worker.lstatus = "pending";
                 worker.lstatus_ts = Date.now();
-                return;
+                break;
             }
         }
+        return { success: true };
     }
 
     checkLeaderCandidacy(name) {
         this._disableDefunctLeaders();
+
+        let res = { leader: false };
         for (let worker of this._workers) {
             if (worker.name == name && worker.lstatus == "pending") {
                 worker.lstatus = "leader";
-                return true;
+                res.leader = true;
+                break;
             }
         }
-        return false;
+        return res;
     }
 
-    getWorkerStatus() {
+    getWorkerStatuses() {
         return this._workers
             .map(x => {
                 let cnt = 0;
@@ -85,19 +121,88 @@ class SimpleCoordinationStorage {
                 return { name: x.name, status: x.status, topology_count: cnt };
             });
     }
-    getTopologiesForWorker(name) {
-        // TODO
-    }
-    reassignTopology(uuid, target) {
-        // TODO
+
+    getTopologyStatuses() {
+        this._unassignWaitingTopologies();
+        return this._topologies
+            .map(x => {
+                return {
+                    name: x.uuid,
+                    status: x.status,
+                    worker: x.worker
+                };
+            });
     }
 
-    getMessages(name) {
-        // TODO
+    getTopologiesForWorker(name) {
+        return this._topologies.filter(x => x.worker === name);
+    }
+
+    assignTopology(uuid, target) {
+        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        this._messages.push({
+            worker: target,
+            cmd: "start",
+            content: {
+                uuid: uuid,
+                config: topology.config
+            }
+        });
+        topology.status = "waiting";
+        return { success: true };
+    }
+
+    markTopologyAsRunning(uuid, target) {
+        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        topology.status = "running";
+        topology.last_ping = Date.now();
+        return { success: true };
+    }
+
+    markTopologyAsStopped(uuid, target) {
+        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        topology.status = "stopped";
+        topology.last_ping = Date.now();
+        return { success: true };
+    }
+
+    markTopologyAsError(uuid, error, target) {
+        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        topology.status = "error";
+        topology.last_ping = Date.now();
+        topology.error = error;
+        return { success: true };
+    }
+
+    getMessagesForWorker(name) {
+        this._pingWorker(name);
+        let result = this._messages.filter(x => x.worker === name);
+        this._messages = this._messages.filter(x => x.worker !== name);
+        return result;
+    }
+
+    _pingWorker(name) {
+        for (let worker of this._workers) {
+            if (worker.name == name) {
+                worker.last_ping = Date.now();
+                break;
+            }
+        }
+    }
+
+    _unassignWaitingTopologies() {
+        // set topologies to unassigned if they have been waiting too long
+        let d = Date.now() - 30 * 1000;
+        for (let topology in this._topologies) {
+            if (topology.status == "waiting" && topology.last_ping < d) {
+                topology.status = "unassigned";
+                topology.worker = null;
+            }
+        }
     }
 
     _disableDefunctWorkers() {
-        // disable workers that did not perform their status
+        // disable workers that did not update their status
         let d = Date.now() - 30 * 1000;
         for (let worker in this._workers) {
             if (worker.status == "alive" && worker.last_ping < d) {
@@ -121,22 +226,60 @@ class SimpleCoordinationStorage {
 let storage = new SimpleCoordinationStorage();
 
 ////////////////////////////////////////////////////////////////////
+// HTTP server code
 
-const requestHandler = (request, response) => {
-    console.log(request.url)
-    let parts = request.url.split("/");
-    if (parts[0] == "messages") {
-        storage.getMessages()
-    }
-    response.end('Hello Node.js Server!')
-}
+let app = express();
+app.use(morgan('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
+app.get('/worker-statuses', (request, response) => {
+    let result = storage.getWorkerStatuses();
+    response.json(result)
+});
+app.get('/topology-statuses', (request, response) => {
+    let result = storage.getTopologyStatuses();
+    response.json(result)
+});
+app.get('/leadership-status', (request, response) => {
+    let result = storage.getLeadershipStatus();
+    response.json(result)
+});
+app.get('/worker-topologies/:id', (request, response) => {
+    let id = request.params.id;
+    let result = storage.getTopologiesForWorker(id);
+    response.json(result)
+});
 
+app.post('/messages', (request, response) => {
+    let id = request.body.id;
+    let result = storage.getMessagesForWorker(id);
+    response.json(result)
+});
+app.post('/assign-topology', (request, response) => {
+    let worker = request.body.worker;
+    let uuid = request.body.topology;
+    let result = storage.assignTopology(uuis, worker);
+    response.json(result)
+});
+app.post('/check-leader-candidacy', (request, response) => {
+    let worker = request.body.id;
+    let result = storage.checkLeaderCandidacy(worker);
+    response.json(result)
+});
+app.post('/announce-leader-candidacy', (request, response) => {
+    let worker = request.body.id;
+    let result = storage.announceLeaderCandidacy(worker);
+    response.json(result)
+});
+app.post('/register-worker', (request, response) => {
+    let worker = request.body.id;
+    let result = storage.registerWorker(worker);
+    response.json(result)
+});
 
-const server = http.createServer(requestHandler)
-server.listen(port, (err) => {
-    if (err) {
-        return console.log('something bad happened', err)
-    }
-    console.log(`Coordination server is listening on ${port}`)
-})
+//////////////////////////////////////////////////////////////////////////
+
+app.listen(port, ()=>{
+    console.log("Server running on port", port);
+});

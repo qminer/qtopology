@@ -1,6 +1,6 @@
 {
     "general": {
-        "name": "Topology name",
+        "name": "demo.topology.1",
         "heartbeat": 1000
     },
     "spouts": [

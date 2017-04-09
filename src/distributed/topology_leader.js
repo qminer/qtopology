@@ -76,7 +76,9 @@ class TopologyLeader {
      */
     _performLeaderLoop(callback) {
         let self = this;
-        async.parallel(
+        let alive_workers = null;
+        let load_balancer = null;
+        async.series(
             [
                 (xcallback) => {
                     self._storage.getWorkerStatus((err, workers) => {
@@ -86,15 +88,32 @@ class TopologyLeader {
                         let dead_workers = workers
                             .filter(x => x.status === "dead")
                             .map(x => x.name);
-                        let alive_workers = workers
+                        alive_workers = workers
                             .filter(x => x.status === "alive");
-                        let load_balancer = new lb.LoadBalancer(
+                        load_balancer = new lb.LoadBalancer(
                             alive_workers.map(x => { return { name: name, weight: topology_count }; })
                         );
                         async.each(
                             dead_workers,
                             (dead_worker, xxcallback) => {
                                 self._handleDeadWorker(dead_worker, load_balancer, xxcallback);
+                            },
+                            xcallback
+                        );
+                    });
+                },
+                (xcallback) => {
+                    self._storage.getTopologyStatus((err, topologies) => {
+                        if (err) return xcallback(err);
+                        // each topology: name, status
+                        // possible statuses: unassigned, waiting, running, error, stopped
+                        let unassigned_topologies = topologies
+                            .filter(x => x.status === "unassigned")
+                            .map(x => x.uuid);
+                        async.each(
+                            unassigned_topologies,
+                            (unassigned_topology, xxcallback) => {
+                                self._storage.assignTopology(topology, load_balancer.next(), xcallback);
                             },
                             xcallback
                         );
@@ -114,7 +133,7 @@ class TopologyLeader {
             async.each(
                 topologies,
                 (topology, xcallback) => {
-                    storage.reassignTopology(topology.uuid, load_balancer.next(), xcallback);
+                    self._storage.assignTopology(topology.uuid, load_balancer.next(), xcallback);
                 },
                 callback
             );

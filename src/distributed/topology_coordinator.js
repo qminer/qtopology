@@ -6,7 +6,7 @@ const async = require("async");
 const EventEmitter = require("events");
 const leader = require("./topology_leader");
 
-/** This class handles communication with topology coordinations torage.
+/** This class handles communication with topology coordination storage.
  */
 class TopologyCoordinator extends EventEmitter {
 
@@ -24,10 +24,11 @@ class TopologyCoordinator extends EventEmitter {
         this._loopTimeout = 2 * 1000; // 2 seconds for refresh
     }
 
-    /** Runs main loop that handles leadership detection */
+    /** Runs main loop */
     run() {
         let self = this;
         self._isRunning = true;
+        self._storage.registerWorker(self._name, () => { });
         async.whilst(
             () => { return self._isRunning; },
             (xcallback) => {
