@@ -152,21 +152,21 @@ class SimpleCoordinationStorage {
         return { success: true };
     }
 
-    markTopologyAsRunning(uuid, target) {
+    markTopologyAsRunning(uuid) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "running";
         topology.last_ping = Date.now();
         return { success: true };
     }
 
-    markTopologyAsStopped(uuid, target) {
+    markTopologyAsStopped(uuid) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "stopped";
         topology.last_ping = Date.now();
         return { success: true };
     }
 
-    markTopologyAsError(uuid, error, target) {
+    markTopologyAsError(uuid, error) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "error";
         topology.last_ping = Date.now();
@@ -179,6 +179,13 @@ class SimpleCoordinationStorage {
         let result = this._messages.filter(x => x.worker === name);
         this._messages = this._messages.filter(x => x.worker !== name);
         return result;
+    }
+
+    setTopologyStatus(uuid, status, error) {
+        if (status == "running") return markTopologyAsRunning(uuid);
+        if (status == "stopped") return markTopologyAsStopped(uuid);
+        if (status == "error") return markTopologyAsError(uuid, error);
+        return { success: false, error: "Unknown topology: " + uuid };
     }
 
     _pingWorker(name) {
@@ -233,53 +240,60 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.get('/worker-statuses', (request, response) => {
+app.post('/worker-statuses', (request, response) => {
     let result = storage.getWorkerStatuses();
     response.json(result)
 });
-app.get('/topology-statuses', (request, response) => {
+app.post('/topology-statuses', (request, response) => {
     let result = storage.getTopologyStatuses();
     response.json(result)
 });
-app.get('/leadership-status', (request, response) => {
+app.post('/leadership-status', (request, response) => {
     let result = storage.getLeadershipStatus();
     response.json(result)
 });
-app.get('/worker-topologies/:id', (request, response) => {
-    let id = request.params.id;
-    let result = storage.getTopologiesForWorker(id);
+app.post('/worker-topologies', (request, response) => {
+    let worker = request.body.worker;
+    let result = storage.getTopologiesForWorker(worker);
     response.json(result)
 });
 
-app.post('/messages', (request, response) => {
-    let id = request.body.id;
-    let result = storage.getMessagesForWorker(id);
+app.post('/get-messages', (request, response) => {
+    let worker = request.body.worker;
+    let result = storage.getMessagesForWorker(worker);
     response.json(result)
 });
 app.post('/assign-topology', (request, response) => {
     let worker = request.body.worker;
-    let uuid = request.body.topology;
+    let uuid = request.body.uuid;
     let result = storage.assignTopology(uuis, worker);
     response.json(result)
 });
 app.post('/check-leader-candidacy', (request, response) => {
-    let worker = request.body.id;
+    let worker = request.body.worker;
     let result = storage.checkLeaderCandidacy(worker);
     response.json(result)
 });
 app.post('/announce-leader-candidacy', (request, response) => {
-    let worker = request.body.id;
+    let worker = request.body.worker;
     let result = storage.announceLeaderCandidacy(worker);
     response.json(result)
 });
 app.post('/register-worker', (request, response) => {
-    let worker = request.body.id;
+    let worker = request.body.worker;
     let result = storage.registerWorker(worker);
+    response.json(result)
+});
+app.post('/set-topology-status', (request, response) => {
+    let uuid = request.body.uuid;
+    let status = request.body.status;
+    let error = request.body.error;
+    let result = storage.setTopologyStatus(uuid, status, error);
     response.json(result)
 });
 
 //////////////////////////////////////////////////////////////////////////
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log("Server running on port", port);
 });

@@ -26,7 +26,10 @@ class TopologyWorker {
         self._coordinator.on("shutdown", (msg) => {
             self._shutdown();
         });
-        self._coordinator.registerWorker(self._name);
+    }
+
+    run(){
+        this._coordinator.run();
     }
 
     /** Starts single topology */

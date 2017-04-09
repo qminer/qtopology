@@ -29,6 +29,7 @@ class TopologyCoordinator extends EventEmitter {
         let self = this;
         self._isRunning = true;
         self._storage.registerWorker(self._name, () => { });
+        self._leadership.run();
         async.whilst(
             () => { return self._isRunning; },
             (xcallback) => {
@@ -53,6 +54,16 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 
+    reportTopology(name, status, error) {
+        this._storage.setTopologyStatus(name, status, error, (err)=>{
+            if (err) {
+                console.log("Couldn't report topology status");
+                console.log("Topology:", name, status, error);
+                console.log("Error:", err);
+            }
+        });
+    }
+
     /** This method checks for new messages from coordination storage. */
     _handleIncommingRequests(callback) {
         let self = this;
@@ -73,3 +84,7 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 }
+
+////////////////////////////////////////////////////////////////////////////
+
+exports.TopologyCoordinator = TopologyCoordinator;

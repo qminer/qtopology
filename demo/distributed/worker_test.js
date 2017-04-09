@@ -1,44 +1,26 @@
 "use strict";
 
-const fs = require("fs");
-const EventEmitter = require('events');
+const cmdln = require("../../src/util/cmdline");
 const wrkr = require("../../src/distributed/topology_worker");
+const coor = require("../../src/distributed/topology_coordinator");
 
+const stor = require("./simple_coordinator");
 
-class MockCoordinator extends EventEmitter {
+///////////////////////////////////////////////////////////////////////
+cmdln
+    .define('n', 'name', 'worker1', 'Logical name of the worker');
+cmdln.process(process.argv);
 
-    registerWorker(uuid) {
-        console.log("registering worker", uuid);
-    }
-
-    reportTopology(uuid, status, desc) {
-        console.log("reportTopology ", uuid, status, desc);
-    }
-
-    reportWorker(uuid, status, desc) {
-        console.log("reportWorker ", uuid, status, desc);
-    }
-}
-
-let mock_coordinator = new MockCoordinator();
-
-
-let topology_def = fs.readFileSync("./topology.json", "utf8");
-topology_def = JSON.parse(topology_def);
+let storage = new stor.SimpleCoordinator();
+let coordinator = new coor.TopologyCoordinator({
+    name: cmdln.name,
+    storage: storage
+});
 
 let options = {
-    name: "wrkr1",
-    coordinator: mock_coordinator
+    name: cmdln.name,
+    coordinator: coordinator
 };
 
 let w = new wrkr.TopologyWorker(options);
-//w.start();
-
-setTimeout(function () {
-    console.log("Emitting start event");
-    mock_coordinator.emit("start", { uuid: "top1", config: topology_def });
-}, 1200);
-
-setTimeout(function () {
-    mock_coordinator.emit("shutdown", {});
-}, 4200);
+w.run();
