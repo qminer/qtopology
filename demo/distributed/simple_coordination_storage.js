@@ -40,11 +40,12 @@ class SimpleCoordinationStorage {
 
     registerWorker(name) {
         let rec = null;
+console.log("Registering worker", name);
         for (let worker of this._workers) {
             if (worker.name == name) {
                 rec = worker;
                 worker.last_ping = Date.now();
-                worker.status = "inactive";
+                worker.status = "alive";
                 worker.lstatus = "";
                 worker.lstatus_ts = null;
                 break;
@@ -54,7 +55,7 @@ class SimpleCoordinationStorage {
             rec = {
                 name: name,
                 last_ping: Date.now(),
-                status: "inactive",
+                status: "alive",
                 lstatus: "",
                 lstatus_ts: null
             };
@@ -266,7 +267,7 @@ app.post('/get-messages', (request, response) => {
 app.post('/assign-topology', (request, response) => {
     let worker = request.body.worker;
     let uuid = request.body.uuid;
-    let result = storage.assignTopology(uuis, worker);
+    let result = storage.assignTopology(uuid, worker);
     response.json(result)
 });
 app.post('/check-leader-candidacy', (request, response) => {
@@ -280,6 +281,7 @@ app.post('/announce-leader-candidacy', (request, response) => {
     response.json(result)
 });
 app.post('/register-worker', (request, response) => {
+console.log(request.body)
     let worker = request.body.worker;
     let result = storage.registerWorker(worker);
     response.json(result)

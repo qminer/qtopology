@@ -26,7 +26,7 @@ class SimpleCoordinator {
     getTopologiesForWorker(name, callback) {
         this._call("worker-topologies", { worker: name }, callback);
     }
-    getLeadershipStatus(name, callback) {
+    getLeadershipStatus(callback) {
         this._call("leadership-status", {}, callback);
     }
     registerWorker(name, callback) {
@@ -47,7 +47,10 @@ class SimpleCoordinator {
 
     _call(addr, req_data, callback) {
         let self = this;
-        let req = this._client.post(self._urlPrefix + addr, req_data, (data, response) => {
+        let args = { data: req_data, headers: { "Content-Type": "application/json" } };
+
+console.log(addr, args);
+        let req = this._client.post(self._urlPrefix + addr, args, (data, response) => {
             callback(null, data);
         });
         req.on('error', (err) => {

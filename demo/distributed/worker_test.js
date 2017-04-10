@@ -11,6 +11,7 @@ cmdln
     .define('n', 'name', 'worker1', 'Logical name of the worker');
 cmdln.process(process.argv);
 
+cmdln.name = "xxxxq";
 let storage = new stor.SimpleCoordinator();
 let coordinator = new coor.TopologyCoordinator({
     name: cmdln.name,

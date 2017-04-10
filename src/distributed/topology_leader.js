@@ -58,9 +58,9 @@ class TopologyLeader {
             if (status == "ok") return callback();
             if (status == "pending") return callback();
             // status is vacant
-            self._storage.announceLeaderCandidacy(self.name, (err) => {
+            self._storage.announceLeaderCandidacy(self._name, (err) => {
                 setTimeout(() => {
-                    self._storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
+                    self._storage.checkLeaderCandidacy(self._name, (err, is_leader) => {
                         if (err) return callback(err);
                         self._isLeader = is_leader;
                         callback();
@@ -90,8 +90,11 @@ class TopologyLeader {
                             .map(x => x.name);
                         alive_workers = workers
                             .filter(x => x.status === "alive");
+                        if (alive_workers.length == 0) {
+                            return xcallback();
+                        }
                         load_balancer = new lb.LoadBalancer(
-                            alive_workers.map(x => { return { name: name, weight: topology_count }; })
+                            alive_workers.map(x => { return { name: x.name, weight: x.topology_count }; })
                         );
                         async.each(
                             dead_workers,
@@ -103,6 +106,9 @@ class TopologyLeader {
                     });
                 },
                 (xcallback) => {
+                    if (alive_workers.length == 0) {
+                        return xcallback();
+                    }
                     self._storage.getTopologyStatus((err, topologies) => {
                         if (err) return xcallback(err);
                         // each topology: name, status
@@ -110,10 +116,11 @@ class TopologyLeader {
                         let unassigned_topologies = topologies
                             .filter(x => x.status === "unassigned")
                             .map(x => x.uuid);
+                        console.log("Found unassigned topologies:", unassigned_topologies.length)
                         async.each(
                             unassigned_topologies,
                             (unassigned_topology, xxcallback) => {
-                                self._storage.assignTopology(topology, load_balancer.next(), xcallback);
+                                self._storage.assignTopology(unassigned_topology, load_balancer.next(), xcallback);
                             },
                             xcallback
                         );
