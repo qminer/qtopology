@@ -17,18 +17,16 @@ class TopologyWorker {
         this._coordinator = options.coordinator;
         this._topologies = [];
 
-        // TODO connect
         let self = this;
-
         self._coordinator.on("start", (msg) => {
             self._start(msg.uuid, msg.config);
         });
         self._coordinator.on("shutdown", (msg) => {
-            self._shutdown();
+            self.shutdown();
         });
     }
 
-    run(){
+    run() {
         this._coordinator.run();
     }
 
@@ -70,21 +68,18 @@ class TopologyWorker {
     }
 
     /** Shuts down the worker and all its subprocesses. */
-    _shutdown() {
+    shutdown(callback) {
         let self = this;
-        self._coordinator.reportWorker(self._name, "shutting down", "");
         async.each(
             self._topologies,
             (item, xcallback) => {
                 item.proxy.shutdown((err) => {
-                    self._coordinator.reportTopology(item.uuid, "shutdown", "");
+                    self._coordinator.reportTopology(item.uuid, "stopped", "");
                     xcallback();
                 });
             },
             (err) => {
-                self._coordinator.reportWorker(self._name, "shutdown", "");
-                process.exit(0); // TODO is this the way to go?
-                // or should we close the coordinator, which will then stop the process gracefully?
+                self._coordinator.reportWorker(self._name, "dead", "", callback);
             }
         );
     }

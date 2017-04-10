@@ -53,10 +53,10 @@ class TopologyLeader {
      **/
     _checkIfLeader(callback) {
         let self = this;
-        self._storage.getLeadershipStatus((err, status) => {
+        self._storage.getLeadershipStatus((err, res) => {
             if (err) return callback(err);
-            if (status == "ok") return callback();
-            if (status == "pending") return callback();
+            if (res.leadership_status == "ok") return callback();
+            if (res.leadership_status == "pending") return callback();
             // status is vacant
             self._storage.announceLeaderCandidacy(self._name, (err) => {
                 setTimeout(() => {
@@ -114,9 +114,9 @@ class TopologyLeader {
                         // each topology: name, status
                         // possible statuses: unassigned, waiting, running, error, stopped
                         let unassigned_topologies = topologies
-                            .filter(x => x.status === "unassigned")
+                            .filter(x => x.status === "unassigned" || x.status === "stopped")
                             .map(x => x.uuid);
-                        console.log("Found unassigned topologies:", unassigned_topologies.length)
+                        console.log("Found unassigned topologies:", unassigned_topologies)
                         async.each(
                             unassigned_topologies,
                             (unassigned_topology, xxcallback) => {
@@ -137,13 +137,10 @@ class TopologyLeader {
     _handleDeadWorker(dead_worker, load_balancer, callback) {
         let self = this;
         self._storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
-            async.each(
-                topologies,
-                (topology, xcallback) => {
-                    self._storage.assignTopology(topology.uuid, load_balancer.next(), xcallback);
-                },
-                callback
-            );
+            for (let topology of topologies) {
+                topology.status = "unassigned";
+            }
+            callback();
         });
     }
 }

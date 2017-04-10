@@ -42,14 +42,15 @@ class SimpleCoordinator {
         this._call("assign-topology", { worker: name, uuid: uuid }, callback);
     }
     setTopologyStatus(uuid, status, error, callback) {
-        this._call("set-topology-status", { uuid: name, status: status, error: error }, callback);
+        this._call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
+    }
+    setWorkerStatus(name, status, callback) {
+        this._call("set-worker-status", { name: name, status: status }, callback);
     }
 
     _call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-
-console.log(addr, args);
         let req = this._client.post(self._urlPrefix + addr, args, (data, response) => {
             callback(null, data);
         });

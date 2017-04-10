@@ -40,7 +40,7 @@ class SimpleCoordinationStorage {
 
     registerWorker(name) {
         let rec = null;
-console.log("Registering worker", name);
+        console.log("Registering worker", name);
         for (let worker of this._workers) {
             if (worker.name == name) {
                 rec = worker;
@@ -119,7 +119,16 @@ console.log("Registering worker", name);
                 this._topologies.forEach(y => {
                     cnt += (y.worker === x.name ? 1 : 0);
                 });
-                return { name: x.name, status: x.status, topology_count: cnt };
+                return {
+                    name: x.name,
+                    status: x.status,
+                    topology_count: cnt,
+                    lstatus: x.lstatus,
+                    last_ping_d: x.last_ping,
+                    last_ping: new Date(x.last_ping),
+                    lstatus_ts: x.lstatus_ts,
+                    lstatus_ts_d: new Date(x.lstatus_ts)
+                };
             });
     }
 
@@ -128,7 +137,7 @@ console.log("Registering worker", name);
         return this._topologies
             .map(x => {
                 return {
-                    name: x.uuid,
+                    uuid: x.uuid,
                     status: x.status,
                     worker: x.worker
                 };
@@ -150,6 +159,7 @@ console.log("Registering worker", name);
             }
         });
         topology.status = "waiting";
+        topology.worker = target;
         return { success: true };
     }
 
@@ -175,18 +185,34 @@ console.log("Registering worker", name);
         return { success: true };
     }
 
+    setTopologyPing(uuid) {
+        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        topology.last_ping = Date.now();
+        return { success: true };
+    }
+
+    setTopologyStatus(uuid, status, error) {
+        if (status == "running") return this.markTopologyAsRunning(uuid);
+        if (status == "stopped") return this.markTopologyAsStopped(uuid);
+        if (status == "error") return this.markTopologyAsError(uuid, error);
+        return { success: false, error: "Unknown topology: " + uuid };
+    }
+
+    setWorkerStatus(name, status) {
+        let hits = this._workers.filter(x => x.name === name);
+        if (hits.length > 0) {
+            hits[0].status = status;
+            return { success: true };
+        } else {
+            return { success: false, error: "Unknown worker: " + name };
+        }
+    }
+
     getMessagesForWorker(name) {
         this._pingWorker(name);
         let result = this._messages.filter(x => x.worker === name);
         this._messages = this._messages.filter(x => x.worker !== name);
         return result;
-    }
-
-    setTopologyStatus(uuid, status, error) {
-        if (status == "running") return markTopologyAsRunning(uuid);
-        if (status == "stopped") return markTopologyAsStopped(uuid);
-        if (status == "error") return markTopologyAsError(uuid, error);
-        return { success: false, error: "Unknown topology: " + uuid };
     }
 
     _pingWorker(name) {
@@ -281,7 +307,7 @@ app.post('/announce-leader-candidacy', (request, response) => {
     response.json(result)
 });
 app.post('/register-worker', (request, response) => {
-console.log(request.body)
+    console.log(request.body)
     let worker = request.body.worker;
     let result = storage.registerWorker(worker);
     response.json(result)
@@ -291,6 +317,12 @@ app.post('/set-topology-status', (request, response) => {
     let status = request.body.status;
     let error = request.body.error;
     let result = storage.setTopologyStatus(uuid, status, error);
+    response.json(result)
+});
+app.post('/set-worker-status', (request, response) => {
+    let name = request.body.name;
+    let status = request.body.status;
+    let result = storage.setWorkerStatus(name, status);
     response.json(result)
 });
 

@@ -54,12 +54,28 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 
-    reportTopology(name, status, error) {
-        this._storage.setTopologyStatus(name, status, error, (err)=>{
+    reportTopology(uuid, status, error, callback) {
+        this._storage.setTopologyStatus(uuid, status, error, (err)=>{
             if (err) {
                 console.log("Couldn't report topology status");
-                console.log("Topology:", name, status, error);
+                console.log("Topology:", uuid, status, error);
                 console.log("Error:", err);
+            }
+            if (callback) {
+                callback(err);
+            }
+        });
+    }
+
+    reportWorker(name, status, error, callback) {
+        this._storage.setWorkerStatus(name, status, (err)=>{
+            if (err) {
+                console.log("Couldn't report worker status");
+                console.log("Worker:", name, status);
+                console.log("Error:", err);
+            }
+            if (callback) {
+                callback(err);
             }
         });
     }
@@ -73,7 +89,7 @@ class TopologyCoordinator extends EventEmitter {
                 msgs,
                 (msg, xcallback) => {
                     if (msg.cmd === "start") {
-                        self.emit("start", msg.data);
+                        self.emit("start", msg.content);
                     }
                     if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});
