@@ -113,6 +113,7 @@ class SimpleCoordinationStorage {
     }
 
     getWorkerStatuses() {
+        this._disableDefunctWorkers();
         return this._workers
             .map(x => {
                 let cnt = 0;
@@ -133,6 +134,7 @@ class SimpleCoordinationStorage {
     }
 
     getTopologyStatuses() {
+        this._disableDefunctWorkers();
         this._unassignWaitingTopologies();
         return this._topologies
             .map(x => {
@@ -202,6 +204,9 @@ class SimpleCoordinationStorage {
         let hits = this._workers.filter(x => x.name === name);
         if (hits.length > 0) {
             hits[0].status = status;
+            if (status !== "alive") {
+                hits[0].lstatus = "";
+            }
             return { success: true };
         } else {
             return { success: false, error: "Unknown worker: " + name };
@@ -227,10 +232,20 @@ class SimpleCoordinationStorage {
     _unassignWaitingTopologies() {
         // set topologies to unassigned if they have been waiting too long
         let d = Date.now() - 30 * 1000;
+        let worker_map = {};
+        for (let worker of this._workers) {
+            worker_map[worker.name] = worker.status;
+        }
         for (let topology in this._topologies) {
             if (topology.status == "waiting" && topology.last_ping < d) {
                 topology.status = "unassigned";
                 topology.worker = null;
+            }
+            if (topology.worker) {
+                if (worker_map[topology.worker] == "dead") {
+                    topology.status = "unassigned";
+                    topology.worker = null;
+                }
             }
         }
     }
@@ -249,7 +264,7 @@ class SimpleCoordinationStorage {
         // disable worker that did not perform their leadership duties
         let d = Date.now() - 10 * 1000;
         for (let worker in this._workers) {
-            if (worker.lstatus == "leader" && worker.lstatus == "candidate") {
+            if (worker.lstatus == "leader" || worker.lstatus == "candidate") {
                 if (worker.last_ping < d) {
                     worker.lstatus = "";
                 }

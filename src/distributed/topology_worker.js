@@ -34,26 +34,26 @@ class TopologyWorker {
     _start(uuid, config) {
         let self = this;
         if (self._topologies.filter(x => x.uuid === uuid).length > 0) {
-            self._coordinator.reportTopology(uuid, "start_error", "Topology with this UUID already exists: " + uuid);
+            self._coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
             return;
         }
         let rec = { uuid: uuid, config: config };
         self._topologies.push(rec);
         rec.proxy = new tlp.TopologyLocalProxy({
             child_exit_callback: (err) => {
-                self._coordinator.reportTopology(uuid, "not_running", "" + err);
+                self._coordinator.reportTopology(uuid, "stopped", "" + err);
                 self._removeTopology(uuid);
             }
         });
         rec.proxy.init(config, (err) => {
             if (err) {
                 self._removeTopology(uuid);
-                self._coordinator.reportTopology(uuid, "start_error", "" + err);
+                self._coordinator.reportTopology(uuid, "error", "" + err);
             } else {
                 rec.proxy.run((err) => {
                     if (err) {
                         self._removeTopology(uuid);
-                        self._coordinator.reportTopology(uuid, "start_error", "" + err);
+                        self._coordinator.reportTopology(uuid, "error", "" + err);
                     } else {
                         self._coordinator.reportTopology(uuid, "running", "");
                     }
