@@ -147,10 +147,13 @@ class TopologyLocal {
                 });
             });
             if (self._config.general.shutdown) {
+                let factory = (module_path) => {
+                    return (xcallback) => { require(module_path).shutdown(xcallback); };
+                };
                 for (let shutdown_conf of self._config.general.shutdown) {
                     let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, shutdown_conf.cmd);
-                    tasks.push((xcallback) => { require(module_path).shutdown(xcallback); });
+                    tasks.push(factory(module_path));
                 }
             }
             async.series(tasks, callback);

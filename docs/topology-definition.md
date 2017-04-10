@@ -4,7 +4,6 @@ Topology is defined via `JSON`. It follows this structure:
 
 - `general`: general information about the topology
     - `name`: name of the topology
-    - `coordination_port`: Port where coordinator listens to worker registrations
     - `heartbeat`: Defines heartbeat frequency in msec
     - `initialization`: Optional. List of initialization scripts:
         - Single initialization script
@@ -15,18 +14,14 @@ Topology is defined via `JSON`. It follows this structure:
         - Single shutdown script
             - `working_dir`: working directory where initialization file is located.
             - `cmd`: name of the file where initialization code resides.
-- `workers`: array of worker definitions (with logical names, not physical addresses)
-    - `name`: worker name
 - `spouts`: array of spout definitions
     - `name`: spout name
-    - `worker`: worker name where this spout will be running
     - `type`: `inproc` (in-process) or `subproc` (sub-process) mode of execution for this spout
     - `working_dir`: working directory where main file is located
     - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`. In sub-process scenario this file is used for `fork()` call
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
-    - `worker`: worker name where this bolt will be running
     - `type`: `inproc` (in-process) or `subproc` (sub-process) mode of execution for this bolt
     - `working_dir`: working directory where main file is located
     - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`. In sub-process scenario this file is used for `fork()` call
@@ -42,7 +37,6 @@ An example:
 {
     "general": {
         "name": "Topology name",
-        "coordination_port": 9289,
         "heartbeat": 3200,
         "initialization": [
             { "working_dir": ".", "cmd": "init.js" }
@@ -51,13 +45,9 @@ An example:
             { "working_dir": ".", "cmd": "shutdown.js" }
         ]
     },
-    "workers": [
-        { "name": "srv1" }
-    ],
     "spouts": [
         {
             "name": "pump1",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
@@ -65,7 +55,6 @@ An example:
         },
         {
             "name": "pump2",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_inproc.js",
@@ -75,7 +64,6 @@ An example:
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
@@ -84,7 +72,6 @@ An example:
         },
         {
             "name": "bolt2",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
@@ -98,7 +85,6 @@ An example:
         },
         {
             "name": "bolt3",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
