@@ -5,10 +5,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 
-const port = 3000;
-
 //////////////////////////////////////////////////////////////////////
-// Storage implementation
+// Storage implementation - accessed over HTTP
 //
 // Broad schema:
 // Workers: uuid, title, last_ping, status, lstatus
@@ -20,18 +18,18 @@ const port = 3000;
 // Topology status: unassigned, waiting, running, error, stopped
 
 
-class SimpleCoordinationStorage {
+class HttpCoordinationStorage {
 
     constructor() {
         this._workers = [];
         this._topologies = [];
         this._messages = [];
+    }
 
-        // load single topology
-        let topo1 = require("./topology.json");
+    addTopology(config) {
         this._topologies.push({
-            uuid: topo1.general.name,
-            config: topo1,
+            uuid: config.general.name,
+            config: config,
             status: "unassigned",
             worker: null,
             last_ping: Date.now()
@@ -272,77 +270,88 @@ class SimpleCoordinationStorage {
         }
     }
 }
-let storage = new SimpleCoordinationStorage();
+
+
 
 ////////////////////////////////////////////////////////////////////
-// HTTP server code
 
-let app = express();
-app.use(morgan('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+let storage = new HttpCoordinationStorage();
 
-app.post('/worker-statuses', (request, response) => {
-    let result = storage.getWorkerStatuses();
-    response.json(result)
-});
-app.post('/topology-statuses', (request, response) => {
-    let result = storage.getTopologyStatuses();
-    response.json(result)
-});
-app.post('/leadership-status', (request, response) => {
-    let result = storage.getLeadershipStatus();
-    response.json(result)
-});
-app.post('/worker-topologies', (request, response) => {
-    let worker = request.body.worker;
-    let result = storage.getTopologiesForWorker(worker);
-    response.json(result)
-});
+exports.addTopology = function (config) {
+    storage.addTopology(config);
+}
 
-app.post('/get-messages', (request, response) => {
-    let worker = request.body.worker;
-    let result = storage.getMessagesForWorker(worker);
-    response.json(result)
-});
-app.post('/assign-topology', (request, response) => {
-    let worker = request.body.worker;
-    let uuid = request.body.uuid;
-    let result = storage.assignTopology(uuid, worker);
-    response.json(result)
-});
-app.post('/check-leader-candidacy', (request, response) => {
-    let worker = request.body.worker;
-    let result = storage.checkLeaderCandidacy(worker);
-    response.json(result)
-});
-app.post('/announce-leader-candidacy', (request, response) => {
-    let worker = request.body.worker;
-    let result = storage.announceLeaderCandidacy(worker);
-    response.json(result)
-});
-app.post('/register-worker', (request, response) => {
-    console.log(request.body)
-    let worker = request.body.worker;
-    let result = storage.registerWorker(worker);
-    response.json(result)
-});
-app.post('/set-topology-status', (request, response) => {
-    let uuid = request.body.uuid;
-    let status = request.body.status;
-    let error = request.body.error;
-    let result = storage.setTopologyStatus(uuid, status, error);
-    response.json(result)
-});
-app.post('/set-worker-status', (request, response) => {
-    let name = request.body.name;
-    let status = request.body.status;
-    let result = storage.setWorkerStatus(name, status);
-    response.json(result)
-});
+exports.run = function (options) {
 
-//////////////////////////////////////////////////////////////////////////
+    // HTTP server code
 
-app.listen(port, () => {
-    console.log("Server running on port", port);
-});
+    const port = options.port || 3000;
+
+    let app = express();
+    app.use(morgan('dev'));
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+
+    app.post('/worker-statuses', (request, response) => {
+        let result = storage.getWorkerStatuses();
+        response.json(result)
+    });
+    app.post('/topology-statuses', (request, response) => {
+        let result = storage.getTopologyStatuses();
+        response.json(result)
+    });
+    app.post('/leadership-status', (request, response) => {
+        let result = storage.getLeadershipStatus();
+        response.json(result)
+    });
+    app.post('/worker-topologies', (request, response) => {
+        let worker = request.body.worker;
+        let result = storage.getTopologiesForWorker(worker);
+        response.json(result)
+    });
+
+    app.post('/get-messages', (request, response) => {
+        let worker = request.body.worker;
+        let result = storage.getMessagesForWorker(worker);
+        response.json(result)
+    });
+    app.post('/assign-topology', (request, response) => {
+        let worker = request.body.worker;
+        let uuid = request.body.uuid;
+        let result = storage.assignTopology(uuid, worker);
+        response.json(result)
+    });
+    app.post('/check-leader-candidacy', (request, response) => {
+        let worker = request.body.worker;
+        let result = storage.checkLeaderCandidacy(worker);
+        response.json(result)
+    });
+    app.post('/announce-leader-candidacy', (request, response) => {
+        let worker = request.body.worker;
+        let result = storage.announceLeaderCandidacy(worker);
+        response.json(result)
+    });
+    app.post('/register-worker', (request, response) => {
+        console.log(request.body)
+        let worker = request.body.worker;
+        let result = storage.registerWorker(worker);
+        response.json(result)
+    });
+    app.post('/set-topology-status', (request, response) => {
+        let uuid = request.body.uuid;
+        let status = request.body.status;
+        let error = request.body.error;
+        let result = storage.setTopologyStatus(uuid, status, error);
+        response.json(result)
+    });
+    app.post('/set-worker-status', (request, response) => {
+        let name = request.body.name;
+        let status = request.body.status;
+        let result = storage.setWorkerStatus(name, status);
+        response.json(result)
+    });
+
+    app.listen(port, () => {
+        console.log("Server running on port", port);
+    });
+}

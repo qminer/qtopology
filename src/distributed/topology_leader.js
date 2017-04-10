@@ -59,13 +59,12 @@ class TopologyLeader {
             if (res.leadership_status == "pending") return callback();
             // status is vacant
             self._storage.announceLeaderCandidacy(self._name, (err) => {
-                setTimeout(() => {
-                    self._storage.checkLeaderCandidacy(self._name, (err, is_leader) => {
-                        if (err) return callback(err);
-                        self._isLeader = is_leader;
-                        callback();
-                    });
-                }, 200 + 200 * Math.random()); // wait between 200 and 400 msec
+                if (err) return callback(err);
+                self._storage.checkLeaderCandidacy(self._name, (err, is_leader) => {
+                    if (err) return callback(err);
+                    self._isLeader = is_leader;
+                    callback();
+                });
             });
         });
     }

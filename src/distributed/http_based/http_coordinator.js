@@ -7,7 +7,7 @@ const EventEmitter = require('events');
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
 
-class SimpleCoordinator {
+class HttpCoordinator {
 
     constructor() {
         this._client = new Client();
@@ -62,4 +62,4 @@ class SimpleCoordinator {
 
 ////////////////////////////////////////////////////////////////////
 
-exports.SimpleCoordinator = SimpleCoordinator;
+exports.HttpCoordinator = HttpCoordinator;
