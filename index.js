@@ -13,7 +13,11 @@ module.exports = {
         coordinator: require("./src/distributed/topology_coordinator"),
         // std providers
         std_coordinators: {
-            file: require("./src/distributed/file_based/file_coordinator"),
+            // simple file-based coordination
+            file: {
+                coordinator: require("./src/distributed/file_based/file_coordinator"),
+            },
+            // simple HTTP-based coordination
             http: {
                 storage: require("./src/distributed/http_based/http_coordination_storage"),
                 coordinator: require("./src/distributed/http_based/http_coordinator")
