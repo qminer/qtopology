@@ -1,6 +1,7 @@
 # qtopology
 
 ![Build status](https://travis-ci.org/qminer/qtopology.svg?branch=master "Travis CI status")
+[![NPM Version][npm-image]][npm-url]
 
 NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/package/qtopology)
 
