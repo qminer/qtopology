@@ -1,10 +1,10 @@
 "use strict";
 
-const cmdln = require("../../src/util/cmdline");
-const wrkr = require("../../src/distributed/topology_worker");
-const coor = require("../../src/distributed/topology_coordinator");
-
-const stor = require("../../src/distributed/file_based/file_coordinator");
+const qtoplogy = require("../../");
+const cmdln = qtoplogy.util.cmdline;
+const wrkr = qtoplogy.distributed.worker;
+const coor = qtoplogy.distributed.coordinator;
+const stor = qtoplogy.distributed.std_coordinators.file;
 
 ///////////////////////////////////////////////////////////////////////
 cmdln
@@ -27,7 +27,7 @@ w.run();
 
 function shutdown() {
     if (w) {
-        w.shutdown(()=>{
+        w.shutdown(() => {
             process.exit(1);
         });
         w = null;
