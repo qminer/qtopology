@@ -1,7 +1,8 @@
 "use strict";
 
-const cmdln = require("../../src/util/cmdline");
-const stor = require("../../src/distributed/http_based/http_coordination_storage");
+const qtoplogy = require("../../");
+const cmdln = qtoplogy.util.cmdline;
+const stor = qtoplogy.distributed.std_coordinators.http.storage;
 
 //////////////////////////////////////////////////
 

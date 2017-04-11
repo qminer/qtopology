@@ -5,11 +5,8 @@ const tn = require("../../").local;
 const validator = require("../../").validation;
 
 // demo configuration
-
 let config = require("./topology.json");
 validator.validate({ config: config, exitOnError: true });
-
-
 let topology = new tn.TopologyLocal();
 
 async.series(
