@@ -1,0 +1,5 @@
+digraph G {
+    active -> dead [label="by worker or timeout"];
+    dead -> unloaded [label="by leader"];
+    unloaded -> active [label="by worker"];
+}

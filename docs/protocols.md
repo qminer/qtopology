@@ -1,5 +1,13 @@
 # Topology protocol
 
+## Worker statuses
+
+![Worker statuses](imgs/worker_statuses.svg)
+
+## Topology statuses
+
+![Topology statuses](imgs/topology_statuses.svg)
+
 ## Coordinator
 
 When started, it reads and compiles the topology settings.
@@ -46,10 +54,10 @@ The worker first performs the initialization sequence and the runs two sequences
 |  | Send leadership candidacy |
 | Register candidacy |  |
 |  | Check candidacy |
-| Send true if candidadcy sucessfull |  |
+| Send `true` if candidacy sucessfull |  |
 |  | If not elected leader, do nothing more |
 |  | Get worker statuses |
-| Return worker statuses after marking overdue pings as `dead` | |
+| Return worker statuses after marking those with overdue pings as `dead` | |
 | | For all `dead` workers unassign their topologies |
 | Update statuses for these topologies | |
 | | Pronounce `dead` workers as `unloaded` |

@@ -1,0 +1,11 @@
+digraph G {
+	splines=line;
+	unassigned -> waiting [label="by leader"];
+	waiting -> running [label="by worker"];
+	waiting -> unassigned [label="by leader"];
+	running -> unassigned [label="by leader"];
+	running -> error [label="by worker"];
+	running -> stopped [label="by worker"];
+	error -> unassigned [label="manual"];
+	stopped -> waiting [label="by leader"];
+}
