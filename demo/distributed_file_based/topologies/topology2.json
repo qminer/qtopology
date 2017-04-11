@@ -1,0 +1,34 @@
+{
+    "general": {
+        "name": "demo.topology.2",
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field2": "b"
+                }
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
