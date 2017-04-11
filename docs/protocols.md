@@ -31,8 +31,8 @@ The worker first performs the initialization sequence and the runs two sequences
 
 ### Initial sequence
 
-| Coordination storage | Worker | Local topology |
-|-------------|--------|-----|
+| Coordination storage | Worker |
+|-------------|--------|
 |  | Register worker | 
 | Puts worker in worker list  |  | 
 
@@ -62,8 +62,8 @@ The worker first performs the initialization sequence and the runs two sequences
 
 ### Active-worker sequence
 
-| Coordination storage | Worker | Local topology |
-|-------------|--------|-----|
+| Coordination storage | Worker |
+|-------------|--------|
 |  | Get messages for this worker |
 | Returns messages for this worker |  |
 |  | Handle message such as "start topology" or "shutdown" |
