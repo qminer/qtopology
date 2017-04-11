@@ -1,9 +1,6 @@
 "use strict";
 
-const http = require('http');
-const express = require('express');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
+const http_server = require('./http_server');
 
 //////////////////////////////////////////////////////////////////////
 // Storage implementation - accessed over HTTP
@@ -274,87 +271,76 @@ class HttpCoordinationStorage {
     }
 }
 
-
-
 ////////////////////////////////////////////////////////////////////
+// Initialize storage
 
 let storage = new HttpCoordinationStorage();
+
+////////////////////////////////////////////////////////////////////
+// Initialize simple REST server
+
+http_server.addHandler('/worker-statuses', (data, callback) => {
+    let result = storage.getWorkerStatuses();
+    callback(null, result);
+});
+http_server.addHandler('/topology-statuses', (data, callback) => {
+    let result = storage.getTopologyStatuses();
+    callback(null, result);
+});
+http_server.addHandler('/leadership-status', (data, callback) => {
+    let result = storage.getLeadershipStatus();
+    callback(null, result);
+});
+http_server.addHandler('/worker-topologies', (data, callback) => {
+    let worker = data.worker;
+    let result = storage.getTopologiesForWorker(worker);
+    callback(null, result);
+});
+http_server.addHandler('/get-messages', (data, callback) => {
+    let worker = data.worker;
+    let result = storage.getMessagesForWorker(worker);
+    callback(null, result);
+});
+http_server.addHandler('/assign-topology', (data, callback) => {
+    let worker = data.worker;
+    let uuid = data.uuid;
+    let result = storage.assignTopology(uuid, worker);
+    callback(null, result);
+});
+http_server.addHandler('/check-leader-candidacy', (data, callback) => {
+    let worker = data.worker;
+    let result = storage.checkLeaderCandidacy(worker);
+    callback(null, result);
+});
+http_server.addHandler('/announce-leader-candidacy', (data, callback) => {
+    let worker = data.worker;
+    let result = storage.announceLeaderCandidacy(worker);
+    callback(null, result);
+});
+http_server.addHandler('/register-worker', (data, callback) => {
+    let worker = data.worker;
+    let result = storage.registerWorker(worker);
+    callback(null, result);
+});
+http_server.addHandler('/set-topology-status', (data, callback) => {
+    let uuid = data.uuid;
+    let status = data.status;
+    let error = data.error;
+    let result = storage.setTopologyStatus(uuid, status, error);
+    callback(null, result);
+});
+http_server.addHandler('/set-worker-status', (data, callback) => {
+    let name = data.name;
+    let status = data.status;
+    let result = storage.setWorkerStatus(name, status);
+    callback(null, result);
+});
+
+/////////////////////////////////////////////////////////////////////////////
 
 exports.addTopology = function (config) {
     storage.addTopology(config);
 }
-
 exports.run = function (options) {
-
-    // HTTP server code
-
-    const port = options.port || 3000;
-
-    let app = express();
-    app.use(morgan('dev'));
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: false }));
-
-    app.post('/worker-statuses', (request, response) => {
-        let result = storage.getWorkerStatuses();
-        response.json(result)
-    });
-    app.post('/topology-statuses', (request, response) => {
-        let result = storage.getTopologyStatuses();
-        response.json(result)
-    });
-    app.post('/leadership-status', (request, response) => {
-        let result = storage.getLeadershipStatus();
-        response.json(result)
-    });
-    app.post('/worker-topologies', (request, response) => {
-        let worker = request.body.worker;
-        let result = storage.getTopologiesForWorker(worker);
-        response.json(result)
-    });
-
-    app.post('/get-messages', (request, response) => {
-        let worker = request.body.worker;
-        let result = storage.getMessagesForWorker(worker);
-        response.json(result)
-    });
-    app.post('/assign-topology', (request, response) => {
-        let worker = request.body.worker;
-        let uuid = request.body.uuid;
-        let result = storage.assignTopology(uuid, worker);
-        response.json(result)
-    });
-    app.post('/check-leader-candidacy', (request, response) => {
-        let worker = request.body.worker;
-        let result = storage.checkLeaderCandidacy(worker);
-        response.json(result)
-    });
-    app.post('/announce-leader-candidacy', (request, response) => {
-        let worker = request.body.worker;
-        let result = storage.announceLeaderCandidacy(worker);
-        response.json(result)
-    });
-    app.post('/register-worker', (request, response) => {
-        console.log(request.body)
-        let worker = request.body.worker;
-        let result = storage.registerWorker(worker);
-        response.json(result)
-    });
-    app.post('/set-topology-status', (request, response) => {
-        let uuid = request.body.uuid;
-        let status = request.body.status;
-        let error = request.body.error;
-        let result = storage.setTopologyStatus(uuid, status, error);
-        response.json(result)
-    });
-    app.post('/set-worker-status', (request, response) => {
-        let name = request.body.name;
-        let status = request.body.status;
-        let result = storage.setWorkerStatus(name, status);
-        response.json(result)
-    });
-
-    app.listen(port, () => {
-        console.log("Server running on port", port);
-    });
+    http_server.run(options);
 }
