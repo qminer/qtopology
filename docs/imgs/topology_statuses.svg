@@ -1,0 +1,79 @@
+<svg width="277pt" height="314pt" viewBox="0.00 0.00 277.30 314.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 310)">
+<title>G</title>
+<polygon fill="white" stroke="white" points="-4,5 -4,-310 274.305,-310 274.305,5 -4,5"></polygon>
+<!-- unassigned -->
+<g id="node1" class="node"><title>unassigned</title>
+<ellipse fill="none" stroke="black" cx="110.094" cy="-288" rx="53.4212" ry="18"></ellipse>
+<text text-anchor="middle" x="110.094" y="-283.8" font-family="Times,serif" font-size="14.00">unassigned</text>
+</g>
+<!-- waiting -->
+<g id="node3" class="node"><title>waiting</title>
+<ellipse fill="none" stroke="black" cx="49.0943" cy="-198" rx="40.0038" ry="18"></ellipse>
+<text text-anchor="middle" x="49.0943" y="-193.8" font-family="Times,serif" font-size="14.00">waiting</text>
+</g>
+<!-- unassigned&#45;&gt;waiting -->
+<g id="edge2" class="edge"><title>unassigned-&gt;waiting</title>
+<path fill="none" stroke="black" d="M58.677,-282.96C38.0349,-278.512 16.1509,-269.603 3.39933,-252 -5.01968,-240.378 4.0599,-228.197 16.282,-218.447"></path>
+<polygon fill="black" stroke="black" points="18.5624,-221.117 24.6151,-212.422 14.4608,-215.445 18.5624,-221.117"></polygon>
+<text text-anchor="middle" x="29.9418" y="-238.8" font-family="Times,serif" font-size="14.00">by leader</text>
+</g>
+<!-- waiting&#45;&gt;unassigned -->
+<g id="edge6" class="edge"><title>waiting-&gt;unassigned</title>
+<path fill="none" stroke="black" d="M57.1359,-215.828C62.5623,-226.553 70.2075,-240.537 78.3993,-252 81.0447,-255.702 84.0327,-259.443 87.0905,-263.034"></path>
+<polygon fill="black" stroke="black" points="84.5327,-265.424 93.79,-270.577 89.7667,-260.776 84.5327,-265.424"></polygon>
+<text text-anchor="middle" x="104.942" y="-238.8" font-family="Times,serif" font-size="14.00">by leader</text>
+</g>
+<!-- running -->
+<g id="node5" class="node"><title>running</title>
+<ellipse fill="none" stroke="black" cx="146.094" cy="-108" rx="41.1161" ry="18"></ellipse>
+<text text-anchor="middle" x="146.094" y="-103.8" font-family="Times,serif" font-size="14.00">running</text>
+</g>
+<!-- waiting&#45;&gt;running -->
+<g id="edge4" class="edge"><title>waiting-&gt;running</title>
+<path fill="none" stroke="black" d="M53.4257,-179.948C57.0485,-168.584 63.221,-153.961 72.9519,-144 81.5596,-135.189 92.8279,-128.312 103.933,-123.077"></path>
+<polygon fill="black" stroke="black" points="105.389,-126.26 113.16,-119.059 102.594,-119.842 105.389,-126.26"></polygon>
+<text text-anchor="middle" x="101.666" y="-148.8" font-family="Times,serif" font-size="14.00">by worker</text>
+</g>
+<!-- running&#45;&gt;unassigned -->
+<g id="edge8" class="edge"><title>running-&gt;unassigned</title>
+<path fill="none" stroke="black" d="M146.392,-126.202C146.377,-153.545 144.348,-208.3 130.094,-252 129.074,-255.127 127.755,-258.286 126.28,-261.359"></path>
+<polygon fill="black" stroke="black" points="123.178,-259.738 121.534,-270.205 129.346,-263.048 123.178,-259.738"></polygon>
+<text text-anchor="middle" x="169.942" y="-193.8" font-family="Times,serif" font-size="14.00">by leader</text>
+</g>
+<!-- error -->
+<g id="node9" class="node"><title>error</title>
+<ellipse fill="none" stroke="black" cx="161.094" cy="-18" rx="29.1982" ry="18"></ellipse>
+<text text-anchor="middle" x="161.094" y="-13.8" font-family="Times,serif" font-size="14.00">error</text>
+</g>
+<!-- running&#45;&gt;error -->
+<g id="edge10" class="edge"><title>running-&gt;error</title>
+<path fill="none" stroke="black" d="M147.885,-89.7472C149.074,-79.3514 150.809,-65.8696 152.952,-54 153.434,-51.3294 153.988,-48.5558 154.574,-45.7913"></path>
+<polygon fill="black" stroke="black" points="157.992,-46.5437 156.775,-36.019 151.163,-45.0054 157.992,-46.5437"></polygon>
+<text text-anchor="middle" x="181.666" y="-58.8" font-family="Times,serif" font-size="14.00">by worker</text>
+</g>
+<!-- stopped -->
+<g id="node11" class="node"><title>stopped</title>
+<ellipse fill="none" stroke="black" cx="59.0943" cy="-18" rx="41.1146" ry="18"></ellipse>
+<text text-anchor="middle" x="59.0943" y="-13.8" font-family="Times,serif" font-size="14.00">stopped</text>
+</g>
+<!-- running&#45;&gt;stopped -->
+<g id="edge12" class="edge"><title>running-&gt;stopped</title>
+<path fill="none" stroke="black" d="M119.589,-94.0327C109.513,-88.2407 98.4299,-80.7381 89.9519,-72 82.4682,-64.2867 76.0888,-54.4164 71.1062,-45.2892"></path>
+<polygon fill="black" stroke="black" points="74.1075,-43.4713 66.4319,-36.1682 67.878,-46.6639 74.1075,-43.4713"></polygon>
+<text text-anchor="middle" x="118.666" y="-58.8" font-family="Times,serif" font-size="14.00">by worker</text>
+</g>
+<!-- error&#45;&gt;unassigned -->
+<g id="edge14" class="edge"><title>error-&gt;unassigned</title>
+<path fill="none" stroke="black" d="M184.051,-29.2792C193.964,-35.02 204.545,-43.2172 210.094,-54 243.116,-118.167 232.856,-152.219 199.094,-216 187.599,-237.717 166.281,-255.084 147.391,-267.206"></path>
+<polygon fill="black" stroke="black" points="145.344,-264.356 138.648,-272.567 149.003,-270.323 145.344,-264.356"></polygon>
+<text text-anchor="middle" x="248.7" y="-148.8" font-family="Times,serif" font-size="14.00">manual</text>
+</g>
+<!-- stopped&#45;&gt;waiting -->
+<g id="edge16" class="edge"><title>stopped-&gt;waiting</title>
+<path fill="none" stroke="black" d="M54.5401,-36.0635C50.9746,-50.3511 46.3099,-71.342 44.3993,-90 41.6285,-117.059 43.5573,-148.132 45.7196,-169.796"></path>
+<polygon fill="black" stroke="black" points="42.258,-170.341 46.814,-179.906 49.2174,-169.588 42.258,-170.341"></polygon>
+<text text-anchor="middle" x="70.9418" y="-103.8" font-family="Times,serif" font-size="14.00">by leader</text>
+</g>
+</g>
+</svg>

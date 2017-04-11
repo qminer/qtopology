@@ -1,0 +1,39 @@
+<svg width="213pt" height="224pt" viewBox="0.00 0.00 213.14 224.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 220)">
+<title>G</title>
+<polygon fill="white" stroke="white" points="-4,5 -4,-220 210.142,-220 210.142,5 -4,5"></polygon>
+<!-- active -->
+<g id="node1" class="node"><title>active</title>
+<ellipse fill="none" stroke="black" cx="79" cy="-198" rx="34.1388" ry="18"></ellipse>
+<text text-anchor="middle" x="79" y="-193.8" font-family="Times,serif" font-size="14.00">active</text>
+</g>
+<!-- dead -->
+<g id="node3" class="node"><title>dead</title>
+<ellipse fill="none" stroke="black" cx="29" cy="-108" rx="28.9032" ry="18"></ellipse>
+<text text-anchor="middle" x="29" y="-103.8" font-family="Times,serif" font-size="14.00">dead</text>
+</g>
+<!-- active&#45;&gt;dead -->
+<g id="edge2" class="edge"><title>active-&gt;dead</title>
+<path fill="none" stroke="black" d="M49.5444,-188.973C36.0454,-183.659 21.3195,-175.17 13.42,-162 8.29409,-153.454 9.8959,-143.114 13.6085,-133.844"></path>
+<polygon fill="black" stroke="black" points="16.8329,-135.217 18.0481,-124.692 10.5347,-132.162 16.8329,-135.217"></polygon>
+<text text-anchor="middle" x="73.29" y="-148.8" font-family="Times,serif" font-size="14.00">by worker or timeout</text>
+</g>
+<!-- unloaded -->
+<g id="node5" class="node"><title>unloaded</title>
+<ellipse fill="none" stroke="black" cx="104" cy="-18" rx="46.1543" ry="18"></ellipse>
+<text text-anchor="middle" x="104" y="-13.8" font-family="Times,serif" font-size="14.00">unloaded</text>
+</g>
+<!-- dead&#45;&gt;unloaded -->
+<g id="edge4" class="edge"><title>dead-&gt;unloaded</title>
+<path fill="none" stroke="black" d="M42.064,-91.6716C53.5005,-78.2528 70.3077,-58.5323 83.5292,-43.0191"></path>
+<polygon fill="black" stroke="black" points="86.2461,-45.2271 90.0688,-35.3459 80.9185,-40.6865 86.2461,-45.2271"></polygon>
+<text text-anchor="middle" x="99.8475" y="-58.8" font-family="Times,serif" font-size="14.00">by leader</text>
+</g>
+<!-- unloaded&#45;&gt;active -->
+<g id="edge6" class="edge"><title>unloaded-&gt;active</title>
+<path fill="none" stroke="black" d="M118.656,-35.3223C122.778,-40.8675 126.747,-47.3522 129,-54 167.336,-167.106 140.516,-146.171 132,-162 127.832,-169.747 121.114,-176.065 113.841,-181.092"></path>
+<polygon fill="black" stroke="black" points="111.864,-178.198 105.167,-186.408 115.522,-184.167 111.864,-178.198"></polygon>
+<text text-anchor="middle" x="176.571" y="-103.8" font-family="Times,serif" font-size="14.00">by worker</text>
+</g>
+</g>
+</svg>
