@@ -10,7 +10,7 @@ It also opens specified port for coordination requests.
 
 When started, needs to be given:
 
-- address of the coordinator (server and port)
+- method of coordination
 - logical name
 
 It opens connection to the coordinator, awaiting instructions. When registration with coordinator succeeds, it starts local topology.

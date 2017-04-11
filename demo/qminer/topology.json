@@ -1,18 +1,11 @@
 {
     "general": {
         "name": "QMiner demo",
-        "coordination_port": 9289,
         "heartbeat": 2000
     },
-    "workers": [
-        {
-            "name": "srv1"
-        }
-    ],
     "spouts": [
         {
             "name": "pump1",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "spout_1.js",
@@ -22,7 +15,6 @@
     "bolts": [
         {
             "name": "bolt_qm1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_qm.js",
@@ -35,7 +27,6 @@
         },
         {
             "name": "bolt_qm2",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_qm.js",

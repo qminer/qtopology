@@ -131,7 +131,6 @@ and define the bolt in the topology like this:
 `````````json
 {
     "name": "bolt1",
-    "worker": "srv1",
     "working_dir": ".",
     "type": "inproc",
     "cmd": "bolt_inproc.js",
@@ -152,7 +151,6 @@ and define the spout in the topology like this:
 `````````json
 {
     "name": "pump1",
-    "worker": "srv1",
     "type": "inproc",
     "working_dir": ".",
     "cmd": "spout_file.js",
@@ -281,7 +279,6 @@ exports.shutdown = function(callback) {
 {
     "general": {
         "name": "Topology name",
-        "coordination_port": 9289,
         "heartbeat": 3200,
         "initialization": [
             {

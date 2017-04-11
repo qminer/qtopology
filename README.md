@@ -6,7 +6,7 @@ NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/pac
 
 Documentation [https://qminer.github.io/qtopology](https://qminer.github.io/qtopology)
 
-### Installation
+## Installation
 
 `````````````bash
 npm install qtopology

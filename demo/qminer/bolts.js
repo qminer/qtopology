@@ -93,7 +93,7 @@ class QMinerBolt {
         }
     }
 
-    receive(data, callback) {
+    receive(data, stream_id, callback) {
         this._cnt++;
         let rec = this._store.newRecord({
             ts: this._curr_ts,

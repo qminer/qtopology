@@ -23,8 +23,9 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 
 When running in distributed mode, `qtopology` also uses the following:
 
-- **Coordinator** - reads global settings, receives worker registrations and send them the initialization data. Also sends shutdown signal.
-- **Worker** - registers with coordinator, receives initialization data and instantiates local topology.
+- **Coordination storage** - must be resilient, receives worker registrations and sends them the initialization data. Also sends shutdown signals. Implementation is custom. `QTopology` provides `REST`-based service out-of-the-box, but the design is similar for other options like `MySQL` storage etc.
+- **Worker** - Runs on single server. Registers with coordination storage, receives initialization data and instantiates local topologies in separate subprocesses.
+    - **Leader** - one of the active workers is announced leader and it performs leadership tasks such as assigning of topologies to workers, detection of dead or inactive workers.
 
 ## Quick start
 
@@ -36,16 +37,11 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ca
 {
     "general": {
         "name": "Topology name",
-        "coordination_port": 12345,
         "heartbeat": 1000
     },
-    "workers": [
-        { "name": "srv1" }
-    ],
     "spouts": [
         {
             "name": "pump1",
-            "worker": "srv1",
             "type": "inproc",
             "working_dir": ".",
             "cmd": "my_spout.js",
@@ -55,7 +51,6 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ca
     "bolts": [
         {
             "name": "bolt1",
-            "worker": "srv1",
             "working_dir": ".",
             "type": "inproc",
             "cmd": "my_bolt.js",
@@ -172,7 +167,7 @@ topology.init(config, (err) => {
     if (err) { console.log(err); return; }
 
     // let topology run for 4 seconds
-    topology.run();    
+    topology.run();
     setTimeout(() => {
         topology.shutdown((err) => {
             if (err) { console.log(err); }
