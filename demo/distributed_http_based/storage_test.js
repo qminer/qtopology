@@ -1,7 +1,7 @@
 "use strict";
 
 const cmdln = require("../../src/util/cmdline");
-const stor = require("../../src/distributed/http_based/simple_coordination_storage");
+const stor = require("../../src/distributed/http_based/http_coordination_storage");
 
 //////////////////////////////////////////////////
 
