@@ -17,7 +17,6 @@ const morgan = require('morgan');
 // worker lstatus: leader, candidate, ""
 // Topology status: unassigned, waiting, running, error, stopped
 
-
 class HttpCoordinationStorage {
 
     constructor() {

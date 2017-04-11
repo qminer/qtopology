@@ -1,5 +1,18 @@
 # Topology protocol
 
+## Worker statuses
+
+![Alt text](https://g.gravizo.com/svg?
+  digraph G {
+    aize ="4,4";
+    active -> dead [label="from worker or timeout"];
+    dead -> unloaded [label="by leader"];
+    unloaded -> active [label="from worker"];
+  }
+)
+
+## Topology statuses
+
 ## Coordinator
 
 When started, it reads and compiles the topology settings.

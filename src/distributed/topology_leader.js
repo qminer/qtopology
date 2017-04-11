@@ -76,7 +76,6 @@ class TopologyLeader {
     _performLeaderLoop(callback) {
         let self = this;
         let alive_workers = null;
-        let load_balancer = null;
         async.series(
             [
                 (xcallback) => {
@@ -115,13 +114,15 @@ class TopologyLeader {
                         if (unassigned_topologies.length > 0) {
                             console.log("Found unassigned topologies:", unassigned_topologies)
                         }
-                        load_balancer = new lb.LoadBalancer(
+                        let load_balancer = new lb.LoadBalancer(
                             alive_workers.map(x => { return { name: x.name, weight: x.topology_count }; })
                         );
                         async.each(
                             unassigned_topologies,
                             (unassigned_topology, xxcallback) => {
-                                self._storage.assignTopology(unassigned_topology, load_balancer.next(), xcallback);
+                                let target = load_balancer.next();
+                                console.log(`Assigning topology ${unassigned_topology} to worker ${target}`);
+                                self._storage.assignTopology(unassigned_topology, target, xcallback);
                             },
                             xcallback
                         );
@@ -136,15 +137,18 @@ class TopologyLeader {
      * topologies need to be re-assigned to other servers.
      */
     _handleDeadWorker(dead_worker, callback) {
+        console.log("Handling dead worker", dead_worker);
         let self = this;
         self._storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
             async.each(
                 topologies,
                 (topology, xcallback) => {
+                    console.log("Unassigning topology", topology.uuid);
                     self._storage.setTopologyStatus(topology.uuid, "unassigned", xcallback);
                 },
-                (err)=> {
+                (err) => {
                     if (err) return callback(err);
+                    console.log("Setting dead worker as unloaded", dead_worker);
                     self._storage.setWorkerStatus(dead_worker, "unloaded", callback);
                 }
             );
