@@ -36,6 +36,7 @@ class HttpCoordinationStorage {
         });
     }
 
+    /** Performs upsert of worker record. It's initial status is alive */
     registerWorker(name) {
         let rec = null;
         console.log("Registering worker", name);
@@ -62,6 +63,7 @@ class HttpCoordinationStorage {
         return { success: true };
     }
 
+    /** Determines leadership status */
     getLeadershipStatus() {
         this._disableDefunctLeaders();
 
@@ -96,6 +98,7 @@ class HttpCoordinationStorage {
         return { success: true };
     }
 
+    /** Checks if leadership candidacy for specified worker was successful. */
     checkLeaderCandidacy(name) {
         this._disableDefunctLeaders();
 
@@ -110,6 +113,7 @@ class HttpCoordinationStorage {
         return res;
     }
 
+    /** Returns worker statuses */
     getWorkerStatuses() {
         this._disableDefunctWorkers();
         return this._workers

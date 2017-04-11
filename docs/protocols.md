@@ -20,23 +20,55 @@ It opens connection to the coordinator, awaiting instructions. When registration
 This object:
 
 - starts nodes (spouts and bolts)
-- sends them commands, e.g. `init`, `run`, `pause`
+- sends them commands, e.g. `init`, `run`, `pause`, `shutdown`
 
 ## Sequence between coordinator, worker and local topology
 
-| Coordinator | Worker | Local topology |
+The worker first performs the initialization sequence and the runs two sequences in parallel, infinite loops:
+
+- Leadership sequence
+- Normal active-worker sequence
+
+### Initial sequence
+
+| Coordination storage | Worker | Local topology |
 |-------------|--------|-----|
-| Sends `introduce` command (when worker connects)| |
-| | Sends `register` command (with name of the worker)|
-| Sends `init` command (when all workers register)| |
-| | &rarr; | Starts processes for bolts and spouts|
-| | Sends `init_confirmed` command (after it initializes internal structure)|
-| Sends `run` command (when all workers initialize)| |
-| | &rarr; | Sends `run` command to bolts and spouts, starts polling spouts for data|
-| Sends `pause` command (work is resumed later with `run` command)| |
-| | &rarr; | Sends `pause` command to bolts and spouts, stops polling spouts for data|
-| Sends `shutdown` command| |
-| | &rarr; | Sends `shutdown` command to bolts and spouts, stops polling spouts for data|
+|  | Register worker | 
+| Puts worker in worker list  |  | 
+
+### Leadership sequence
+
+| Coordination storage | Worker
+|-------------|--------|
+|  | Checks if leadership is established |
+| Returns leadership status |  |
+|  | If leadership is ok, do nothing more |
+|  | Send leadership candidacy |
+| Register candidacy |  |
+|  | Check candidacy |
+| Send true if candidadcy sucessfull |  |
+|  | If not elected leader, do nothing more |
+|  | Get worker statuses |
+| Return worker statuses after marking overdue pings as `dead` | |
+| | For all `dead` workers unassign their topologies |
+| Update statuses for these topologies | |
+| | Pronounce `dead` workers as `unloaded` |
+| Store new worker statuses | |
+| | Get topology statuses |
+| Get topology statuses after setting overdue `waiting` status to `unassigned` and setting topologies of `dead` worker to `unassigned`  | |
+| | Assign `unassigned` and `stopped` topologies to new workers by setting the to status `waiting` |
+| Store new statuses for these topologies | |
+| Store messages for workers to load topologies | |
+
+### Active-worker sequence
+
+| Coordination storage | Worker | Local topology |
+|-------------|--------|-----|
+|  | Get messages for this worker |
+| Returns messages for this worker |  |
+|  | Handle message such as "start topology" or "shutdown" |
+| Update topology status if start successful |  |
+|  |  |
 
 ## Sequence between local topology and child processes
 
