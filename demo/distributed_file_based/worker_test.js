@@ -4,25 +4,22 @@ const qtoplogy = require("../../");
 const cmdln = qtoplogy.util.cmdline;
 const wrkr = qtoplogy.distributed.worker;
 const coor = qtoplogy.distributed.coordinator;
-const stor = qtoplogy.distributed.std_coordinators.file;
+const stor = qtoplogy.distributed.std_coordinators.file.coordinator;
 
 ///////////////////////////////////////////////////////////////////////
 cmdln
     .define('n', 'name', 'worker1', 'Logical name of the worker');
 let opts = cmdln.process(process.argv);
 
-let storage = new stor.FileCoordinator("./topologies");
-let coordinator = new coor.TopologyCoordinator({
+let storage = new stor.FileCoordinator({
+    dir_name: "./topologies",
+    file_pattern: "*.json"
+});
+
+let w = new wrkr.TopologyWorker({
     name: opts.name,
     storage: storage
 });
-
-let options = {
-    name: opts.name,
-    coordinator: coordinator
-};
-
-let w = new wrkr.TopologyWorker(options);
 w.run();
 
 function shutdown() {

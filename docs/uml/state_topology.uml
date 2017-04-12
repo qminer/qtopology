@@ -1,0 +1,11 @@
+@startuml
+[*] -down-> unassigned
+unassigned -right-> waiting : by leader
+waiting --> running: by worker
+waiting -left-> unassigned : by leader (timeout)
+running -right-> stopped: by worker
+running -up-> unassigned: by leader
+stopped -up-> waiting : by leader
+running -left-> error: by worker
+error -up-> unassigned: manual
+@enduml

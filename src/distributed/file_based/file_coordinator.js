@@ -9,15 +9,20 @@ const EventEmitter = require('events');
 
 class FileCoordinator {
 
-    constructor(dir_name) {
+    constructor(options) {
         this._msgs = [];
-        dir_name = path.resolve(dir_name);
-        let items = fs.readdirSync(dir_name);
-        console.log("Starting file-based coordination, from directory", dir_name);
+        this._dir_name = options.dir_name;
+        this._dir_name = path.resolve(this._dir_name);
+        this._file_pattern = options.file_pattern;
+        this._file_pattern_regex = this._createRegexpForPattern(this._file_pattern);
+
+        let items = fs.readdirSync(this._dir_name);
+        console.log("Starting file-based coordination, from directory", this._dir_name);
         for (let item of items) {
             if (path.extname(item) != ".json") continue;
+            if (!item.match(this._file_pattern_regex)) continue;
             console.log("Found topology file", item);
-            let config = require(path.join(dir_name, item));
+            let config = require(path.join(this._dir_name, item));
             this._msgs.push({
                 worker: "",
                 cmd: "start",
@@ -63,6 +68,14 @@ class FileCoordinator {
     }
     setWorkerStatus(name, status, callback) {
         callback(null, { success: true });
+    }
+
+    _createRegexpForPattern(str) {
+        if (!str) return /.*/g;
+        str = str
+            .replace(/\./g, "\.")
+            .replace(/\*/g, ".*");
+        return new RegExp("^" + str + "$", "gi");
     }
 }
 
