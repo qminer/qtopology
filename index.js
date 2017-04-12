@@ -9,9 +9,7 @@ module.exports = {
     distributed: {
         // for single worker
         worker: require("./src/distributed/topology_worker"),
-        // for single coordinator
-        coordinator: require("./src/distributed/topology_coordinator"),
-        // std providers
+        // std coordination providers
         std_coordinators: {
             // simple file-based coordination
             file: {

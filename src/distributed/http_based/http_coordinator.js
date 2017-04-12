@@ -9,9 +9,11 @@ const EventEmitter = require('events');
 
 class HttpCoordinator {
 
-    constructor() {
+    constructor(options) {
+        let options = options || {};
+        this._port = options.port || port;
         this._client = new Client();
-        this._urlPrefix = "http://localhost:" + port + "/"
+        this._urlPrefix = "http://localhost:" + this._port + "/"
     }
 
     getMessages(name, callback) {

@@ -2,6 +2,7 @@
 
 const async = require("async");
 const tlp = require("./topology_local_proxy");
+const coord = require("./topology_coordinator");
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +15,10 @@ class TopologyWorker {
     /** Initializes this object */
     constructor(options) {
         this._name = options.name;
-        this._coordinator = options.coordinator;
+        this._coordinator = new coord.TopologyCoordinator({
+            name: options.name,
+            storage: options.storage
+        });
         this._topologies = [];
 
         let self = this;

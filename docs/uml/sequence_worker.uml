@@ -1,0 +1,33 @@
+@startuml
+activate Worker
+Worker -> Storage: getMessages
+activate Storage
+
+Storage -> Storage: retrieve list of message for this worker
+Storage --> Worker:
+deactivate Storage
+
+Worker->LocalTopology: start
+activate LocalTopology
+LocalTopology->LocalTopology: run
+LocalTopology-->Worker: success
+
+Worker -> Storage: setTopologyStatus
+activate Storage
+Storage -> Storage: mark topology as running
+Storage --> Worker:
+deactivate Storage
+
+LocalTopology->LocalTopology: loop spouts
+
+LocalTopology->Worker: exit/error
+deactivate LocalTopology
+
+Worker -> Storage: setTopologyStatus
+activate Storage
+Storage -> Storage: mark topology as stopped/error
+Storage --> Worker:
+deactivate Storage
+
+deactivate Worker
+@enduml

@@ -1,0 +1,6 @@
+@startuml
+[*] --> alive
+alive -> dead : by worker or timeout
+dead -> unloaded: by leader
+unloaded --> alive: by worker
+@enduml
