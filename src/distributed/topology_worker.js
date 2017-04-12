@@ -3,6 +3,7 @@
 const async = require("async");
 const tlp = require("./topology_local_proxy");
 const coord = require("./topology_coordinator");
+const comp = require("../topology_compiler");
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -36,6 +37,10 @@ class TopologyWorker {
 
     /** Starts single topology */
     _start(uuid, config) {
+        let compiler = new comp.TopologyCompiler(config);
+        compiler.compile();
+        config = compiler.getWholeConfig();
+
         let self = this;
         if (self._topologies.filter(x => x.uuid === uuid).length > 0) {
             self._coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
