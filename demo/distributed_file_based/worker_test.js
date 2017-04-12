@@ -15,17 +15,11 @@ let storage = new stor.FileCoordinator({
     dir_name: "./topologies",
     file_pattern: "*.json"
 });
-let coordinator = new coor.TopologyCoordinator({
+
+let w = new wrkr.TopologyWorker({
     name: opts.name,
     storage: storage
 });
-
-let options = {
-    name: opts.name,
-    coordinator: coordinator
-};
-
-let w = new wrkr.TopologyWorker(options);
 w.run();
 
 function shutdown() {
