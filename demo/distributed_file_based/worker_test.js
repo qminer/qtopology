@@ -1,10 +1,10 @@
 "use strict";
 
-const qtoplogy = require("../../");
-const cmdln = qtoplogy.util.cmdline;
-const wrkr = qtoplogy.distributed.worker;
-const coor = qtoplogy.distributed.coordinator;
-const stor = qtoplogy.distributed.std_coordinators.file;
+const qtopology = require("../../");
+const cmdln = qtopology.util.cmdline;
+const wrkr = qtopology.distributed.worker;
+const coor = qtopology.distributed.coordinator;
+const stor = qtopology.distributed.std_coordinators.file.coordinator;
 
 ///////////////////////////////////////////////////////////////////////
 cmdln
