@@ -45,7 +45,7 @@ function run(options) {
         var method = req.method;
         var addr = req.url;
         let data = null;
-console.log("Handling", addr);
+        console.log("Handling", addr);
         try {
             data = JSON.parse(req.body);
         } catch (e) {
