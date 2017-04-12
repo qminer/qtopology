@@ -1,39 +1,18 @@
-<svg width="213pt" height="224pt" viewBox="0.00 0.00 213.14 224.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 220)">
-<title>G</title>
-<polygon fill="white" stroke="white" points="-4,5 -4,-220 210.142,-220 210.142,5 -4,5"></polygon>
-<!-- active -->
-<g id="node1" class="node"><title>active</title>
-<ellipse fill="none" stroke="black" cx="79" cy="-198" rx="34.1388" ry="18"></ellipse>
-<text text-anchor="middle" x="79" y="-193.8" font-family="Times,serif" font-size="14.00">active</text>
-</g>
-<!-- dead -->
-<g id="node3" class="node"><title>dead</title>
-<ellipse fill="none" stroke="black" cx="29" cy="-108" rx="28.9032" ry="18"></ellipse>
-<text text-anchor="middle" x="29" y="-103.8" font-family="Times,serif" font-size="14.00">dead</text>
-</g>
-<!-- active&#45;&gt;dead -->
-<g id="edge2" class="edge"><title>active-&gt;dead</title>
-<path fill="none" stroke="black" d="M49.5444,-188.973C36.0454,-183.659 21.3195,-175.17 13.42,-162 8.29409,-153.454 9.8959,-143.114 13.6085,-133.844"></path>
-<polygon fill="black" stroke="black" points="16.8329,-135.217 18.0481,-124.692 10.5347,-132.162 16.8329,-135.217"></polygon>
-<text text-anchor="middle" x="73.29" y="-148.8" font-family="Times,serif" font-size="14.00">by worker or timeout</text>
-</g>
-<!-- unloaded -->
-<g id="node5" class="node"><title>unloaded</title>
-<ellipse fill="none" stroke="black" cx="104" cy="-18" rx="46.1543" ry="18"></ellipse>
-<text text-anchor="middle" x="104" y="-13.8" font-family="Times,serif" font-size="14.00">unloaded</text>
-</g>
-<!-- dead&#45;&gt;unloaded -->
-<g id="edge4" class="edge"><title>dead-&gt;unloaded</title>
-<path fill="none" stroke="black" d="M42.064,-91.6716C53.5005,-78.2528 70.3077,-58.5323 83.5292,-43.0191"></path>
-<polygon fill="black" stroke="black" points="86.2461,-45.2271 90.0688,-35.3459 80.9185,-40.6865 86.2461,-45.2271"></polygon>
-<text text-anchor="middle" x="99.8475" y="-58.8" font-family="Times,serif" font-size="14.00">by leader</text>
-</g>
-<!-- unloaded&#45;&gt;active -->
-<g id="edge6" class="edge"><title>unloaded-&gt;active</title>
-<path fill="none" stroke="black" d="M118.656,-35.3223C122.778,-40.8675 126.747,-47.3522 129,-54 167.336,-167.106 140.516,-146.171 132,-162 127.832,-169.747 121.114,-176.065 113.841,-181.092"></path>
-<polygon fill="black" stroke="black" points="111.864,-178.198 105.167,-186.408 115.522,-184.167 111.864,-178.198"></polygon>
-<text text-anchor="middle" x="176.571" y="-103.8" font-family="Times,serif" font-size="14.00">by worker</text>
-</g>
-</g>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="164px" preserveAspectRatio="none" style="width:469px;height:164px;" version="1.1" viewBox="0 0 469 164" width="469px" zoomAndPan="magnify"><defs><filter height="300%" id="f50jq04" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><ellipse cx="31" cy="18" fill="#000000" filter="url(#f50jq04)" rx="10" ry="10" style="stroke: none; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#f50jq04)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="50" x="6" y="105"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="6" x2="56" y1="131.2969" y2="131.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="30" x="16" y="122.9951">alive</text><rect fill="#FEFECE" filter="url(#f50jq04)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="55" x="224.5" y="105"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="224.5" x2="279.5" y1="131.2969" y2="131.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="35" x="234.5" y="122.9951">dead</text><rect fill="#FEFECE" filter="url(#f50jq04)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="85" x="375.5" y="105"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="375.5" x2="460.5" y1="131.2969" y2="131.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="65" x="385.5" y="122.9951">unloaded</text><path d="M31,28.002 C31,43.458 31,75.6848 31,99.6001 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="31,104.8728,35,95.8728,31,99.8728,27,95.8728,31,104.8728" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M56.3515,130 C96.4448,130 174.486,130 218.929,130 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="224.178,130,215.178,126,219.178,130,215.178,134,224.178,130" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="132" x="74.25" y="123.0669">by worker or timeout</text><path d="M279.785,130 C304.476,130 341.099,130 370.444,130 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="375.461,130,366.461,126,370.461,130,366.461,134,375.461,130" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="59" x="298" y="123.0669">by leader</text><path d="M375.171,106.5991 C328.455,83.9205 251.278,54.749 183.5,68 C138.904,76.719 90.8786,98.523 60.8859,113.7953 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="56.2304,116.1874,66.0636,115.632,60.6777,113.9023,62.4074,108.5163,56.2304,116.1874" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="61" x="184.5" y="71.0669">by worker</text><!--
+@startuml
+[*] - -> alive
+alive -> dead : by worker or timeout
+dead -> unloaded: by leader
+unloaded - -> alive: by worker
+@enduml
+
+PlantUML version 2017.09(Wed Apr 05 16:07:11 UTC 2017)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Java Version: 1.7.0_25-b15
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

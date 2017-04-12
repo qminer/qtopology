@@ -1,5 +1,9 @@
 # Topology protocol
 
+The following components comprise the distributed setting for `qtopology`:
+
+![Worker statuses](imgs/components.svg)
+
 ## Worker statuses
 
 ![Worker statuses](imgs/worker_statuses.svg)
@@ -44,6 +48,8 @@ The worker first performs the initialization sequence and the runs two sequences
 |  | Register worker | 
 | Puts worker in worker list  |  | 
 
+![Topology statuses](imgs/sequence_register.svg)
+
 ### Leadership sequence
 
 | Coordination storage | Worker
@@ -77,6 +83,9 @@ The worker first performs the initialization sequence and the runs two sequences
 |  | Handle message such as "start topology" or "shutdown" |
 | Update topology status if start successful |  |
 |  |  |
+
+
+![Topology statuses](imgs/sequence_worker.svg)
 
 ## Sequence between local topology and child processes
 

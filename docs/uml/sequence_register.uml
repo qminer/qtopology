@@ -1,0 +1,8 @@
+@startuml
+Worker -> Storage: registerWorker
+activate Storage
+
+Storage ->Storage: enlist into worker list
+Storage --> Worker: 
+deactivate Storage
+@enduml
