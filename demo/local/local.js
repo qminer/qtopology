@@ -2,7 +2,7 @@
 
 const async = require("async");
 const tn = require("../../").local;
-const validator = require("../../").validation;
+const validator = require("../../").util.validation;
 
 // demo configuration
 let config = require("./topology.json");
@@ -19,17 +19,39 @@ async.series(
             topology.run();
             setTimeout(function () {
                 xcallback();
-            }, 4000);
+            }, 4120);
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");
             topology.shutdown(xcallback);
+            topology = null;
         }
     ],
     (err) => {
         if (err) {
-            console.log("Error in shutdown", err);
+            console.log("Error", err);
         }
         console.log("Finished.");
     }
 );
+
+function shutdown() {
+    if (topology) {
+        topology.shutdown((err) => {
+            if (err) {
+                console.log("Error", err);
+            }
+            process.exit(1);
+        });
+        topology = null;
+    }
+}
+
+//do something when app is closing
+process.on('exit', shutdown);
+
+//catches ctrl+c event
+process.on('SIGINT', shutdown);
+
+//catches uncaught exceptions
+process.on('uncaughtException', shutdown);

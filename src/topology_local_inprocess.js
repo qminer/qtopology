@@ -239,7 +239,7 @@ class TopologyBoltInproc {
         if (this._inSend === 0) {
             return this._child.shutdown(callback);
         } else {
-            this._pendingShutdown = callback;
+            this._pendingShutdownCallback = callback;
         }
     }
 
@@ -273,6 +273,7 @@ class TopologyBoltInproc {
                         self.receive(d.data, stream_id, d.callback);
                     } else if (self._pendingShutdownCallback) {
                         self.shutdown(self._pendingShutdownCallback);
+                        self._pendingShutdownCallback = null;
                     }
                 }
             });

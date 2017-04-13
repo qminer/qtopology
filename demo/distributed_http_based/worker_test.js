@@ -13,7 +13,7 @@ const stor = qtoplogy.distributed.std_coordinators.http.coordinator;
 
 ///////////////////////////////////////////////////////////////////////
 cmdln
-    .define('n', 'name', 'worker1', 'Logical name of the worker');
+    .define("n", "name", "worker1", "Logical name of the worker");
 let opts = cmdln.process(process.argv);
 
 let storage = new stor.HttpCoordinator();
@@ -33,10 +33,13 @@ function shutdown() {
 }
 
 //do something when app is closing
-process.on('exit', shutdown);
+process.on("exit", shutdown);
 
 //catches ctrl+c event
-process.on('SIGINT', shutdown);
+process.on("SIGINT", shutdown);
 
 //catches uncaught exceptions
-process.on('uncaughtException', shutdown);
+process.on("uncaughtException", (dat)=>{
+    console.log("uncaughtException", dat);
+    shutdown();
+});
