@@ -1,0 +1,35 @@
+@startuml
+activate Worker
+Worker -> Storage: checkLeadershipStatus
+activate Storage
+Storage -> Storage: check current leadership status\nDisable leader if timeout
+Storage --> Worker:
+deactivate Storage
+
+Worker->Storage: (if no leader) sendLeadershipCandidacy
+activate Storage
+Storage->Storage: mark new candidate
+Storage-->Worker:
+
+Worker -> Storage: checkCandidacy
+Storage -> Storage: mark new leader if success
+Storage --> Worker: status if candidacy was successfull
+deactivate Storage
+
+Worker -> Storage: (if leader) getWorkerStatuses
+activate Storage
+Storage -> Storage: collect worker statuses
+Storage --> Worker:
+
+Worker -> Storage: setTopologyStatus (to unassigned if worker timed out)
+Storage -> Storage: update worker statuses
+Storage --> Worker:
+
+Worker -> Storage: updateWorkerStatus (if timed out)
+Storage -> Storage: update worker statuses
+Storage --> Worker:
+
+deactivate Storage
+
+deactivate Worker
+@enduml

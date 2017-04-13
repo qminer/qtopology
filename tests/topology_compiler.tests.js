@@ -72,9 +72,16 @@ describe('TopologyCompiler', function () {
             let config = {
                 general: {
                     initialization: {
+                        working_dir: "/${MY_VAR}/dir1",
                         init: {
                             a: "--${MY_VAR}--",
                             b: "--${MY_VAR2}--"
+                        }
+                    },
+                    shutdown: {
+                        working_dir: "/${MY_VAR}/dir1",
+                        init: {
+                            c: "--${MY_VAR}--"
                         }
                     }
                 },
@@ -118,9 +125,16 @@ describe('TopologyCompiler', function () {
             assert.deepEqual(tcc.getWholeConfig(), {
                 general: {
                     initialization: {
+                        working_dir: "/my_var/dir1",
                         init: {
                             a: "--my_var--",
                             b: "--my_var2--"
+                        }
+                    },
+                    shutdown: {
+                        working_dir: "/my_var/dir1",
+                        init: {
+                            c: "--my_var--"
                         }
                     }
                 },
