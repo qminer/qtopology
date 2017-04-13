@@ -74,6 +74,8 @@ The worker first performs the initialization sequence and the runs two sequences
 | Store new statuses for these topologies | |
 | Store messages for workers to load topologies | |
 
+![Topology statuses](imgs/sequence_leader.svg)
+
 ### Active-worker sequence
 
 | Coordination storage | Worker |
