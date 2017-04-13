@@ -15,13 +15,13 @@ export class LoadBalancer {
     /** Constructor received the list of workers. Each worker
      * contains a name and a weight (current load).
      */
-    constructor(wrkrs) {
+    constructor(wrkrs: Worker[]) {
         this.workers = wrkrs.slice(0); // creat a copy
         this.sort();
     }
 
     /** Returns next worker to receive new load */
-    next() {
+    next(): string {
         let res = this.workers[0].name;
         this.workers[0].weight++;
         this.sort();

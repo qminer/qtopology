@@ -2,6 +2,7 @@ import * as intf from "../topology_interfaces";
 
 /** This spout emits single tuple each heartbeat */
 export class TimerSpout implements intf.Spout {
+    
     name: string;
     stream_id: string;
     title: string;
