@@ -10,7 +10,7 @@ const EventEmitter = require('events');
 class HttpCoordinator {
 
     constructor(options) {
-        let options = options || {};
+        options = options || {};
         this._port = options.port || port;
         this._client = new Client();
         this._urlPrefix = "http://localhost:" + this._port + "/"

@@ -74,7 +74,7 @@ class TopologyCompiler {
     }
 
     /** Returns compiled configuration . */
-    getWholeConfig(name) {
+    getWholeConfig() {
         return JSON.parse(JSON.stringify(this._config));
     }
 }
