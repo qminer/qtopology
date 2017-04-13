@@ -2,7 +2,7 @@
 
 const async = require("async");
 const tn = require("../../../").local;
-const validator = require("../../../").validation;
+const validator = require("../../../").util.validation;
 
 // demo configuration
 let config = require("./topology.json");

@@ -25,9 +25,9 @@
         },
         {
             "name": "pump2",
-            "type": "subproc",
+            "type": "inproc",
             "working_dir": ".",
-            "cmd": "spout_subproc.js",
+            "cmd": "spout_inproc.js",
             "init": {}
         }
     ],
@@ -47,8 +47,8 @@
         {
             "name": "bolt2",
             "working_dir": ".",
-            "type": "subproc",
-            "cmd": "bolt_subproc.js",
+            "type": "inproc",
+            "cmd": "bolt_inproc.js",
             "inputs": [
                 {
                     "source": "pump1"
