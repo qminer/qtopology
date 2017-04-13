@@ -1,16 +1,28 @@
-"use strict";
+
+class OptionsDescription {
+    shortname: string;
+    name: string;
+    default: string | number;
+    text: string;
+    target: string;
+    flag: string;
+}
 
 class Singleton {
 
+    shortnames: Map<string, OptionsDescription>;
+    names: Map<string, OptionsDescription>;
+    descriptions: OptionsDescription[];
+
     constructor() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames = new Map<string, OptionsDescription>();
+        this.names = new Map<string, OptionsDescription>();
         this.descriptions = [];
     }
 
     clear() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames.clear();
+        this.names.clear();
         this.descriptions = [];
     }
 
@@ -24,7 +36,7 @@ class Singleton {
         return true;
     }
 
-    getValue(text) {
+    getValue(text: string): number | string {
         if (!text) {
             return null;
         }
@@ -36,7 +48,7 @@ class Singleton {
         return parseInt(text);
     }
 
-    getTargetName(name, description) {
+    getTargetName(name: string, description: OptionsDescription): string {
         if (!description) {
             return name;
         }
@@ -46,14 +58,16 @@ class Singleton {
         return description.name;
     }
 
-    define(shortname, name, defaultValue, text, options) {
+    define(shortname: string, name: string, defaultValue: string | number, text: string, options: any) {
         options = options || {};
 
         let description = {
             shortname: shortname,
             name: name,
             default: defaultValue,
-            text: text
+            text: text,
+            target: null,
+            flag: null
         };
         if (options.name) {
             description.target = options.name;
@@ -94,7 +108,7 @@ class Singleton {
                 let description = this.shortnames[shortname];
                 if (!description && this.areFlags(shortname)) {
                     for (let k = 0; k < shortname.length; k++) {
-                        let letter = this.shortname[k];
+                        let letter = this.shortnames[k];
                         description = this.shortnames[letter];
                         opts[this.getTargetName(letter, description)] = true;
                     }
@@ -108,15 +122,10 @@ class Singleton {
                     let val = this.getValue(args[k]);
                     opts[this.getTargetName(shortname, description)] = val;
                 }
-            } else {
-                if (!opts._) {
-                    opts._ = [];
-                }
-                opts._.push(this.getValue(arg));
             }
         }
         return opts;
     }
 }
 
-module.exports = new Singleton();
+export = new Singleton();
