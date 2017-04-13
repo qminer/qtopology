@@ -1,42 +1,36 @@
 "use strict";
-
-class Singleton {
-
-    constructor() {
+var Singleton = (function () {
+    function Singleton() {
         this.shortnames = {};
         this.names = {};
         this.descriptions = [];
     }
-
-    clear() {
+    Singleton.prototype.clear = function () {
         this.shortnames = {};
         this.names = {};
         this.descriptions = [];
-    }
-
-    areFlags(letters) {
-        for (let k = 0; k < letters.length; k++) {
-            let letter = letters[k];
+    };
+    Singleton.prototype.areFlags = function (letters) {
+        for (var k = 0; k < letters.length; k++) {
+            var letter = letters[k];
             if (!this.shortnames[letter] || !this.shortnames[letter].flag) {
                 return false;
             }
         }
         return true;
-    }
-
-    getValue(text) {
+    };
+    Singleton.prototype.getValue = function (text) {
         if (!text) {
             return null;
         }
-        for (let k = 0; k < text.length; k++) {
+        for (var k = 0; k < text.length; k++) {
             if (text[k] < '0' || text[k] > '9') {
                 return text;
             }
         }
         return parseInt(text);
-    }
-
-    getTargetName(name, description) {
+    };
+    Singleton.prototype.getTargetName = function (name, description) {
         if (!description) {
             return name;
         }
@@ -44,12 +38,10 @@ class Singleton {
             return description.target;
         }
         return description.name;
-    }
-
-    define(shortname, name, defaultValue, text, options) {
+    };
+    Singleton.prototype.define = function (shortname, name, defaultValue, text, options) {
         options = options || {};
-
-        let description = {
+        var description = {
             shortname: shortname,
             name: name,
             default: defaultValue,
@@ -61,54 +53,54 @@ class Singleton {
         if (options.flag) {
             description.flag = true;
         }
-
         this.descriptions.push(description);
         this.names[name] = description;
         this.shortnames[shortname] = description;
         return this;
-    }
-
-    process(args) {
-        let opts = {};
-
-        this.descriptions.forEach((description) => {
+    };
+    Singleton.prototype.process = function (args) {
+        var _this = this;
+        var opts = {};
+        this.descriptions.forEach(function (description) {
             if (description.default) {
-                opts[this.getTargetName(null, description)] = description.default;
+                opts[_this.getTargetName(null, description)] = description.default;
             }
         });
-
-        for (let k = 0; k < args.length; k++) {
-            let arg = args[k];
+        for (var k = 0; k < args.length; k++) {
+            var arg = args[k];
             if (arg.length > 2 && arg[0] == '-' && arg[1] == '-') {
-                let name = arg.slice(2);
-                let description = this.names[name];
+                var name_1 = arg.slice(2);
+                var description = this.names[name_1];
                 if (description && description.flag) {
-                    opts[this.getTargetName(name, description)] = true;
-                } else {
-                    k++;
-                    let val = this.getValue(args[k]);
-                    opts[this.getTargetName(name, description)] = val;
+                    opts[this.getTargetName(name_1, description)] = true;
                 }
-            } else if (arg.length > 1 && arg[0] == '-') {
-                let shortname = arg.slice(1);
-                let description = this.shortnames[shortname];
+                else {
+                    k++;
+                    var val = this.getValue(args[k]);
+                    opts[this.getTargetName(name_1, description)] = val;
+                }
+            }
+            else if (arg.length > 1 && arg[0] == '-') {
+                var shortname = arg.slice(1);
+                var description = this.shortnames[shortname];
                 if (!description && this.areFlags(shortname)) {
-                    for (let k = 0; k < shortname.length; k++) {
-                        let letter = this.shortname[k];
+                    for (var k_1 = 0; k_1 < shortname.length; k_1++) {
+                        var letter = this.shortname[k_1];
                         description = this.shortnames[letter];
                         opts[this.getTargetName(letter, description)] = true;
                     }
                     continue;
                 }
-
                 if (description && description.flag) {
                     opts[this.getTargetName(shortname, description)] = true;
-                } else {
+                }
+                else {
                     k++;
-                    let val = this.getValue(args[k]);
+                    var val = this.getValue(args[k]);
                     opts[this.getTargetName(shortname, description)] = val;
                 }
-            } else {
+            }
+            else {
                 if (!opts._) {
                     opts._ = [];
                 }
@@ -116,7 +108,7 @@ class Singleton {
             }
         }
         return opts;
-    }
-}
-
+    };
+    return Singleton;
+}());
 module.exports = new Singleton();

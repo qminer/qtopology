@@ -1,6 +1,6 @@
 "use strict";
 
-const qtoplogy = require("../../");
+import qtoplogy = require("../../");
 const cmdln = qtoplogy.util.cmdline;
 const stor = qtoplogy.distributed.std_coordinators.http.storage;
 

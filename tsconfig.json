@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "allowJs": true,
+        "target": "es5",
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "types": [
+            "node"
+        ],
+        "typeRoots": [
+            "node_modules/@types"
+        ]
+    },
+    "include": [
+        "./demo/**/*"
+    ]
+}
