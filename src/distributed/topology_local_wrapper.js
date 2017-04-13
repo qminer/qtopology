@@ -1,5 +1,6 @@
 "use strict";
 
+const topology_compiler = require("../topology_compiler");
 const topology_local = require("../topology_local");
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +17,10 @@ class TopologyLocalWrapper {
         this._topology_local = new topology_local.TopologyLocal();
         process.on('message', (msg) => {
             if (msg.cmd === "init") {
-                self._topology_local.init(msg.data, (err) => {
+                let compiler = new topology_compiler.TopologyCompiler(msg.data);
+                compiler.compile();
+                let topology = compiler.getWholeConfig();
+                self._topology_local.init(topology, (err) => {
                     self._topology_local.run();
                     self._send("response_init", { err: err });
                 });
