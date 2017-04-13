@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "./built",
         "allowJs": true,
-        "target": "es5",
+        "target": "es6",
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "types": [
@@ -13,6 +13,6 @@
         ]
     },
     "include": [
-        "./demo/**/*"
+        "./src/**/*"
     ]
 }

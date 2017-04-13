@@ -1,10 +1,11 @@
-"use strict";
 
 /** Simple class for pattern matching */
-class PaternMatcher {
+export class PaternMatcher {
+
+    pattern: any;
 
     /** Constructor that receives pattern as object */
-    constructor(pattern) {
+    constructor(pattern: any) {
         this.pattern = JSON.parse(JSON.stringify(pattern));
         // prepare RegEx objects in advance
         for (let filter in this.pattern) {
@@ -70,5 +71,3 @@ class PaternMatcher {
         return true;
     }
 }
-
-exports.PaternMatcher = PaternMatcher;
