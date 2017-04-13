@@ -1,99 +1,77 @@
 {
     "general": {
-        "name": "Topology name",
-        "heartbeat": 5000
+        "name": "events",
+        "heartbeat": 3000,
+        "initialization": [
+            {
+                "working_dir": "${CODE_DIR}",
+                "cmd": "topology_init_and_shutdown.js",
+                "init": {
+                    "main_config": "${CONFIG_DIR}/main_config_dev.json"
+                }
+            }
+        ],
+        "shutdown": [
+            {
+                "working_dir": "${CODE_DIR}",
+                "cmd": "topology_init_and_shutdown.js"
+            }
+        ]
     },
     "spouts": [
         {
-            "name": "pump1_1",
-            "working_dir": "${DIR_PUMP}",
-            "cmd": "${PROC_PUMP}",
+            "name": "pumpdsa_gdr",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "spout_dsa_gdr.js",
             "init": {
-                "field1": "val1"
-            }
-        },
-        {
-            "name": "pump1_2",
-            "working_dir": "${DIR_PUMP}",
-            "cmd": "${PROC_PUMP}",
-            "init": {
-                "field1": "val2"
-            }
-        },
-        {
-            "name": "pump2_1",
-            "working_dir": "${DIR_PUMP}",
-            "cmd": "${PROC_PUMP}",
-            "init": {
-                "field1": "val3"
+                "data_source": "events"
             }
         }
     ],
     "bolts": [
         {
-            "name": "bolt1",
-            "working_dir": "${DIR_WORKER}",
-            "cmd": "my_worker1.js",
-            "args": ["-n", "1"],
+            "name": "bolt_enricher",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_enricher.js",
             "inputs": [
-                {
-                    "source": "pump1_1",
-                    "stream_id": "1"
-                },
-                {
-                    "source": "pump2_1",
-                    "stream_id": "1"
-                }
+                { "source": "pumpdsa_gdr" }
             ],
             "init": {
-                "field1": "val3"
+                "preserve_stream_id": true
             }
         },
         {
-            "name": "bolt2",
-            "working_dir": "${DIR_WORKER}",
-            "cmd": "my_worker1.js",
-            "args": ["-n", "2"],
+            "name": "bolt_pipeline",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_pipeline_wrapper.js",
             "inputs": [
-                {
-                    "source": "pump1_2",
-                    "stream_id": "1"
-                }
+                { "source": "bolt_enricher" }
             ],
             "init": {
-                "field1": "val3"
+                "pipeline_config": "${PIPELINES_DIR}/events_pipeline_set.json"
             }
         },
         {
-            "name": "publisher1",
-            "working_dir": "${DIR_WORKER}",
-            "cmd": "my_publisher1.js",
-            "args": ["-a", ""],
+            "name": "bolt_console",
+            "type": "sys",
+            "working_dir": ".",
+            "cmd": "console",
             "inputs": [
-                {
-                    "source": "bolt1"
-                }
+                { "source": "bolt_pipeline", "stream_id": "alert" },
+                { "source": "bolt_pipeline", "stream_id": "gdr" },
+                { "source": "bolt_pipeline", "stream_id": "gts" },
+                { "source": "bolt_pipeline", "stream_id": "gsts" },
+                { "source": "bolt_pipeline", "stream_id": "complex_db" }
             ],
-            "init": {
-                "field1": "val3"
-            }
-        },
-        {
-            "name": "publisher2",
-            "working_dir": "${DIR_WORKER}",
-            "cmd": "my_publisher2.js",
-            "inputs": [
-                {
-                    "source": "bolt2"
-                }
-            ],
-            "init": {
-                "field1": "val4"
-            }
+            "init": {}
         }
     ],
     "variables": {
-        "DIR_WORKER": "/some/target/dir/",
-        "PROC_PUMP": "my_pump1.js"
+        "CODE_DIR": "./lib/topology",
+        "CONFIG_DIR": "../../configs",
+        "PIPELINES_DIR": "../../configs/pipelines"
     }
 }
