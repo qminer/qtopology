@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const Validator = require("jsonschema").Validator;
+const TopologyCompiler = require("../topology_compiler").TopologyCompiler;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -18,4 +19,8 @@ if (validation_result.errors.length > 0) {
     process.exit(1);
 } else {
     console.log("Schema is valid.");
+    console.log("Compiling");
+    let compiler = new TopologyCompiler(instance);
+    compiler.compile();
+    console.log(JSON.stringify(compiler.getWholeConfig()));
 }

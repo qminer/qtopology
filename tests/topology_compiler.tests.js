@@ -71,19 +71,21 @@ describe('TopologyCompiler', function () {
         it('1 spout, 1 bolt + variables', function () {
             let config = {
                 general: {
-                    initialization: {
-                        working_dir: "/${MY_VAR}/dir1",
-                        init: {
-                            a: "--${MY_VAR}--",
-                            b: "--${MY_VAR2}--"
-                        }
-                    },
-                    shutdown: {
-                        working_dir: "/${MY_VAR}/dir1",
-                        init: {
-                            c: "--${MY_VAR}--"
-                        }
-                    }
+                    initialization: [
+                        {
+                            working_dir: "/${MY_VAR}/dir1",
+                            init: {
+                                a: "--${MY_VAR}--",
+                                b: "--${MY_VAR2}--"
+                            }
+                        }],
+                    shutdown: [
+                        {
+                            working_dir: "/${MY_VAR}/dir1",
+                            init: {
+                                c: "--${MY_VAR}--"
+                            }
+                        }]
                 },
                 spouts: [
                     {
@@ -118,25 +120,27 @@ describe('TopologyCompiler', function () {
             let tcc = new tc.TopologyCompiler(config);
             tcc.compile();
             let output_config = tcc.getWholeConfig();
-            assert.deepEqual(output_config.general.initialization.init, {
+            assert.deepEqual(output_config.general.initialization[0].init, {
                 a: "--my_var--",
                 b: "--my_var2--"
             });
             assert.deepEqual(tcc.getWholeConfig(), {
                 general: {
-                    initialization: {
-                        working_dir: "/my_var/dir1",
-                        init: {
-                            a: "--my_var--",
-                            b: "--my_var2--"
-                        }
-                    },
-                    shutdown: {
-                        working_dir: "/my_var/dir1",
-                        init: {
-                            c: "--my_var--"
-                        }
-                    }
+                    initialization: [
+                        {
+                            working_dir: "/my_var/dir1",
+                            init: {
+                                a: "--my_var--",
+                                b: "--my_var2--"
+                            }
+                        }],
+                    shutdown: [
+                        {
+                            working_dir: "/my_var/dir1",
+                            init: {
+                                c: "--my_var--"
+                            }
+                        }]
                 },
                 spouts: [
                     {
