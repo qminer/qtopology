@@ -61,6 +61,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === "shutdown") {
+            console.log("Shutting down topology", self._topology_local._config.general.name);
             self._topology_local.shutdown((err) => {
                 self._send("response_shutdown", { err: err });
                 process.exit(0);

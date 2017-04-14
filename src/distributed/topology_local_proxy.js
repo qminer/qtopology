@@ -44,6 +44,7 @@ class TopologyLocalProxy {
                     self._shutdown_cb(msg.data.err);
                     self._shutdown_cb = null;
                     self._was_shut_down = true;
+                    self._child.kill();
                 }
             }
         });

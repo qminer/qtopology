@@ -1,7 +1,5 @@
 "use strict";
 
-"use strict";
-
 const async = require("async");
 const EventEmitter = require("events");
 const leader = require("./topology_leader");
@@ -31,14 +29,16 @@ class TopologyCoordinator extends EventEmitter {
         self._storage.registerWorker(self._name, () => { });
         self._leadership.run();
         async.whilst(
-            () => { return self._isRunning; },
+            () => {
+                return self._isRunning;
+            },
             (xcallback) => {
                 setTimeout(function () {
                     self._handleIncommingRequests(xcallback);
                 }, self._loopTimeout);
             },
             (err) => {
-                console.log("Coordinator shutdown");
+                console.log("Coordinator shutdown finished.");
                 if (self._shutdownCallback) {
                     self._shutdownCallback(err);
                 }
@@ -49,14 +49,22 @@ class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     shutdown(callback) {
         let self = this;
-        self.reportWorker(self._name, "dead", "", () => {
-            self._leadership.shutdown(() => {
+        self.reportWorker(self._name, "dead", "", (err) => {
+            if (err) {
+                console.log("Error while reporting worker status as 'dead':", err);
+            }
+            self._leadership.shutdown((err) => {
+                if (err) {
+                    console.log("Error while shutting down leader:", err);
+                }
+                console.log("Coordinator set for shutdown");
                 self._shutdownCallback = callback;
                 self._isRunning = false;
             });
         });
     }
 
+    /** Set status on given topology */
     reportTopology(uuid, status, error, callback) {
         this._storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
@@ -70,6 +78,7 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 
+    /** Set status on given worker */
     reportWorker(name, status, error, callback) {
         this._storage.setWorkerStatus(name, status, (err) => {
             if (err) {
@@ -97,6 +106,7 @@ class TopologyCoordinator extends EventEmitter {
                     if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});
                     }
+                    xcallback();
                 },
                 callback
             );
