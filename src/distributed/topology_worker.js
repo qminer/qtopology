@@ -31,6 +31,7 @@ class TopologyWorker {
         });
     }
 
+    /** Starts this worker */
     run() {
         this._coordinator.run();
     }
@@ -50,7 +51,11 @@ class TopologyWorker {
         self._topologies.push(rec);
         rec.proxy = new tlp.TopologyLocalProxy({
             child_exit_callback: (err) => {
-                self._coordinator.reportTopology(uuid, "stopped", "" + err);
+                if (err) {
+                    self._coordinator.reportTopology(uuid, "error", "" + err);
+                } else {
+                    self._coordinator.reportTopology(uuid, "stopped", "" + err);
+                }
                 self._removeTopology(uuid);
             }
         });
@@ -83,12 +88,18 @@ class TopologyWorker {
             self._topologies,
             (item, xcallback) => {
                 item.proxy.shutdown((err) => {
-                    self._coordinator.reportTopology(item.uuid, "stopped", "");
-                    xcallback();
+                    if (err) {
+                        console.log("Error while shutting down topology", item.uuid , err);
+                    } else {
+                        self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
+                    }
                 });
             },
             (err) => {
-                self._coordinator.reportWorker(self._name, "dead", "", callback);
+                if (err) {
+                    console.log("Error while shutting down topologies:", err);
+                }
+                self._coordinator.shutdown(callback);
             }
         );
     }
