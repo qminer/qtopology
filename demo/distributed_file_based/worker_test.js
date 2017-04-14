@@ -24,12 +24,18 @@ w.run();
 
 function shutdown() {
     if (w) {
-        w.shutdown(() => {
-            process.exit(1);
+        w.shutdown((err) => {
+            if (err) {
+                console.log("Error while global shutdown:", err);
+            }
+            console.log("Shutdown complete");
+            //process.exit(1);
         });
         w = null;
     }
 }
+
+setTimeout(() => { shutdown(); }, 5000);
 
 //do something when app is closing
 process.on('exit', shutdown);

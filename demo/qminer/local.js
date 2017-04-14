@@ -51,7 +51,10 @@ function shutdown() {
 process.on('exit', shutdown);
 
 //catches ctrl+c event
-process.on('SIGINT', shutdown);
+process.on('SIGINT', () => {
+    console.log("CTRL+c");
+    shutdown();
+});
 
 //catches uncaught exceptions
 process.on('uncaughtException', shutdown);
