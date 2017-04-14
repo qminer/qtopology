@@ -4,35 +4,41 @@ The following components comprise the distributed setting for `qtopology`:
 
 ![Worker statuses](imgs/components.svg)
 
-## Worker statuses
+### Worker
 
-![Worker statuses](imgs/worker_statuses.svg)
+Ideally, runs as single instance on single server (but there is no):
 
-## Topology statuses
-
-![Topology statuses](imgs/topology_statuses.svg)
-
-## Coordinator
-
-When started, it reads and compiles the topology settings.
-
-It also opens specified port for coordination requests.
-
-## Worker
-
-When started, needs to be given:
-
-- method of coordination
 - logical name
+- method of coordination
 
-It opens connection to the coordinator, awaiting instructions. When registration with coordinator succeeds, it starts local topology.
+It then creates an instance of a coordinator, passes to it the method of coordination and awaits instructions. These include command "start", which starts the topology with provided definition.
 
-## Local topology
+### Coordinator
+
+A subordinate class of worker - takes care of coordination with other workers.
+
+- Listens for messages, addressed to this worker
+- Updates statuses of worker's topologies
+- Updates status of worker
+
+It contains a subordinate class that handles leadership checks and repated tasks.
+
+### Local topology
 
 This object:
 
 - starts nodes (spouts and bolts)
 - sends them commands, e.g. `init`, `run`, `pause`, `shutdown`
+
+## Status transitions
+### Worker statuses
+
+![Worker statuses](imgs/worker_statuses.svg)
+
+### Topology statuses
+
+![Topology statuses](imgs/topology_statuses.svg)
+
 
 ## Sequence between coordinator, worker and local topology
 
