@@ -16,6 +16,7 @@ class TopologyLocalProxy {
         this._run_cb = null;
         this._pause_cb = null;
         this._shutdown_cb = null;
+        this._was_shut_down = false;
         this._child_exit_callback = options.child_exit_callback || (() => { });
         this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), []);
 
@@ -42,29 +43,37 @@ class TopologyLocalProxy {
                 if (self._shutdown_cb) {
                     self._shutdown_cb(msg.data.err);
                     self._shutdown_cb = null;
+                    self._was_shut_down = true;
+                    self._child.kill();
                 }
             }
         });
 
         self._child.on("error", (e) => {
+            if (self._was_shut_down) return;
             self._callPendingCallbacks(e);
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
         self._child.on("close", (code) => {
+            if (self._was_shut_down) return;
             let e = new Error("CLOSE Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
         self._child.on("exit", (code) => {
+            if (self._was_shut_down) return;
             let e = new Error("EXIT Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
     }
 
@@ -82,6 +91,10 @@ class TopologyLocalProxy {
             this._pause_cb(e);
             this._pause_cb = null;
         }
+    }
+
+    /** Calls pending shutdown callback with given error and clears it. */
+    _callPendingCallbacks2(e) {
         if (this._shutdown_cb) {
             this._shutdown_cb(e);
             this._shutdown_cb = null;
