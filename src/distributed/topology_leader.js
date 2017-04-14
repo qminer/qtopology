@@ -63,6 +63,9 @@ class TopologyLeader {
                 self._storage.checkLeaderCandidacy(self._name, (err, is_leader) => {
                     if (err) return callback(err);
                     self._isLeader = is_leader;
+                    if (self._isLeader) {
+                        console.log("This worker became a leader...");
+                    }
                     callback();
                 });
             });
@@ -122,7 +125,7 @@ class TopologyLeader {
                             (unassigned_topology, xxcallback) => {
                                 let target = load_balancer.next();
                                 console.log(`Assigning topology ${unassigned_topology} to worker ${target}`);
-                                self._storage.assignTopology(unassigned_topology, target, xcallback);
+                                self._storage.assignTopology(unassigned_topology, target, xxcallback);
                             },
                             xcallback
                         );
@@ -144,10 +147,13 @@ class TopologyLeader {
                 topologies,
                 (topology, xcallback) => {
                     console.log("Unassigning topology", topology.uuid);
-                    self._storage.setTopologyStatus(topology.uuid, "unassigned", xcallback);
+                    self._storage.setTopologyStatus(topology.uuid, "unassigned", null, xcallback);
                 },
                 (err) => {
-                    if (err) return callback(err);
+                    if (err) {
+                        console.log("Error while handling dead worker", err);
+                        return callback(err);
+                    }
                     console.log("Setting dead worker as unloaded", dead_worker);
                     self._storage.setWorkerStatus(dead_worker, "unloaded", callback);
                 }
