@@ -1,16 +1,15 @@
 "use strict";
 
-import qtoplogy = require("../../");
+const qtoplogy = require("../../");
 const cmdln = qtoplogy.util.cmdline;
 const wrkr = qtoplogy.distributed.worker;
+const coor = qtoplogy.distributed.coordinator;
 const stor = qtoplogy.distributed.std_coordinators.file.coordinator;
 
 ///////////////////////////////////////////////////////////////////////
-interface Options { name: string };
-
 cmdln
     .define('n', 'name', 'worker1', 'Logical name of the worker');
-let opts = cmdln.process(process.argv) as Options;
+let opts = cmdln.process(process.argv);
 
 let storage = new stor.FileCoordinator({
     dir_name: "./topologies",

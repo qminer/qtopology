@@ -175,9 +175,14 @@ class HttpCoordinationStorage {
             return this.markTopologyAsRunning(uuid);
         if (status == "stopped")
             return this.markTopologyAsStopped(uuid);
+        if (status == "unassigned")
+            return this.markTopologyAsStopped(uuid);
         if (status == "error")
             return this.markTopologyAsError(uuid, error);
-        return { success: false, error: "Unknown topology: " + uuid };
+        return {
+            success: false,
+            error: `Unknown topology status: "${status}", uuid: "${uuid}"`
+        };
     }
     setWorkerStatus(name, status) {
         let hits = this._workers.filter(x => x.name === name);

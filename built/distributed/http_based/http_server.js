@@ -45,6 +45,7 @@ function run(options) {
             handleError("" + e, resp);
             return;
         }
+        console.log("Handling", req.body);
         if (!handlers[addr]) {
             handleError(`Unknown request: "${addr}"`, resp);
         }
@@ -62,7 +63,15 @@ function run(options) {
             }
         }
     }));
-    server.listen(port);
+    server.listen(port, (err) => {
+        if (err) {
+            console.log("Error while starting server on port", port);
+            console.log("Error:", err);
+        }
+        else {
+            console.log("Server running on port", port);
+        }
+    });
 }
 ////////////////////////////////////
 exports.addHandler = addHandler;

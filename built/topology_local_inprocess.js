@@ -214,7 +214,7 @@ class TopologyBoltInproc {
             return this._child.shutdown(callback);
         }
         else {
-            this._pendingShutdown = callback;
+            this._pendingShutdownCallback = callback;
         }
     }
     /** Initializes child object. */
@@ -248,6 +248,7 @@ class TopologyBoltInproc {
                     }
                     else if (self._pendingShutdownCallback) {
                         self.shutdown(self._pendingShutdownCallback);
+                        self._pendingShutdownCallback = null;
                     }
                 }
             });

@@ -31,9 +31,19 @@ class TopologyCompiler {
     compile() {
         let vars = this._config.variables || {};
         if (this._config.general.initialization) {
-            let init_top = this._config.general.initialization;
-            if (init_top.init) {
-                init_top.init = injectVars(init_top.init, vars);
+            for (let init_top of this._config.general.initialization) {
+                init_top.working_dir = injectVars(init_top.working_dir, vars);
+                if (init_top.init) {
+                    init_top.init = injectVars(init_top.init, vars);
+                }
+            }
+        }
+        if (this._config.general.shutdown) {
+            for (let shutdown_top of this._config.general.shutdown) {
+                shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
+                if (shutdown_top.init) {
+                    shutdown_top.init = injectVars(shutdown_top.init, vars);
+                }
             }
         }
         let names = {};

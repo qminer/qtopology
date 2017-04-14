@@ -25,7 +25,7 @@ module.exports = {
     // some exposed utilities
     util: {
         // for validating schema
-        validation: require("./src/topology_validation"),
+        validation: require("./built/topology_validation"),
         // easier parsing of command line
         cmdline: require("./built/util/cmdline")
     }
