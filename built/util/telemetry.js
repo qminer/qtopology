@@ -1,13 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /** Simple class for collecting telemetry statistics for call durations */
-/** Simple class for collecting telemetry statistics for call durations */ export class Telemetry {
-    constructor(name) {
+var Telemetry = (function () {
+    function Telemetry(name) {
         this.cnt = 0;
         this.avg = 0;
         this.min = 0;
         this.max = 0;
         this.name = name;
     }
-    add(duration) {
+    Telemetry.prototype.add = function (duration) {
         if (this.cnt === 0) {
             this.avg = duration;
             this.cnt = 1;
@@ -15,25 +17,27 @@
             this.max = duration;
         }
         else {
-            let tc = this.cnt;
-            let tc1 = this.cnt + 1;
+            var tc = this.cnt;
+            var tc1 = this.cnt + 1;
             this.avg = this.avg * (tc / tc1) + duration / tc1;
             this.cnt++;
             this.min = Math.min(this.min, duration);
             this.max = Math.max(this.max, duration);
         }
-    }
-    reset() {
+    };
+    Telemetry.prototype.reset = function () {
         this.cnt = 0;
         this.avg = 0;
         this.min = 0;
         this.max = 0;
-    }
-    get() {
+    };
+    Telemetry.prototype.get = function () {
         return {
             name: this.name,
             cnt: this.cnt,
             avg: this.avg
         };
-    }
-}
+    };
+    return Telemetry;
+}());
+exports.Telemetry = Telemetry;

@@ -1,36 +1,40 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /** This spout emits pre-defined tuples. Mainly used for testing. */
-export class TestSpout {
-    constructor() {
+var TestSpout = (function () {
+    function TestSpout() {
         this.name = null;
         this.stream_id = null;
         this.tuples = null;
         this.should_run = false;
     }
-    init(name, config, callback) {
+    TestSpout.prototype.init = function (name, config, callback) {
         this.name = name;
         this.stream_id = config.stream_id;
         this.tuples = config.tuples || [];
         callback();
-    }
-    heartbeat() { }
-    shutdown(callback) {
+    };
+    TestSpout.prototype.heartbeat = function () { };
+    TestSpout.prototype.shutdown = function (callback) {
         callback();
-    }
-    run() {
+    };
+    TestSpout.prototype.run = function () {
         this.should_run = true;
-    }
-    pause() {
+    };
+    TestSpout.prototype.pause = function () {
         this.should_run = false;
-    }
-    next(callback) {
+    };
+    TestSpout.prototype.next = function (callback) {
         if (!this.should_run) {
             return callback(null, null, null);
         }
         if (this.tuples.length === 0) {
             return callback(null, null, null);
         }
-        let data = this.tuples[0];
+        var data = this.tuples[0];
         this.tuples = this.tuples.slice(1);
         callback(null, data, this.stream_id);
-    }
-}
+    };
+    return TestSpout;
+}());
+exports.TestSpout = TestSpout;

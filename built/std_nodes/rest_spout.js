@@ -1,64 +1,61 @@
 "use strict";
-const pm = require("../util/pattern_matcher");
-const http = require('http');
-/////////////////////////////////////////////////////////////////////////////
+Object.defineProperty(exports, "__esModule", { value: true });
+var http = require("http");
 /** This spout receives requests (messages/data) over REST interface.
  * It assumes data is in JSON format.
  */
-class RestSpout {
-    constructor() {
-        this._name = null;
-        this._onEmit = null;
-        this._port = null;
-        this._stream_id = null;
-        this._run = false;
-        this._queue = [];
-        this._server = null;
+var RestSpout = (function () {
+    function RestSpout() {
+        this.name = null;
+        this.port = null;
+        this.stream_id = null;
+        this.should_run = false;
+        this.queue = [];
+        this.server = null;
     }
-    init(name, config, callback) {
-        this._name = name;
-        this._onEmit = config.onEmit;
-        this._port = config.port;
-        this._stream_id = config.stream_id;
-        let self = this;
-        this._server = http.createServer((req, res) => {
-            if (self._run) {
-                let body = [];
+    RestSpout.prototype.init = function (name, config, callback) {
+        this.name = name;
+        this.port = config.port;
+        this.stream_id = config.stream_id;
+        var self = this;
+        this.server = http.createServer(function (req, res) {
+            if (self.should_run) {
+                var body_1 = [];
                 req
-                    .on('data', (chunk) => { body.push(chunk); })
-                    .on('end', () => {
-                    body = Buffer.concat(body).toString();
+                    .on('data', function (chunk) { body_1.push(chunk); })
+                    .on('end', function () {
+                    var body_s = Buffer.concat(body_1).toString();
                     res.end();
-                    this._queue.push(JSON.parse(body));
+                    self.queue.push(JSON.parse(body_s));
                 });
             }
             else {
                 res.end();
             }
         });
-        this._server.on('clientError', (err, socket) => {
+        self.server.on('clientError', function (err, socket) {
             socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
         });
-        this._server.listen(this._port, callback);
-    }
-    heartbeat() { }
-    shutdown(callback) {
-        this._server.close(callback);
-    }
-    run() {
-        this._run = true;
-    }
-    pause() {
-        this._run = false;
-    }
-    next(callback) {
-        if (this._queue.length === 0) {
+        self.server.listen(self.port, callback);
+    };
+    RestSpout.prototype.heartbeat = function () { };
+    RestSpout.prototype.shutdown = function (callback) {
+        this.server.close(callback);
+    };
+    RestSpout.prototype.run = function () {
+        this.should_run = true;
+    };
+    RestSpout.prototype.pause = function () {
+        this.should_run = false;
+    };
+    RestSpout.prototype.next = function (callback) {
+        if (this.queue.length === 0) {
             return callback();
         }
-        let data = this._queue[0];
-        this._queue = this._queue.slice(1);
-        callback(null, data, this._stream_id);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
+        var data = this.queue[0];
+        this.queue = this.queue.slice(1);
+        callback(null, data, this.stream_id);
+    };
+    return RestSpout;
+}());
 exports.RestSpout = RestSpout;

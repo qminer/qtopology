@@ -5,14 +5,14 @@
 function injectVars(target, vars) {
     if (target) {
         if (typeof target == "string") {
-            for (let v in vars) {
+            for (var v in vars) {
                 if (vars.hasOwnProperty(v)) {
                     target = target.replace(new RegExp("\\${" + v + "}", "i"), vars[v]);
                 }
             }
         }
         else if (typeof target === 'object') {
-            for (let f in target) {
+            for (var f in target) {
                 if (target.hasOwnProperty(f)) {
                     target[f] = injectVars(target[f], vars);
                 }
@@ -22,16 +22,17 @@ function injectVars(target, vars) {
     return target;
 }
 /** Main class - checks and compiles the topology */
-class TopologyCompiler {
+var TopologyCompiler = (function () {
     /** Simple constructor, receives the topology. */
-    constructor(topology_config) {
+    function TopologyCompiler(topology_config) {
         this._config = JSON.parse(JSON.stringify(topology_config));
     }
     /** Checks and compiles the topology. */
-    compile() {
-        let vars = this._config.variables || {};
+    TopologyCompiler.prototype.compile = function () {
+        var vars = this._config.variables || {};
         if (this._config.general.initialization) {
-            for (let init_top of this._config.general.initialization) {
+            for (var _i = 0, _a = this._config.general.initialization; _i < _a.length; _i++) {
+                var init_top = _a[_i];
                 init_top.working_dir = injectVars(init_top.working_dir, vars);
                 if (init_top.init) {
                     init_top.init = injectVars(init_top.init, vars);
@@ -39,17 +40,19 @@ class TopologyCompiler {
             }
         }
         if (this._config.general.shutdown) {
-            for (let shutdown_top of this._config.general.shutdown) {
+            for (var _b = 0, _c = this._config.general.shutdown; _b < _c.length; _b++) {
+                var shutdown_top = _c[_b];
                 shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
                 if (shutdown_top.init) {
                     shutdown_top.init = injectVars(shutdown_top.init, vars);
                 }
             }
         }
-        let names = {};
-        for (let spout of this._config.spouts) {
+        var names = {};
+        for (var _d = 0, _e = this._config.spouts; _d < _e.length; _d++) {
+            var spout = _e[_d];
             if (names[spout.name]) {
-                throw new Error(`Spout name '${spout.name}' occurs several times.`);
+                throw new Error("Spout name '" + spout.name + "' occurs several times.");
             }
             names[spout.name] = true;
             // inject variables
@@ -57,9 +60,10 @@ class TopologyCompiler {
             spout.cmd = injectVars(spout.cmd, vars);
             spout.init = injectVars(spout.init, vars);
         }
-        for (let bolt of this._config.bolts) {
+        for (var _f = 0, _g = this._config.bolts; _f < _g.length; _f++) {
+            var bolt = _g[_f];
             if (names[bolt.name]) {
-                throw new Error(`Bolt name '${bolt.name}' occurs several times. Could also be spout's name.`);
+                throw new Error("Bolt name '" + bolt.name + "' occurs several times. Could also be spout's name.");
             }
             names[bolt.name] = true;
             // inject variables
@@ -68,18 +72,20 @@ class TopologyCompiler {
             bolt.init = injectVars(bolt.init, vars);
         }
         // check bolt inputs
-        this._config.bolts.forEach((bolt) => {
-            for (let input of bolt.inputs) {
+        this._config.bolts.forEach(function (bolt) {
+            for (var _i = 0, _a = bolt.inputs; _i < _a.length; _i++) {
+                var input = _a[_i];
                 if (!names[input.source]) {
-                    throw new Error(`Bolt '${bolt.name}' is using unknown input source '${input.source}'.`);
+                    throw new Error("Bolt '" + bolt.name + "' is using unknown input source '" + input.source + "'.");
                 }
             }
         });
-    }
+    };
     /** Returns compiled configuration . */
-    getWholeConfig() {
+    TopologyCompiler.prototype.getWholeConfig = function () {
         return JSON.parse(JSON.stringify(this._config));
-    }
-}
+    };
+    return TopologyCompiler;
+}());
 /////////////////////////////////////////////////////////////////////////////
 exports.TopologyCompiler = TopologyCompiler;

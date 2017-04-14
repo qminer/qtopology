@@ -1,13 +1,13 @@
 "use strict";
-const async = require("async");
-const path = require("path");
-const top_sub = require("./topology_local_subprocess");
-const top_inproc = require("./topology_local_inprocess");
+var async = require("async");
+var path = require("path");
+var top_sub = require("./topology_local_subprocess");
+var top_inproc = require("./topology_local_inprocess");
 ////////////////////////////////////////////////////////////////////
 /** Class that performs redirection of messages after they are emited from nodes */
-class OutputRouter {
+var OutputRouter = (function () {
     /** Constructor prepares the object before any information is received. */
-    constructor() {
+    function OutputRouter() {
         this._sources = {};
     }
     /** This method registers binding between source and destination
@@ -15,29 +15,30 @@ class OutputRouter {
      * @param {string} destination - Name of destination
      * @param {string} stream_id - Stream ID used for routing
      */
-    register(source, destination, stream_id) {
+    OutputRouter.prototype.register = function (source, destination, stream_id) {
         if (!this._sources[source]) {
             this._sources[source] = [];
         }
         this._sources[source].push({ destination: destination, stream_id: stream_id || null });
-    }
+    };
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
      * @param {string} stream_id - Stream ID used for routing
      */
-    getDestinationsForSource(source, stream_id) {
+    OutputRouter.prototype.getDestinationsForSource = function (source, stream_id) {
         if (!this._sources[source]) {
             return [];
         }
         return this._sources[source]
-            .filter(x => { return x.stream_id == stream_id; })
-            .map(x => x.destination);
-    }
-}
+            .filter(function (x) { return x.stream_id == stream_id; })
+            .map(function (x) { return x.destination; });
+    };
+    return OutputRouter;
+}());
 /** This class runs local topology */
-class TopologyLocal {
+var TopologyLocal = (function () {
     /** Constructor prepares the object before any information is received. */
-    constructor() {
+    function TopologyLocal() {
         this._spouts = [];
         this._bolts = [];
         this._config = null;
@@ -51,20 +52,20 @@ class TopologyLocal {
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    init(config, callback) {
-        let self = this;
+    TopologyLocal.prototype.init = function (config, callback) {
+        var self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
-        self._initContext((err, context) => {
-            let tasks = [];
-            self._config.bolts.forEach((bolt_config) => {
+        self._initContext(function (err, context) {
+            var tasks = [];
+            self._config.bolts.forEach(function (bolt_config) {
                 if (bolt_config.disabled) {
                     return;
                 }
-                bolt_config.onEmit = (data, stream_id, callback) => {
+                bolt_config.onEmit = function (data, stream_id, callback) {
                     self._redirect(bolt_config.name, data, stream_id, callback);
                 };
-                let bolt = null;
+                var bolt = null;
                 if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
                     bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
                 }
@@ -72,19 +73,20 @@ class TopologyLocal {
                     bolt = new top_sub.TopologyBolt(bolt_config, context);
                 }
                 self._bolts.push(bolt);
-                tasks.push((xcallback) => { bolt.init(xcallback); });
-                for (let input of bolt_config.inputs) {
+                tasks.push(function (xcallback) { bolt.init(xcallback); });
+                for (var _i = 0, _a = bolt_config.inputs; _i < _a.length; _i++) {
+                    var input = _a[_i];
                     self._router.register(input.source, bolt_config.name, input.stream_id);
                 }
             });
-            self._config.spouts.forEach((spout_config) => {
+            self._config.spouts.forEach(function (spout_config) {
                 if (spout_config.disabled) {
                     return;
                 }
-                spout_config.onEmit = (data, stream_id, callback) => {
+                spout_config.onEmit = function (data, stream_id, callback) {
                     self._redirect(spout_config.name, data, stream_id, callback);
                 };
-                let spout = null;
+                var spout = null;
                 if (spout_config.type == "sys" || spout_config.type == "inproc") {
                     spout = new top_inproc.TopologySpoutInproc(spout_config, context);
                 }
@@ -92,87 +94,92 @@ class TopologyLocal {
                     spout = new top_sub.TopologySpout(spout_config, context);
                 }
                 self._spouts.push(spout);
-                tasks.push((xcallback) => { spout.init(xcallback); });
+                tasks.push(function (xcallback) { spout.init(xcallback); });
             });
             self._runHeartbeat();
             async.series(tasks, callback);
         });
-    }
+    };
     /** Sends run signal to all spouts */
-    run() {
+    TopologyLocal.prototype.run = function () {
         console.log("Local topology started");
-        for (let spout of this._spouts) {
+        for (var _i = 0, _a = this._spouts; _i < _a.length; _i++) {
+            var spout = _a[_i];
             spout.run();
         }
         this._isRunning = true;
-    }
+    };
     /** Sends pause signal to all spouts */
-    pause(callback) {
-        for (let spout of this._spouts) {
+    TopologyLocal.prototype.pause = function (callback) {
+        for (var _i = 0, _a = this._spouts; _i < _a.length; _i++) {
+            var spout = _a[_i];
             spout.pause();
         }
         this._isRunning = false;
         callback();
-    }
+    };
     /** Sends shutdown signal to all child processes */
-    shutdown(callback) {
-        let self = this;
+    TopologyLocal.prototype.shutdown = function (callback) {
+        var self = this;
         self._isShuttingDown = true;
         if (self._heartbeatTimer) {
             clearInterval(self._heartbeatTimer);
             self._heartbeatCallback();
         }
-        self.pause((err) => {
-            let tasks = [];
-            self._spouts.forEach((spout) => {
-                tasks.push((xcallback) => {
+        self.pause(function (err) {
+            var tasks = [];
+            self._spouts.forEach(function (spout) {
+                tasks.push(function (xcallback) {
                     spout.shutdown(xcallback);
                 });
             });
-            self._bolts.forEach((bolt) => {
-                tasks.push((xcallback) => {
+            self._bolts.forEach(function (bolt) {
+                tasks.push(function (xcallback) {
                     bolt.shutdown(xcallback);
                 });
             });
             if (self._config.general.shutdown) {
-                let factory = (module_path) => {
-                    return (xcallback) => {
+                var factory = function (module_path) {
+                    return function (xcallback) {
                         require(module_path).shutdown(xcallback);
                     };
                 };
-                for (let shutdown_conf of self._config.general.shutdown) {
-                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
-                    let module_path = path.join(dir, shutdown_conf.cmd);
+                for (var _i = 0, _a = self._config.general.shutdown; _i < _a.length; _i++) {
+                    var shutdown_conf = _a[_i];
+                    var dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    var module_path = path.join(dir, shutdown_conf.cmd);
                     tasks.push(factory(module_path));
                 }
             }
             async.series(tasks, callback);
         });
-    }
+    };
     /** Runs heartbeat pump until this object shuts down */
-    _runHeartbeat() {
-        let self = this;
-        async.whilst(() => {
+    TopologyLocal.prototype._runHeartbeat = function () {
+        var self = this;
+        async.whilst(function () {
             return !self._isShuttingDown;
-        }, (xcallback) => {
+        }, function (xcallback) {
             self._heartbeatCallback = xcallback;
-            self._heartbeatTimer = setTimeout(() => {
+            self._heartbeatTimer = setTimeout(function () {
                 if (self._isRunning) {
                     self._heartbeat();
                 }
                 xcallback();
             }, self._heartbeatTimeout);
-        }, () => { });
-    }
+        }, function () { });
+    };
     /** Sends heartbeat signal to all child processes */
-    _heartbeat() {
-        for (let spout of this._spouts) {
+    TopologyLocal.prototype._heartbeat = function () {
+        for (var _i = 0, _a = this._spouts; _i < _a.length; _i++) {
+            var spout = _a[_i];
             spout.heartbeat();
         }
-        for (let bolt of this._bolts) {
+        for (var _b = 0, _c = this._bolts; _b < _c.length; _b++) {
+            var bolt = _c[_b];
             bolt.heartbeat();
         }
-    }
+    };
     /** This method redirects/broadcasts message from source to other nodes.
      * It is done in async/parallel manner.
      * @param {string} source - Name of the source that emitted this data
@@ -180,46 +187,47 @@ class TopologyLocal {
      * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    _redirect(source, data, stream_id, callback) {
-        let self = this;
-        let destinations = self._router.getDestinationsForSource(source, stream_id);
-        async.each(destinations, (destination, xcallback) => {
-            let data_clone = {};
+    TopologyLocal.prototype._redirect = function (source, data, stream_id, callback) {
+        var self = this;
+        var destinations = self._router.getDestinationsForSource(source, stream_id);
+        async.each(destinations, function (destination, xcallback) {
+            var data_clone = {};
             Object.assign(data_clone, data);
-            let bolt = self._getBolt(destination);
+            var bolt = self._getBolt(destination);
             bolt.receive(data_clone, stream_id, xcallback);
         }, callback);
-    }
+    };
     /** Find bolt with given name.
      * @param {string} name - Name of the bolt that we need to find
      */
-    _getBolt(name) {
-        let hits = this._bolts.filter(x => x.getName() == name);
+    TopologyLocal.prototype._getBolt = function (name) {
+        var hits = this._bolts.filter(function (x) { return x.getName() == name; });
         if (hits.length === 0) {
             return null;
         }
         return hits[0];
-    }
+    };
     /** This method optionally runs context initialization code
      * and returns the context object.
      * @param {Function} callback - standard callback
      */
-    _initContext(callback) {
-        let self = this;
+    TopologyLocal.prototype._initContext = function (callback) {
+        var self = this;
         if (self._config.general.initialization) {
-            let common_context = {};
-            async.eachSeries(self._config.general.initialization, (init_conf, xcallback) => {
-                let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
-                let module_path = path.join(dir, init_conf.cmd);
-                require(module_path).init(init_conf.init, common_context, xcallback);
-            }, (err) => {
-                callback(null, common_context);
+            var common_context_1 = {};
+            async.eachSeries(self._config.general.initialization, function (init_conf, xcallback) {
+                var dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
+                var module_path = path.join(dir, init_conf.cmd);
+                require(module_path).init(init_conf.init, common_context_1, xcallback);
+            }, function (err) {
+                callback(null, common_context_1);
             });
         }
         else {
             callback(null, null);
         }
-    }
-}
+    };
+    return TopologyLocal;
+}());
 ////////////////////////////////////////////////////////////////////////////////////
 exports.TopologyLocal = TopologyLocal;

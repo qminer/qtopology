@@ -1,29 +1,30 @@
-"use strict";
-
-const async = require("async");
-const pm = require("../util/pattern_matcher");
-
-/////////////////////////////////////////////////////////////////////////////
+import * as intf from "../topology_interfaces";
+import * as async from "async";
+import * as pm from "../util/pattern_matcher";
 
 /** This bolt routs incoming messages based on provided
  * queries and sends them forward using mapped stream ids. */
-class RouterBolt {
+export class RouterBolt implements intf.Bolt {
+
+    name: string;
+    matchers: any[];
+    onEmit: intf.BoltEmitCallback;
 
     /** Simple constructor */
     constructor() {
-        this._name = null;
-        this._onEmit = null;
-        this._matchers = [];
+        this.name = null;
+        this.onEmit = null;
+        this.matchers = [];
     }
 
     /** Initializes routing patterns */
-    init(name, config, callback) {
-        this._name = name;
-        this._onEmit = config.onEmit;
+    init(name: string, config: any, callback: intf.SimpleCallback) {
+        this.name = name;
+        this.onEmit = config.onEmit;
         for (let stream_id in config.routes) {
             if (config.routes.hasOwnProperty(stream_id)) {
                 let filter = config.routes[stream_id];
-                this._matchers.push({
+                this.matchers.push({
                     stream_id: stream_id,
                     matcher: new pm.PaternMatcher(filter)
                 });
@@ -34,25 +35,21 @@ class RouterBolt {
 
     heartbeat() { }
 
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    receive(data, stream_id, callback) {
+    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let tasks = [];
-        for (let item of self._matchers) {
+        for (let item of self.matchers) {
             if (item.matcher.isMatch(data)) {
                 /* jshint loopfunc:true */
                 tasks.push((xcallback) => {
-                    self._onEmit(data, item.stream_id, xcallback);
+                    self.onEmit(data, item.stream_id, xcallback);
                 });
             }
         }
         async.parallel(tasks, callback);
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-exports.RouterBolt = RouterBolt;

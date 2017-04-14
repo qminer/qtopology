@@ -10,19 +10,19 @@ class OptionsDescription {
 
 class Singleton {
 
-    shortnames: Map<string, OptionsDescription>;
-    names: Map<string, OptionsDescription>;
+    shortnames: any;
+    names: any;
     descriptions: OptionsDescription[];
 
     constructor() {
-        this.shortnames = new Map<string, OptionsDescription>();
-        this.names = new Map<string, OptionsDescription>();
+        this.shortnames = {};
+        this.names = {};
         this.descriptions = [];
     }
 
     clear() {
-        this.shortnames.clear();
-        this.names.clear();
+        this.shortnames = {};
+        this.names = {};
         this.descriptions = [];
     }
 

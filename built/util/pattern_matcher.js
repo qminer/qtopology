@@ -1,15 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /** Simple class for pattern matching */
-export class PaternMatcher {
+var PaternMatcher = (function () {
     /** Constructor that receives pattern as object */
-    constructor(pattern) {
+    function PaternMatcher(pattern) {
         this.pattern = JSON.parse(JSON.stringify(pattern));
         // prepare RegEx objects in advance
-        for (let filter in this.pattern) {
+        for (var filter in this.pattern) {
             if (this.pattern.hasOwnProperty(filter)) {
-                let curr = this.pattern[filter];
+                var curr = this.pattern[filter];
                 if (typeof (curr) == "object" && curr.$like) {
                     if (Array.isArray(curr.$like)) {
-                        for (let i = 0; i < curr.$like.length; i++) {
+                        for (var i = 0; i < curr.$like.length; i++) {
                             curr.$like[i] = new RegExp(curr.$like[i]);
                         }
                     }
@@ -23,13 +25,14 @@ export class PaternMatcher {
     /** Simple procedure for checking if given item
      *  matches the pattern.
      */
-    isMatch(item) {
-        for (let filter in this.pattern) {
+    PaternMatcher.prototype.isMatch = function (item) {
+        for (var filter in this.pattern) {
             if (this.pattern.hasOwnProperty(filter)) {
-                let curr = this.pattern[filter];
+                var curr = this.pattern[filter];
                 if (Array.isArray(curr)) {
-                    let match = false;
-                    for (let filter1 of curr) {
+                    var match = false;
+                    for (var _i = 0, curr_1 = curr; _i < curr_1.length; _i++) {
+                        var filter1 = curr_1[_i];
                         if (item[filter] === filter1) {
                             match = true;
                             break;
@@ -42,8 +45,9 @@ export class PaternMatcher {
                 else if (typeof (curr) == "object") {
                     if (curr.$like) {
                         if (Array.isArray(curr.$like)) {
-                            let match = false;
-                            for (let filter1 of curr.$like) {
+                            var match = false;
+                            for (var _a = 0, _b = curr.$like; _a < _b.length; _a++) {
+                                var filter1 = _b[_a];
                                 if (filter1.test(item[filter])) {
                                     match = true;
                                     break;
@@ -69,5 +73,7 @@ export class PaternMatcher {
             }
         }
         return true;
-    }
-}
+    };
+    return PaternMatcher;
+}());
+exports.PaternMatcher = PaternMatcher;

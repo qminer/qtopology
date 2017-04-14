@@ -1,50 +1,74 @@
 "use strict";
-"use strict";
-const async = require("async");
-const EventEmitter = require("events");
-const leader = require("./topology_leader");
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var async = require("async");
+var EventEmitter = require("events");
+var leader = require("./topology_leader");
 /** This class handles communication with topology coordination storage.
  */
-class TopologyCoordinator extends EventEmitter {
+var TopologyCoordinator = (function (_super) {
+    __extends(TopologyCoordinator, _super);
     /** Simple constructor */
-    constructor(options) {
-        super();
-        this._storage = options.storage;
-        this._name = options.name;
-        this._leadership = new leader.TopologyLeader({
-            storage: this._storage,
-            name: this._name
+    function TopologyCoordinator(options) {
+        var _this = _super.call(this) || this;
+        _this._storage = options.storage;
+        _this._name = options.name;
+        _this._leadership = new leader.TopologyLeader({
+            storage: _this._storage,
+            name: _this._name
         });
-        this._isRunning = false;
-        this._shutdownCallback = null;
-        this._loopTimeout = 2 * 1000; // 2 seconds for refresh
+        _this._isRunning = false;
+        _this._shutdownCallback = null;
+        _this._loopTimeout = 2 * 1000; // 2 seconds for refresh
+        return _this;
     }
     /** Runs main loop */
-    run() {
-        let self = this;
+    TopologyCoordinator.prototype.run = function () {
+        var self = this;
         self._isRunning = true;
-        self._storage.registerWorker(self._name, () => { });
+        self._storage.registerWorker(self._name, function () { });
         self._leadership.run();
-        async.whilst(() => { return self._isRunning; }, (xcallback) => {
+        async.whilst(function () {
+            return self._isRunning;
+        }, function (xcallback) {
             setTimeout(function () {
                 self._handleIncommingRequests(xcallback);
             }, self._loopTimeout);
-        }, (err) => {
+        }, function (err) {
+            console.log("Coordinator shutdown finished.");
             if (self._shutdownCallback) {
                 self._shutdownCallback(err);
             }
         });
-    }
+    };
     /** Shut down the loop */
-    shutdown(callback) {
-        let self = this;
-        self._leadership.shutdown(() => {
-            self._shutdownCallback = callback;
-            self._isRunning = false;
+    TopologyCoordinator.prototype.shutdown = function (callback) {
+        var self = this;
+        self.reportWorker(self._name, "dead", "", function (err) {
+            if (err) {
+                console.log("Error while reporting worker status as 'dead':", err);
+            }
+            self._leadership.shutdown(function (err) {
+                if (err) {
+                    console.log("Error while shutting down leader:", err);
+                }
+                console.log("Coordinator set for shutdown");
+                self._shutdownCallback = callback;
+                self._isRunning = false;
+            });
         });
-    }
-    reportTopology(uuid, status, error, callback) {
-        this._storage.setTopologyStatus(uuid, status, error, (err) => {
+    };
+    /** Set status on given topology */
+    TopologyCoordinator.prototype.reportTopology = function (uuid, status, error, callback) {
+        this._storage.setTopologyStatus(uuid, status, error, function (err) {
             if (err) {
                 console.log("Couldn't report topology status");
                 console.log("Topology:", uuid, status, error);
@@ -54,9 +78,10 @@ class TopologyCoordinator extends EventEmitter {
                 callback(err);
             }
         });
-    }
-    reportWorker(name, status, error, callback) {
-        this._storage.setWorkerStatus(name, status, (err) => {
+    };
+    /** Set status on given worker */
+    TopologyCoordinator.prototype.reportWorker = function (name, status, error, callback) {
+        this._storage.setWorkerStatus(name, status, function (err) {
             if (err) {
                 console.log("Couldn't report worker status");
                 console.log("Worker:", name, status);
@@ -66,23 +91,25 @@ class TopologyCoordinator extends EventEmitter {
                 callback(err);
             }
         });
-    }
+    };
     /** This method checks for new messages from coordination storage. */
-    _handleIncommingRequests(callback) {
-        let self = this;
-        self._storage.getMessages(self._name, (err, msgs) => {
+    TopologyCoordinator.prototype._handleIncommingRequests = function (callback) {
+        var self = this;
+        self._storage.getMessages(self._name, function (err, msgs) {
             if (err)
                 return callback(err);
-            async.each(msgs, (msg, xcallback) => {
+            async.each(msgs, function (msg, xcallback) {
                 if (msg.cmd === "start") {
                     self.emit("start", msg.content);
                 }
                 if (msg.cmd === "shutdown") {
                     self.emit("shutdown", {});
                 }
+                xcallback();
             }, callback);
         });
-    }
-}
+    };
+    return TopologyCoordinator;
+}(EventEmitter));
 ////////////////////////////////////////////////////////////////////////////
 exports.TopologyCoordinator = TopologyCoordinator;

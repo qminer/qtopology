@@ -6,7 +6,7 @@ const Validator = require("jsonschema").Validator;
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * 
+ *
  * @param {Object} options - validation options
  * @param {Object} options.config - configuration to validate
  * @param {boolean} options.exitOnError - If true, in case of errors the validator stops the process
@@ -14,7 +14,7 @@ const Validator = require("jsonschema").Validator;
  */
 function validate(options) {
     let { config, exitOnError, throwOnError } = options;
-    let schema = require("./topology_config_schema.json");
+    let schema = require("../src/topology_config_schema.json");
     let v = new Validator();
     let validation_result = v.validate(config, schema);
     if (validation_result.errors.length > 0) {

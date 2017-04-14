@@ -1,20 +1,21 @@
 "use strict";
-const path = require("path");
-const cp = require("child_process");
+var path = require("path");
+var cp = require("child_process");
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
-class TopologyLocalProxy {
+var TopologyLocalProxy = (function () {
     /** Constructor that sets up call routing */
-    constructor(options) {
-        let self = this;
+    function TopologyLocalProxy(options) {
+        var self = this;
         this._init_cb = null;
         this._run_cb = null;
         this._pause_cb = null;
         this._shutdown_cb = null;
-        this._child_exit_callback = options.child_exit_callback || (() => { });
+        this._was_shut_down = false;
+        this._child_exit_callback = options.child_exit_callback || (function () { });
         this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), []);
-        self._child.on("message", (msg) => {
+        self._child.on("message", function (msg) {
             if (msg.cmd == "response_init") {
                 if (self._init_cb) {
                     self._init_cb(msg.data.err);
@@ -37,32 +38,43 @@ class TopologyLocalProxy {
                 if (self._shutdown_cb) {
                     self._shutdown_cb(msg.data.err);
                     self._shutdown_cb = null;
+                    self._was_shut_down = true;
+                    self._child.kill();
                 }
             }
         });
-        self._child.on("error", (e) => {
+        self._child.on("error", function (e) {
+            if (self._was_shut_down)
+                return;
             self._callPendingCallbacks(e);
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
-        self._child.on("close", (code) => {
-            let e = new Error("CLOSE Child process exited with code " + code);
+        self._child.on("close", function (code) {
+            if (self._was_shut_down)
+                return;
+            var e = new Error("CLOSE Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
-        self._child.on("exit", (code) => {
-            let e = new Error("EXIT Child process exited with code " + code);
+        self._child.on("exit", function (code) {
+            if (self._was_shut_down)
+                return;
+            var e = new Error("EXIT Child process exited with code " + code);
             self._callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
             self._child_exit_callback(e);
+            self._callPendingCallbacks2(e);
         });
     }
     /** Calls all pending callbacks with given error and clears them. */
-    _callPendingCallbacks(e) {
+    TopologyLocalProxy.prototype._callPendingCallbacks = function (e) {
         if (this._init_cb) {
             this._init_cb(e);
             this._init_cb = null;
@@ -75,43 +87,47 @@ class TopologyLocalProxy {
             this._pause_cb(e);
             this._pause_cb = null;
         }
+    };
+    /** Calls pending shutdown callback with given error and clears it. */
+    TopologyLocalProxy.prototype._callPendingCallbacks2 = function (e) {
         if (this._shutdown_cb) {
             this._shutdown_cb(e);
             this._shutdown_cb = null;
         }
-    }
+    };
     /** Sends initialization signal to underlaying process */
-    init(config, callback) {
+    TopologyLocalProxy.prototype.init = function (config, callback) {
         if (this._init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
         this._init_cb = callback;
         this._child.send({ cmd: "init", data: config });
-    }
+    };
     /** Sends run signal to underlaying process */
-    run(callback) {
+    TopologyLocalProxy.prototype.run = function (callback) {
         if (this._run_cb) {
             return callback(new Error("Pending run callback already exists."));
         }
         this._run_cb = callback;
         this._child.send({ cmd: "run", data: {} });
-    }
+    };
     /** Sends pause signal to underlaying process */
-    pause(callback) {
+    TopologyLocalProxy.prototype.pause = function (callback) {
         if (this._pause_cb) {
             return callback(new Error("Pending pause callback already exists."));
         }
         this._pause_cb = callback;
         this._child.send({ cmd: "pause", data: {} });
-    }
+    };
     /** Sends shutdown signal to underlaying process */
-    shutdown(callback) {
+    TopologyLocalProxy.prototype.shutdown = function (callback) {
         if (this._shutdown_cb) {
             return callback(new Error("Pending shutdown callback already exists."));
         }
         this._shutdown_cb = callback;
         this._child.send({ cmd: "shutdown", data: {} });
-    }
-}
+    };
+    return TopologyLocalProxy;
+}());
 /////////////////////////////////////////////////////////////////////////////////////
 exports.TopologyLocalProxy = TopologyLocalProxy;

@@ -1,58 +1,64 @@
 "use strict";
-const async = require("async");
-const tlp = require("./topology_local_proxy");
-const coord = require("./topology_coordinator");
-const comp = require("../topology_compiler");
+var async = require("async");
+var tlp = require("./topology_local_proxy");
+var coord = require("./topology_coordinator");
+var comp = require("../topology_compiler");
 ////////////////////////////////////////////////////////////////////////////
 /** This class handles topology worker - singleton instance on
  * that registers with coordination storage, receives instructions from
  * it and runs assigned topologies as subprocesses.
 */
-class TopologyWorker {
+var TopologyWorker = (function () {
     /** Initializes this object */
-    constructor(options) {
+    function TopologyWorker(options) {
         this._name = options.name;
         this._coordinator = new coord.TopologyCoordinator({
             name: options.name,
             storage: options.storage
         });
         this._topologies = [];
-        let self = this;
-        self._coordinator.on("start", (msg) => {
+        var self = this;
+        self._coordinator.on("start", function (msg) {
             self._start(msg.uuid, msg.config);
         });
-        self._coordinator.on("shutdown", (msg) => {
+        self._coordinator.on("shutdown", function (msg) {
             self.shutdown();
         });
     }
-    run() {
+    /** Starts this worker */
+    TopologyWorker.prototype.run = function () {
         this._coordinator.run();
-    }
+    };
     /** Starts single topology */
-    _start(uuid, config) {
-        let compiler = new comp.TopologyCompiler(config);
+    TopologyWorker.prototype._start = function (uuid, config) {
+        var compiler = new comp.TopologyCompiler(config);
         compiler.compile();
         config = compiler.getWholeConfig();
-        let self = this;
-        if (self._topologies.filter(x => x.uuid === uuid).length > 0) {
+        var self = this;
+        if (self._topologies.filter(function (x) { return x.uuid === uuid; }).length > 0) {
             self._coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
             return;
         }
-        let rec = { uuid: uuid, config: config };
+        var rec = { uuid: uuid, config: config };
         self._topologies.push(rec);
         rec.proxy = new tlp.TopologyLocalProxy({
-            child_exit_callback: (err) => {
-                self._coordinator.reportTopology(uuid, "stopped", "" + err);
+            child_exit_callback: function (err) {
+                if (err) {
+                    self._coordinator.reportTopology(uuid, "error", "" + err);
+                }
+                else {
+                    self._coordinator.reportTopology(uuid, "stopped", "" + err);
+                }
                 self._removeTopology(uuid);
             }
         });
-        rec.proxy.init(config, (err) => {
+        rec.proxy.init(config, function (err) {
             if (err) {
                 self._removeTopology(uuid);
                 self._coordinator.reportTopology(uuid, "error", "" + err);
             }
             else {
-                rec.proxy.run((err) => {
+                rec.proxy.run(function (err) {
                     if (err) {
                         self._removeTopology(uuid);
                         self._coordinator.reportTopology(uuid, "error", "" + err);
@@ -63,23 +69,31 @@ class TopologyWorker {
                 });
             }
         });
-    }
+    };
     /** Remove specified topology from internal list */
-    _removeTopology(uuid) {
-        this._topologies = this._topologies.filter(x => x.uuid != uuid);
-    }
+    TopologyWorker.prototype._removeTopology = function (uuid) {
+        this._topologies = this._topologies.filter(function (x) { return x.uuid != uuid; });
+    };
     /** Shuts down the worker and all its subprocesses. */
-    shutdown(callback) {
-        let self = this;
-        async.each(self._topologies, (item, xcallback) => {
-            item.proxy.shutdown((err) => {
-                self._coordinator.reportTopology(item.uuid, "stopped", "");
-                xcallback();
+    TopologyWorker.prototype.shutdown = function (callback) {
+        var self = this;
+        async.each(self._topologies, function (item, xcallback) {
+            item.proxy.shutdown(function (err) {
+                if (err) {
+                    console.log("Error while shutting down topology", item.uuid, err);
+                }
+                else {
+                    self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
+                }
             });
-        }, (err) => {
-            self._coordinator.reportWorker(self._name, "dead", "", callback);
+        }, function (err) {
+            if (err) {
+                console.log("Error while shutting down topologies:", err);
+            }
+            self._coordinator.shutdown(callback);
         });
-    }
-}
+    };
+    return TopologyWorker;
+}());
 //////////////////////////////////////////////////////////
 exports.TopologyWorker = TopologyWorker;

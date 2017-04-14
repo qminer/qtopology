@@ -1,11 +1,22 @@
 "use strict";
-const EventEmitter = require('events');
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var EventEmitter = require('events');
 /////////////////////////////////////////////////////////////////////////////////////
-class ObjectDeserializeStream extends EventEmitter {
-    constructor(stream) {
-        super();
-        let buffer = '';
-        let self = this;
+var ObjectDeserializeStream = (function (_super) {
+    __extends(ObjectDeserializeStream, _super);
+    function ObjectDeserializeStream(stream) {
+        var _this = _super.call(this) || this;
+        var buffer = '';
+        var self = _this;
         stream.on('data', function (data) {
             buffer += data.toString();
             for (var p = buffer.indexOf('\n'); p >= 0; p = buffer.indexOf('\n')) {
@@ -30,13 +41,16 @@ class ObjectDeserializeStream extends EventEmitter {
         stream.on('end', function () { self.emit('end'); });
         stream.on('close', function () { self.emit('close'); });
         stream.on('error', function (err) { self.emit('error', err); });
+        return _this;
     }
-}
-class ObjectSerializeStream extends EventEmitter {
-    constructor(stream) {
-        super();
-        var self = this;
-        this.write = function (obj) {
+    return ObjectDeserializeStream;
+}(EventEmitter));
+var ObjectSerializeStream = (function (_super) {
+    __extends(ObjectSerializeStream, _super);
+    function ObjectSerializeStream(stream) {
+        var _this = _super.call(this) || this;
+        var self = _this;
+        _this.write = function (obj) {
             try {
                 var json = JSON.stringify(obj);
                 if (!stream.writable) {
@@ -49,7 +63,7 @@ class ObjectSerializeStream extends EventEmitter {
                 throw err;
             }
         };
-        this.end = function () {
+        _this.end = function () {
             try {
                 stream.end();
             }
@@ -59,7 +73,7 @@ class ObjectSerializeStream extends EventEmitter {
         };
         // for http://nodejs.org/api/stream.html#stream_event_drain
         // http://nodejs.org/api/events.html#events_emitter_once_event_listener
-        this.once = function (name, fn) {
+        _this.once = function (name, fn) {
             stream.once(name, fn);
         };
         stream.on('error', function (err) { self.emit('error', err); });
@@ -67,13 +81,16 @@ class ObjectSerializeStream extends EventEmitter {
         stream.on('finish', function () { self.emit('finish'); });
         stream.on('pipe', function (src) { self.emit('pipe', src); });
         stream.on('unpipe', function (src) { self.emit('unpipe', src); });
+        return _this;
     }
-}
-class ObjectStream extends EventEmitter {
-    constructor(readstream, writestream) {
-        super();
+    return ObjectSerializeStream;
+}(EventEmitter));
+var ObjectStream = (function (_super) {
+    __extends(ObjectStream, _super);
+    function ObjectStream(readstream, writestream) {
+        var _this = _super.call(this) || this;
         writestream = writestream || readstream;
-        var self = this;
+        var self = _this;
         var input = new ObjectDeserializeStream(readstream);
         input.on('data', function (data) { self.emit('data', data); });
         input.on('error', function (err) { self.emit('error', err); });
@@ -82,14 +99,16 @@ class ObjectStream extends EventEmitter {
         output.on('close', function () { self.emit('close'); });
         output.on('error', function (err) { self.emit('error', err); });
         output.on('drain', function () { self.emit('drain'); });
-        this.write = function (obj) {
+        _this.write = function (obj) {
             if (writestream.writable) {
                 output.write(obj);
             }
         };
-        this.end = function () { output.end(); };
+        _this.end = function () { output.end(); };
+        return _this;
     }
-}
+    return ObjectStream;
+}(EventEmitter));
 /////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
     createStream: function (readstream, writestream) { return new ObjectStream(readstream, writestream); },

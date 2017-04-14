@@ -1,30 +1,30 @@
 "use strict";
-const pm = require("../util/pattern_matcher");
-const rest = require('node-rest-client');
+var pm = require("../util/pattern_matcher");
+var rest = require('node-rest-client');
 /////////////////////////////////////////////////////////////////////////////
 /** This bolt sends POST request to specified url (fixed or provided inside data)
  * and forwards the request. */
-class PostBolt {
-    constructor() {
+var PostBolt = (function () {
+    function PostBolt() {
         this._name = null;
         this._onEmit = null;
         this._fixed_url = null;
     }
-    init(name, config, callback) {
+    PostBolt.prototype.init = function (name, config, callback) {
         this._name = name;
         this._onEmit = config.onEmit;
         this._fixed_url = config.url;
         this._client = new rest.Client();
         callback();
-    }
-    heartbeat() { }
-    shutdown(callback) {
+    };
+    PostBolt.prototype.heartbeat = function () { };
+    PostBolt.prototype.shutdown = function (callback) {
         callback();
-    }
-    receive(data, stream_id, callback) {
-        let self = this;
-        let url = this._fixed_url;
-        let args = {
+    };
+    PostBolt.prototype.receive = function (data, stream_id, callback) {
+        var self = this;
+        var url = this._fixed_url;
+        var args = {
             data: data,
             headers: { "Content-Type": "application/json" }
         };
@@ -32,13 +32,14 @@ class PostBolt {
             url = data.url;
             args.data = data.body;
         }
-        let req = self._client.post(url, args, (new_data, response) => {
+        var req = self._client.post(url, args, function (new_data, response) {
             self._onEmit({ body: new_data }, null, callback);
         });
         req.on('error', function (err) {
             callback(err);
         });
-    }
-}
+    };
+    return PostBolt;
+}());
 ////////////////////////////////////////////////////////////////////////////////
 exports.PostBolt = PostBolt;
