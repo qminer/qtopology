@@ -16,31 +16,7 @@ class TopologyLocalWrapper {
         let self = this;
         this._topology_local = new topology_local.TopologyLocal();
         process.on('message', (msg) => {
-            if (msg.cmd === "init") {
-                let compiler = new topology_compiler.TopologyCompiler(msg.data);
-                compiler.compile();
-                let topology = compiler.getWholeConfig();
-                self._topology_local.init(topology, (err) => {
-                    self._topology_local.run();
-                    self._send("response_init", { err: err });
-                });
-            }
-            if (msg.cmd === "run") {
-                self._topology_local.run((err) => {
-                    self._send("response_run", { err: err });
-                });
-            }
-            if (msg.cmd === "pause") {
-                self._topology_local.pause((err) => {
-                    self._send("response_pause", { err: err });
-                });
-            }
-            if (msg.cmd === "shutdown") {
-                self._topology_local.shutdown((err) => {
-                    self._send("response_shutdown", { err: err });
-                    process.exit(0);
-                });
-            }
+            self._handle(msg);
         });
     }
 
@@ -60,6 +36,36 @@ class TopologyLocalWrapper {
                 console.error(e);
             }
         });
+    }
+
+    /** Internal main handler for incoming messages */
+    _handle(msg) {
+        let self = this;
+        if (msg.cmd === "init") {
+            let compiler = new topology_compiler.TopologyCompiler(msg.data);
+            compiler.compile();
+            let topology = compiler.getWholeConfig();
+            self._topology_local.init(topology, (err) => {
+                self._topology_local.run();
+                self._send("response_init", { err: err });
+            });
+        }
+        if (msg.cmd === "run") {
+            self._topology_local.run((err) => {
+                self._send("response_run", { err: err });
+            });
+        }
+        if (msg.cmd === "pause") {
+            self._topology_local.pause((err) => {
+                self._send("response_pause", { err: err });
+            });
+        }
+        if (msg.cmd === "shutdown") {
+            self._topology_local.shutdown((err) => {
+                self._send("response_shutdown", { err: err });
+                process.exit(0);
+            });
+        }
     }
 
     /** Sends command to parent process.

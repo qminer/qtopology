@@ -64,9 +64,11 @@ class FileCoordinator {
         callback(null, { success: true });
     }
     setTopologyStatus(uuid, status, error, callback) {
+        console.log(`Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null, { success: true });
     }
     setWorkerStatus(name, status, callback) {
+        console.log(`Setting worker status: name=${name} status=${status}`);
         callback(null, { success: true });
     }
 

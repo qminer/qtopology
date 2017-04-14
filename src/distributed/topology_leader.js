@@ -34,6 +34,7 @@ class TopologyLeader {
                 }, self._loopTimeout);
             },
             (err) => {
+                console.log("Leader shutdown");
                 if (self._shutdownCallback) {
                     self._shutdownCallback(err);
                 }
