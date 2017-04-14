@@ -31,6 +31,7 @@ class TopologyWorker {
         });
     }
 
+    /** Starts this worker */
     run() {
         this._coordinator.run();
     }
@@ -83,11 +84,12 @@ class TopologyWorker {
             self._topologies,
             (item, xcallback) => {
                 item.proxy.shutdown((err) => {
-                    self._coordinator.reportTopology(item.uuid, "stopped", "");
-                    xcallback();
+                    if (err) console.log(err);
+                    self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
                 });
             },
             (err) => {
+                if (err) console.log(err);
                 self._coordinator.reportWorker(self._name, "dead", "", callback);
             }
         );
