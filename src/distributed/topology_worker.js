@@ -89,8 +89,9 @@ class TopologyWorker {
                 item.proxy.shutdown((err) => {
                     if (err) {
                         console.log("Error while shutting down topology", item.uuid , err);
+                    } else {
+                        self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
                     }
-                    self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
                 });
             },
             (err) => {
@@ -98,7 +99,6 @@ class TopologyWorker {
                     console.log("Error while shutting down topologies:", err);
                 }
                 self._coordinator.shutdown(callback);
-                //self._coordinator.reportWorker(self._name, "dead", "", callback);
             }
         );
     }
