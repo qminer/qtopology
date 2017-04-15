@@ -1,31 +1,48 @@
-"use strict";
+import * as intf from "./topology_interfaces";
 
-const async = require("async");
-const path = require("path");
-const cp = require("child_process");
-const EventEmitter = require("events");
+import * as async from "async";
+import * as path from "path";
+import * as cp from "child_process";
+import * as EventEmitter from "events";
 
-const fb = require("./std_nodes/filter_bolt");
-const pb = require("./std_nodes/post_bolt");
-const cb = require("./std_nodes/console_bolt");
-const ab = require("./std_nodes/attacher_bolt");
-const gb = require("./std_nodes/get_bolt");
-const rb = require("./std_nodes/router_bolt");
+import * as fb from "./std_nodes/filter_bolt";
+import * as pb from "./std_nodes/post_bolt";
+import * as cb from "./std_nodes/console_bolt";
+import * as ab from "./std_nodes/attacher_bolt";
+import * as gb from "./std_nodes/get_bolt";
+import * as rb from "./std_nodes/router_bolt";
 
-const rs = require("./std_nodes/rest_spout");
-const ts = require("./std_nodes/timer_spout");
-const gs = require("./std_nodes/get_spout");
-const tss = require("./std_nodes/test_spout");
+import * as rs from "./std_nodes/rest_spout";
+import * as ts from "./std_nodes/timer_spout";
+import * as gs from "./std_nodes/get_spout";
+import * as tss from "./std_nodes/test_spout";
 
-const tel = require("./util/telemetry");
-
-////////////////////////////////////////////////////////////////////
+import * as tel from "./util/telemetry";
 
 /** Wrapper for "spout" in-process */
-class TopologySpoutInproc {
+export class TopologySpoutInproc {
+
+    _name: string;
+    _context: any;
+    _working_dir: string;
+    _cmd: string;
+    _init: any
+    _isStarted: boolean;
+    _isClosed: boolean;
+    _isExit: boolean;
+    _isError: boolean;
+    _onExit: boolean;
+    _isPaused: boolean;
+    _nextTs: number;
+
+    _telemetry: tel.Telemetry;
+    _telemetry_total: tel.Telemetry;
+
+    _child: intf.Spout;
+    _emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context) {
+    constructor(config, context: any) {
         this._name = config.name;
         this._context = context;
         this._working_dir = config.working_dir;
@@ -67,7 +84,7 @@ class TopologySpoutInproc {
     }
 
     /** Returns name of this node */
-    getName() {
+    getName(): string {
         return this._name;
     }
 
@@ -83,12 +100,12 @@ class TopologySpoutInproc {
     }
 
     /** Shuts down the process */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         this._child.shutdown(callback);
     }
 
     /** Initializes child object. */
-    init(callback) {
+    init(callback: intf.SimpleCallback) {
         this._child.init(this._name, this._init, callback);
     }
 
@@ -111,7 +128,7 @@ class TopologySpoutInproc {
     }
 
     /** Requests next data message */
-    _next(callback) {
+    _next(callback: intf.SimpleCallback) {
         let self = this;
         if (this._isPaused) {
             callback();
@@ -148,28 +165,52 @@ class TopologySpoutInproc {
     }
 
     /** Factory method for sys spouts */
-    _createSysSpout(spout_config, context) {
+    _createSysSpout(spout_config: any, context: any): intf.Spout {
         switch (spout_config.cmd) {
-            case "timer": return new ts.TimerSpout(context);
-            case "get": return new gs.GetSpout(context);
-            case "rest": return new rs.RestSpout(context);
-            case "test": return new tss.TestSpout(context);
-            default: throw new Error("Unknown sys spout type:", spout_config.cmd);
+            case "timer": return new ts.TimerSpout();
+            case "get": return new gs.GetSpout();
+            case "rest": return new rs.RestSpout();
+            case "test": return new tss.TestSpout();
+            default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
     }
 
     /** Adds duration to internal telemetry */
-    _telemetryAdd(duration) {
+    _telemetryAdd(duration: number) {
         this._telemetry.add(duration);
         this._telemetry_total.add(duration);
     }
 }
 
 /** Wrapper for "bolt" in-process */
-class TopologyBoltInproc {
+export class TopologyBoltInproc {
+
+    _name: string;
+    _context: any;
+    _working_dir: string;
+    _cmd: string;
+    _init: any
+    _isStarted: boolean;
+    _isClosed: boolean;
+    _isExit: boolean;
+    _isError: boolean;
+    _onExit: boolean;
+    _isPaused: boolean;
+    _isShuttingDown: boolean;
+    _nextTs: number;
+    _allow_parallel: boolean;
+    _inSend: number;
+    _pendingSendRequests: any[];
+    _pendingShutdownCallback: intf.SimpleCallback;
+
+    _telemetry: tel.Telemetry;
+    _telemetry_total: tel.Telemetry;
+
+    _child: intf.Bolt;
+    _emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context) {
+    constructor(config, context: any) {
         let self = this;
         this._name = config.name;
         this._context = context;
@@ -218,7 +259,7 @@ class TopologyBoltInproc {
     }
 
     /** Returns name of this node */
-    getName() {
+    getName(): string {
         return this._name;
     }
 
@@ -234,7 +275,7 @@ class TopologyBoltInproc {
     }
 
     /** Shuts down the child */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         this._isShuttingDown = true;
         if (this._inSend === 0) {
             return this._child.shutdown(callback);
@@ -244,12 +285,12 @@ class TopologyBoltInproc {
     }
 
     /** Initializes child object. */
-    init(callback) {
+    init(callback: intf.SimpleCallback) {
         this._child.init(this._name, this._init, callback);
     }
 
     /** Sends data to child object. */
-    receive(data, stream_id, callback) {
+    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let ts_start = Date.now();
         if (self._inSend > 0 && !self._allow_parallel) {
@@ -281,26 +322,21 @@ class TopologyBoltInproc {
     }
 
     /** Factory method for sys bolts */
-    _createSysBolt(bolt_config, context) {
+    _createSysBolt(bolt_config: any, context: any) {
         switch (bolt_config.cmd) {
-            case "console": return new cb.ConsoleBolt(context);
-            case "filter": return new fb.FilterBolt(context);
-            case "attacher": return new ab.AttacherBolt(context);
-            case "post": return new pb.PostBolt(context);
-            case "get": return new gb.GetBolt(context);
-            case "router": return new rb.RouterBolt(context);
-            default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
+            case "console": return new cb.ConsoleBolt();
+            case "filter": return new fb.FilterBolt();
+            case "attacher": return new ab.AttacherBolt();
+            case "post": return new pb.PostBolt();
+            case "get": return new gb.GetBolt();
+            case "router": return new rb.RouterBolt();
+            default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }
 
     /** Adds duration to internal telemetry */
-    _telemetryAdd(duration) {
+    _telemetryAdd(duration: number) {
         this._telemetry.add(duration);
         this._telemetry_total.add(duration);
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////////
-
-exports.TopologyBoltInproc = TopologyBoltInproc;
-exports.TopologySpoutInproc = TopologySpoutInproc;

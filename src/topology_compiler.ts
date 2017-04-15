@@ -1,9 +1,9 @@
-"use strict";
+import * as intf from "./topology_interfaces";
 
 /** Helper function for injecting the variables in ${VARNAME} location.
  * Case-insensitive.
  */
-function injectVars(target, vars) {
+function injectVars(target: string | any, vars: any): string {
     if (target) {
         if (typeof target == "string") {
             for (let v in vars) {
@@ -23,10 +23,12 @@ function injectVars(target, vars) {
 }
 
 /** Main class - checks and compiles the topology */
-class TopologyCompiler {
+export class TopologyCompiler {
+
+    _config: any;
 
     /** Simple constructor, receives the topology. */
-    constructor(topology_config) {
+    constructor(topology_config: any) {
         this._config = JSON.parse(JSON.stringify(topology_config));
     }
 
@@ -84,11 +86,7 @@ class TopologyCompiler {
     }
 
     /** Returns compiled configuration . */
-    getWholeConfig() {
+    getWholeConfig(): any {
         return JSON.parse(JSON.stringify(this._config));
     }
 }
-
-/////////////////////////////////////////////////////////////////////////////
-
-exports.TopologyCompiler = TopologyCompiler;

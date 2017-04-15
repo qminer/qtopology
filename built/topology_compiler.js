@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /** Helper function for injecting the variables in ${VARNAME} location.
  * Case-insensitive.
  */
@@ -81,5 +82,4 @@ class TopologyCompiler {
         return JSON.parse(JSON.stringify(this._config));
     }
 }
-/////////////////////////////////////////////////////////////////////////////
 exports.TopologyCompiler = TopologyCompiler;

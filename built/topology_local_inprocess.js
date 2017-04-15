@@ -1,8 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const path = require("path");
-const cp = require("child_process");
-const EventEmitter = require("events");
 const fb = require("./std_nodes/filter_bolt");
 const pb = require("./std_nodes/post_bolt");
 const cb = require("./std_nodes/console_bolt");
@@ -14,7 +13,6 @@ const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
 const tss = require("./std_nodes/test_spout");
 const tel = require("./util/telemetry");
-////////////////////////////////////////////////////////////////////
 /** Wrapper for "spout" in-process */
 class TopologySpoutInproc {
     /** Constructor needs to receive all data */
@@ -133,11 +131,11 @@ class TopologySpoutInproc {
     /** Factory method for sys spouts */
     _createSysSpout(spout_config, context) {
         switch (spout_config.cmd) {
-            case "timer": return new ts.TimerSpout(context);
-            case "get": return new gs.GetSpout(context);
-            case "rest": return new rs.RestSpout(context);
-            case "test": return new tss.TestSpout(context);
-            default: throw new Error("Unknown sys spout type:", spout_config.cmd);
+            case "timer": return new ts.TimerSpout();
+            case "get": return new gs.GetSpout();
+            case "rest": return new rs.RestSpout();
+            case "test": return new tss.TestSpout();
+            default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
     }
     /** Adds duration to internal telemetry */
@@ -146,6 +144,7 @@ class TopologySpoutInproc {
         this._telemetry_total.add(duration);
     }
 }
+exports.TopologySpoutInproc = TopologySpoutInproc;
 /** Wrapper for "bolt" in-process */
 class TopologyBoltInproc {
     /** Constructor needs to receive all data */
@@ -257,13 +256,13 @@ class TopologyBoltInproc {
     /** Factory method for sys bolts */
     _createSysBolt(bolt_config, context) {
         switch (bolt_config.cmd) {
-            case "console": return new cb.ConsoleBolt(context);
-            case "filter": return new fb.FilterBolt(context);
-            case "attacher": return new ab.AttacherBolt(context);
-            case "post": return new pb.PostBolt(context);
-            case "get": return new gb.GetBolt(context);
-            case "router": return new rb.RouterBolt(context);
-            default: throw new Error("Unknown sys bolt type:", bolt_config.cmd);
+            case "console": return new cb.ConsoleBolt();
+            case "filter": return new fb.FilterBolt();
+            case "attacher": return new ab.AttacherBolt();
+            case "post": return new pb.PostBolt();
+            case "get": return new gb.GetBolt();
+            case "router": return new rb.RouterBolt();
+            default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }
     /** Adds duration to internal telemetry */
@@ -272,6 +271,4 @@ class TopologyBoltInproc {
         this._telemetry_total.add(duration);
     }
 }
-////////////////////////////////////////////////////////////////////////////////////
 exports.TopologyBoltInproc = TopologyBoltInproc;
-exports.TopologySpoutInproc = TopologySpoutInproc;

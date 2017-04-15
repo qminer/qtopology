@@ -1,8 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const jsch = require("jsonschema");
+import * as  fs from "fs";
+import * as jsch from "jsonschema";
+import * as intf from "./topology_interfaces";
+
 /** Utility function for validating given JSON */
-function validate(options) {
+export function validate(options: intf.ValidationOptions) {
     let { config, exitOnError, throwOnError } = options;
     let schema = require("../src/topology_config_schema.json");
     let v = new jsch.Validator();
@@ -23,9 +24,7 @@ function validate(options) {
             throw new Error(msg);
         }
         return validation_result.errors;
-    }
-    else {
+    } else {
         return false;
     }
 }
-exports.validate = validate;
