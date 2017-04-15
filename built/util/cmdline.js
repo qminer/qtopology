@@ -5,13 +5,13 @@ class OptionsDescription {
 exports.OptionsDescription = OptionsDescription;
 class CmdLineParser {
     constructor() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames = new Map();
+        this.names = new Map();
         this.descriptions = [];
     }
     clear() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames.clear();
+        this.names.clear();
         this.descriptions = [];
     }
     areFlags(letters) {
@@ -110,4 +110,3 @@ class CmdLineParser {
     }
 }
 exports.CmdLineParser = CmdLineParser;
-exports.default = new CmdLineParser();

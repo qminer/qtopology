@@ -10,19 +10,19 @@ export class OptionsDescription {
 
 export class CmdLineParser {
 
-    shortnames: any;
-    names: any;
+    shortnames: Map<string, OptionsDescription>;
+    names: Map<string, OptionsDescription>;
     descriptions: OptionsDescription[];
 
     constructor() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames = new Map<string, OptionsDescription>();
+        this.names = new Map<string, OptionsDescription>();
         this.descriptions = [];
     }
 
     clear() {
-        this.shortnames = {};
-        this.names = {};
+        this.shortnames.clear();
+        this.names.clear();
         this.descriptions = [];
     }
 
@@ -58,7 +58,7 @@ export class CmdLineParser {
         return description.name;
     }
 
-    define(shortname: string, name: string, defaultValue: string | number, text: string, options: any) {
+    define(shortname: string, name: string, defaultValue: string | number, text: string, options?: any) {
         options = options || {};
 
         let description = {
@@ -82,7 +82,7 @@ export class CmdLineParser {
         return this;
     }
 
-    process(args) {
+    process(args: string[]): any {
         let opts = {};
 
         this.descriptions.forEach((description) => {
@@ -127,5 +127,3 @@ export class CmdLineParser {
         return opts;
     }
 }
-
-export default new CmdLineParser();
