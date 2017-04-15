@@ -145,7 +145,8 @@ export class TopologyLocalProxy {
     }
 
     /** Internal method for sending messages to child process */
-    _send(msg: intf.ParentMsg){
+    _send(msg: intf.ParentMsg) {
+console.log("*/*/*/*/", msg)
         this._child.send({ cmd: "shutdown", data: {} });
     }
 }

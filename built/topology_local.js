@@ -55,6 +55,7 @@ class TopologyLocal {
      * starts underlaying processes.
      */
     init(config, callback) {
+        console.log("####", config);
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;

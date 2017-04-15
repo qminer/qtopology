@@ -77,6 +77,7 @@ export class TopologyLocal {
      * starts underlaying processes.
      */
     init(config: any, callback: intf.SimpleCallback) {
+console.log("####", config)
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;

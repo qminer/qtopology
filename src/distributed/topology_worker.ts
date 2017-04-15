@@ -55,6 +55,7 @@ export class TopologyWorker {
         rec.uuid = uuid;
         rec.config = config;
         self._topologies.push(rec);
+        try{
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
             if (err) {
                 self._coordinator.reportTopology(uuid, "error", "" + err);
@@ -78,6 +79,9 @@ export class TopologyWorker {
                 });
             }
         });
+        } catch(e) {
+            console.log("!!!!!!!!!!!!!!", e);
+        }
     }
 
     /** Remove specified topology from internal list */

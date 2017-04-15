@@ -12,6 +12,7 @@ class TopologyLocalWrapper {
         let self = this;
         this._topology_local = new tl.TopologyLocal();
         process.on('message', (msg) => {
+            console.log("%%%%%", msg);
             self._handle(msg);
         });
     }
@@ -36,6 +37,8 @@ class TopologyLocalWrapper {
     _handle(msg) {
         let self = this;
         if (msg.cmd === "init") {
+            console.log("Initializing topology", msg.data);
+            self._name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
@@ -54,7 +57,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === "shutdown") {
-            console.log("Shutting down topology", self._topology_local._config.general.name);
+            console.log("Shutting down topology", self._name);
             self._topology_local.shutdown((err) => {
                 self._send("response_shutdown", { err: err });
                 process.exit(0);

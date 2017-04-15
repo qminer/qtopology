@@ -42,32 +42,37 @@ class TopologyWorker {
         rec.uuid = uuid;
         rec.config = config;
         self._topologies.push(rec);
-        rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (err) {
-                self._coordinator.reportTopology(uuid, "error", "" + err);
-            }
-            else {
-                self._coordinator.reportTopology(uuid, "stopped", "" + err);
-            }
-            self._removeTopology(uuid);
-        });
-        rec.proxy.init(config, (err) => {
-            if (err) {
+        try {
+            rec.proxy = new tlp.TopologyLocalProxy((err) => {
+                if (err) {
+                    self._coordinator.reportTopology(uuid, "error", "" + err);
+                }
+                else {
+                    self._coordinator.reportTopology(uuid, "stopped", "" + err);
+                }
                 self._removeTopology(uuid);
-                self._coordinator.reportTopology(uuid, "error", "" + err);
-            }
-            else {
-                rec.proxy.run((err) => {
-                    if (err) {
-                        self._removeTopology(uuid);
-                        self._coordinator.reportTopology(uuid, "error", "" + err);
-                    }
-                    else {
-                        self._coordinator.reportTopology(uuid, "running", "");
-                    }
-                });
-            }
-        });
+            });
+            rec.proxy.init(config, (err) => {
+                if (err) {
+                    self._removeTopology(uuid);
+                    self._coordinator.reportTopology(uuid, "error", "" + err);
+                }
+                else {
+                    rec.proxy.run((err) => {
+                        if (err) {
+                            self._removeTopology(uuid);
+                            self._coordinator.reportTopology(uuid, "error", "" + err);
+                        }
+                        else {
+                            self._coordinator.reportTopology(uuid, "running", "");
+                        }
+                    });
+                }
+            });
+        }
+        catch (e) {
+            console.log("!!!!!!!!!!!!!!", e);
+        }
     }
     /** Remove specified topology from internal list */
     _removeTopology(uuid) {

@@ -130,6 +130,7 @@ class TopologyLocalProxy {
     }
     /** Internal method for sending messages to child process */
     _send(msg) {
+        console.log("*/*/*/*/", msg);
         this._child.send({ cmd: "shutdown", data: {} });
     }
 }
