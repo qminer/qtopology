@@ -1,17 +1,21 @@
-"use strict";
 
-const port = 3000;
-const Client = require('node-rest-client').Client;
-const EventEmitter = require('events');
+const port_default = 3000;
+
+import Client from 'node-rest-client';
+import * as EventEmitter from 'events';
+import * as intf from "../../topology_interfaces";
 
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
 
-class HttpCoordinator {
+export class HttpCoordinator implements intf.CoordinationStorage {
 
-    constructor(options) {
-        options = options || {};
-        this._port = options.port || port;
+    _port: number;
+    _client: Client;
+    _urlPrefix: string;
+
+    constructor(port?: number) {
+        this._port = port || port_default;
         this._client = new Client();
         this._urlPrefix = "http://localhost:" + this._port + "/"
     }
@@ -50,7 +54,7 @@ class HttpCoordinator {
         this._call("set-worker-status", { name: name, status: status }, callback);
     }
 
-    _call(addr, req_data, callback) {
+    _call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
         let req = this._client.post(self._urlPrefix + addr, args, (data, response) => {
@@ -61,7 +65,3 @@ class HttpCoordinator {
         });
     }
 }
-
-////////////////////////////////////////////////////////////////////
-
-exports.HttpCoordinator = HttpCoordinator;

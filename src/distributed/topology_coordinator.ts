@@ -68,7 +68,7 @@ export class TopologyCoordinator extends EventEmitter {
     }
 
     /** Set status on given topology */
-    reportTopology(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
+    reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback) {
         this._storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
                 console.log("Couldn't report topology status");
@@ -82,7 +82,7 @@ export class TopologyCoordinator extends EventEmitter {
     }
 
     /** Set status on given worker */
-    reportWorker(name: string, status: string, error: string, callback: intf.SimpleCallback) {
+    reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback) {
         this._storage.setWorkerStatus(name, status, (err) => {
             if (err) {
                 console.log("Couldn't report worker status");

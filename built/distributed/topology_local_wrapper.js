@@ -1,7 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const topology_compiler = require("../topology_compiler");
-const topology_local = require("../topology_local");
-////////////////////////////////////////////////////////////////////////////////////
+const tl = require("../topology_local");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
@@ -10,7 +10,7 @@ class TopologyLocalWrapper {
     /** Constructor that sets up call routing */
     constructor() {
         let self = this;
-        this._topology_local = new topology_local.TopologyLocal();
+        this._topology_local = new tl.TopologyLocal();
         process.on('message', (msg) => {
             self._handle(msg);
         });
@@ -18,21 +18,19 @@ class TopologyLocalWrapper {
     /** Starts infinite loop by reading messages from parent or console */
     start() {
         let self = this;
-        process.openStdin().addListener("data", function (d) {
-            try {
-                d = d.toString().trim();
-                let i = d.indexOf(" ");
-                if (i > 0) {
-                    self._handle(d.substr(0, i), JSON.parse(d.substr(i)));
-                }
-                else {
-                    self._handle(d, {});
-                }
-            }
-            catch (e) {
-                console.error(e);
-            }
-        });
+        // process.openStdin().addListener("data", function (d) {
+        //     try {
+        //         d = d.toString().trim();
+        //         let i = d.indexOf(" ");
+        //         if (i > 0) {
+        //             self._handle(d.substr(0, i), JSON.parse(d.substr(i)));
+        //         } else {
+        //             self._handle(d, {});
+        //         }
+        //     } catch (e) {
+        //         console.error(e);
+        //     }
+        // });
     }
     /** Internal main handler for incoming messages */
     _handle(msg) {
@@ -47,9 +45,8 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === "run") {
-            self._topology_local.run((err) => {
-                self._send("response_run", { err: err });
-            });
+            self._topology_local.run();
+            self._send("response_run", {});
         }
         if (msg.cmd === "pause") {
             self._topology_local.pause((err) => {

@@ -1,25 +1,29 @@
-"use strict";
+import * as async from "async";
+import * as tlp from "./topology_local_proxy";
+import * as coord from "./topology_coordinator";
+import * as comp from "../topology_compiler";
+import * as intf from "../topology_interfaces";
 
-const async = require("async");
-const tlp = require("./topology_local_proxy");
-const coord = require("./topology_coordinator");
-const comp = require("../topology_compiler");
-
-////////////////////////////////////////////////////////////////////////////
+class TopologyItem {
+    uuid: string;
+    config: any;
+    proxy: tlp.TopologyLocalProxy;
+}
 
 /** This class handles topology worker - singleton instance on
  * that registers with coordination storage, receives instructions from
  * it and runs assigned topologies as subprocesses.
 */
-class TopologyWorker {
+export class TopologyWorker {
+
+    _name: string;
+    _coordinator: coord.TopologyCoordinator;
+    _topologies: TopologyItem[];
 
     /** Initializes this object */
     constructor(options) {
         this._name = options.name;
-        this._coordinator = new coord.TopologyCoordinator({
-            name: options.name,
-            storage: options.storage
-        });
+        this._coordinator = new coord.TopologyCoordinator(options.name, options.storage);
         this._topologies = [];
 
         let self = this;
@@ -27,7 +31,7 @@ class TopologyWorker {
             self._start(msg.uuid, msg.config);
         });
         self._coordinator.on("shutdown", (msg) => {
-            self.shutdown();
+            self.shutdown(() => { });
         });
     }
 
@@ -47,17 +51,17 @@ class TopologyWorker {
             self._coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
             return;
         }
-        let rec = { uuid: uuid, config: config };
+        let rec = new TopologyItem();
+        rec.uuid = uuid;
+        rec.config = config;
         self._topologies.push(rec);
-        rec.proxy = new tlp.TopologyLocalProxy({
-            child_exit_callback: (err) => {
-                if (err) {
-                    self._coordinator.reportTopology(uuid, "error", "" + err);
-                } else {
-                    self._coordinator.reportTopology(uuid, "stopped", "" + err);
-                }
-                self._removeTopology(uuid);
+        rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            if (err) {
+                self._coordinator.reportTopology(uuid, "error", "" + err);
+            } else {
+                self._coordinator.reportTopology(uuid, "stopped", "" + err);
             }
+            self._removeTopology(uuid);
         });
         rec.proxy.init(config, (err) => {
             if (err) {
@@ -77,19 +81,19 @@ class TopologyWorker {
     }
 
     /** Remove specified topology from internal list */
-    _removeTopology(uuid) {
+    _removeTopology(uuid: string) {
         this._topologies = this._topologies.filter(x => x.uuid != uuid);
     }
 
     /** Shuts down the worker and all its subprocesses. */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         let self = this;
         async.each(
             self._topologies,
             (item, xcallback) => {
                 item.proxy.shutdown((err) => {
                     if (err) {
-                        console.log("Error while shutting down topology", item.uuid , err);
+                        console.log("Error while shutting down topology", item.uuid, err);
                     } else {
                         self._coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
                     }
@@ -104,7 +108,3 @@ class TopologyWorker {
         );
     }
 }
-
-//////////////////////////////////////////////////////////
-
-exports.TopologyWorker = TopologyWorker;

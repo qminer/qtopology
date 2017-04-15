@@ -1,14 +1,13 @@
 "use strict";
-const port = 3000;
-const Client = require('node-rest-client').Client;
-const EventEmitter = require('events');
+Object.defineProperty(exports, "__esModule", { value: true });
+const port_default = 3000;
+const node_rest_client_1 = require("node-rest-client");
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
 class HttpCoordinator {
-    constructor(options) {
-        options = options || {};
-        this._port = options.port || port;
-        this._client = new Client();
+    constructor(port) {
+        this._port = port || port_default;
+        this._client = new node_rest_client_1.default();
         this._urlPrefix = "http://localhost:" + this._port + "/";
     }
     getMessages(name, callback) {
@@ -55,5 +54,4 @@ class HttpCoordinator {
         });
     }
 }
-////////////////////////////////////////////////////////////////////
 exports.HttpCoordinator = HttpCoordinator;

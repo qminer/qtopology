@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const cp = require("child_process");
 /**
@@ -6,14 +7,14 @@ const cp = require("child_process");
  */
 class TopologyLocalProxy {
     /** Constructor that sets up call routing */
-    constructor(options) {
+    constructor(child_exit_callback) {
         let self = this;
         this._init_cb = null;
         this._run_cb = null;
         this._pause_cb = null;
         this._shutdown_cb = null;
         this._was_shut_down = false;
-        this._child_exit_callback = options.child_exit_callback || (() => { });
+        this._child_exit_callback = child_exit_callback || (() => { });
         this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), []);
         self._child.on("message", (msg) => {
             if (msg.cmd == "response_init") {
@@ -101,7 +102,7 @@ class TopologyLocalProxy {
             return callback(new Error("Pending init callback already exists."));
         }
         this._init_cb = callback;
-        this._child.send({ cmd: "init", data: config });
+        this._send({ cmd: "init", data: config });
     }
     /** Sends run signal to underlaying process */
     run(callback) {
@@ -109,7 +110,7 @@ class TopologyLocalProxy {
             return callback(new Error("Pending run callback already exists."));
         }
         this._run_cb = callback;
-        this._child.send({ cmd: "run", data: {} });
+        this._send({ cmd: "run", data: {} });
     }
     /** Sends pause signal to underlaying process */
     pause(callback) {
@@ -117,7 +118,7 @@ class TopologyLocalProxy {
             return callback(new Error("Pending pause callback already exists."));
         }
         this._pause_cb = callback;
-        this._child.send({ cmd: "pause", data: {} });
+        this._send({ cmd: "pause", data: {} });
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
@@ -125,8 +126,11 @@ class TopologyLocalProxy {
             return callback(new Error("Pending shutdown callback already exists."));
         }
         this._shutdown_cb = callback;
+        this._send({ cmd: "shutdown", data: {} });
+    }
+    /** Internal method for sending messages to child process */
+    _send(msg) {
         this._child.send({ cmd: "shutdown", data: {} });
     }
 }
-/////////////////////////////////////////////////////////////////////////////////////
 exports.TopologyLocalProxy = TopologyLocalProxy;

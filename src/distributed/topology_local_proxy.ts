@@ -1,15 +1,22 @@
-"use strict";
-
-const path = require("path");
-const cp = require("child_process");
+import * as path from "path";
+import * as cp from "child_process";
+import * as intf from "../topology_interfaces";
 
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
-class TopologyLocalProxy {
+export class TopologyLocalProxy {
+
+    _init_cb: intf.SimpleCallback;
+    _run_cb: intf.SimpleCallback;
+    _pause_cb: intf.SimpleCallback;
+    _shutdown_cb: intf.SimpleCallback;
+    _was_shut_down: boolean;
+    _child_exit_callback: intf.SimpleCallback;
+    _child: cp.ChildProcess;
 
     /** Constructor that sets up call routing */
-    constructor(options) {
+    constructor(child_exit_callback: intf.SimpleCallback) {
         let self = this;
 
         this._init_cb = null;
@@ -17,7 +24,7 @@ class TopologyLocalProxy {
         this._pause_cb = null;
         this._shutdown_cb = null;
         this._was_shut_down = false;
-        this._child_exit_callback = options.child_exit_callback || (() => { });
+        this._child_exit_callback = child_exit_callback || (() => { });
         this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), []);
 
         self._child.on("message", (msg) => {
@@ -78,7 +85,7 @@ class TopologyLocalProxy {
     }
 
     /** Calls all pending callbacks with given error and clears them. */
-    _callPendingCallbacks(e) {
+    _callPendingCallbacks(e: Error) {
         if (this._init_cb) {
             this._init_cb(e);
             this._init_cb = null;
@@ -94,7 +101,7 @@ class TopologyLocalProxy {
     }
 
     /** Calls pending shutdown callback with given error and clears it. */
-    _callPendingCallbacks2(e) {
+    _callPendingCallbacks2(e: Error) {
         if (this._shutdown_cb) {
             this._shutdown_cb(e);
             this._shutdown_cb = null;
@@ -102,42 +109,43 @@ class TopologyLocalProxy {
     }
 
     /** Sends initialization signal to underlaying process */
-    init(config, callback) {
+    init(config: any, callback: intf.SimpleCallback) {
         if (this._init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
         this._init_cb = callback;
-        this._child.send({ cmd: "init", data: config });
+        this._send({ cmd: "init", data: config });
     }
 
     /** Sends run signal to underlaying process */
-    run(callback) {
+    run(callback: intf.SimpleCallback) {
         if (this._run_cb) {
             return callback(new Error("Pending run callback already exists."));
         }
         this._run_cb = callback;
-        this._child.send({ cmd: "run", data: {} });
+        this._send({ cmd: "run", data: {} });
     }
 
     /** Sends pause signal to underlaying process */
-    pause(callback) {
+    pause(callback: intf.SimpleCallback) {
         if (this._pause_cb) {
             return callback(new Error("Pending pause callback already exists."));
         }
         this._pause_cb = callback;
-        this._child.send({ cmd: "pause", data: {} });
+        this._send({ cmd: "pause", data: {} });
     }
 
     /** Sends shutdown signal to underlaying process */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         if (this._shutdown_cb) {
             return callback(new Error("Pending shutdown callback already exists."));
         }
         this._shutdown_cb = callback;
+        this._send({ cmd: "shutdown", data: {} });
+    }
+
+    /** Internal method for sending messages to child process */
+    _send(msg: intf.ParentMsg){
         this._child.send({ cmd: "shutdown", data: {} });
     }
 }
-
-/////////////////////////////////////////////////////////////////////////////////////
-
-exports.TopologyLocalProxy = TopologyLocalProxy;

@@ -1,9 +1,7 @@
-"use strict";
 
-const topology_compiler = require("../topology_compiler");
-const topology_local = require("../topology_local");
-
-////////////////////////////////////////////////////////////////////////////////////
+import * as topology_compiler from "../topology_compiler";
+import * as tl from "../topology_local";
+import * as intf from "../topology_interfaces";
 
 /**
  * This class acts as wrapper for local topology when
@@ -11,10 +9,12 @@ const topology_local = require("../topology_local");
  */
 class TopologyLocalWrapper {
 
+    _topology_local: tl.TopologyLocal;
+
     /** Constructor that sets up call routing */
     constructor() {
         let self = this;
-        this._topology_local = new topology_local.TopologyLocal();
+        this._topology_local = new tl.TopologyLocal();
         process.on('message', (msg) => {
             self._handle(msg);
         });
@@ -23,23 +23,23 @@ class TopologyLocalWrapper {
     /** Starts infinite loop by reading messages from parent or console */
     start() {
         let self = this;
-        process.openStdin().addListener("data", function (d) {
-            try {
-                d = d.toString().trim();
-                let i = d.indexOf(" ");
-                if (i > 0) {
-                    self._handle(d.substr(0, i), JSON.parse(d.substr(i)));
-                } else {
-                    self._handle(d, {});
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        });
+        // process.openStdin().addListener("data", function (d) {
+        //     try {
+        //         d = d.toString().trim();
+        //         let i = d.indexOf(" ");
+        //         if (i > 0) {
+        //             self._handle(d.substr(0, i), JSON.parse(d.substr(i)));
+        //         } else {
+        //             self._handle(d, {});
+        //         }
+        //     } catch (e) {
+        //         console.error(e);
+        //     }
+        // });
     }
 
     /** Internal main handler for incoming messages */
-    _handle(msg) {
+    _handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === "init") {
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
@@ -51,9 +51,8 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === "run") {
-            self._topology_local.run((err) => {
-                self._send("response_run", { err: err });
-            });
+            self._topology_local.run();
+            self._send("response_run", {});
         }
         if (msg.cmd === "pause") {
             self._topology_local.pause((err) => {
@@ -73,7 +72,7 @@ class TopologyLocalWrapper {
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    _send(cmd, data) {
+    _send(cmd: string, data: any) {
         if (process.send) {
             process.send({ cmd: cmd, data: data });
         } else {

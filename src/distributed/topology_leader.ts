@@ -63,8 +63,8 @@ export class TopologyLeader {
         let self = this;
         self._storage.getLeadershipStatus((err, res) => {
             if (err) return callback(err);
-            if (res.leadership_status == "ok") return callback();
-            if (res.leadership_status == "pending") return callback();
+            if (res.leadership == "ok") return callback();
+            if (res.leadership == "pending") return callback();
             // status is vacant
             self._storage.announceLeaderCandidacy(self._name, (err) => {
                 if (err) return callback(err);

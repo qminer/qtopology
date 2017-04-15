@@ -1,7 +1,6 @@
 "use strict";
-const http = require('http');
-///////////////////////////////////////////////////////////////////////////
-// Bare minimum REST server
+Object.defineProperty(exports, "__esModule", { value: true });
+const http = require("http");
 // Utility function that reads requests body
 function withBody(handler) {
     return (req, resp) => {
@@ -24,14 +23,14 @@ function handleError(error, response) {
     response.end(error);
 }
 // registered handlers
-let handlers = {};
+let handlers = new Map();
 /** For registering simple handlers */
 function addHandler(addr, callback) {
     handlers[addr] = callback;
 }
+exports.addHandler = addHandler;
 /** For running the server */
-function run(options) {
-    const port = options.port || 3000;
+function run(port) {
     var server = http.createServer(withBody((req, resp) => {
         // get the HTTP method, path and body of the request
         var method = req.method;
@@ -53,7 +52,7 @@ function run(options) {
             try {
                 handlers[addr](data, (err, data) => {
                     if (err)
-                        return handleError(err, response);
+                        return handleError(err, resp);
                     handleResponse(data, resp);
                 });
             }
@@ -73,6 +72,4 @@ function run(options) {
         }
     });
 }
-////////////////////////////////////
-exports.addHandler = addHandler;
 exports.run = run;

@@ -17,11 +17,15 @@ export interface SpoutNextCallback {
     (err: Error, data: any, stream_id: string, callback?: SpoutAckCallback): void;
 }
 
+////////////////////////////////////////////////////////////////////////
+
 export interface ValidationOptions {
     config: any;
     exitOnError: boolean;
     throwOnError: boolean;
 }
+
+////////////////////////////////////////////////////////////////////////
 
 export interface Bolt {
     init(name: string, config: any, callback: SimpleCallback);
@@ -39,16 +43,32 @@ export interface Spout {
     next(callback: SpoutNextCallback);
 }
 
+////////////////////////////////////////////////////////////////////////
+
+export interface ParentMsg {
+    cmd: string;
+    data: any;
+}
+
+////////////////////////////////////////////////////////////////////////
+
 export interface LeadershipResultStatus {
-    leadership_status: string
+    leadership: string
 }
 export interface LeadershipResultWorkerStatus {
     name: string;
     status: string;
+    topology_count: number;
+    lstatus: string,
+    last_ping_d: number,
+    last_ping: Date,
+    lstatus_ts: number,
+    lstatus_ts_d: Date
 }
 export interface LeadershipResultTopologyStatus {
     uuid: string;
     status: string;
+    worker: string;
 }
 export interface StorageResultMessage {
     cmd: string;
@@ -64,7 +84,7 @@ export interface CoordinationStorage {
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>);
-    assignTopology(uuid: string, worker: string, SimpleCallback);
-    setTopologyStatus(uuid: string, status: string, error: string, SimpleCallback)
-    setWorkerStatus(worker: string, status: string, SimpleCallback);
+    assignTopology(uuid: string, worker: string, callback: SimpleCallback);
+    setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
+    setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
 }

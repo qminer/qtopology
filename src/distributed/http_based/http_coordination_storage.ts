@@ -1,7 +1,26 @@
-"use strict";
+import * as http_server from "./http_server";
+import * as intf from "../../topology_interfaces";
 
-const http_server = require('./http_server');
-
+class RecWorker {
+    name: string;
+    last_ping: number;
+    status: string;
+    lstatus: string;
+    lstatus_ts: number;
+}
+class RecTopology {
+    uuid: string;
+    config: any;
+    status: string;
+    worker: string;
+    last_ping: number;
+    error: string;
+}
+class RecMessage {
+    worker: string;
+    cmd: string;
+    content: any;
+}
 //////////////////////////////////////////////////////////////////////
 // Storage implementation - accessed over HTTP
 //
@@ -16,6 +35,10 @@ const http_server = require('./http_server');
 
 class HttpCoordinationStorage {
 
+    _workers: RecWorker[];
+    _topologies: RecTopology[];
+    _messages: RecMessage[];
+
     constructor() {
         this._workers = [];
         this._topologies = [];
@@ -28,7 +51,8 @@ class HttpCoordinationStorage {
             config: config,
             status: "unassigned",
             worker: null,
-            last_ping: Date.now()
+            last_ping: Date.now(),
+            error: null
         });
     }
 
@@ -60,19 +84,19 @@ class HttpCoordinationStorage {
     }
 
     /** Determines leadership status */
-    getLeadershipStatus() {
+    getLeadershipStatus(): intf.LeadershipResultStatus {
         this._disableDefunctLeaders();
 
         let hits = this._workers.filter(x => x.lstatus == "leader");
-        if (hits.length > 0) return { leadership_status: "ok" };
+        if (hits.length > 0) return { leadership: "ok" };
 
         hits = this._workers.filter(x => x.lstatus == "candidate");
-        if (hits.length > 0) return { leadership_status: "pending" };
+        if (hits.length > 0) return { leadership: "pending" };
 
-        return { leadership_status: "vacant" };
+        return { leadership: "vacant" };
     }
 
-    announceLeaderCandidacy(name) {
+    announceLeaderCandidacy(name: string) {
         this._disableDefunctLeaders();
 
         // if we already have a leader, abort
@@ -91,18 +115,18 @@ class HttpCoordinationStorage {
                 break;
             }
         }
-        return { success: true };
+        return;
     }
 
     /** Checks if leadership candidacy for specified worker was successful. */
-    checkLeaderCandidacy(name) {
+    checkLeaderCandidacy(name: string): boolean {
         this._disableDefunctLeaders();
 
-        let res = { leader: false };
+        let res = false;
         for (let worker of this._workers) {
             if (worker.name == name && worker.lstatus == "pending") {
                 worker.lstatus = "leader";
-                res.leader = true;
+                res = true;
                 break;
             }
         }
@@ -110,7 +134,7 @@ class HttpCoordinationStorage {
     }
 
     /** Returns worker statuses */
-    getWorkerStatuses() {
+    getWorkerStatuses(): intf.LeadershipResultWorkerStatus[] {
         this._disableDefunctWorkers();
         return this._workers
             .map(x => {
@@ -131,7 +155,7 @@ class HttpCoordinationStorage {
             });
     }
 
-    getTopologyStatuses() {
+    getTopologyStatuses(): intf.LeadershipResultTopologyStatus[] {
         this._disableDefunctWorkers();
         this._unassignWaitingTopologies();
         return this._topologies
@@ -144,11 +168,19 @@ class HttpCoordinationStorage {
             });
     }
 
-    getTopologiesForWorker(name) {
-        return this._topologies.filter(x => x.worker === name);
+    getTopologiesForWorker(name: string): intf.LeadershipResultTopologyStatus[] {
+        return this._topologies
+            .filter(x => x.worker === name)
+            .map(x => {
+                return {
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker
+                };
+            });
     }
 
-    assignTopology(uuid, target) {
+    assignTopology(uuid: string, target: string) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         this._messages.push({
             worker: target,
@@ -160,29 +192,25 @@ class HttpCoordinationStorage {
         });
         topology.status = "waiting";
         topology.worker = target;
-        return { success: true };
     }
 
-    markTopologyAsRunning(uuid) {
+    markTopologyAsRunning(uuid: string) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "running";
         topology.last_ping = Date.now();
-        return { success: true };
     }
 
-    markTopologyAsStopped(uuid) {
+    markTopologyAsStopped(uuid: string) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "stopped";
         topology.last_ping = Date.now();
-        return { success: true };
     }
 
-    markTopologyAsError(uuid, error) {
+    markTopologyAsError(uuid: string, error: string) {
         let topology = this._topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "error";
         topology.last_ping = Date.now();
         topology.error = error;
-        return { success: true };
     }
 
     setTopologyPing(uuid) {
@@ -238,7 +266,7 @@ class HttpCoordinationStorage {
         for (let worker of this._workers) {
             worker_map[worker.name] = worker.status;
         }
-        for (let topology in this._topologies) {
+        for (let topology of this._topologies) {
             if (topology.status == "waiting" && topology.last_ping < d) {
                 topology.status = "unassigned";
                 topology.worker = null;
@@ -255,7 +283,7 @@ class HttpCoordinationStorage {
     _disableDefunctWorkers() {
         // disable workers that did not update their status
         let d = Date.now() - 30 * 1000;
-        for (let worker in this._workers) {
+        for (let worker of this._workers) {
             if (worker.status == "alive" && worker.last_ping < d) {
                 worker.status = "dead";
             }
@@ -265,7 +293,7 @@ class HttpCoordinationStorage {
     _disableDefunctLeaders() {
         // disable worker that did not perform their leadership duties
         let d = Date.now() - 10 * 1000;
-        for (let worker in this._workers) {
+        for (let worker of this._workers) {
             if (worker.lstatus == "leader" || worker.lstatus == "candidate") {
                 if (worker.last_ping < d) {
                     worker.lstatus = "";
