@@ -1,60 +1,59 @@
 "use strict";
-var port = 3000;
-var Client = require('node-rest-client').Client;
-var EventEmitter = require('events');
+const port = 3000;
+const Client = require('node-rest-client').Client;
+const EventEmitter = require('events');
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
-var HttpCoordinator = (function () {
-    function HttpCoordinator(options) {
+class HttpCoordinator {
+    constructor(options) {
         options = options || {};
         this._port = options.port || port;
         this._client = new Client();
         this._urlPrefix = "http://localhost:" + this._port + "/";
     }
-    HttpCoordinator.prototype.getMessages = function (name, callback) {
+    getMessages(name, callback) {
         this._call("get-messages", { worker: name }, callback);
-    };
-    HttpCoordinator.prototype.getWorkerStatus = function (callback) {
+    }
+    getWorkerStatus(callback) {
         this._call("worker-statuses", {}, callback);
-    };
-    HttpCoordinator.prototype.getTopologyStatus = function (callback) {
+    }
+    getTopologyStatus(callback) {
         this._call("topology-statuses", {}, callback);
-    };
-    HttpCoordinator.prototype.getTopologiesForWorker = function (name, callback) {
+    }
+    getTopologiesForWorker(name, callback) {
         this._call("worker-topologies", { worker: name }, callback);
-    };
-    HttpCoordinator.prototype.getLeadershipStatus = function (callback) {
+    }
+    getLeadershipStatus(callback) {
         this._call("leadership-status", {}, callback);
-    };
-    HttpCoordinator.prototype.registerWorker = function (name, callback) {
+    }
+    registerWorker(name, callback) {
         this._call("register-worker", { worker: name }, callback);
-    };
-    HttpCoordinator.prototype.announceLeaderCandidacy = function (name, callback) {
+    }
+    announceLeaderCandidacy(name, callback) {
         this._call("announce-leader-candidacy", { worker: name }, callback);
-    };
-    HttpCoordinator.prototype.checkLeaderCandidacy = function (name, callback) {
+    }
+    checkLeaderCandidacy(name, callback) {
         this._call("check-leader-candidacy", { worker: name }, callback);
-    };
-    HttpCoordinator.prototype.assignTopology = function (uuid, name, callback) {
+    }
+    assignTopology(uuid, name, callback) {
         this._call("assign-topology", { worker: name, uuid: uuid }, callback);
-    };
-    HttpCoordinator.prototype.setTopologyStatus = function (uuid, status, error, callback) {
+    }
+    setTopologyStatus(uuid, status, error, callback) {
         this._call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
-    };
-    HttpCoordinator.prototype.setWorkerStatus = function (name, status, callback) {
+    }
+    setWorkerStatus(name, status, callback) {
         this._call("set-worker-status", { name: name, status: status }, callback);
-    };
-    HttpCoordinator.prototype._call = function (addr, req_data, callback) {
-        var self = this;
-        var args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        var req = this._client.post(self._urlPrefix + addr, args, function (data, response) {
+    }
+    _call(addr, req_data, callback) {
+        let self = this;
+        let args = { data: req_data, headers: { "Content-Type": "application/json" } };
+        let req = this._client.post(self._urlPrefix + addr, args, (data, response) => {
             callback(null, data);
         });
-        req.on('error', function (err) {
+        req.on('error', (err) => {
             callback(err);
         });
-    };
-    return HttpCoordinator;
-}());
+    }
+}
 ////////////////////////////////////////////////////////////////////
 exports.HttpCoordinator = HttpCoordinator;

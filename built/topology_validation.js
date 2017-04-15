@@ -1,6 +1,6 @@
 "use strict";
-var fs = require("fs");
-var Validator = require("jsonschema").Validator;
+const fs = require("fs");
+const Validator = require("jsonschema").Validator;
 /////////////////////////////////////////////////////////////////////////////
 /**
  *
@@ -10,23 +10,21 @@ var Validator = require("jsonschema").Validator;
  * @param {boolean} options.throwOnError - If true, in case of errors the validator throws an exception
  */
 function validate(options) {
-    var config = options.config, exitOnError = options.exitOnError, throwOnError = options.throwOnError;
-    var schema = require("../src/topology_config_schema.json");
-    var v = new Validator();
-    var validation_result = v.validate(config, schema);
+    let { config, exitOnError, throwOnError } = options;
+    let schema = require("../src/topology_config_schema.json");
+    let v = new Validator();
+    let validation_result = v.validate(config, schema);
     if (validation_result.errors.length > 0) {
         if (exitOnError) {
             console.error("Errors while parsing topology schema:");
-            for (var _i = 0, _a = validation_result.errors; _i < _a.length; _i++) {
-                var error = _a[_i];
+            for (let error of validation_result.errors) {
                 console.error(error.stack || error.property + " " + error.message);
             }
             process.exit(1);
         }
         if (throwOnError) {
-            var msg = "";
-            for (var _b = 0, _c = validation_result.errors; _b < _c.length; _b++) {
-                var error = _c[_b];
+            let msg = "";
+            for (let error of validation_result.errors) {
                 msg += (error.stack || error.property + " " + error.message) + "\n";
             }
             throw new Error(msg);

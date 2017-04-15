@@ -1,13 +1,13 @@
 "use strict";
-var http = require('http');
+const http = require('http');
 ///////////////////////////////////////////////////////////////////////////
 // Bare minimum REST server
 // Utility function that reads requests body
 function withBody(handler) {
-    return function (req, resp) {
-        var input = "";
-        req.on("data", function (chunk) { input += chunk; });
-        req.on("end", function () { req.body = input; handler(req, resp); });
+    return (req, resp) => {
+        let input = "";
+        req.on("data", (chunk) => { input += chunk; });
+        req.on("end", () => { req.body = input; handler(req, resp); });
     };
 }
 ;
@@ -24,19 +24,19 @@ function handleError(error, response) {
     response.end(error);
 }
 // registered handlers
-var handlers = {};
+let handlers = {};
 /** For registering simple handlers */
 function addHandler(addr, callback) {
     handlers[addr] = callback;
 }
 /** For running the server */
 function run(options) {
-    var port = options.port || 3000;
-    var server = http.createServer(withBody(function (req, resp) {
+    const port = options.port || 3000;
+    var server = http.createServer(withBody((req, resp) => {
         // get the HTTP method, path and body of the request
         var method = req.method;
         var addr = req.url;
-        var data = null;
+        let data = null;
         console.log("Handling", addr);
         try {
             data = JSON.parse(req.body);
@@ -47,11 +47,11 @@ function run(options) {
         }
         console.log("Handling", req.body);
         if (!handlers[addr]) {
-            handleError("Unknown request: \"" + addr + "\"", resp);
+            handleError(`Unknown request: "${addr}"`, resp);
         }
         else {
             try {
-                handlers[addr](data, function (err, data) {
+                handlers[addr](data, (err, data) => {
                     if (err)
                         return handleError(err, response);
                     handleResponse(data, resp);
@@ -63,7 +63,7 @@ function run(options) {
             }
         }
     }));
-    server.listen(port, function (err) {
+    server.listen(port, (err) => {
         if (err) {
             console.log("Error while starting server on port", port);
             console.log("Error:", err);

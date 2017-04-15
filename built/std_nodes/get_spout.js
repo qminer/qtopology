@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var rest = require("node-rest-client");
+const rest = require("node-rest-client");
 /** This spout sends GET request to the specified url in regular
  * time intervals and forwards the result.
  * */
-var GetSpout = (function () {
-    function GetSpout() {
+class GetSpout {
+    constructor() {
         this.name = null;
         this.url = null;
         this.stream_id = null;
@@ -14,41 +14,39 @@ var GetSpout = (function () {
         this.next_tuple = null;
         this.next_ts = Date.now();
     }
-    GetSpout.prototype.init = function (name, config, callback) {
+    init(name, config, callback) {
         this.name = name;
         this.url = config.url;
         this.repeat = config.repeat;
         this.stream_id = config.stream_id;
         this.client = new rest.Client();
         callback();
-    };
-    GetSpout.prototype.heartbeat = function () {
-        var _this = this;
+    }
+    heartbeat() {
         if (!this.should_run) {
             return;
         }
         if (this.next_ts < Date.now()) {
-            var self_1 = this;
-            var req = self_1.client.get(self_1.url, function (new_data, response) {
-                _this.next_tuple = { body: new_data };
-                self_1.next_ts = Date.now() + self_1.repeat;
+            let self = this;
+            let req = self.client.get(self.url, (new_data, response) => {
+                this.next_tuple = { body: new_data };
+                self.next_ts = Date.now() + self.repeat;
             });
         }
-    };
-    GetSpout.prototype.shutdown = function (callback) {
+    }
+    shutdown(callback) {
         callback();
-    };
-    GetSpout.prototype.run = function () {
+    }
+    run() {
         this.should_run = true;
-    };
-    GetSpout.prototype.pause = function () {
+    }
+    pause() {
         this.should_run = false;
-    };
-    GetSpout.prototype.next = function (callback) {
-        var data = this.next_tuple;
+    }
+    next(callback) {
+        let data = this.next_tuple;
         this.next_tuple = null;
         callback(null, data, this.stream_id);
-    };
-    return GetSpout;
-}());
+    }
+}
 exports.GetSpout = GetSpout;

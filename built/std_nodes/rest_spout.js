@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var http = require("http");
+const http = require("http");
 /** This spout receives requests (messages/data) over REST interface.
  * It assumes data is in JSON format.
  */
-var RestSpout = (function () {
-    function RestSpout() {
+class RestSpout {
+    constructor() {
         this.name = null;
         this.port = null;
         this.stream_id = null;
@@ -13,18 +13,18 @@ var RestSpout = (function () {
         this.queue = [];
         this.server = null;
     }
-    RestSpout.prototype.init = function (name, config, callback) {
+    init(name, config, callback) {
         this.name = name;
         this.port = config.port;
         this.stream_id = config.stream_id;
-        var self = this;
-        this.server = http.createServer(function (req, res) {
+        let self = this;
+        this.server = http.createServer((req, res) => {
             if (self.should_run) {
-                var body_1 = [];
+                let body = [];
                 req
-                    .on('data', function (chunk) { body_1.push(chunk); })
-                    .on('end', function () {
-                    var body_s = Buffer.concat(body_1).toString();
+                    .on('data', (chunk) => { body.push(chunk); })
+                    .on('end', () => {
+                    let body_s = Buffer.concat(body).toString();
                     res.end();
                     self.queue.push(JSON.parse(body_s));
                 });
@@ -33,29 +33,28 @@ var RestSpout = (function () {
                 res.end();
             }
         });
-        self.server.on('clientError', function (err, socket) {
+        self.server.on('clientError', (err, socket) => {
             socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
         });
         self.server.listen(self.port, callback);
-    };
-    RestSpout.prototype.heartbeat = function () { };
-    RestSpout.prototype.shutdown = function (callback) {
+    }
+    heartbeat() { }
+    shutdown(callback) {
         this.server.close(callback);
-    };
-    RestSpout.prototype.run = function () {
+    }
+    run() {
         this.should_run = true;
-    };
-    RestSpout.prototype.pause = function () {
+    }
+    pause() {
         this.should_run = false;
-    };
-    RestSpout.prototype.next = function (callback) {
+    }
+    next(callback) {
         if (this.queue.length === 0) {
             return callback(null, null, null);
         }
-        var data = this.queue[0];
+        let data = this.queue[0];
         this.queue = this.queue.slice(1);
         callback(null, data, this.stream_id);
-    };
-    return RestSpout;
-}());
+    }
+}
 exports.RestSpout = RestSpout;

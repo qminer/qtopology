@@ -1,26 +1,25 @@
 "use strict";
-var fs = require("fs");
-var path = require("path");
-var EventEmitter = require('events');
+const fs = require("fs");
+const path = require("path");
+const EventEmitter = require('events');
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
-var FileCoordinator = (function () {
-    function FileCoordinator(options) {
+class FileCoordinator {
+    constructor(options) {
         this._msgs = [];
         this._dir_name = options.dir_name;
         this._dir_name = path.resolve(this._dir_name);
         this._file_pattern = options.file_pattern;
         this._file_pattern_regex = this._createRegexpForPattern(this._file_pattern);
-        var items = fs.readdirSync(this._dir_name);
+        let items = fs.readdirSync(this._dir_name);
         console.log("Starting file-based coordination, from directory", this._dir_name);
-        for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
-            var item = items_1[_i];
+        for (let item of items) {
             if (path.extname(item) != ".json")
                 continue;
             if (!item.match(this._file_pattern_regex))
                 continue;
             console.log("Found topology file", item);
-            var config = require(path.join(this._dir_name, item));
+            let config = require(path.join(this._dir_name, item));
             this._msgs.push({
                 worker: "",
                 cmd: "start",
@@ -31,52 +30,51 @@ var FileCoordinator = (function () {
             });
         }
     }
-    FileCoordinator.prototype.getMessages = function (name, callback) {
-        var tmp = this._msgs;
+    getMessages(name, callback) {
+        let tmp = this._msgs;
         this._msgs = [];
         callback(null, tmp);
-    };
-    FileCoordinator.prototype.getWorkerStatus = function (callback) {
+    }
+    getWorkerStatus(callback) {
         callback(null, []);
-    };
-    FileCoordinator.prototype.getTopologyStatus = function (callback) {
+    }
+    getTopologyStatus(callback) {
         callback(null, []);
-    };
-    FileCoordinator.prototype.getTopologiesForWorker = function (name, callback) {
+    }
+    getTopologiesForWorker(name, callback) {
         callback(null, []);
-    };
-    FileCoordinator.prototype.getLeadershipStatus = function (callback) {
+    }
+    getLeadershipStatus(callback) {
         callback(null, { leadership: "ok" });
-    };
-    FileCoordinator.prototype.registerWorker = function (name, callback) {
+    }
+    registerWorker(name, callback) {
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype.announceLeaderCandidacy = function (name, callback) {
+    }
+    announceLeaderCandidacy(name, callback) {
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype.checkLeaderCandidacy = function (name, callback) {
+    }
+    checkLeaderCandidacy(name, callback) {
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype.assignTopology = function (uuid, name, callback) {
+    }
+    assignTopology(uuid, name, callback) {
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype.setTopologyStatus = function (uuid, status, error, callback) {
-        console.log("Setting topology status: uuid=" + uuid + " status=" + status + " error=" + error);
+    }
+    setTopologyStatus(uuid, status, error, callback) {
+        console.log(`Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype.setWorkerStatus = function (name, status, callback) {
-        console.log("Setting worker status: name=" + name + " status=" + status);
+    }
+    setWorkerStatus(name, status, callback) {
+        console.log(`Setting worker status: name=${name} status=${status}`);
         callback(null, { success: true });
-    };
-    FileCoordinator.prototype._createRegexpForPattern = function (str) {
+    }
+    _createRegexpForPattern(str) {
         if (!str)
             return /.*/g;
         str = str
             .replace(/\./g, "\.")
             .replace(/\*/g, ".*");
         return new RegExp("^" + str + "$", "gi");
-    };
-    return FileCoordinator;
-}());
+    }
+}
 ////////////////////////////////////////////////////////////////////
 exports.FileCoordinator = FileCoordinator;

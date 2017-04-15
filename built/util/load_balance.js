@@ -4,11 +4,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Given list of workers and their current load, it returns a sequence of
  * worker names in which new load should be assigned.
 */
-var LoadBalancer = (function () {
+class LoadBalancer {
     /** Constructor received the list of workers. Each worker
      * contains a name and a weight (current load).
      */
-    function LoadBalancer(wrkrs) {
+    constructor(wrkrs) {
         if (wrkrs.length == 0) {
             throw new Error("Cannot perform load-balancing on empty list of workers");
         }
@@ -16,20 +16,19 @@ var LoadBalancer = (function () {
         this.sort();
     }
     /** Returns next worker to receive new load */
-    LoadBalancer.prototype.next = function () {
-        var res = this.workers[0].name;
+    next() {
+        let res = this.workers[0].name;
         this.workers[0].weight++;
         this.sort();
         return res;
-    };
+    }
     /** Internal utility method */
-    LoadBalancer.prototype.sort = function () {
-        this.workers.sort(function (a, b) {
+    sort() {
+        this.workers.sort((a, b) => {
             if (a.weight === b.weight)
                 return a.name.localeCompare(b.name);
             return a.weight - b.weight;
         });
-    };
-    return LoadBalancer;
-}());
+    }
+}
 exports.LoadBalancer = LoadBalancer;

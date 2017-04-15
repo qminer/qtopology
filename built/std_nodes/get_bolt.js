@@ -1,30 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var rest = require("node-rest-client");
+const rest = require("node-rest-client");
 /** This bolt sends GET request to specified url
  * and forwards the result.
  * */
-var GetBolt = (function () {
-    function GetBolt() {
+class GetBolt {
+    constructor() {
         this.name = null;
         this.onEmit = null;
         this.fixed_url = null;
     }
-    GetBolt.prototype.init = function (name, config, callback) {
+    init(name, config, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;
         this.client = new rest.Client();
         callback();
-    };
-    GetBolt.prototype.heartbeat = function () { };
-    GetBolt.prototype.shutdown = function (callback) {
+    }
+    heartbeat() { }
+    shutdown(callback) {
         callback();
-    };
-    GetBolt.prototype.receive = function (data, stream_id, callback) {
-        var self = this;
+    }
+    receive(data, stream_id, callback) {
+        let self = this;
         if (self.fixed_url) {
-            var req = self.client.get(self.fixed_url, function (new_data, response) {
+            let req = self.client.get(self.fixed_url, (new_data, response) => {
                 self.onEmit({ body: new_data }, null, callback);
             });
             req.on('error', function (err) {
@@ -32,16 +32,15 @@ var GetBolt = (function () {
             });
         }
         else {
-            var req = self.client.get(data.url, function (new_data, response) {
+            let req = self.client.get(data.url, (new_data, response) => {
                 self.onEmit({ body: new_data }, null, callback);
             });
             req.on('error', function (err) {
                 callback(err);
             });
         }
-    };
-    return GetBolt;
-}());
+    }
+}
 exports.GetBolt = GetBolt;
 ////////////////////////////////////////////////////////////////////////////////
 exports.GetBolt = GetBolt;

@@ -5,14 +5,14 @@
 function injectVars(target, vars) {
     if (target) {
         if (typeof target == "string") {
-            for (var v in vars) {
+            for (let v in vars) {
                 if (vars.hasOwnProperty(v)) {
                     target = target.replace(new RegExp("\\${" + v + "}", "i"), vars[v]);
                 }
             }
         }
         else if (typeof target === 'object') {
-            for (var f in target) {
+            for (let f in target) {
                 if (target.hasOwnProperty(f)) {
                     target[f] = injectVars(target[f], vars);
                 }
@@ -22,17 +22,16 @@ function injectVars(target, vars) {
     return target;
 }
 /** Main class - checks and compiles the topology */
-var TopologyCompiler = (function () {
+class TopologyCompiler {
     /** Simple constructor, receives the topology. */
-    function TopologyCompiler(topology_config) {
+    constructor(topology_config) {
         this._config = JSON.parse(JSON.stringify(topology_config));
     }
     /** Checks and compiles the topology. */
-    TopologyCompiler.prototype.compile = function () {
-        var vars = this._config.variables || {};
+    compile() {
+        let vars = this._config.variables || {};
         if (this._config.general.initialization) {
-            for (var _i = 0, _a = this._config.general.initialization; _i < _a.length; _i++) {
-                var init_top = _a[_i];
+            for (let init_top of this._config.general.initialization) {
                 init_top.working_dir = injectVars(init_top.working_dir, vars);
                 if (init_top.init) {
                     init_top.init = injectVars(init_top.init, vars);
@@ -40,19 +39,17 @@ var TopologyCompiler = (function () {
             }
         }
         if (this._config.general.shutdown) {
-            for (var _b = 0, _c = this._config.general.shutdown; _b < _c.length; _b++) {
-                var shutdown_top = _c[_b];
+            for (let shutdown_top of this._config.general.shutdown) {
                 shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
                 if (shutdown_top.init) {
                     shutdown_top.init = injectVars(shutdown_top.init, vars);
                 }
             }
         }
-        var names = {};
-        for (var _d = 0, _e = this._config.spouts; _d < _e.length; _d++) {
-            var spout = _e[_d];
+        let names = {};
+        for (let spout of this._config.spouts) {
             if (names[spout.name]) {
-                throw new Error("Spout name '" + spout.name + "' occurs several times.");
+                throw new Error(`Spout name '${spout.name}' occurs several times.`);
             }
             names[spout.name] = true;
             // inject variables
@@ -60,10 +57,9 @@ var TopologyCompiler = (function () {
             spout.cmd = injectVars(spout.cmd, vars);
             spout.init = injectVars(spout.init, vars);
         }
-        for (var _f = 0, _g = this._config.bolts; _f < _g.length; _f++) {
-            var bolt = _g[_f];
+        for (let bolt of this._config.bolts) {
             if (names[bolt.name]) {
-                throw new Error("Bolt name '" + bolt.name + "' occurs several times. Could also be spout's name.");
+                throw new Error(`Bolt name '${bolt.name}' occurs several times. Could also be spout's name.`);
             }
             names[bolt.name] = true;
             // inject variables
@@ -72,20 +68,18 @@ var TopologyCompiler = (function () {
             bolt.init = injectVars(bolt.init, vars);
         }
         // check bolt inputs
-        this._config.bolts.forEach(function (bolt) {
-            for (var _i = 0, _a = bolt.inputs; _i < _a.length; _i++) {
-                var input = _a[_i];
+        this._config.bolts.forEach((bolt) => {
+            for (let input of bolt.inputs) {
                 if (!names[input.source]) {
-                    throw new Error("Bolt '" + bolt.name + "' is using unknown input source '" + input.source + "'.");
+                    throw new Error(`Bolt '${bolt.name}' is using unknown input source '${input.source}'.`);
                 }
             }
         });
-    };
+    }
     /** Returns compiled configuration . */
-    TopologyCompiler.prototype.getWholeConfig = function () {
+    getWholeConfig() {
         return JSON.parse(JSON.stringify(this._config));
-    };
-    return TopologyCompiler;
-}());
+    }
+}
 /////////////////////////////////////////////////////////////////////////////
 exports.TopologyCompiler = TopologyCompiler;

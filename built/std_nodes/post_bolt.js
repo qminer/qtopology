@@ -1,30 +1,30 @@
 "use strict";
-var pm = require("../util/pattern_matcher");
-var rest = require('node-rest-client');
+const pm = require("../util/pattern_matcher");
+const rest = require('node-rest-client');
 /////////////////////////////////////////////////////////////////////////////
 /** This bolt sends POST request to specified url (fixed or provided inside data)
  * and forwards the request. */
-var PostBolt = (function () {
-    function PostBolt() {
+class PostBolt {
+    constructor() {
         this._name = null;
         this._onEmit = null;
         this._fixed_url = null;
     }
-    PostBolt.prototype.init = function (name, config, callback) {
+    init(name, config, callback) {
         this._name = name;
         this._onEmit = config.onEmit;
         this._fixed_url = config.url;
         this._client = new rest.Client();
         callback();
-    };
-    PostBolt.prototype.heartbeat = function () { };
-    PostBolt.prototype.shutdown = function (callback) {
+    }
+    heartbeat() { }
+    shutdown(callback) {
         callback();
-    };
-    PostBolt.prototype.receive = function (data, stream_id, callback) {
-        var self = this;
-        var url = this._fixed_url;
-        var args = {
+    }
+    receive(data, stream_id, callback) {
+        let self = this;
+        let url = this._fixed_url;
+        let args = {
             data: data,
             headers: { "Content-Type": "application/json" }
         };
@@ -32,14 +32,13 @@ var PostBolt = (function () {
             url = data.url;
             args.data = data.body;
         }
-        var req = self._client.post(url, args, function (new_data, response) {
+        let req = self._client.post(url, args, (new_data, response) => {
             self._onEmit({ body: new_data }, null, callback);
         });
         req.on('error', function (err) {
             callback(err);
         });
-    };
-    return PostBolt;
-}());
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////
 exports.PostBolt = PostBolt;
