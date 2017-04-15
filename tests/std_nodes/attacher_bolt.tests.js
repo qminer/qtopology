@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const ab = require("../../src/std_nodes/attacher_bolt");
+const ab = require("../../built/std_nodes/attacher_bolt");
 
 describe('AttacherBolt', function () {
     it('constructable', function () {

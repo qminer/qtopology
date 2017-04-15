@@ -4,7 +4,7 @@
 
 const assert = require("assert");
 const async = require("async");
-const tli = require("../src/topology_local_inprocess");
+const tli = require("../built/topology_local_inprocess");
 
 describe('TopologyBoltInproc', function () {
     describe('Construction', function () {

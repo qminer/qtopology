@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const pm = require("../../src/util/pattern_matcher");
+const pm = require("../../built/util/pattern_matcher");
 
 describe('PaternMatcher', function () {
     it('empty filter - empty data', function () {

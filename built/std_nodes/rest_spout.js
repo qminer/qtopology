@@ -50,7 +50,7 @@ var RestSpout = (function () {
     };
     RestSpout.prototype.next = function (callback) {
         if (this.queue.length === 0) {
-            return callback();
+            return callback(null, null, null);
         }
         var data = this.queue[0];
         this.queue = this.queue.slice(1);

@@ -9,6 +9,9 @@ var LoadBalancer = (function () {
      * contains a name and a weight (current load).
      */
     function LoadBalancer(wrkrs) {
+        if (wrkrs.length == 0) {
+            throw new Error("Cannot perform load-balancing on empty list of workers");
+        }
         this.workers = wrkrs.slice(0); // creat a copy
         this.sort();
     }

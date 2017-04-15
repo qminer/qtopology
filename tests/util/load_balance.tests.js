@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const lb = require("../../src/util/load_balance");
+const lb = require("../../built/util/load_balance");
 
 describe('LoadBalancer', function () {
     describe('constructor', function () {

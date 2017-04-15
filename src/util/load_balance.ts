@@ -16,6 +16,9 @@ export class LoadBalancer {
      * contains a name and a weight (current load).
      */
     constructor(wrkrs: Worker[]) {
+        if (wrkrs.length == 0) {
+            throw new Error("Cannot perform load-balancing on empty list of workers");
+        }
         this.workers = wrkrs.slice(0); // creat a copy
         this.sort();
     }

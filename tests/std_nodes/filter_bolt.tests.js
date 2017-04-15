@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const fb = require("../../src/std_nodes/filter_bolt");
+const fb = require("../../built/std_nodes/filter_bolt");
 
 describe('FilterBolt', function () {
     it('constructable', function () {
