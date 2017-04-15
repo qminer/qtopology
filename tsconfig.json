@@ -5,10 +5,7 @@
         "target": "es6",
         "module": "commonjs",
         "noImplicitReturns": true,
-        "noImplicitAny": true,
         "noFallthroughCasesInSwitch": true,
-        "declaration": true,
-        "declarationDir": "./types",
         "types": [
             "node"
         ],

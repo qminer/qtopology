@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class OptionsDescription {
 }
-class Singleton {
+exports.OptionsDescription = OptionsDescription;
+class CmdLineParser {
     constructor() {
         this.shortnames = {};
         this.names = {};
@@ -108,4 +109,5 @@ class Singleton {
         return opts;
     }
 }
-exports.default = new Singleton();
+exports.CmdLineParser = CmdLineParser;
+exports.default = new CmdLineParser();

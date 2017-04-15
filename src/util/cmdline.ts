@@ -1,5 +1,5 @@
 
-class OptionsDescription {
+export class OptionsDescription {
     shortname: string;
     name: string;
     default: string | number;
@@ -8,7 +8,7 @@ class OptionsDescription {
     flag: string;
 }
 
-class Singleton {
+export class CmdLineParser {
 
     shortnames: any;
     names: any;
@@ -26,7 +26,7 @@ class Singleton {
         this.descriptions = [];
     }
 
-    areFlags(letters) {
+    areFlags(letters: string) {
         for (let k = 0; k < letters.length; k++) {
             let letter = letters[k];
             if (!this.shortnames[letter] || !this.shortnames[letter].flag) {
@@ -128,4 +128,4 @@ class Singleton {
     }
 }
 
-export default new Singleton();
+export default new CmdLineParser();
