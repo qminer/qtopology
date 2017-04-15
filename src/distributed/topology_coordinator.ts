@@ -1,22 +1,25 @@
-"use strict";
-
-const async = require("async");
-const EventEmitter = require("events");
-const leader = require("./topology_leader");
+import * as async from "async";
+import * as leader from "./topology_leader";
+import * as EventEmitter from "events";
+import * as intf from "../topology_interfaces";
 
 /** This class handles communication with topology coordination storage.
  */
-class TopologyCoordinator extends EventEmitter {
+export class TopologyCoordinator extends EventEmitter {
+
+    _storage: intf.CoordinationStorage;
+    _name: string;
+    _isRunning: boolean;
+    _shutdownCallback: intf.SimpleCallback;
+    _loopTimeout: number;
+    _leadership: leader.TopologyLeader;
 
     /** Simple constructor */
-    constructor(options) {
+    constructor(name: string, storage: intf.CoordinationStorage) {
         super();
-        this._storage = options.storage;
-        this._name = options.name;
-        this._leadership = new leader.TopologyLeader({
-            storage: this._storage,
-            name: this._name
-        });
+        this._storage = storage;
+        this._name = name;
+        this._leadership = new leader.TopologyLeader(this._name, this._storage);
         this._isRunning = false;
         this._shutdownCallback = null;
         this._loopTimeout = 2 * 1000; // 2 seconds for refresh
@@ -47,7 +50,7 @@ class TopologyCoordinator extends EventEmitter {
     }
 
     /** Shut down the loop */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         let self = this;
         self.reportWorker(self._name, "dead", "", (err) => {
             if (err) {
@@ -65,7 +68,7 @@ class TopologyCoordinator extends EventEmitter {
     }
 
     /** Set status on given topology */
-    reportTopology(uuid, status, error, callback) {
+    reportTopology(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         this._storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
                 console.log("Couldn't report topology status");
@@ -79,7 +82,7 @@ class TopologyCoordinator extends EventEmitter {
     }
 
     /** Set status on given worker */
-    reportWorker(name, status, error, callback) {
+    reportWorker(name: string, status: string, error: string, callback: intf.SimpleCallback) {
         this._storage.setWorkerStatus(name, status, (err) => {
             if (err) {
                 console.log("Couldn't report worker status");
@@ -93,7 +96,7 @@ class TopologyCoordinator extends EventEmitter {
     }
 
     /** This method checks for new messages from coordination storage. */
-    _handleIncommingRequests(callback) {
+    _handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
         self._storage.getMessages(self._name, (err, msgs) => {
             if (err) return callback(err);
@@ -113,7 +116,3 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 }
-
-////////////////////////////////////////////////////////////////////////////
-
-exports.TopologyCoordinator = TopologyCoordinator;

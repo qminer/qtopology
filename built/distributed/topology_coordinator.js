@@ -1,19 +1,17 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
-const EventEmitter = require("events");
 const leader = require("./topology_leader");
+const EventEmitter = require("events");
 /** This class handles communication with topology coordination storage.
  */
 class TopologyCoordinator extends EventEmitter {
     /** Simple constructor */
-    constructor(options) {
+    constructor(name, storage) {
         super();
-        this._storage = options.storage;
-        this._name = options.name;
-        this._leadership = new leader.TopologyLeader({
-            storage: this._storage,
-            name: this._name
-        });
+        this._storage = storage;
+        this._name = name;
+        this._leadership = new leader.TopologyLeader(this._name, this._storage);
         this._isRunning = false;
         this._shutdownCallback = null;
         this._loopTimeout = 2 * 1000; // 2 seconds for refresh
@@ -98,5 +96,4 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
 }
-////////////////////////////////////////////////////////////////////////////
 exports.TopologyCoordinator = TopologyCoordinator;

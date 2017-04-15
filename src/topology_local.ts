@@ -1,18 +1,23 @@
-"use strict";
-
-const async = require("async");
-const path = require("path");
-const top_sub = require("./topology_local_subprocess");
-const top_inproc = require("./topology_local_inprocess");
+import * as intf from "./topology_interfaces";
+import * as async from "async";
+import * as path from "path";
+import * as top_inproc from "./topology_local_inprocess";
 
 ////////////////////////////////////////////////////////////////////
 
+class OutputRouterDestination {
+    destination: string;
+    stream_id: string;
+}
+
 /** Class that performs redirection of messages after they are emited from nodes */
-class OutputRouter {
+export class OutputRouter {
+
+    sources: Map<string, OutputRouterDestination>;
 
     /** Constructor prepares the object before any information is received. */
     constructor() {
-        this._sources = {};
+        this.sources = new Map<string, OutputRouterDestination>();
     }
 
     /** This method registers binding between source and destination
@@ -20,29 +25,39 @@ class OutputRouter {
      * @param {string} destination - Name of destination
      * @param {string} stream_id - Stream ID used for routing
      */
-    register(source, destination, stream_id) {
-        if (!this._sources[source]) {
-            this._sources[source] = [];
+    register(source: string, destination: string, stream_id: string) {
+        if (!this.sources[source]) {
+            this.sources[source] = [];
         }
-        this._sources[source].push({ destination: destination, stream_id: stream_id || null });
+        this.sources[source].push({ destination: destination, stream_id: stream_id || null });
     }
 
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
      * @param {string} stream_id - Stream ID used for routing
      */
-    getDestinationsForSource(source, stream_id) {
-        if (!this._sources[source]) {
+    getDestinationsForSource(source: string, stream_id: string): string[] {
+        if (!this.sources[source]) {
             return [];
         }
-        return this._sources[source]
+        return this.sources[source]
             .filter(x => { return x.stream_id == stream_id; })
             .map(x => x.destination);
     }
 }
 
 /** This class runs local topology */
-class TopologyLocal {
+export class TopologyLocal {
+
+    _spouts: top_inproc.TopologySpoutInproc[];
+    _bolts: top_inproc.TopologyBoltInproc[];
+    _config: any;
+    _heartbeatTimeout: number;
+    _router: OutputRouter;
+    _isRunning: boolean;
+    _isShuttingDown: boolean;
+    _heartbeatTimer: NodeJS.Timer;
+    _heartbeatCallback: intf.SimpleCallback;
 
     /** Constructor prepares the object before any information is received. */
     constructor() {
@@ -61,7 +76,7 @@ class TopologyLocal {
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    init(config, callback) {
+    init(config: any, callback: intf.SimpleCallback) {
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
@@ -75,11 +90,7 @@ class TopologyLocal {
                     self._redirect(bolt_config.name, data, stream_id, callback);
                 };
                 let bolt = null;
-                if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
-                    bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
-                } else {
-                    bolt = new top_sub.TopologyBolt(bolt_config, context);
-                }
+                bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
                 self._bolts.push(bolt);
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
@@ -95,11 +106,7 @@ class TopologyLocal {
                 };
                 let spout = null;
 
-                if (spout_config.type == "sys" || spout_config.type == "inproc") {
-                    spout = new top_inproc.TopologySpoutInproc(spout_config, context);
-                } else {
-                    spout = new top_sub.TopologySpout(spout_config, context);
-                }
+                spout = new top_inproc.TopologySpoutInproc(spout_config, context);
                 self._spouts.push(spout);
                 tasks.push((xcallback) => { spout.init(xcallback); });
             });
@@ -118,7 +125,7 @@ class TopologyLocal {
     }
 
     /** Sends pause signal to all spouts */
-    pause(callback) {
+    pause(callback: intf.SimpleCallback) {
         for (let spout of this._spouts) {
             spout.pause();
         }
@@ -127,7 +134,7 @@ class TopologyLocal {
     }
 
     /** Sends shutdown signal to all child processes */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         let self = this;
         self._isShuttingDown = true;
         if (self._heartbeatTimer) {
@@ -201,7 +208,7 @@ class TopologyLocal {
      * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    _redirect(source, data, stream_id, callback) {
+    _redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let destinations = self._router.getDestinationsForSource(source, stream_id);
         async.each(
@@ -219,7 +226,7 @@ class TopologyLocal {
     /** Find bolt with given name.
      * @param {string} name - Name of the bolt that we need to find
      */
-    _getBolt(name) {
+    _getBolt(name: string) {
         let hits = this._bolts.filter(x => x.getName() == name);
         if (hits.length === 0) {
             return null;
@@ -231,7 +238,7 @@ class TopologyLocal {
      * and returns the context object.
      * @param {Function} callback - standard callback
      */
-    _initContext(callback) {
+    _initContext(callback: intf.InitContextCallback) {
         let self = this;
         if (self._config.general.initialization) {
             let common_context = {};

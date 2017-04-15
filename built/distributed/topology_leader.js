@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const lb = require("../util/load_balance");
 /** This class handles leader-status determination and
@@ -6,9 +7,9 @@ const lb = require("../util/load_balance");
  */
 class TopologyLeader {
     /** Simple constructor */
-    constructor(options) {
-        this._storage = options.storage;
-        this._name = options.name;
+    constructor(name, storage) {
+        this._storage = storage;
+        this._name = name;
         this._isRunning = false;
         this._shutdownCallback = null;
         this._isLeader = false;

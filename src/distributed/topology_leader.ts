@@ -1,17 +1,24 @@
-"use strict";
 
-const async = require("async");
-const lb = require("../util/load_balance");
+import * as async from "async";
+import * as lb from "../util/load_balance";
+import * as intf from "../topology_interfaces";
 
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
  */
-class TopologyLeader {
+export class TopologyLeader {
+
+    _storage: intf.CoordinationStorage;
+    _name: string;
+    _isRunning: boolean;
+    _isLeader: boolean;
+    _shutdownCallback: intf.SimpleCallback;
+    _loopTimeout: number;
 
     /** Simple constructor */
-    constructor(options) {
-        this._storage = options.storage;
-        this._name = options.name;
+    constructor(name: string, storage: intf.CoordinationStorage) {
+        this._storage = storage;
+        this._name = name;
         this._isRunning = false;
         this._shutdownCallback = null;
         this._isLeader = false;
@@ -43,7 +50,7 @@ class TopologyLeader {
     }
 
     /** Shut down the loop */
-    shutdown(callback) {
+    shutdown(callback: intf.SimpleCallback) {
         let self = this;
         self._shutdownCallback = callback;
         self._isRunning = false;
@@ -52,7 +59,7 @@ class TopologyLeader {
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
-    _checkIfLeader(callback) {
+    _checkIfLeader(callback: intf.SimpleCallback) {
         let self = this;
         self._storage.getLeadershipStatus((err, res) => {
             if (err) return callback(err);
@@ -77,7 +84,7 @@ class TopologyLeader {
      * Checks work statuses and redistributes topologies for dead
      * to alive workers.
      */
-    _performLeaderLoop(callback) {
+    _performLeaderLoop(callback: intf.SimpleCallback) {
         let self = this;
         let alive_workers = null;
         async.series(
@@ -140,7 +147,7 @@ class TopologyLeader {
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
-    _handleDeadWorker(dead_worker, callback) {
+    _handleDeadWorker(dead_worker: string, callback: intf.SimpleCallback) {
         console.log("Handling dead worker", dead_worker);
         let self = this;
         self._storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
@@ -162,5 +169,3 @@ class TopologyLeader {
         });
     }
 }
-
-exports.TopologyLeader = TopologyLeader;

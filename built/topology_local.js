@@ -1,14 +1,16 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const path = require("path");
-const top_sub = require("./topology_local_subprocess");
 const top_inproc = require("./topology_local_inprocess");
 ////////////////////////////////////////////////////////////////////
+class OutputRouterDestination {
+}
 /** Class that performs redirection of messages after they are emited from nodes */
 class OutputRouter {
     /** Constructor prepares the object before any information is received. */
     constructor() {
-        this._sources = {};
+        this.sources = new Map();
     }
     /** This method registers binding between source and destination
      * @param {string} source - Name of source
@@ -16,24 +18,25 @@ class OutputRouter {
      * @param {string} stream_id - Stream ID used for routing
      */
     register(source, destination, stream_id) {
-        if (!this._sources[source]) {
-            this._sources[source] = [];
+        if (!this.sources[source]) {
+            this.sources[source] = [];
         }
-        this._sources[source].push({ destination: destination, stream_id: stream_id || null });
+        this.sources[source].push({ destination: destination, stream_id: stream_id || null });
     }
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
      * @param {string} stream_id - Stream ID used for routing
      */
     getDestinationsForSource(source, stream_id) {
-        if (!this._sources[source]) {
+        if (!this.sources[source]) {
             return [];
         }
-        return this._sources[source]
+        return this.sources[source]
             .filter(x => { return x.stream_id == stream_id; })
             .map(x => x.destination);
     }
 }
+exports.OutputRouter = OutputRouter;
 /** This class runs local topology */
 class TopologyLocal {
     /** Constructor prepares the object before any information is received. */
@@ -65,12 +68,7 @@ class TopologyLocal {
                     self._redirect(bolt_config.name, data, stream_id, callback);
                 };
                 let bolt = null;
-                if (bolt_config.type == "sys" || bolt_config.type == "inproc") {
-                    bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
-                }
-                else {
-                    bolt = new top_sub.TopologyBolt(bolt_config, context);
-                }
+                bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
                 self._bolts.push(bolt);
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
@@ -85,12 +83,7 @@ class TopologyLocal {
                     self._redirect(spout_config.name, data, stream_id, callback);
                 };
                 let spout = null;
-                if (spout_config.type == "sys" || spout_config.type == "inproc") {
-                    spout = new top_inproc.TopologySpoutInproc(spout_config, context);
-                }
-                else {
-                    spout = new top_sub.TopologySpout(spout_config, context);
-                }
+                spout = new top_inproc.TopologySpoutInproc(spout_config, context);
                 self._spouts.push(spout);
                 tasks.push((xcallback) => { spout.init(xcallback); });
             });
@@ -221,5 +214,6 @@ class TopologyLocal {
         }
     }
 }
+exports.TopologyLocal = TopologyLocal;
 ////////////////////////////////////////////////////////////////////////////////////
 exports.TopologyLocal = TopologyLocal;
