@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const topology_compiler = require("../topology_compiler");
 const tl = require("../topology_local");
+const intf = require("../topology_interfaces");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
@@ -12,21 +13,23 @@ class TopologyLocalWrapper {
         let self = this;
         this._topology_local = new tl.TopologyLocal();
         process.on('message', (msg) => {
-            console.log("%%%%%", msg);
             self._handle(msg);
         });
     }
     /** Starts infinite loop by reading messages from parent or console */
     start() {
         let self = this;
-        // process.openStdin().addListener("data", function (d) {
+        // process.stdin.addListener("data", function (d) {
         //     try {
         //         d = d.toString().trim();
         //         let i = d.indexOf(" ");
         //         if (i > 0) {
-        //             self._handle(d.substr(0, i), JSON.parse(d.substr(i)));
+        //             self._handle({
+        //                 cmd: d.substr(0, i),
+        //                 data: JSON.parse(d.substr(i))
+        //             });
         //         } else {
-        //             self._handle(d, {});
+        //             self._handle({ cmd: d, data: {} });
         //         }
         //     } catch (e) {
         //         console.error(e);
@@ -36,31 +39,31 @@ class TopologyLocalWrapper {
     /** Internal main handler for incoming messages */
     _handle(msg) {
         let self = this;
-        if (msg.cmd === "init") {
-            console.log("Initializing topology", msg.data);
+        if (msg.cmd === intf.ParentMsgCode.init) {
+            console.log("Initializing topology", msg.data.general.name);
             self._name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
             self._topology_local.init(topology, (err) => {
                 self._topology_local.run();
-                self._send("response_init", { err: err });
+                self._send(intf.ChildMsgCode.response_init, { err: err });
             });
         }
-        if (msg.cmd === "run") {
+        if (msg.cmd === intf.ParentMsgCode.run) {
             self._topology_local.run();
-            self._send("response_run", {});
+            self._send(intf.ChildMsgCode.response_run, {});
         }
-        if (msg.cmd === "pause") {
+        if (msg.cmd === intf.ParentMsgCode.pause) {
             self._topology_local.pause((err) => {
-                self._send("response_pause", { err: err });
+                self._send(intf.ChildMsgCode.response_pause, { err: err });
             });
         }
-        if (msg.cmd === "shutdown") {
+        if (msg.cmd === intf.ParentMsgCode.shutdown) {
             console.log("Shutting down topology", self._name);
             self._topology_local.shutdown((err) => {
-                self._send("response_shutdown", { err: err });
-                process.exit(0);
+                self._send(intf.ChildMsgCode.response_shutdown, { err: err });
+                //process.exit(0); - will be killed by parent process
             });
         }
     }
@@ -79,6 +82,6 @@ class TopologyLocalWrapper {
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////
-exports.TopologyLocalWrapper = TopologyLocalWrapper;
+//exports.TopologyLocalWrapper = TopologyLocalWrapper;
 let wr = new TopologyLocalWrapper();
 wr.start();

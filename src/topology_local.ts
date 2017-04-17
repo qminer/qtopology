@@ -54,6 +54,7 @@ export class TopologyLocal {
     _config: any;
     _heartbeatTimeout: number;
     _router: OutputRouter;
+    _isInitialized: boolean;
     _isRunning: boolean;
     _isShuttingDown: boolean;
     _heartbeatTimer: NodeJS.Timer;
@@ -69,6 +70,7 @@ export class TopologyLocal {
 
         this._isRunning = false;
         this._isShuttingDown = false;
+        this._isInitialized = false;
         this._heartbeatTimer = null;
         this._heartbeatCallback = null;
     }
@@ -77,10 +79,10 @@ export class TopologyLocal {
      * starts underlaying processes.
      */
     init(config: any, callback: intf.SimpleCallback) {
-console.log("####", config)
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
+        self._isInitialized = true;
         self._initContext((err, context) => {
             let tasks = [];
             self._config.bolts.forEach((bolt_config) => {
@@ -118,6 +120,9 @@ console.log("####", config)
 
     /** Sends run signal to all spouts */
     run() {
+        if (!this._isInitialized) {
+            throw new Error("Topology not initialized and cannot run.");
+        }
         console.log("Local topology started");
         for (let spout of this._spouts) {
             spout.run();
@@ -127,6 +132,9 @@ console.log("####", config)
 
     /** Sends pause signal to all spouts */
     pause(callback: intf.SimpleCallback) {
+        if (!this._isInitialized) {
+            throw new Error("Topology not initialized and cannot be paused.");
+        }
         for (let spout of this._spouts) {
             spout.pause();
         }
@@ -136,6 +144,9 @@ console.log("####", config)
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback) {
+        if (!this._isInitialized) {
+            return callback();
+        }
         let self = this;
         self._isShuttingDown = true;
         if (self._heartbeatTimer) {
@@ -194,6 +205,9 @@ console.log("####", config)
 
     /** Sends heartbeat signal to all child processes */
     _heartbeat() {
+        if (!this._isInitialized) {
+            return;
+        }
         for (let spout of this._spouts) {
             spout.heartbeat();
         }

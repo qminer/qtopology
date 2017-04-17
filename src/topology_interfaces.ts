@@ -1,3 +1,6 @@
+/////////////////////////////////////////////////////////////////////////
+// Different callbacks
+
 export interface SimpleCallback {
     (error?: Error): void;
 }
@@ -18,6 +21,7 @@ export interface SpoutNextCallback {
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Options for validation
 
 export interface ValidationOptions {
     config: any;
@@ -26,6 +30,7 @@ export interface ValidationOptions {
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Inetrface that need to be implemented by custom bolts and spouts
 
 export interface Bolt {
     init(name: string, config: any, callback: SimpleCallback);
@@ -44,13 +49,37 @@ export interface Spout {
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Messages that are sent from parent process to child process
 
 export interface ParentMsg {
-    cmd: string;
+    cmd: ParentMsgCode;
     data: any;
 }
 
+export enum ParentMsgCode {
+    init,
+    run,
+    pause,
+    shutdown
+}
+
 ////////////////////////////////////////////////////////////////////////
+// Messages that are sent from child process to parent process
+
+export interface ChildMsg {
+    cmd: ChildMsgCode;
+    data: any;
+}
+
+export enum ChildMsgCode {
+    response_init,
+    response_run,
+    response_pause,
+    response_shutdown
+}
+
+////////////////////////////////////////////////////////////////////////
+// Coordination-storage interface and its satelites
 
 export interface LeadershipResultStatus {
     leadership: string

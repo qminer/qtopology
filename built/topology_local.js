@@ -48,6 +48,7 @@ class TopologyLocal {
         this._router = new OutputRouter();
         this._isRunning = false;
         this._isShuttingDown = false;
+        this._isInitialized = false;
         this._heartbeatTimer = null;
         this._heartbeatCallback = null;
     }
@@ -55,10 +56,10 @@ class TopologyLocal {
      * starts underlaying processes.
      */
     init(config, callback) {
-        console.log("####", config);
         let self = this;
         self._config = config;
         self._heartbeatTimeout = config.general.heartbeat;
+        self._isInitialized = true;
         self._initContext((err, context) => {
             let tasks = [];
             self._config.bolts.forEach((bolt_config) => {
@@ -94,6 +95,9 @@ class TopologyLocal {
     }
     /** Sends run signal to all spouts */
     run() {
+        if (!this._isInitialized) {
+            throw new Error("Topology not initialized and cannot run.");
+        }
         console.log("Local topology started");
         for (let spout of this._spouts) {
             spout.run();
@@ -102,6 +106,9 @@ class TopologyLocal {
     }
     /** Sends pause signal to all spouts */
     pause(callback) {
+        if (!this._isInitialized) {
+            throw new Error("Topology not initialized and cannot be paused.");
+        }
         for (let spout of this._spouts) {
             spout.pause();
         }
@@ -110,6 +117,9 @@ class TopologyLocal {
     }
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
+        if (!this._isInitialized) {
+            return callback();
+        }
         let self = this;
         self._isShuttingDown = true;
         if (self._heartbeatTimer) {
@@ -160,6 +170,9 @@ class TopologyLocal {
     }
     /** Sends heartbeat signal to all child processes */
     _heartbeat() {
+        if (!this._isInitialized) {
+            return;
+        }
         for (let spout of this._spouts) {
             spout.heartbeat();
         }

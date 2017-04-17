@@ -27,7 +27,7 @@ function shutdown() {
                 console.log("Error while global shutdown:", err);
             }
             console.log("Shutdown complete");
-            //process.exit(1);
+            process.exit(1);
         });
         w = null;
     }
