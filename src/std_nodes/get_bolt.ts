@@ -7,10 +7,10 @@ import * as rest from 'node-rest-client';
  * */
 export class GetBolt implements intf.Bolt {
 
-    name: string;
-    fixed_url: string;
-    client: rest.Client;
-    onEmit: intf.BoltEmitCallback;
+    private name: string;
+    private fixed_url: string;
+    private client: rest.Client;
+    private onEmit: intf.BoltEmitCallback;
 
     constructor() {
         this.name = null;

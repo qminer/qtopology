@@ -3,10 +3,10 @@ import * as intf from "../topology_interfaces";
 /** This spout emits pre-defined tuples. Mainly used for testing. */
 export class TestSpout implements intf.Spout {
 
-    name: string;
-    stream_id: string;
-    tuples: any[];
-    should_run: boolean;
+    private name: string;
+    private stream_id: string;
+    private tuples: any[];
+    private should_run: boolean;
 
     constructor() {
         this.name = null;

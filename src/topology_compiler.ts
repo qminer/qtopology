@@ -25,7 +25,7 @@ function injectVars(target: string | any, vars: any): string {
 /** Main class - checks and compiles the topology */
 export class TopologyCompiler {
 
-    _config: any;
+    private _config: any;
 
     /** Simple constructor, receives the topology. */
     constructor(topology_config: any) {

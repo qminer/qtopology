@@ -9,8 +9,8 @@ import * as intf from "../topology_interfaces";
  */
 class TopologyLocalWrapper {
 
-    _name: string;
-    _topology_local: tl.TopologyLocal;
+    private _name: string;
+    private _topology_local: tl.TopologyLocal;
 
     /** Constructor that sets up call routing */
     constructor() {

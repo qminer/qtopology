@@ -22,24 +22,24 @@ import * as tel from "./util/telemetry";
 /** Wrapper for "spout" in-process */
 export class TopologySpoutInproc {
 
-    _name: string;
-    _context: any;
-    _working_dir: string;
-    _cmd: string;
-    _init: any
-    _isStarted: boolean;
-    _isClosed: boolean;
-    _isExit: boolean;
-    _isError: boolean;
-    _onExit: boolean;
-    _isPaused: boolean;
-    _nextTs: number;
+    private _name: string;
+    private _context: any;
+    private _working_dir: string;
+    private _cmd: string;
+    private _init: any
+    private _isStarted: boolean;
+    private _isClosed: boolean;
+    private _isExit: boolean;
+    private _isError: boolean;
+    private _onExit: boolean;
+    private _isPaused: boolean;
+    private _nextTs: number;
 
-    _telemetry: tel.Telemetry;
-    _telemetry_total: tel.Telemetry;
+    private _telemetry: tel.Telemetry;
+    private _telemetry_total: tel.Telemetry;
 
-    _child: intf.Spout;
-    _emitCallback: intf.BoltEmitCallback;
+    private _child: intf.Spout;
+    private _emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
@@ -185,29 +185,29 @@ export class TopologySpoutInproc {
 /** Wrapper for "bolt" in-process */
 export class TopologyBoltInproc {
 
-    _name: string;
-    _context: any;
-    _working_dir: string;
-    _cmd: string;
-    _init: any
-    _isStarted: boolean;
-    _isClosed: boolean;
-    _isExit: boolean;
-    _isError: boolean;
-    _onExit: boolean;
-    _isPaused: boolean;
-    _isShuttingDown: boolean;
-    _nextTs: number;
-    _allow_parallel: boolean;
-    _inSend: number;
-    _pendingSendRequests: any[];
-    _pendingShutdownCallback: intf.SimpleCallback;
+    private _name: string;
+    private _context: any;
+    private _working_dir: string;
+    private _cmd: string;
+    private _init: any
+    private _isStarted: boolean;
+    private _isClosed: boolean;
+    private _isExit: boolean;
+    private _isError: boolean;
+    private _onExit: boolean;
+    private _isPaused: boolean;
+    private _isShuttingDown: boolean;
+    private _nextTs: number;
+    private _allow_parallel: boolean;
+    private _inSend: number;
+    private _pendingSendRequests: any[];
+    private _pendingShutdownCallback: intf.SimpleCallback;
 
-    _telemetry: tel.Telemetry;
-    _telemetry_total: tel.Telemetry;
+    private _telemetry: tel.Telemetry;
+    private _telemetry_total: tel.Telemetry;
 
-    _child: intf.Bolt;
-    _emitCallback: intf.BoltEmitCallback;
+    private _child: intf.Bolt;
+    private _emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {

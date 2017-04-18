@@ -16,9 +16,9 @@ class TopologyItem {
 */
 export class TopologyWorker {
 
-    _name: string;
-    _coordinator: coord.TopologyCoordinator;
-    _topologies: TopologyItem[];
+    private _name: string;
+    private _coordinator: coord.TopologyCoordinator;
+    private _topologies: TopologyItem[];
 
     /** Initializes this object */
     constructor(options) {
@@ -55,8 +55,8 @@ export class TopologyWorker {
         rec.uuid = uuid;
         rec.config = config;
         self._topologies.push(rec);
-        try{
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            console.log("*** in worker shutdown handler", err)
             if (err) {
                 self._coordinator.reportTopology(uuid, "error", "" + err);
             } else {
@@ -79,9 +79,6 @@ export class TopologyWorker {
                 });
             }
         });
-        } catch(e) {
-            console.log("!!!!!!!!!!!!!!", e);
-        }
     }
 
     /** Remove specified topology from internal list */

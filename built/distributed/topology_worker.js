@@ -42,37 +42,33 @@ class TopologyWorker {
         rec.uuid = uuid;
         rec.config = config;
         self._topologies.push(rec);
-        try {
-            rec.proxy = new tlp.TopologyLocalProxy((err) => {
-                if (err) {
-                    self._coordinator.reportTopology(uuid, "error", "" + err);
-                }
-                else {
-                    self._coordinator.reportTopology(uuid, "stopped", "" + err);
-                }
+        rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            console.log("*** in worker shutdown handler", err);
+            if (err) {
+                self._coordinator.reportTopology(uuid, "error", "" + err);
+            }
+            else {
+                self._coordinator.reportTopology(uuid, "stopped", "" + err);
+            }
+            self._removeTopology(uuid);
+        });
+        rec.proxy.init(config, (err) => {
+            if (err) {
                 self._removeTopology(uuid);
-            });
-            rec.proxy.init(config, (err) => {
-                if (err) {
-                    self._removeTopology(uuid);
-                    self._coordinator.reportTopology(uuid, "error", "" + err);
-                }
-                else {
-                    rec.proxy.run((err) => {
-                        if (err) {
-                            self._removeTopology(uuid);
-                            self._coordinator.reportTopology(uuid, "error", "" + err);
-                        }
-                        else {
-                            self._coordinator.reportTopology(uuid, "running", "");
-                        }
-                    });
-                }
-            });
-        }
-        catch (e) {
-            console.log("!!!!!!!!!!!!!!", e);
-        }
+                self._coordinator.reportTopology(uuid, "error", "" + err);
+            }
+            else {
+                rec.proxy.run((err) => {
+                    if (err) {
+                        self._removeTopology(uuid);
+                        self._coordinator.reportTopology(uuid, "error", "" + err);
+                    }
+                    else {
+                        self._coordinator.reportTopology(uuid, "running", "");
+                    }
+                });
+            }
+        });
     }
     /** Remove specified topology from internal list */
     _removeTopology(uuid) {

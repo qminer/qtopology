@@ -7,12 +7,12 @@ import * as intf from "../topology_interfaces";
  */
 export class TopologyCoordinator extends EventEmitter {
 
-    _storage: intf.CoordinationStorage;
-    _name: string;
-    _isRunning: boolean;
-    _shutdownCallback: intf.SimpleCallback;
-    _loopTimeout: number;
-    _leadership: leader.TopologyLeader;
+    private _storage: intf.CoordinationStorage;
+    private _name: string;
+    private _isRunning: boolean;
+    private _shutdownCallback: intf.SimpleCallback;
+    private _loopTimeout: number;
+    private _leadership: leader.TopologyLeader;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage) {

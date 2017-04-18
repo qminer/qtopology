@@ -7,12 +7,12 @@ import * as http from 'http';
  */
 export class RestSpout implements intf.Spout {
 
-    name: string;
-    stream_id: string;
-    should_run: boolean;
-    port: number;
-    server: http.Server;
-    queue: any[];
+    private name: string;
+    private stream_id: string;
+    private should_run: boolean;
+    private port: number;
+    private server: http.Server;
+    private queue: any[];
 
     constructor() {
         this.name = null;

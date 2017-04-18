@@ -7,13 +7,13 @@ import * as intf from "../topology_interfaces";
  */
 export class TopologyLocalProxy {
 
-    _init_cb: intf.SimpleCallback;
-    _run_cb: intf.SimpleCallback;
-    _pause_cb: intf.SimpleCallback;
-    _shutdown_cb: intf.SimpleCallback;
-    _was_shut_down: boolean;
-    _child_exit_callback: intf.SimpleCallback;
-    _child: cp.ChildProcess;
+    private _init_cb: intf.SimpleCallback;
+    private _run_cb: intf.SimpleCallback;
+    private _pause_cb: intf.SimpleCallback;
+    private _shutdown_cb: intf.SimpleCallback;
+    private _was_shut_down: boolean;
+    private _child_exit_callback: intf.SimpleCallback;
+    private _child: cp.ChildProcess;
 
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback) {
@@ -25,7 +25,7 @@ export class TopologyLocalProxy {
         this._shutdown_cb = null;
         this._was_shut_down = false;
         this._child_exit_callback = child_exit_callback || (() => { });
-        this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), []);
+        this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], {silent: false});
 
         self._child.on("message", (msgx) => {
             let msg = msgx as intf.ChildMsg;
@@ -51,8 +51,8 @@ export class TopologyLocalProxy {
                 if (self._shutdown_cb) {
                     self._shutdown_cb(msg.data.err);
                     self._shutdown_cb = null;
-                    self._was_shut_down = true;
                 }
+                self._was_shut_down = true;
                 self._child.kill();
             }
         });
@@ -115,7 +115,7 @@ export class TopologyLocalProxy {
             return callback(new Error("Pending init callback already exists."));
         }
         this._init_cb = callback;
-        this._send({ cmd: intf.ParentMsgCode.init, data: config });
+        this._send(intf.ParentMsgCode.init, config);
     }
 
     /** Sends run signal to underlaying process */
@@ -124,7 +124,7 @@ export class TopologyLocalProxy {
             return callback(new Error("Pending run callback already exists."));
         }
         this._run_cb = callback;
-        this._send({ cmd: intf.ParentMsgCode.run, data: {} });
+        this._send(intf.ParentMsgCode.run, {});
     }
 
     /** Sends pause signal to underlaying process */
@@ -133,7 +133,7 @@ export class TopologyLocalProxy {
             return callback(new Error("Pending pause callback already exists."));
         }
         this._pause_cb = callback;
-        this._send({ cmd: intf.ParentMsgCode.pause, data: {} });
+        this._send(intf.ParentMsgCode.pause, {});
     }
 
     /** Sends shutdown signal to underlaying process */
@@ -142,11 +142,12 @@ export class TopologyLocalProxy {
             return callback(new Error("Pending shutdown callback already exists."));
         }
         this._shutdown_cb = callback;
-        this._send({ cmd: intf.ParentMsgCode.shutdown, data: {} });
+        this._send(intf.ParentMsgCode.shutdown, {});
     }
 
     /** Internal method for sending messages to child process */
-    _send(msg: intf.ParentMsg) {
+    _send(code: intf.ParentMsgCode, data: any) {
+        let msg = { cmd: code, data: data } as intf.ParentMsg;
         this._child.send(msg);
     }
 }

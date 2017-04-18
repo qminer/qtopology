@@ -4,9 +4,9 @@ import * as intf from "../topology_interfaces";
  * and sends them forward. */
 export class AttacherBolt implements intf.Bolt {
 
-    name: string;
-    extra_fields: any;
-    onEmit: intf.BoltEmitCallback;
+    private name: string;
+    private extra_fields: any;
+    private onEmit: intf.BoltEmitCallback;
 
     constructor() {
         this.name = null;

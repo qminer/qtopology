@@ -13,7 +13,7 @@ class OutputRouterDestination {
 /** Class that performs redirection of messages after they are emited from nodes */
 export class OutputRouter {
 
-    sources: Map<string, OutputRouterDestination>;
+    private sources: Map<string, OutputRouterDestination>;
 
     /** Constructor prepares the object before any information is received. */
     constructor() {
@@ -49,16 +49,16 @@ export class OutputRouter {
 /** This class runs local topology */
 export class TopologyLocal {
 
-    _spouts: top_inproc.TopologySpoutInproc[];
-    _bolts: top_inproc.TopologyBoltInproc[];
-    _config: any;
-    _heartbeatTimeout: number;
-    _router: OutputRouter;
-    _isInitialized: boolean;
-    _isRunning: boolean;
-    _isShuttingDown: boolean;
-    _heartbeatTimer: NodeJS.Timer;
-    _heartbeatCallback: intf.SimpleCallback;
+    private _spouts: top_inproc.TopologySpoutInproc[];
+    private _bolts: top_inproc.TopologyBoltInproc[];
+    private _config: any;
+    private _heartbeatTimeout: number;
+    private _router: OutputRouter;
+    private _isInitialized: boolean;
+    private _isRunning: boolean;
+    private _isShuttingDown: boolean;
+    private _heartbeatTimer: NodeJS.Timer;
+    private _heartbeatCallback: intf.SimpleCallback;
 
     /** Constructor prepares the object before any information is received. */
     constructor() {

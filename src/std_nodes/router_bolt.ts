@@ -6,9 +6,9 @@ import * as pm from "../util/pattern_matcher";
  * queries and sends them forward using mapped stream ids. */
 export class RouterBolt implements intf.Bolt {
 
-    name: string;
-    matchers: any[];
-    onEmit: intf.BoltEmitCallback;
+    private name: string;
+    private matchers: any[];
+    private onEmit: intf.BoltEmitCallback;
 
     /** Simple constructor */
     constructor() {

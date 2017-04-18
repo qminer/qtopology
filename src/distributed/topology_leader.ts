@@ -8,12 +8,12 @@ import * as intf from "../topology_interfaces";
  */
 export class TopologyLeader {
 
-    _storage: intf.CoordinationStorage;
-    _name: string;
-    _isRunning: boolean;
-    _isLeader: boolean;
-    _shutdownCallback: intf.SimpleCallback;
-    _loopTimeout: number;
+    private _storage: intf.CoordinationStorage;
+    private _name: string;
+    private _isRunning: boolean;
+    private _isLeader: boolean;
+    private _shutdownCallback: intf.SimpleCallback;
+    private _loopTimeout: number;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage) {

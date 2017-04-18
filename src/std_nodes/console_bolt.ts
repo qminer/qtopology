@@ -3,9 +3,9 @@ import * as intf from "../topology_interfaces";
 /** This bolt just writes all incoming data to console. */
 export class ConsoleBolt implements intf.Bolt {
 
-    name: string;
-    prefix: string;
-    onEmit: intf.BoltEmitCallback;
+    private name: string;
+    private prefix: string;
+    private onEmit: intf.BoltEmitCallback;
 
     constructor() {
         this.name = null;

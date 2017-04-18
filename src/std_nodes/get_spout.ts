@@ -7,14 +7,14 @@ import * as rest from 'node-rest-client';
  * */
 export class GetSpout implements intf.Spout {
 
-    name: string;
-    stream_id: string;
-    url: string;
-    repeat: number;
-    should_run: boolean;
-    next_tuple: any;
-    next_ts: number;
-    client: rest.Client;
+    private name: string;
+    private stream_id: string;
+    private url: string;
+    private repeat: number;
+    private should_run: boolean;
+    private next_tuple: any;
+    private next_ts: number;
+    private client: rest.Client;
 
     constructor() {
         this.name = null;
