@@ -43,7 +43,6 @@ class TopologyWorker {
         rec.config = config;
         self.topologies.push(rec);
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            console.log("*** in worker shutdown handler", err);
             if (!rec.proxy.wasShutDown()) {
                 if (err) {
                     self.coordinator.reportTopology(uuid, "error", "" + err);
@@ -90,7 +89,6 @@ class TopologyWorker {
                 }
             });
         }, (err) => {
-            console.log("async.each - Shutdown callback after all done");
             if (err) {
                 console.log("Error while shutting down topologies:", err);
             }

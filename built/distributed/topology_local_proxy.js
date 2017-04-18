@@ -38,19 +38,11 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                console.log("received response_shutdown");
                 self.was_shut_down = true;
-                if (self.shutdown_cb) {
-                    //console.log("received response_shutdown - calling stored callback");
-                    //self.shutdown_cb(msg.data.err);
-                    //self.shutdown_cb = null;
-                }
-                //console.log("Killing child process")
-                //self.child.kill();
+                self.callPendingCallbacks2(null);
             }
         });
         self.child.on("error", (e) => {
-            console.log("&& error");
             if (self.was_shut_down)
                 return;
             self.callPendingCallbacks(e);
@@ -58,7 +50,6 @@ class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            console.log("&& close");
             if (self.was_shut_down)
                 return;
             let e = new Error("CLOSE Child process exited with code " + code);
@@ -70,7 +61,6 @@ class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            console.log("&& exit");
             if (self.was_shut_down)
                 return;
             let e = new Error("EXIT Child process exited with code " + code);
@@ -89,17 +79,14 @@ class TopologyLocalProxy {
     /** Calls all pending callbacks with given error and clears them. */
     callPendingCallbacks(e) {
         if (this.init_cb) {
-            console.log("&& cpc 1");
             this.init_cb(e);
             this.init_cb = null;
         }
         if (this.run_cb) {
-            console.log("&& cpc 2");
             this.run_cb(e);
             this.run_cb = null;
         }
         if (this.pause_cb) {
-            console.log("&& cpc 3");
             this.pause_cb(e);
             this.pause_cb = null;
         }
@@ -107,7 +94,6 @@ class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     callPendingCallbacks2(e) {
         if (this.shutdown_cb) {
-            console.log("&& cpc2 1");
             this.shutdown_cb(null);
             this.shutdown_cb = null;
         }

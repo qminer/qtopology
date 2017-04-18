@@ -69,10 +69,8 @@ class TopologyLocalWrapper {
             console.log("Shutting down topology", self.name);
             self.topology_local.shutdown((err) => {
                 self.send(intf.ChildMsgCode.response_shutdown, { err: err });
-                //process.exit(0); - will be killed by parent process
-                setTimeout(() => { 
-                    console.log("$$$ about to exit process from child")
-                    process.exit(0); 
+                setTimeout(() => {
+                    process.exit(0);
                 }, 100);
             });
         }
