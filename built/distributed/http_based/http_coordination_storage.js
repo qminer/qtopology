@@ -332,3 +332,4 @@ exports.addTopology = function (config) {
 exports.run = function (options) {
     http_server.run(options);
 };
+//# sourceMappingURL=http_coordination_storage.js.map

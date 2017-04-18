@@ -99,3 +99,4 @@ class TopologyWorker {
     }
 }
 exports.TopologyWorker = TopologyWorker;
+//# sourceMappingURL=topology_worker.js.map

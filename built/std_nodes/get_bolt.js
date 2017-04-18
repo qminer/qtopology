@@ -42,5 +42,4 @@ class GetBolt {
     }
 }
 exports.GetBolt = GetBolt;
-////////////////////////////////////////////////////////////////////////////////
-exports.GetBolt = GetBolt;
+//# sourceMappingURL=get_bolt.js.map

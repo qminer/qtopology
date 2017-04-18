@@ -75,3 +75,4 @@ class FileCoordinator {
     }
 }
 exports.FileCoordinator = FileCoordinator;
+//# sourceMappingURL=file_coordinator.js.map

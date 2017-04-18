@@ -44,3 +44,4 @@ class TimerSpout {
     }
 }
 exports.TimerSpout = TimerSpout;
+//# sourceMappingURL=timer_spout.js.map

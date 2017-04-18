@@ -38,9 +38,7 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                console.log("$$$$$$");
                 if (self._shutdown_cb) {
-                    console.log("--$$$$$$");
                     self._shutdown_cb(msg.data.err);
                     self._shutdown_cb = null;
                     self._was_shut_down = true;
@@ -138,3 +136,4 @@ class TopologyLocalProxy {
     }
 }
 exports.TopologyLocalProxy = TopologyLocalProxy;
+//# sourceMappingURL=topology_local_proxy.js.map

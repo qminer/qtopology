@@ -28,3 +28,4 @@ class AttacherBolt {
     }
 }
 exports.AttacherBolt = AttacherBolt;
+//# sourceMappingURL=attacher_bolt.js.map

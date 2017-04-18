@@ -37,3 +37,4 @@ class TestSpout {
     }
 }
 exports.TestSpout = TestSpout;
+//# sourceMappingURL=test_spout.js.map

@@ -16,3 +16,4 @@ var ChildMsgCode;
     ChildMsgCode[ChildMsgCode["response_pause"] = 2] = "response_pause";
     ChildMsgCode[ChildMsgCode["response_shutdown"] = 3] = "response_shutdown";
 })(ChildMsgCode = exports.ChildMsgCode || (exports.ChildMsgCode = {}));
+//# sourceMappingURL=topology_interfaces.js.map

@@ -58,3 +58,4 @@ class RestSpout {
     }
 }
 exports.RestSpout = RestSpout;
+//# sourceMappingURL=rest_spout.js.map

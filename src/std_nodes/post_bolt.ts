@@ -2,10 +2,9 @@ import * as intf from "../topology_interfaces";
 import * as pm from "../util/pattern_matcher";
 import * as rest from 'node-rest-client';
 
-/** This bolt sends GET request to specified url
- * and forwards the result.
- * */
-export class GetBolt implements intf.Bolt {
+/** This bolt sends POST request to specified url (fixed or provided inside data)
+ * and forwards the request. */
+export class PostBolt implements intf.Bolt  {
 
     name: string;
     fixed_url: string;
@@ -34,24 +33,20 @@ export class GetBolt implements intf.Bolt {
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
-        if (self.fixed_url) {
-            let req = self.client.get(
-                self.fixed_url,
-                (new_data, response) => {
-                    self.onEmit({ body: new_data }, null, callback);
-                });
-            req.on('error', function (err) {
-                callback(err);
-            });
-        } else {
-            let req = self.client.get(
-                data.url,
-                (new_data, response) => {
-                    self.onEmit({ body: new_data }, null, callback);
-                });
-            req.on('error', function (err) {
-                callback(err);
-            });
+        let url = this.fixed_url;
+        let args = {
+            data: data,
+            headers: { "Content-Type": "application/json" }
+        };
+        if (!this.fixed_url) {
+            url = data.url;
+            args.data = data.body;
         }
+        let req = self.client.post(url, args, (new_data, response) => {
+            self.onEmit({ body: new_data }, null, callback);
+        });
+        req.on('error', function (err) {
+            callback(err);
+        });
     }
 }

@@ -82,6 +82,7 @@ class TopologyLocalWrapper {
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////
-//exports.TopologyLocalWrapper = TopologyLocalWrapper;
+// start worker and listen for messages from parent
 let wr = new TopologyLocalWrapper();
 wr.start();
+//# sourceMappingURL=topology_local_wrapper.js.map

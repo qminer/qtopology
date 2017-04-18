@@ -50,3 +50,4 @@ class GetSpout {
     }
 }
 exports.GetSpout = GetSpout;
+//# sourceMappingURL=get_spout.js.map

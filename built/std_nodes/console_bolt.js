@@ -23,3 +23,4 @@ class ConsoleBolt {
     }
 }
 exports.ConsoleBolt = ConsoleBolt;
+//# sourceMappingURL=console_bolt.js.map

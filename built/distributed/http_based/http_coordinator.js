@@ -55,3 +55,4 @@ class HttpCoordinator {
     }
 }
 exports.HttpCoordinator = HttpCoordinator;
+//# sourceMappingURL=http_coordinator.js.map

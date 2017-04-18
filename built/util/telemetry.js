@@ -40,3 +40,4 @@ class Telemetry {
     }
 }
 exports.Telemetry = Telemetry;
+//# sourceMappingURL=telemetry.js.map

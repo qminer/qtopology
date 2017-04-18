@@ -74,3 +74,4 @@ class PaternMatcher {
     }
 }
 exports.PaternMatcher = PaternMatcher;
+//# sourceMappingURL=pattern_matcher.js.map
