@@ -1,11 +1,11 @@
 /** Simple class for collecting telemetry statistics for call durations */
 export class Telemetry {
 
-    cnt: number;
-    min: number;
-    max: number;
-    avg: number;
-    name: string;
+    private cnt: number;
+    private min: number;
+    private max: number;
+    private avg: number;
+    private name: string;
 
     constructor(name: string) {
         this.cnt = 0;

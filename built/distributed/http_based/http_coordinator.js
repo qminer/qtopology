@@ -6,47 +6,47 @@ const node_rest_client_1 = require("node-rest-client");
 // Storage-coordination implementation
 class HttpCoordinator {
     constructor(port) {
-        this._port = port || port_default;
-        this._client = new node_rest_client_1.default();
-        this._urlPrefix = "http://localhost:" + this._port + "/";
+        this.port = port || port_default;
+        this.client = new node_rest_client_1.default();
+        this.urlPrefix = "http://localhost:" + this.port + "/";
     }
     getMessages(name, callback) {
-        this._call("get-messages", { worker: name }, callback);
+        this.call("get-messages", { worker: name }, callback);
     }
     getWorkerStatus(callback) {
-        this._call("worker-statuses", {}, callback);
+        this.call("worker-statuses", {}, callback);
     }
     getTopologyStatus(callback) {
-        this._call("topology-statuses", {}, callback);
+        this.call("topology-statuses", {}, callback);
     }
     getTopologiesForWorker(name, callback) {
-        this._call("worker-topologies", { worker: name }, callback);
+        this.call("worker-topologies", { worker: name }, callback);
     }
     getLeadershipStatus(callback) {
-        this._call("leadership-status", {}, callback);
+        this.call("leadership-status", {}, callback);
     }
     registerWorker(name, callback) {
-        this._call("register-worker", { worker: name }, callback);
+        this.call("register-worker", { worker: name }, callback);
     }
     announceLeaderCandidacy(name, callback) {
-        this._call("announce-leader-candidacy", { worker: name }, callback);
+        this.call("announce-leader-candidacy", { worker: name }, callback);
     }
     checkLeaderCandidacy(name, callback) {
-        this._call("check-leader-candidacy", { worker: name }, callback);
+        this.call("check-leader-candidacy", { worker: name }, callback);
     }
     assignTopology(uuid, name, callback) {
-        this._call("assign-topology", { worker: name, uuid: uuid }, callback);
+        this.call("assign-topology", { worker: name, uuid: uuid }, callback);
     }
     setTopologyStatus(uuid, status, error, callback) {
-        this._call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
+        this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
     }
     setWorkerStatus(name, status, callback) {
-        this._call("set-worker-status", { name: name, status: status }, callback);
+        this.call("set-worker-status", { name: name, status: status }, callback);
     }
-    _call(addr, req_data, callback) {
+    call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        let req = this._client.post(self._urlPrefix + addr, args, (data, response) => {
+        let req = this.client.post(self.urlPrefix + addr, args, (data, response) => {
             callback(null, data);
         });
         req.on('error', (err) => {

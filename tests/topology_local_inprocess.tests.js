@@ -24,7 +24,7 @@ describe('TopologyBoltInproc', function () {
             };
             let target = new tli.TopologyBoltInproc(config);
             assert.equal(emits.length, 0);
-            assert.equal(target._child._init_called, 0);
+            assert.equal(target.getBoltObject()._init_called, 0);
         });
         it('Init should be properly called', function (done) {
             let emits = [];
@@ -44,9 +44,9 @@ describe('TopologyBoltInproc', function () {
             target.init((err) => {
                 assert.ok(!err);
                 assert.equal(emits.length, 0);
-                assert.equal(target._child._init_called, 1);
-                assert.equal(target._child._name, config.name);
-                assert.deepEqual(target._child._init, config.init);
+                assert.equal(target.getBoltObject()._init_called, 1);
+                assert.equal(target.getBoltObject()._name, config.name);
+                assert.deepEqual(target.getBoltObject()._init, config.init);
                 done();
             });
         });
@@ -68,12 +68,12 @@ describe('TopologyBoltInproc', function () {
             target.init((err) => {
                 assert.ok(!err);
                 assert.equal(emits.length, 0);
-                assert.equal(target._child._init_called, 1);
-                assert.equal(target._child._name, config.name);
-                assert.deepEqual(target._child._init, config.init);
-                assert.equal(target._child._heartbeat_called, 0);
+                assert.equal(target.getBoltObject()._init_called, 1);
+                assert.equal(target.getBoltObject()._name, config.name);
+                assert.deepEqual(target.getBoltObject()._init, config.init);
+                assert.equal(target.getBoltObject()._heartbeat_called, 0);
                 target.heartbeat();
-                assert.equal(target._child._heartbeat_called, 1);
+                assert.equal(target.getBoltObject()._heartbeat_called, 1);
                 done();
             });
         });
@@ -106,8 +106,8 @@ describe('TopologyBoltInproc', function () {
                 (err) => {
                     assert.ok(!err);
                     assert.equal(emits.length, 0);
-                    assert.equal(target._child._receive_list.length, 1);
-                    assert.deepEqual(target._child._receive_list, [
+                    assert.equal(target.getBoltObject()._receive_list.length, 1);
+                    assert.deepEqual(target.getBoltObject()._receive_list, [
                         { data: data1, stream_id: data_stream1 }
                     ]);
                     done();
@@ -143,8 +143,8 @@ describe('TopologyBoltInproc', function () {
                 (err) => {
                     assert.ok(!err);
                     assert.equal(emits.length, 0);
-                    assert.equal(target._child._receive_list.length, 1);
-                    assert.deepEqual(target._child._receive_list, [
+                    assert.equal(target.getBoltObject()._receive_list.length, 1);
+                    assert.deepEqual(target.getBoltObject()._receive_list, [
                         { data: data1, stream_id: data_stream1 }
                     ]);
                     done();
@@ -178,7 +178,7 @@ describe('TopologyBoltInproc', function () {
                         target.init(xcallback);
                     },
                     (xcallback) => {
-                        target._child._setupEmit(data2, data_stream2);
+                        target.getBoltObject()._setupEmit(data2, data_stream2);
                         target.receive(data1, data_stream1, xcallback);
                     }
                 ],
@@ -188,8 +188,8 @@ describe('TopologyBoltInproc', function () {
                     assert.deepEqual(emits, [
                         { data: data2, stream_id: data_stream2 }
                     ]);
-                    assert.equal(target._child._receive_list.length, 1);
-                    assert.deepEqual(target._child._receive_list, [
+                    assert.equal(target.getBoltObject()._receive_list.length, 1);
+                    assert.deepEqual(target.getBoltObject()._receive_list, [
                         { data: data1, stream_id: data_stream1 }
                     ]);
                     done();

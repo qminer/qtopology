@@ -10,130 +10,130 @@ class TopologyLocalProxy {
     /** Constructor that sets up call routing */
     constructor(child_exit_callback) {
         let self = this;
-        this._init_cb = null;
-        this._run_cb = null;
-        this._pause_cb = null;
-        this._shutdown_cb = null;
-        this._was_shut_down = false;
-        this._child_exit_callback = child_exit_callback || (() => { });
-        this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
-        self._child.on("message", (msgx) => {
+        this.init_cb = null;
+        this.run_cb = null;
+        this.pause_cb = null;
+        this.shutdown_cb = null;
+        this.was_shut_down = false;
+        this.child_exit_callback = child_exit_callback || (() => { });
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
+        self.child.on("message", (msgx) => {
             let msg = msgx;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
-                if (self._init_cb) {
-                    self._init_cb(msg.data.err);
-                    self._init_cb = null;
+                if (self.init_cb) {
+                    self.init_cb(msg.data.err);
+                    self.init_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
-                if (self._run_cb) {
-                    self._run_cb(msg.data.err);
-                    self._run_cb = null;
+                if (self.run_cb) {
+                    self.run_cb(msg.data.err);
+                    self.run_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
-                if (self._pause_cb) {
-                    self._pause_cb(msg.data.err);
-                    self._pause_cb = null;
+                if (self.pause_cb) {
+                    self.pause_cb(msg.data.err);
+                    self.pause_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                if (self._shutdown_cb) {
-                    self._shutdown_cb(msg.data.err);
-                    self._shutdown_cb = null;
+                if (self.shutdown_cb) {
+                    self.shutdown_cb(msg.data.err);
+                    self.shutdown_cb = null;
                 }
-                self._was_shut_down = true;
-                self._child.kill();
+                self.was_shut_down = true;
+                self.child.kill();
             }
         });
-        self._child.on("error", (e) => {
-            if (self._was_shut_down)
+        self.child.on("error", (e) => {
+            if (self.was_shut_down)
                 return;
-            self._callPendingCallbacks(e);
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+            self.callPendingCallbacks(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
-        self._child.on("close", (code) => {
-            if (self._was_shut_down)
+        self.child.on("close", (code) => {
+            if (self.was_shut_down)
                 return;
             let e = new Error("CLOSE Child process exited with code " + code);
-            self._callPendingCallbacks(e);
+            self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
-        self._child.on("exit", (code) => {
-            if (self._was_shut_down)
+        self.child.on("exit", (code) => {
+            if (self.was_shut_down)
                 return;
             let e = new Error("EXIT Child process exited with code " + code);
-            self._callPendingCallbacks(e);
+            self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
     }
     /** Calls all pending callbacks with given error and clears them. */
-    _callPendingCallbacks(e) {
-        if (this._init_cb) {
-            this._init_cb(e);
-            this._init_cb = null;
+    callPendingCallbacks(e) {
+        if (this.init_cb) {
+            this.init_cb(e);
+            this.init_cb = null;
         }
-        if (this._run_cb) {
-            this._run_cb(e);
-            this._run_cb = null;
+        if (this.run_cb) {
+            this.run_cb(e);
+            this.run_cb = null;
         }
-        if (this._pause_cb) {
-            this._pause_cb(e);
-            this._pause_cb = null;
+        if (this.pause_cb) {
+            this.pause_cb(e);
+            this.pause_cb = null;
         }
     }
     /** Calls pending shutdown callback with given error and clears it. */
-    _callPendingCallbacks2(e) {
-        if (this._shutdown_cb) {
-            this._shutdown_cb(e);
-            this._shutdown_cb = null;
+    callPendingCallbacks2(e) {
+        if (this.shutdown_cb) {
+            this.shutdown_cb(e);
+            this.shutdown_cb = null;
         }
     }
     /** Sends initialization signal to underlaying process */
     init(config, callback) {
-        if (this._init_cb) {
+        if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
-        this._init_cb = callback;
-        this._send(intf.ParentMsgCode.init, config);
+        this.init_cb = callback;
+        this.send(intf.ParentMsgCode.init, config);
     }
     /** Sends run signal to underlaying process */
     run(callback) {
-        if (this._run_cb) {
+        if (this.run_cb) {
             return callback(new Error("Pending run callback already exists."));
         }
-        this._run_cb = callback;
-        this._send(intf.ParentMsgCode.run, {});
+        this.run_cb = callback;
+        this.send(intf.ParentMsgCode.run, {});
     }
     /** Sends pause signal to underlaying process */
     pause(callback) {
-        if (this._pause_cb) {
+        if (this.pause_cb) {
             return callback(new Error("Pending pause callback already exists."));
         }
-        this._pause_cb = callback;
-        this._send(intf.ParentMsgCode.pause, {});
+        this.pause_cb = callback;
+        this.send(intf.ParentMsgCode.pause, {});
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
-        if (this._shutdown_cb) {
+        if (this.shutdown_cb) {
             return callback(new Error("Pending shutdown callback already exists."));
         }
-        this._shutdown_cb = callback;
-        this._send(intf.ParentMsgCode.shutdown, {});
+        this.shutdown_cb = callback;
+        this.send(intf.ParentMsgCode.shutdown, {});
     }
     /** Internal method for sending messages to child process */
-    _send(code, data) {
+    send(code, data) {
         let msg = { cmd: code, data: data };
-        this._child.send(msg);
+        this.child.send(msg);
     }
 }
 exports.TopologyLocalProxy = TopologyLocalProxy;

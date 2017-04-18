@@ -22,130 +22,135 @@ import * as tel from "./util/telemetry";
 /** Wrapper for "spout" in-process */
 export class TopologySpoutInproc {
 
-    private _name: string;
-    private _context: any;
-    private _working_dir: string;
-    private _cmd: string;
-    private _init: any
-    private _isStarted: boolean;
-    private _isClosed: boolean;
-    private _isExit: boolean;
-    private _isError: boolean;
-    private _onExit: boolean;
-    private _isPaused: boolean;
-    private _nextTs: number;
+    private name: string;
+    private context: any;
+    private working_dir: string;
+    private cmd: string;
+    private init_params: any
+    private isStarted: boolean;
+    private isClosed: boolean;
+    private isExit: boolean;
+    private isError: boolean;
+    private onExit: boolean;
+    private isPaused: boolean;
+    private nextTs: number;
 
-    private _telemetry: tel.Telemetry;
-    private _telemetry_total: tel.Telemetry;
+    private telemetry: tel.Telemetry;
+    private telemetry_total: tel.Telemetry;
 
-    private _child: intf.Spout;
-    private _emitCallback: intf.BoltEmitCallback;
+    private child: intf.Spout;
+    private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
-        this._name = config.name;
-        this._context = context;
-        this._working_dir = config.working_dir;
-        this._cmd = config.cmd;
-        this._init = config.init || {};
+        this.name = config.name;
+        this.context = context;
+        this.working_dir = config.working_dir;
+        this.cmd = config.cmd;
+        this.init_params = config.init || {};
 
-        this._isStarted = false;
-        this._isClosed = false;
-        this._isExit = false;
-        this._isError = false;
-        this._onExit = null;
+        this.isStarted = false;
+        this.isClosed = false;
+        this.isExit = false;
+        this.isError = false;
+        this.onExit = null;
 
-        this._telemetry = new tel.Telemetry(config.name);
-        this._telemetry_total = new tel.Telemetry(config.name);
+        this.telemetry = new tel.Telemetry(config.name);
+        this.telemetry_total = new tel.Telemetry(config.name);
 
         let self = this;
         try {
             if (config.type == "sys") {
-                this._child = this._createSysSpout(config, context);
+                this.child = this.createSysSpout(config, context);
             } else {
-                this._working_dir = path.resolve(this._working_dir); // path may be relative to current working dir
-                let module_path = path.join(this._working_dir, this._cmd);
-                this._child = require(module_path).create(context);
+                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
+                let module_path = path.join(this.working_dir, this.cmd);
+                this.child = require(module_path).create(context);
             }
-            this._isStarted = true;
+            this.isStarted = true;
         } catch (e) {
             console.error("Error while creating an inproc spout", e);
-            this._isStarted = true;
-            this._isClosed = true;
-            this._isExit = true;
-            this._isError = true;
+            this.isStarted = true;
+            this.isClosed = true;
+            this.isExit = true;
+            this.isError = true;
         }
 
-        self._emitCallback = (data, stream_id, callback) => {
+        self.emitCallback = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
-        self._isPaused = true;
-        self._nextTs = Date.now();
+        self.isPaused = true;
+        self.nextTs = Date.now();
     }
 
     /** Returns name of this node */
     getName(): string {
-        return this._name;
+        return this.name;
+    }
+
+    /** Returns inner spout object */
+    getSpoutObject(): intf.Spout {
+        return this.child;
     }
 
     /** Handler for heartbeat signal */
     heartbeat() {
         let self = this;
-        self._child.heartbeat();
+        self.child.heartbeat();
 
         // emit telemetry
-        self._emitCallback(self._telemetry.get(), "$telemetry", () => { });
-        self._telemetry.reset();
-        self._emitCallback(self._telemetry_total.get(), "$telemetry-total", () => { });
+        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
+        self.telemetry.reset();
+        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
     }
 
     /** Shuts down the process */
     shutdown(callback: intf.SimpleCallback) {
-        this._child.shutdown(callback);
+        this.child.shutdown(callback);
     }
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
-        this._child.init(this._name, this._init, callback);
+        this.child.init(this.name, this.init_params, callback);
     }
 
     /** Sends run signal and starts the "pump"" */
     run() {
         let self = this;
-        this._isPaused = false;
-        this._child.run();
+        this.isPaused = false;
+        this.child.run();
         async.whilst(
-            () => { return !self._isPaused; },
+            () => { return !self.isPaused; },
             (xcallback) => {
-                if (Date.now() < this._nextTs) {
-                    let sleep = this._nextTs - Date.now();
+                if (Date.now() < this.nextTs) {
+                    let sleep = this.nextTs - Date.now();
                     setTimeout(() => { xcallback(); }, sleep);
                 } else {
-                    self._next(xcallback);
+                    self.next(xcallback);
                 }
             },
             () => { });
     }
 
     /** Requests next data message */
-    _next(callback: intf.SimpleCallback) {
+    private next(callback: intf.SimpleCallback) {
         let self = this;
-        if (this._isPaused) {
+        if (this.isPaused) {
             callback();
         } else {
             let ts_start = Date.now();
-            this._child.next((err, data, stream_id, xcallback) => {
-                self._telemetryAdd(Date.now() - ts_start);
+            this.child.next((err, data, stream_id, xcallback) => {
+                self.telemetryAdd(Date.now() - ts_start);
                 if (err) {
                     console.error(err);
                     callback();
                     return;
                 }
                 if (!data) {
-                    self._nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
+                    self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
                     callback();
                 } else {
-                    self._emitCallback(data, stream_id, (err) => {
+                    self.emitCallback(data, stream_id, (err) => {
                         // in case child object expects confirmation call for this tuple
                         if (xcallback) {
                             xcallback(err, callback);
@@ -160,12 +165,12 @@ export class TopologySpoutInproc {
 
     /** Sends pause signal to child */
     pause() {
-        this._isPaused = true;
-        this._child.pause();
+        this.isPaused = true;
+        this.child.pause();
     }
 
     /** Factory method for sys spouts */
-    _createSysSpout(spout_config: any, context: any): intf.Spout {
+    private createSysSpout(spout_config: any, context: any): intf.Spout {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
@@ -176,145 +181,150 @@ export class TopologySpoutInproc {
     }
 
     /** Adds duration to internal telemetry */
-    _telemetryAdd(duration: number) {
-        this._telemetry.add(duration);
-        this._telemetry_total.add(duration);
+    private telemetryAdd(duration: number) {
+        this.telemetry.add(duration);
+        this.telemetry_total.add(duration);
     }
 }
 
 /** Wrapper for "bolt" in-process */
 export class TopologyBoltInproc {
 
-    private _name: string;
-    private _context: any;
-    private _working_dir: string;
-    private _cmd: string;
-    private _init: any
-    private _isStarted: boolean;
-    private _isClosed: boolean;
-    private _isExit: boolean;
-    private _isError: boolean;
-    private _onExit: boolean;
-    private _isPaused: boolean;
-    private _isShuttingDown: boolean;
-    private _nextTs: number;
-    private _allow_parallel: boolean;
-    private _inSend: number;
-    private _pendingSendRequests: any[];
-    private _pendingShutdownCallback: intf.SimpleCallback;
+    private name: string;
+    private context: any;
+    private working_dir: string;
+    private cmd: string;
+    private init_params: any
+    private isStarted: boolean;
+    private isClosed: boolean;
+    private isExit: boolean;
+    private isError: boolean;
+    private onExit: boolean;
+    private isPaused: boolean;
+    private isShuttingDown: boolean;
+    private nextTs: number;
+    private allow_parallel: boolean;
+    private inSend: number;
+    private pendingSendRequests: any[];
+    private pendingShutdownCallback: intf.SimpleCallback;
 
-    private _telemetry: tel.Telemetry;
-    private _telemetry_total: tel.Telemetry;
+    private telemetry: tel.Telemetry;
+    private telemetry_total: tel.Telemetry;
 
-    private _child: intf.Bolt;
-    private _emitCallback: intf.BoltEmitCallback;
+    private child: intf.Bolt;
+    private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
         let self = this;
-        this._name = config.name;
-        this._context = context;
-        this._working_dir = config.working_dir;
-        this._cmd = config.cmd;
-        this._init = config.init || {};
-        this._init.onEmit = (data, stream_id, callback) => {
-            if (self._isShuttingDown) {
-                return callback("Bolt is shutting down:", self._name);
+        this.name = config.name;
+        this.context = context;
+        this.working_dir = config.working_dir;
+        this.cmd = config.cmd;
+        this.init_params = config.init || {};
+        this.init_params.onEmit = (data, stream_id, callback) => {
+            if (self.isShuttingDown) {
+                return callback("Bolt is shutting down:", self.name);
             }
             config.onEmit(data, stream_id, callback);
         };
-        this._emitCallback = this._init.onEmit;
-        this._allow_parallel = config.allow_parallel || false;
+        this.emitCallback = this.init_params.onEmit;
+        this.allow_parallel = config.allow_parallel || false;
 
-        this._isStarted = false;
-        this._isShuttingDown = false;
-        this._isClosed = false;
-        this._isExit = false;
-        this._isError = false;
-        this._onExit = null;
+        this.isStarted = false;
+        this.isShuttingDown = false;
+        this.isClosed = false;
+        this.isExit = false;
+        this.isError = false;
+        this.onExit = null;
 
-        this._inSend = 0;
-        this._pendingSendRequests = [];
-        this._pendingShutdownCallback = null;
+        this.inSend = 0;
+        this.pendingSendRequests = [];
+        this.pendingShutdownCallback = null;
 
-        this._telemetry = new tel.Telemetry(config.name);
-        this._telemetry_total = new tel.Telemetry(config.name);
+        this.telemetry = new tel.Telemetry(config.name);
+        this.telemetry_total = new tel.Telemetry(config.name);
 
         try {
             if (config.type == "sys") {
-                this._child = this._createSysBolt(config, context);
+                this.child = this.createSysBolt(config, context);
             } else {
-                this._working_dir = path.resolve(this._working_dir); // path may be relative to current working dir
-                let module_path = path.join(this._working_dir, this._cmd);
-                this._child = require(module_path).create(context);
+                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
+                let module_path = path.join(this.working_dir, this.cmd);
+                this.child = require(module_path).create(context);
             }
-            this._isStarted = true;
+            this.isStarted = true;
         } catch (e) {
             console.error("Error while creating an inproc bolt", e);
-            this._isStarted = true;
-            this._isClosed = true;
-            this._isExit = true;
-            this._isError = true;
+            this.isStarted = true;
+            this.isClosed = true;
+            this.isExit = true;
+            this.isError = true;
         }
     }
 
     /** Returns name of this node */
     getName(): string {
-        return this._name;
+        return this.name;
+    }
+
+    /** Returns inner bolt object */
+    getBoltObject(): intf.Bolt {
+        return this.child;
     }
 
     /** Handler for heartbeat signal */
     heartbeat() {
         let self = this;
-        self._child.heartbeat();
+        self.child.heartbeat();
 
         // emit telemetry
-        self._emitCallback(self._telemetry.get(), "$telemetry", () => { });
-        self._telemetry.reset();
-        self._emitCallback(self._telemetry_total.get(), "$telemetry-total", () => { });
+        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
+        self.telemetry.reset();
+        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
     }
 
     /** Shuts down the child */
     shutdown(callback: intf.SimpleCallback) {
-        this._isShuttingDown = true;
-        if (this._inSend === 0) {
-            return this._child.shutdown(callback);
+        this.isShuttingDown = true;
+        if (this.inSend === 0) {
+            return this.child.shutdown(callback);
         } else {
-            this._pendingShutdownCallback = callback;
+            this.pendingShutdownCallback = callback;
         }
     }
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
-        this._child.init(this._name, this._init, callback);
+        this.child.init(this.name, this.init_params, callback);
     }
 
     /** Sends data to child object. */
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let ts_start = Date.now();
-        if (self._inSend > 0 && !self._allow_parallel) {
-            self._pendingSendRequests.push({
+        if (self.inSend > 0 && !self.allow_parallel) {
+            self.pendingSendRequests.push({
                 data: data,
                 stream_id: stream_id,
                 callback: (err) => {
-                    self._telemetryAdd(Date.now() - ts_start);
+                    self.telemetryAdd(Date.now() - ts_start);
                     callback(err);
                 }
             });
         } else {
-            self._inSend++;
-            self._child.receive(data, stream_id, (err) => {
+            self.inSend++;
+            self.child.receive(data, stream_id, (err) => {
                 callback(err);
-                self._inSend--;
-                if (self._inSend === 0) {
-                    if (self._pendingSendRequests.length > 0) {
-                        let d = self._pendingSendRequests[0];
-                        self._pendingSendRequests = self._pendingSendRequests.slice(1);
+                self.inSend--;
+                if (self.inSend === 0) {
+                    if (self.pendingSendRequests.length > 0) {
+                        let d = self.pendingSendRequests[0];
+                        self.pendingSendRequests = self.pendingSendRequests.slice(1);
                         self.receive(d.data, stream_id, d.callback);
-                    } else if (self._pendingShutdownCallback) {
-                        self.shutdown(self._pendingShutdownCallback);
-                        self._pendingShutdownCallback = null;
+                    } else if (self.pendingShutdownCallback) {
+                        self.shutdown(self.pendingShutdownCallback);
+                        self.pendingShutdownCallback = null;
                     }
                 }
             });
@@ -322,7 +332,7 @@ export class TopologyBoltInproc {
     }
 
     /** Factory method for sys bolts */
-    _createSysBolt(bolt_config: any, context: any) {
+    private createSysBolt(bolt_config: any, context: any) {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
@@ -335,8 +345,8 @@ export class TopologyBoltInproc {
     }
 
     /** Adds duration to internal telemetry */
-    _telemetryAdd(duration: number) {
-        this._telemetry.add(duration);
-        this._telemetry_total.add(duration);
+    private telemetryAdd(duration: number) {
+        this.telemetry.add(duration);
+        this.telemetry_total.add(duration);
     }
 }

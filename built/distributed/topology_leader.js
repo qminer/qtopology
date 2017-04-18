@@ -8,45 +8,45 @@ const lb = require("../util/load_balance");
 class TopologyLeader {
     /** Simple constructor */
     constructor(name, storage) {
-        this._storage = storage;
-        this._name = name;
-        this._isRunning = false;
-        this._shutdownCallback = null;
-        this._isLeader = false;
-        this._loopTimeout = 3 * 1000; // 3 seconds for refresh
+        this.storage = storage;
+        this.name = name;
+        this.isRunning = false;
+        this.shutdownCallback = null;
+        this.isLeader = false;
+        this.loopTimeout = 3 * 1000; // 3 seconds for refresh
     }
     /** Runs main loop that handles leadership detection */
     run() {
         let self = this;
-        self._isRunning = true;
-        async.whilst(() => { return self._isRunning; }, (xcallback) => {
+        self.isRunning = true;
+        async.whilst(() => { return self.isRunning; }, (xcallback) => {
             setTimeout(function () {
-                if (self._isLeader) {
-                    self._performLeaderLoop(xcallback);
+                if (self.isLeader) {
+                    self.performLeaderLoop(xcallback);
                 }
                 else {
-                    self._checkIfLeader(xcallback);
+                    self.checkIfLeader(xcallback);
                 }
-            }, self._loopTimeout);
+            }, self.loopTimeout);
         }, (err) => {
             console.log("Leader shutdown finished.");
-            if (self._shutdownCallback) {
-                self._shutdownCallback(err);
+            if (self.shutdownCallback) {
+                self.shutdownCallback(err);
             }
         });
     }
     /** Shut down the loop */
     shutdown(callback) {
         let self = this;
-        self._shutdownCallback = callback;
-        self._isRunning = false;
+        self.shutdownCallback = callback;
+        self.isRunning = false;
     }
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
-    _checkIfLeader(callback) {
+    checkIfLeader(callback) {
         let self = this;
-        self._storage.getLeadershipStatus((err, res) => {
+        self.storage.getLeadershipStatus((err, res) => {
             if (err)
                 return callback(err);
             if (res.leadership == "ok")
@@ -54,14 +54,14 @@ class TopologyLeader {
             if (res.leadership == "pending")
                 return callback();
             // status is vacant
-            self._storage.announceLeaderCandidacy(self._name, (err) => {
+            self.storage.announceLeaderCandidacy(self.name, (err) => {
                 if (err)
                     return callback(err);
-                self._storage.checkLeaderCandidacy(self._name, (err, is_leader) => {
+                self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
                     if (err)
                         return callback(err);
-                    self._isLeader = is_leader;
-                    if (self._isLeader) {
+                    self.isLeader = is_leader;
+                    if (self.isLeader) {
                         console.log("This worker became a leader...");
                     }
                     callback();
@@ -73,12 +73,12 @@ class TopologyLeader {
      * Checks work statuses and redistributes topologies for dead
      * to alive workers.
      */
-    _performLeaderLoop(callback) {
+    performLeaderLoop(callback) {
         let self = this;
         let alive_workers = null;
         async.series([
             (xcallback) => {
-                self._storage.getWorkerStatus((err, workers) => {
+                self.storage.getWorkerStatus((err, workers) => {
                     if (err)
                         return xcallback(err);
                     // each worker: name, status, topology_count
@@ -92,7 +92,7 @@ class TopologyLeader {
                         return xcallback();
                     }
                     async.each(dead_workers, (dead_worker, xxcallback) => {
-                        self._handleDeadWorker(dead_worker, xxcallback);
+                        self.handleDeadWorker(dead_worker, xxcallback);
                     }, xcallback);
                 });
             },
@@ -100,7 +100,7 @@ class TopologyLeader {
                 if (alive_workers.length == 0) {
                     return xcallback();
                 }
-                self._storage.getTopologyStatus((err, topologies) => {
+                self.storage.getTopologyStatus((err, topologies) => {
                     if (err)
                         return xcallback(err);
                     // each topology: name, status
@@ -115,7 +115,7 @@ class TopologyLeader {
                     async.each(unassigned_topologies, (unassigned_topology, xxcallback) => {
                         let target = load_balancer.next();
                         console.log(`Assigning topology ${unassigned_topology} to worker ${target}`);
-                        self._storage.assignTopology(unassigned_topology, target, xxcallback);
+                        self.storage.assignTopology(unassigned_topology, target, xxcallback);
                     }, xcallback);
                 });
             }
@@ -124,20 +124,20 @@ class TopologyLeader {
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
-    _handleDeadWorker(dead_worker, callback) {
+    handleDeadWorker(dead_worker, callback) {
         console.log("Handling dead worker", dead_worker);
         let self = this;
-        self._storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
+        self.storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
             async.each(topologies, (topology, xcallback) => {
                 console.log("Unassigning topology", topology.uuid);
-                self._storage.setTopologyStatus(topology.uuid, "unassigned", null, xcallback);
+                self.storage.setTopologyStatus(topology.uuid, "unassigned", null, xcallback);
             }, (err) => {
                 if (err) {
                     console.log("Error while handling dead worker", err);
                     return callback(err);
                 }
                 console.log("Setting dead worker as unloaded", dead_worker);
-                self._storage.setWorkerStatus(dead_worker, "unloaded", callback);
+                self.storage.setWorkerStatus(dead_worker, "unloaded", callback);
             });
         });
     }

@@ -7,147 +7,147 @@ import * as intf from "../topology_interfaces";
  */
 export class TopologyLocalProxy {
 
-    private _init_cb: intf.SimpleCallback;
-    private _run_cb: intf.SimpleCallback;
-    private _pause_cb: intf.SimpleCallback;
-    private _shutdown_cb: intf.SimpleCallback;
-    private _was_shut_down: boolean;
-    private _child_exit_callback: intf.SimpleCallback;
-    private _child: cp.ChildProcess;
+    private init_cb: intf.SimpleCallback;
+    private run_cb: intf.SimpleCallback;
+    private pause_cb: intf.SimpleCallback;
+    private shutdown_cb: intf.SimpleCallback;
+    private was_shut_down: boolean;
+    private child_exit_callback: intf.SimpleCallback;
+    private child: cp.ChildProcess;
 
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback) {
         let self = this;
 
-        this._init_cb = null;
-        this._run_cb = null;
-        this._pause_cb = null;
-        this._shutdown_cb = null;
-        this._was_shut_down = false;
-        this._child_exit_callback = child_exit_callback || (() => { });
-        this._child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], {silent: false});
+        this.init_cb = null;
+        this.run_cb = null;
+        this.pause_cb = null;
+        this.shutdown_cb = null;
+        this.was_shut_down = false;
+        this.child_exit_callback = child_exit_callback || (() => { });
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], {silent: false});
 
-        self._child.on("message", (msgx) => {
+        self.child.on("message", (msgx) => {
             let msg = msgx as intf.ChildMsg;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
-                if (self._init_cb) {
-                    self._init_cb(msg.data.err);
-                    self._init_cb = null;
+                if (self.init_cb) {
+                    self.init_cb(msg.data.err);
+                    self.init_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
-                if (self._run_cb) {
-                    self._run_cb(msg.data.err);
-                    self._run_cb = null;
+                if (self.run_cb) {
+                    self.run_cb(msg.data.err);
+                    self.run_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
-                if (self._pause_cb) {
-                    self._pause_cb(msg.data.err);
-                    self._pause_cb = null;
+                if (self.pause_cb) {
+                    self.pause_cb(msg.data.err);
+                    self.pause_cb = null;
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                if (self._shutdown_cb) {
-                    self._shutdown_cb(msg.data.err);
-                    self._shutdown_cb = null;
+                if (self.shutdown_cb) {
+                    self.shutdown_cb(msg.data.err);
+                    self.shutdown_cb = null;
                 }
-                self._was_shut_down = true;
-                self._child.kill();
+                self.was_shut_down = true;
+                self.child.kill();
             }
         });
 
-        self._child.on("error", (e) => {
-            if (self._was_shut_down) return;
-            self._callPendingCallbacks(e);
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+        self.child.on("error", (e) => {
+            if (self.was_shut_down) return;
+            self.callPendingCallbacks(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
-        self._child.on("close", (code) => {
-            if (self._was_shut_down) return;
+        self.child.on("close", (code) => {
+            if (self.was_shut_down) return;
             let e = new Error("CLOSE Child process exited with code " + code);
-            self._callPendingCallbacks(e);
+            self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
-        self._child.on("exit", (code) => {
-            if (self._was_shut_down) return;
+        self.child.on("exit", (code) => {
+            if (self.was_shut_down) return;
             let e = new Error("EXIT Child process exited with code " + code);
-            self._callPendingCallbacks(e);
+            self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
             }
-            self._child_exit_callback(e);
-            self._callPendingCallbacks2(e);
+            self.child_exit_callback(e);
+            self.callPendingCallbacks2(e);
         });
     }
 
     /** Calls all pending callbacks with given error and clears them. */
-    _callPendingCallbacks(e: Error) {
-        if (this._init_cb) {
-            this._init_cb(e);
-            this._init_cb = null;
+    private callPendingCallbacks(e: Error) {
+        if (this.init_cb) {
+            this.init_cb(e);
+            this.init_cb = null;
         }
-        if (this._run_cb) {
-            this._run_cb(e);
-            this._run_cb = null;
+        if (this.run_cb) {
+            this.run_cb(e);
+            this.run_cb = null;
         }
-        if (this._pause_cb) {
-            this._pause_cb(e);
-            this._pause_cb = null;
+        if (this.pause_cb) {
+            this.pause_cb(e);
+            this.pause_cb = null;
         }
     }
 
     /** Calls pending shutdown callback with given error and clears it. */
-    _callPendingCallbacks2(e: Error) {
-        if (this._shutdown_cb) {
-            this._shutdown_cb(e);
-            this._shutdown_cb = null;
+    private callPendingCallbacks2(e: Error) {
+        if (this.shutdown_cb) {
+            this.shutdown_cb(e);
+            this.shutdown_cb = null;
         }
     }
 
     /** Sends initialization signal to underlaying process */
     init(config: any, callback: intf.SimpleCallback) {
-        if (this._init_cb) {
+        if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
-        this._init_cb = callback;
-        this._send(intf.ParentMsgCode.init, config);
+        this.init_cb = callback;
+        this.send(intf.ParentMsgCode.init, config);
     }
 
     /** Sends run signal to underlaying process */
     run(callback: intf.SimpleCallback) {
-        if (this._run_cb) {
+        if (this.run_cb) {
             return callback(new Error("Pending run callback already exists."));
         }
-        this._run_cb = callback;
-        this._send(intf.ParentMsgCode.run, {});
+        this.run_cb = callback;
+        this.send(intf.ParentMsgCode.run, {});
     }
 
     /** Sends pause signal to underlaying process */
     pause(callback: intf.SimpleCallback) {
-        if (this._pause_cb) {
+        if (this.pause_cb) {
             return callback(new Error("Pending pause callback already exists."));
         }
-        this._pause_cb = callback;
-        this._send(intf.ParentMsgCode.pause, {});
+        this.pause_cb = callback;
+        this.send(intf.ParentMsgCode.pause, {});
     }
 
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
-        if (this._shutdown_cb) {
+        if (this.shutdown_cb) {
             return callback(new Error("Pending shutdown callback already exists."));
         }
-        this._shutdown_cb = callback;
-        this._send(intf.ParentMsgCode.shutdown, {});
+        this.shutdown_cb = callback;
+        this.send(intf.ParentMsgCode.shutdown, {});
     }
 
     /** Internal method for sending messages to child process */
-    _send(code: intf.ParentMsgCode, data: any) {
+    private send(code: intf.ParentMsgCode, data: any) {
         let msg = { cmd: code, data: data } as intf.ParentMsg;
-        this._child.send(msg);
+        this.child.send(msg);
     }
 }

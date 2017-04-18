@@ -7,26 +7,26 @@ import * as intf from "../../topology_interfaces";
 
 export class FileCoordinator implements intf.CoordinationStorage {
 
-    _msgs: intf.StorageResultMessage[];
-    _dir_name: string;
-    _file_pattern: string;
-    _file_pattern_regex: RegExp;
+    private msgs: intf.StorageResultMessage[];
+    private dir_name: string;
+    private file_pattern: string;
+    private file_pattern_regex: RegExp;
 
     constructor(dir_name: string, file_pattern: string) {
-        this._msgs = [];
-        this._dir_name = dir_name;
-        this._dir_name = path.resolve(this._dir_name);
-        this._file_pattern = file_pattern;
-        this._file_pattern_regex = this._createRegexpForPattern(this._file_pattern);
+        this.msgs = [];
+        this.dir_name = dir_name;
+        this.dir_name = path.resolve(this.dir_name);
+        this.file_pattern = file_pattern;
+        this.file_pattern_regex = this.createRegexpForPattern(this.file_pattern);
 
-        let items = fs.readdirSync(this._dir_name);
-        console.log("Starting file-based coordination, from directory", this._dir_name);
+        let items = fs.readdirSync(this.dir_name);
+        console.log("Starting file-based coordination, from directory", this.dir_name);
         for (let item of items) {
             if (path.extname(item) != ".json") continue;
-            if (!item.match(this._file_pattern_regex)) continue;
+            if (!item.match(this.file_pattern_regex)) continue;
             console.log("Found topology file", item);
-            let config = require(path.join(this._dir_name, item));
-            this._msgs.push({
+            let config = require(path.join(this.dir_name, item));
+            this.msgs.push({
                 cmd: "start",
                 content: {
                     uuid: config.general.name,
@@ -37,8 +37,8 @@ export class FileCoordinator implements intf.CoordinationStorage {
     }
 
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
-        let tmp = this._msgs;
-        this._msgs = [];
+        let tmp = this.msgs;
+        this.msgs = [];
         callback(null, tmp);
     }
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>) {
@@ -74,7 +74,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
         callback(null);
     }
 
-    _createRegexpForPattern(str: string): RegExp {
+    private createRegexpForPattern(str: string): RegExp {
         if (!str) return /.*/g;
         str = str
             .replace(/\./g, "\.")

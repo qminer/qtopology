@@ -25,26 +25,26 @@ function injectVars(target: string | any, vars: any): string {
 /** Main class - checks and compiles the topology */
 export class TopologyCompiler {
 
-    private _config: any;
+    private config: any;
 
     /** Simple constructor, receives the topology. */
     constructor(topology_config: any) {
-        this._config = JSON.parse(JSON.stringify(topology_config));
+        this.config = JSON.parse(JSON.stringify(topology_config));
     }
 
     /** Checks and compiles the topology. */
     compile() {
-        let vars = this._config.variables || {};
-        if (this._config.general.initialization) {
-            for (let init_top of this._config.general.initialization) {
+        let vars = this.config.variables || {};
+        if (this.config.general.initialization) {
+            for (let init_top of this.config.general.initialization) {
                 init_top.working_dir = injectVars(init_top.working_dir, vars);
                 if (init_top.init) {
                     init_top.init = injectVars(init_top.init, vars);
                 }
             }
         }
-        if (this._config.general.shutdown) {
-            for (let shutdown_top of this._config.general.shutdown) {
+        if (this.config.general.shutdown) {
+            for (let shutdown_top of this.config.general.shutdown) {
                 shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
                 if (shutdown_top.init) {
                     shutdown_top.init = injectVars(shutdown_top.init, vars);
@@ -53,7 +53,7 @@ export class TopologyCompiler {
         }
 
         let names = {};
-        for (let spout of this._config.spouts) {
+        for (let spout of this.config.spouts) {
             if (names[spout.name]) {
                 throw new Error(`Spout name '${spout.name}' occurs several times.`);
             }
@@ -64,7 +64,7 @@ export class TopologyCompiler {
             spout.init = injectVars(spout.init, vars);
         }
 
-        for (let bolt of this._config.bolts) {
+        for (let bolt of this.config.bolts) {
             if (names[bolt.name]) {
                 throw new Error(`Bolt name '${bolt.name}' occurs several times. Could also be spout's name.`);
             }
@@ -76,7 +76,7 @@ export class TopologyCompiler {
         }
 
         // check bolt inputs
-        this._config.bolts.forEach((bolt) => {
+        this.config.bolts.forEach((bolt) => {
             for (let input of bolt.inputs) {
                 if (!names[input.source]) {
                     throw new Error(`Bolt '${bolt.name}' is using unknown input source '${input.source}'.`);
@@ -87,6 +87,6 @@ export class TopologyCompiler {
 
     /** Returns compiled configuration . */
     getWholeConfig(): any {
-        return JSON.parse(JSON.stringify(this._config));
+        return JSON.parse(JSON.stringify(this.config));
     }
 }

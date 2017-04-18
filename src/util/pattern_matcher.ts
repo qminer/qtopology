@@ -2,7 +2,7 @@
 /** Simple class for pattern matching */
 export class PaternMatcher {
 
-    pattern: any;
+    private pattern: any;
 
     /** Constructor that receives pattern as object */
     constructor(pattern: any) {

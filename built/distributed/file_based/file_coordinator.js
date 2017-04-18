@@ -5,21 +5,21 @@ const path = require("path");
 //////////////////////////////////////////////////////////////////////
 class FileCoordinator {
     constructor(dir_name, file_pattern) {
-        this._msgs = [];
-        this._dir_name = dir_name;
-        this._dir_name = path.resolve(this._dir_name);
-        this._file_pattern = file_pattern;
-        this._file_pattern_regex = this._createRegexpForPattern(this._file_pattern);
-        let items = fs.readdirSync(this._dir_name);
-        console.log("Starting file-based coordination, from directory", this._dir_name);
+        this.msgs = [];
+        this.dir_name = dir_name;
+        this.dir_name = path.resolve(this.dir_name);
+        this.file_pattern = file_pattern;
+        this.file_pattern_regex = this.createRegexpForPattern(this.file_pattern);
+        let items = fs.readdirSync(this.dir_name);
+        console.log("Starting file-based coordination, from directory", this.dir_name);
         for (let item of items) {
             if (path.extname(item) != ".json")
                 continue;
-            if (!item.match(this._file_pattern_regex))
+            if (!item.match(this.file_pattern_regex))
                 continue;
             console.log("Found topology file", item);
-            let config = require(path.join(this._dir_name, item));
-            this._msgs.push({
+            let config = require(path.join(this.dir_name, item));
+            this.msgs.push({
                 cmd: "start",
                 content: {
                     uuid: config.general.name,
@@ -29,8 +29,8 @@ class FileCoordinator {
         }
     }
     getMessages(name, callback) {
-        let tmp = this._msgs;
-        this._msgs = [];
+        let tmp = this.msgs;
+        this.msgs = [];
         callback(null, tmp);
     }
     getWorkerStatus(callback) {
@@ -65,7 +65,7 @@ class FileCoordinator {
         console.log(`Setting worker status: name=${name} status=${status}`);
         callback(null);
     }
-    _createRegexpForPattern(str) {
+    createRegexpForPattern(str) {
         if (!str)
             return /.*/g;
         str = str

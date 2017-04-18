@@ -21,6 +21,7 @@ class RecMessage {
     cmd: string;
     content: any;
 }
+
 //////////////////////////////////////////////////////////////////////
 // Storage implementation - accessed over HTTP
 //
@@ -35,18 +36,18 @@ class RecMessage {
 
 class HttpCoordinationStorage {
 
-    _workers: RecWorker[];
-    _topologies: RecTopology[];
-    _messages: RecMessage[];
+    private workers: RecWorker[];
+    private topologies: RecTopology[];
+    private messages: RecMessage[];
 
     constructor() {
-        this._workers = [];
-        this._topologies = [];
-        this._messages = [];
+        this.workers = [];
+        this.topologies = [];
+        this.messages = [];
     }
 
     addTopology(config) {
-        this._topologies.push({
+        this.topologies.push({
             uuid: config.general.name,
             config: config,
             status: "unassigned",
@@ -60,7 +61,7 @@ class HttpCoordinationStorage {
     registerWorker(name) {
         let rec = null;
         console.log("Registering worker", name);
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             if (worker.name == name) {
                 rec = worker;
                 worker.last_ping = Date.now();
@@ -78,37 +79,37 @@ class HttpCoordinationStorage {
                 lstatus: "",
                 lstatus_ts: null
             };
-            this._workers.push(rec);
+            this.workers.push(rec);
         }
         return { success: true };
     }
 
     /** Determines leadership status */
     getLeadershipStatus(): intf.LeadershipResultStatus {
-        this._disableDefunctLeaders();
+        this.disableDefunctLeaders();
 
-        let hits = this._workers.filter(x => x.lstatus == "leader");
+        let hits = this.workers.filter(x => x.lstatus == "leader");
         if (hits.length > 0) return { leadership: "ok" };
 
-        hits = this._workers.filter(x => x.lstatus == "candidate");
+        hits = this.workers.filter(x => x.lstatus == "candidate");
         if (hits.length > 0) return { leadership: "pending" };
 
         return { leadership: "vacant" };
     }
 
     announceLeaderCandidacy(name: string) {
-        this._disableDefunctLeaders();
+        this.disableDefunctLeaders();
 
         // if we already have a leader, abort
-        let hits = this._workers.filter(x => x.lstatus == "leader");
+        let hits = this.workers.filter(x => x.lstatus == "leader");
         if (hits.length > 0) return;
 
         // find pending records that are not older than 5 sec
-        hits = this._workers.filter(x => x.lstatus == "pending");
+        hits = this.workers.filter(x => x.lstatus == "pending");
         if (hits.length > 0) return;
 
         // ok, announce new candidate
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             if (worker.name == name) {
                 worker.lstatus = "pending";
                 worker.lstatus_ts = Date.now();
@@ -120,10 +121,10 @@ class HttpCoordinationStorage {
 
     /** Checks if leadership candidacy for specified worker was successful. */
     checkLeaderCandidacy(name: string): boolean {
-        this._disableDefunctLeaders();
+        this.disableDefunctLeaders();
 
         let res = false;
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             if (worker.name == name && worker.lstatus == "pending") {
                 worker.lstatus = "leader";
                 res = true;
@@ -135,11 +136,11 @@ class HttpCoordinationStorage {
 
     /** Returns worker statuses */
     getWorkerStatuses(): intf.LeadershipResultWorkerStatus[] {
-        this._disableDefunctWorkers();
-        return this._workers
+        this.disableDefunctWorkers();
+        return this.workers
             .map(x => {
                 let cnt = 0;
-                this._topologies.forEach(y => {
+                this.topologies.forEach(y => {
                     cnt += (y.worker === x.name ? 1 : 0);
                 });
                 return {
@@ -156,9 +157,9 @@ class HttpCoordinationStorage {
     }
 
     getTopologyStatuses(): intf.LeadershipResultTopologyStatus[] {
-        this._disableDefunctWorkers();
-        this._unassignWaitingTopologies();
-        return this._topologies
+        this.disableDefunctWorkers();
+        this.unassignWaitingTopologies();
+        return this.topologies
             .map(x => {
                 return {
                     uuid: x.uuid,
@@ -169,7 +170,7 @@ class HttpCoordinationStorage {
     }
 
     getTopologiesForWorker(name: string): intf.LeadershipResultTopologyStatus[] {
-        return this._topologies
+        return this.topologies
             .filter(x => x.worker === name)
             .map(x => {
                 return {
@@ -181,8 +182,8 @@ class HttpCoordinationStorage {
     }
 
     assignTopology(uuid: string, target: string) {
-        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
-        this._messages.push({
+        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
+        this.messages.push({
             worker: target,
             cmd: "start",
             content: {
@@ -195,26 +196,26 @@ class HttpCoordinationStorage {
     }
 
     markTopologyAsRunning(uuid: string) {
-        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "running";
         topology.last_ping = Date.now();
     }
 
     markTopologyAsStopped(uuid: string) {
-        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "stopped";
         topology.last_ping = Date.now();
     }
 
     markTopologyAsError(uuid: string, error: string) {
-        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
         topology.status = "error";
         topology.last_ping = Date.now();
         topology.error = error;
     }
 
     setTopologyPing(uuid) {
-        let topology = this._topologies.filter(x => x.uuid == uuid)[0];
+        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
         topology.last_ping = Date.now();
         return { success: true };
     }
@@ -231,7 +232,7 @@ class HttpCoordinationStorage {
     }
 
     setWorkerStatus(name, status) {
-        let hits = this._workers.filter(x => x.name === name);
+        let hits = this.workers.filter(x => x.name === name);
         if (hits.length > 0) {
             hits[0].status = status;
             if (status !== "alive") {
@@ -244,14 +245,14 @@ class HttpCoordinationStorage {
     }
 
     getMessagesForWorker(name) {
-        this._pingWorker(name);
-        let result = this._messages.filter(x => x.worker === name);
-        this._messages = this._messages.filter(x => x.worker !== name);
+        this.pingWorker(name);
+        let result = this.messages.filter(x => x.worker === name);
+        this.messages = this.messages.filter(x => x.worker !== name);
         return result;
     }
 
-    _pingWorker(name) {
-        for (let worker of this._workers) {
+    private pingWorker(name) {
+        for (let worker of this.workers) {
             if (worker.name == name) {
                 worker.last_ping = Date.now();
                 break;
@@ -259,14 +260,14 @@ class HttpCoordinationStorage {
         }
     }
 
-    _unassignWaitingTopologies() {
+    private unassignWaitingTopologies() {
         // set topologies to unassigned if they have been waiting too long
         let d = Date.now() - 30 * 1000;
         let worker_map = {};
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             worker_map[worker.name] = worker.status;
         }
-        for (let topology of this._topologies) {
+        for (let topology of this.topologies) {
             if (topology.status == "waiting" && topology.last_ping < d) {
                 topology.status = "unassigned";
                 topology.worker = null;
@@ -280,20 +281,20 @@ class HttpCoordinationStorage {
         }
     }
 
-    _disableDefunctWorkers() {
+    private disableDefunctWorkers() {
         // disable workers that did not update their status
         let d = Date.now() - 30 * 1000;
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             if (worker.status == "alive" && worker.last_ping < d) {
                 worker.status = "dead";
             }
         }
     }
 
-    _disableDefunctLeaders() {
+    private disableDefunctLeaders() {
         // disable worker that did not perform their leadership duties
         let d = Date.now() - 10 * 1000;
-        for (let worker of this._workers) {
+        for (let worker of this.workers) {
             if (worker.lstatus == "leader" || worker.lstatus == "candidate") {
                 if (worker.last_ping < d) {
                     worker.lstatus = "";

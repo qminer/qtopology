@@ -9,15 +9,15 @@ import * as intf from "../topology_interfaces";
  */
 class TopologyLocalWrapper {
 
-    private _name: string;
-    private _topology_local: tl.TopologyLocal;
+    private name: string;
+    private topology_local: tl.TopologyLocal;
 
     /** Constructor that sets up call routing */
     constructor() {
         let self = this;
-        this._topology_local = new tl.TopologyLocal();
+        this.topology_local = new tl.TopologyLocal();
         process.on('message', (msg) => {
-            self._handle(msg);
+            self.handle(msg);
         });
     }
 
@@ -43,32 +43,32 @@ class TopologyLocalWrapper {
     }
 
     /** Internal main handler for incoming messages */
-    _handle(msg: intf.ParentMsg) {
+    private handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
             console.log("Initializing topology", msg.data.general.name);
-            self._name = msg.data.general.name;
+            self.name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
-            self._topology_local.init(topology, (err) => {
-                self._topology_local.run();
-                self._send(intf.ChildMsgCode.response_init, { err: err });
+            self.topology_local.init(topology, (err) => {
+                self.topology_local.run();
+                self.send(intf.ChildMsgCode.response_init, { err: err });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.run) {
-            self._topology_local.run();
-            self._send(intf.ChildMsgCode.response_run, {});
+            self.topology_local.run();
+            self.send(intf.ChildMsgCode.response_run, {});
         }
         if (msg.cmd === intf.ParentMsgCode.pause) {
-            self._topology_local.pause((err) => {
-                self._send(intf.ChildMsgCode.response_pause, { err: err });
+            self.topology_local.pause((err) => {
+                self.send(intf.ChildMsgCode.response_pause, { err: err });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            console.log("Shutting down topology", self._name);
-            self._topology_local.shutdown((err) => {
-                self._send(intf.ChildMsgCode.response_shutdown, { err: err });
+            console.log("Shutting down topology", self.name);
+            self.topology_local.shutdown((err) => {
+                self.send(intf.ChildMsgCode.response_shutdown, { err: err });
                 //process.exit(0); - will be killed by parent process
             });
         }
@@ -78,7 +78,7 @@ class TopologyLocalWrapper {
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    _send(cmd: intf.ChildMsgCode, data: any) {
+    private send(cmd: intf.ChildMsgCode, data: any) {
         if (process.send) {
             process.send({ cmd: cmd, data: data });
         } else {

@@ -10,7 +10,7 @@ interface Worker {
 */
 export class LoadBalancer {
 
-    workers: Worker[];
+    private workers: Worker[];
 
     /** Constructor received the list of workers. Each worker
      * contains a name and a weight (current load).

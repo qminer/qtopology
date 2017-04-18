@@ -9,52 +9,52 @@ class TopologyCoordinator extends EventEmitter {
     /** Simple constructor */
     constructor(name, storage) {
         super();
-        this._storage = storage;
-        this._name = name;
-        this._leadership = new leader.TopologyLeader(this._name, this._storage);
-        this._isRunning = false;
-        this._shutdownCallback = null;
-        this._loopTimeout = 2 * 1000; // 2 seconds for refresh
+        this.storage = storage;
+        this.name = name;
+        this.leadership = new leader.TopologyLeader(this.name, this.storage);
+        this.isRunning = false;
+        this.shutdownCallback = null;
+        this.loopTimeout = 2 * 1000; // 2 seconds for refresh
     }
     /** Runs main loop */
     run() {
         let self = this;
-        self._isRunning = true;
-        self._storage.registerWorker(self._name, () => { });
-        self._leadership.run();
+        self.isRunning = true;
+        self.storage.registerWorker(self.name, () => { });
+        self.leadership.run();
         async.whilst(() => {
-            return self._isRunning;
+            return self.isRunning;
         }, (xcallback) => {
             setTimeout(function () {
-                self._handleIncommingRequests(xcallback);
-            }, self._loopTimeout);
+                self.handleIncommingRequests(xcallback);
+            }, self.loopTimeout);
         }, (err) => {
             console.log("Coordinator shutdown finished.");
-            if (self._shutdownCallback) {
-                self._shutdownCallback(err);
+            if (self.shutdownCallback) {
+                self.shutdownCallback(err);
             }
         });
     }
     /** Shut down the loop */
     shutdown(callback) {
         let self = this;
-        self.reportWorker(self._name, "dead", "", (err) => {
+        self.reportWorker(self.name, "dead", "", (err) => {
             if (err) {
                 console.log("Error while reporting worker status as 'dead':", err);
             }
-            self._leadership.shutdown((err) => {
+            self.leadership.shutdown((err) => {
                 if (err) {
                     console.log("Error while shutting down leader:", err);
                 }
                 console.log("Coordinator set for shutdown");
-                self._shutdownCallback = callback;
-                self._isRunning = false;
+                self.shutdownCallback = callback;
+                self.isRunning = false;
             });
         });
     }
     /** Set status on given topology */
     reportTopology(uuid, status, error, callback) {
-        this._storage.setTopologyStatus(uuid, status, error, (err) => {
+        this.storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
                 console.log("Couldn't report topology status");
                 console.log("Topology:", uuid, status, error);
@@ -67,7 +67,7 @@ class TopologyCoordinator extends EventEmitter {
     }
     /** Set status on given worker */
     reportWorker(name, status, error, callback) {
-        this._storage.setWorkerStatus(name, status, (err) => {
+        this.storage.setWorkerStatus(name, status, (err) => {
             if (err) {
                 console.log("Couldn't report worker status");
                 console.log("Worker:", name, status);
@@ -79,9 +79,9 @@ class TopologyCoordinator extends EventEmitter {
         });
     }
     /** This method checks for new messages from coordination storage. */
-    _handleIncommingRequests(callback) {
+    handleIncommingRequests(callback) {
         let self = this;
-        self._storage.getMessages(self._name, (err, msgs) => {
+        self.storage.getMessages(self.name, (err, msgs) => {
             if (err)
                 return callback(err);
             async.each(msgs, (msg, xcallback) => {

@@ -5,6 +5,7 @@ import * as top_inproc from "./topology_local_inprocess";
 
 ////////////////////////////////////////////////////////////////////
 
+/** Internal record for router mapping */
 class OutputRouterDestination {
     destination: string;
     stream_id: string;
@@ -49,30 +50,30 @@ export class OutputRouter {
 /** This class runs local topology */
 export class TopologyLocal {
 
-    private _spouts: top_inproc.TopologySpoutInproc[];
-    private _bolts: top_inproc.TopologyBoltInproc[];
-    private _config: any;
-    private _heartbeatTimeout: number;
-    private _router: OutputRouter;
-    private _isInitialized: boolean;
-    private _isRunning: boolean;
-    private _isShuttingDown: boolean;
-    private _heartbeatTimer: NodeJS.Timer;
-    private _heartbeatCallback: intf.SimpleCallback;
+    private spouts: top_inproc.TopologySpoutInproc[];
+    private bolts: top_inproc.TopologyBoltInproc[];
+    private config: any;
+    private heartbeatTimeout: number;
+    private router: OutputRouter;
+    private isInitialized: boolean;
+    private isRunning: boolean;
+    private isShuttingDown: boolean;
+    private heartbeatTimer: NodeJS.Timer;
+    private heartbeatCallback: intf.SimpleCallback;
 
     /** Constructor prepares the object before any information is received. */
     constructor() {
-        this._spouts = [];
-        this._bolts = [];
-        this._config = null;
-        this._heartbeatTimeout = 10000;
-        this._router = new OutputRouter();
+        this.spouts = [];
+        this.bolts = [];
+        this.config = null;
+        this.heartbeatTimeout = 10000;
+        this.router = new OutputRouter();
 
-        this._isRunning = false;
-        this._isShuttingDown = false;
-        this._isInitialized = false;
-        this._heartbeatTimer = null;
-        this._heartbeatCallback = null;
+        this.isRunning = false;
+        this.isShuttingDown = false;
+        this.isInitialized = false;
+        this.heartbeatTimer = null;
+        this.heartbeatCallback = null;
     }
 
     /** Initialization that sets up internal structure and
@@ -80,98 +81,98 @@ export class TopologyLocal {
      */
     init(config: any, callback: intf.SimpleCallback) {
         let self = this;
-        self._config = config;
-        self._heartbeatTimeout = config.general.heartbeat;
-        self._isInitialized = true;
-        self._initContext((err, context) => {
+        self.config = config;
+        self.heartbeatTimeout = config.general.heartbeat;
+        self.isInitialized = true;
+        self.initContext((err, context) => {
             let tasks = [];
-            self._config.bolts.forEach((bolt_config) => {
+            self.config.bolts.forEach((bolt_config) => {
                 if (bolt_config.disabled) {
                     return;
                 }
                 bolt_config.onEmit = (data, stream_id, callback) => {
-                    self._redirect(bolt_config.name, data, stream_id, callback);
+                    self.redirect(bolt_config.name, data, stream_id, callback);
                 };
                 let bolt = null;
                 bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
-                self._bolts.push(bolt);
+                self.bolts.push(bolt);
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
-                    self._router.register(input.source, bolt_config.name, input.stream_id);
+                    self.router.register(input.source, bolt_config.name, input.stream_id);
                 }
             });
-            self._config.spouts.forEach((spout_config) => {
+            self.config.spouts.forEach((spout_config) => {
                 if (spout_config.disabled) {
                     return;
                 }
                 spout_config.onEmit = (data, stream_id, callback) => {
-                    self._redirect(spout_config.name, data, stream_id, callback);
+                    self.redirect(spout_config.name, data, stream_id, callback);
                 };
                 let spout = null;
 
                 spout = new top_inproc.TopologySpoutInproc(spout_config, context);
-                self._spouts.push(spout);
+                self.spouts.push(spout);
                 tasks.push((xcallback) => { spout.init(xcallback); });
             });
-            self._runHeartbeat();
+            self.runHeartbeat();
             async.series(tasks, callback);
         });
     }
 
     /** Sends run signal to all spouts */
     run() {
-        if (!this._isInitialized) {
+        if (!this.isInitialized) {
             throw new Error("Topology not initialized and cannot run.");
         }
         console.log("Local topology started");
-        for (let spout of this._spouts) {
+        for (let spout of this.spouts) {
             spout.run();
         }
-        this._isRunning = true;
+        this.isRunning = true;
     }
 
     /** Sends pause signal to all spouts */
     pause(callback: intf.SimpleCallback) {
-        if (!this._isInitialized) {
+        if (!this.isInitialized) {
             throw new Error("Topology not initialized and cannot be paused.");
         }
-        for (let spout of this._spouts) {
+        for (let spout of this.spouts) {
             spout.pause();
         }
-        this._isRunning = false;
+        this.isRunning = false;
         callback();
     }
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback) {
-        if (!this._isInitialized) {
+        if (!this.isInitialized) {
             return callback();
         }
         let self = this;
-        self._isShuttingDown = true;
-        if (self._heartbeatTimer) {
-            clearInterval(self._heartbeatTimer);
-            self._heartbeatCallback();
+        self.isShuttingDown = true;
+        if (self.heartbeatTimer) {
+            clearInterval(self.heartbeatTimer);
+            self.heartbeatCallback();
         }
         self.pause((err) => {
             let tasks = [];
-            self._spouts.forEach((spout) => {
+            self.spouts.forEach((spout) => {
                 tasks.push((xcallback) => {
                     spout.shutdown(xcallback);
                 });
             });
-            self._bolts.forEach((bolt) => {
+            self.bolts.forEach((bolt) => {
                 tasks.push((xcallback) => {
                     bolt.shutdown(xcallback);
                 });
             });
-            if (self._config.general.shutdown) {
+            if (self.config.general.shutdown) {
                 let factory = (module_path) => {
                     return (xcallback) => {
                         require(module_path).shutdown(xcallback);
                     };
                 };
-                for (let shutdown_conf of self._config.general.shutdown) {
+                for (let shutdown_conf of self.config.general.shutdown) {
                     let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, shutdown_conf.cmd);
                     tasks.push(factory(module_path));
@@ -182,36 +183,36 @@ export class TopologyLocal {
     }
 
     /** Runs heartbeat pump until this object shuts down */
-    _runHeartbeat() {
+    private runHeartbeat() {
         let self = this;
         async.whilst(
             () => {
-                return !self._isShuttingDown;
+                return !self.isShuttingDown;
             },
             (xcallback) => {
-                self._heartbeatCallback = xcallback;
-                self._heartbeatTimer = setTimeout(
+                self.heartbeatCallback = xcallback;
+                self.heartbeatTimer = setTimeout(
                     () => {
-                        if (self._isRunning) {
-                            self._heartbeat();
+                        if (self.isRunning) {
+                            self.heartbeat();
                         }
                         xcallback();
                     },
-                    self._heartbeatTimeout);
+                    self.heartbeatTimeout);
             },
             () => { }
         );
     }
 
     /** Sends heartbeat signal to all child processes */
-    _heartbeat() {
-        if (!this._isInitialized) {
+    private heartbeat() {
+        if (!this.isInitialized) {
             return;
         }
-        for (let spout of this._spouts) {
+        for (let spout of this.spouts) {
             spout.heartbeat();
         }
-        for (let bolt of this._bolts) {
+        for (let bolt of this.bolts) {
             bolt.heartbeat();
         }
     }
@@ -223,15 +224,15 @@ export class TopologyLocal {
      * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    _redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
+    private redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
-        let destinations = self._router.getDestinationsForSource(source, stream_id);
+        let destinations = self.router.getDestinationsForSource(source, stream_id);
         async.each(
             destinations,
             (destination, xcallback) => {
                 let data_clone = {};
                 Object.assign(data_clone, data);
-                let bolt = self._getBolt(destination);
+                let bolt = self.getBolt(destination);
                 bolt.receive(data_clone, stream_id, xcallback);
             },
             callback
@@ -241,8 +242,8 @@ export class TopologyLocal {
     /** Find bolt with given name.
      * @param {string} name - Name of the bolt that we need to find
      */
-    _getBolt(name: string) {
-        let hits = this._bolts.filter(x => x.getName() == name);
+    private getBolt(name: string) {
+        let hits = this.bolts.filter(x => x.getName() == name);
         if (hits.length === 0) {
             return null;
         }
@@ -253,12 +254,12 @@ export class TopologyLocal {
      * and returns the context object.
      * @param {Function} callback - standard callback
      */
-    _initContext(callback: intf.InitContextCallback) {
+    private initContext(callback: intf.InitContextCallback) {
         let self = this;
-        if (self._config.general.initialization) {
+        if (self.config.general.initialization) {
             let common_context = {};
             async.eachSeries(
-                self._config.general.initialization,
+                self.config.general.initialization,
                 (init_conf, xcallback) => {
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);

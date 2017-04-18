@@ -10,9 +10,9 @@ export class OptionsDescription {
 
 export class CmdLineParser {
 
-    shortnames: Map<string, OptionsDescription>;
-    names: Map<string, OptionsDescription>;
-    descriptions: OptionsDescription[];
+    private shortnames: Map<string, OptionsDescription>;
+    private names: Map<string, OptionsDescription>;
+    private descriptions: OptionsDescription[];
 
     constructor() {
         this.shortnames = new Map<string, OptionsDescription>();
