@@ -18,15 +18,12 @@ cmdln
 let opts = cmdln.process(process.argv);
 
 let storage = new stor.HttpCoordinator();
-let w = new wrkr.TopologyWorker({
-    name: opts.name,
-    storage: storage
-});
+let w = new wrkr.TopologyWorker(opts.name, storage);
 w.run();
 
 function shutdown() {
     if (w) {
-        w.shutdown(()=>{
+        w.shutdown(() => {
             process.exit(1);
         });
         w = null;
@@ -40,7 +37,7 @@ process.on("exit", shutdown);
 process.on("SIGINT", shutdown);
 
 //catches uncaught exceptions
-process.on("uncaughtException", (dat)=>{
+process.on("uncaughtException", (dat) => {
     console.log("uncaughtException", dat);
     shutdown();
 });

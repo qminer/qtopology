@@ -12,9 +12,9 @@ class TopologyItem {
 */
 class TopologyWorker {
     /** Initializes this object */
-    constructor(options) {
-        this.name = options.name;
-        this.coordinator = new coord.TopologyCoordinator(options.name, options.storage);
+    constructor(name, storage) {
+        this.name = name;
+        this.coordinator = new coord.TopologyCoordinator(name, storage);
         this.topologies = [];
         let self = this;
         self.coordinator.on("start", (msg) => {

@@ -1,7 +1,7 @@
 
 const port_default = 3000;
 
-import Client from 'node-rest-client';
+import * as nrc from 'node-rest-client';
 import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
 
@@ -11,12 +11,12 @@ import * as intf from "../../topology_interfaces";
 export class HttpCoordinator implements intf.CoordinationStorage {
 
     private port: number;
-    private client: Client;
+    private client: nrc.Client;
     private urlPrefix: string;
 
     constructor(port?: number) {
         this.port = port || port_default;
-        this.client = new Client();
+        this.client = new nrc.Client();
         this.urlPrefix = "http://localhost:" + this.port + "/"
     }
 
