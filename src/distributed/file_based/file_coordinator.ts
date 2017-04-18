@@ -70,7 +70,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
         callback(null);
     }
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback) {
-        console.log(`Setting worker status: name=${name} status=${status}`);
+        console.log(`Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
 

@@ -57,10 +57,12 @@ export class TopologyWorker {
         self.topologies.push(rec);
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
             console.log("*** in worker shutdown handler", err)
-            if (err) {
-                self.coordinator.reportTopology(uuid, "error", "" + err);
-            } else {
-                self.coordinator.reportTopology(uuid, "stopped", "" + err);
+            if (!rec.proxy.wasShutDown()) {
+                if (err) {
+                    self.coordinator.reportTopology(uuid, "error", "" + err);
+                } else {
+                    self.coordinator.reportTopology(uuid, "stopped", "" + err);
+                }
             }
             self.removeTopology(uuid);
         });
@@ -91,7 +93,8 @@ export class TopologyWorker {
         let self = this;
         async.each(
             self.topologies,
-            (item, xcallback) => {
+            (itemx, xcallback) => {
+                let item = itemx as TopologyItem;
                 item.proxy.shutdown((err) => {
                     if (err) {
                         console.log("Error while shutting down topology", item.uuid, err);
@@ -101,6 +104,7 @@ export class TopologyWorker {
                 });
             },
             (err) => {
+                console.log("async.each - Shutdown callback after all done");
                 if (err) {
                     console.log("Error while shutting down topologies:", err);
                 }

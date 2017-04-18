@@ -12,7 +12,7 @@ cmdln
     .define('n', 'name', 'worker1', 'Logical name of the worker');
 let opts = cmdln.process(process.argv);
 
-let storage = new stor.FileCoordinator("./topologies", "*.json");
+let storage = new stor.FileCoordinator("./topologies", "*12.json");
 
 let w = new wrkr.TopologyWorker({
     name: opts.name,

@@ -62,7 +62,7 @@ class FileCoordinator {
         callback(null);
     }
     setWorkerStatus(worker, status, callback) {
-        console.log(`Setting worker status: name=${name} status=${status}`);
+        console.log(`Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
     createRegexpForPattern(str) {
