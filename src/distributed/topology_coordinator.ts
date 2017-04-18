@@ -77,8 +77,6 @@ export class TopologyCoordinator extends EventEmitter {
             }
             if (callback) {
                 callback(err);
-            } else {
-                console.log("? no callback - reportTopology");
             }
         });
     }
