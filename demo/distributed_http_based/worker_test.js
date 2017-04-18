@@ -6,12 +6,13 @@
 // const stor = require("../../src/distributed/http_based/http_coordinator");
 
 const qtoplogy = require("../../");
-const cmdln = qtoplogy.util.cmdline;
+const cmdln_lib = qtoplogy.util.cmdline;
 const wrkr = qtoplogy.distributed.worker;
 const coor = qtoplogy.distributed.coordinator;
 const stor = qtoplogy.distributed.std_coordinators.http.coordinator;
 
 ///////////////////////////////////////////////////////////////////////
+let cmdln = new cmdln_lib.CmdLineParser();
 cmdln
     .define("n", "name", "worker1", "Logical name of the worker");
 let opts = cmdln.process(process.argv);

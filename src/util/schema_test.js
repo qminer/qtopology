@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const Validator = require("jsonschema").Validator;
-
 const TopologyCompiler = require("../topology_compiler").TopologyCompiler;
 
 ////////////////////////////////////////////////////////////////////

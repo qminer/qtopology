@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const tc = require("../src/topology_compiler");
+const tc = require("../built/topology_compiler");
 
 
 describe('TopologyCompiler', function () {

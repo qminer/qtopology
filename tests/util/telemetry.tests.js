@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const tel = require("../../src/util/telemetry");
+const tel = require("../../built/util/telemetry");
 
 describe('Telemetry', function () {
     it('constructable', function () {

@@ -3,7 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
-const cb = require("../../src/std_nodes/console_bolt");
+const cb = require("../../built/std_nodes/console_bolt");
 
 describe('ConsoleBolt', function () {
     it('constructable', function () {

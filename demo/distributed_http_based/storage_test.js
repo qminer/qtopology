@@ -1,11 +1,11 @@
 "use strict";
 
 const qtoplogy = require("../../");
-const cmdln = qtoplogy.util.cmdline;
+const cmdln_lib = qtoplogy.util.cmdline;
 const stor = qtoplogy.distributed.std_coordinators.http.storage;
 
 //////////////////////////////////////////////////
-
+let cmdln = new cmdln_lib.CmdLineParser();
 cmdln
     .define("p", "port", 3000, "Port");
 let options = cmdln.process(process.argv);

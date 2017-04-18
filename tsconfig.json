@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "allowJs": false,
+        "sourceMap": true,
+        "target": "es6",
+        "module": "commonjs",
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "types": [
+            "node"
+        ],
+        "typeRoots": [
+            "node_modules/@types"
+        ]
+    },
+    "include": [
+        "./src/**/*"
+    ]
+}
