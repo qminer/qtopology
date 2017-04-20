@@ -21,9 +21,9 @@ export class TopologyWorker {
     private topologies: TopologyItem[];
 
     /** Initializes this object */
-    constructor(options) {
-        this.name = options.name;
-        this.coordinator = new coord.TopologyCoordinator(options.name, options.storage);
+    constructor(name: string, storage: intf.CoordinationStorage) {
+        this.name = name;
+        this.coordinator = new coord.TopologyCoordinator(name, storage);
         this.topologies = [];
 
         let self = this;

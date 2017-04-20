@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const port_default = 3000;
-const node_rest_client_1 = require("node-rest-client");
+const nrc = require("node-rest-client");
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
 class HttpCoordinator {
     constructor(port) {
         this.port = port || port_default;
-        this.client = new node_rest_client_1.default();
+        this.client = new nrc.Client();
         this.urlPrefix = "http://localhost:" + this.port + "/";
     }
     getMessages(name, callback) {

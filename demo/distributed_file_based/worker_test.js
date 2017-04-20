@@ -14,10 +14,7 @@ let opts = cmdln.process(process.argv);
 
 let storage = new stor.FileCoordinator("./topologies", "*.json");
 
-let w = new wrkr.TopologyWorker({
-    name: opts.name,
-    storage: storage
-});
+let w = new wrkr.TopologyWorker(opts.name, storage);
 w.run();
 
 function shutdown() {
@@ -36,10 +33,10 @@ function shutdown() {
 setTimeout(() => { shutdown(); }, 5000);
 
 //do something when app is closing
-//process.on('exit', shutdown);
+process.on('exit', shutdown);
 
 //catches ctrl+c event
-//process.on('SIGINT', shutdown);
+process.on('SIGINT', shutdown);
 
 //catches uncaught exceptions
-//process.on('uncaughtException', shutdown);
+process.on('uncaughtException', shutdown);
