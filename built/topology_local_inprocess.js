@@ -92,7 +92,11 @@ class TopologySpoutInproc {
             else {
                 self.next(xcallback);
             }
-        }, () => { });
+        }, (err) => {
+            if (err) {
+                console.log(err);
+            }
+        });
     }
     /** Requests next data message */
     next(callback) {
@@ -102,28 +106,30 @@ class TopologySpoutInproc {
         }
         else {
             let ts_start = Date.now();
-            this.child.next((err, data, stream_id, xcallback) => {
-                self.telemetryAdd(Date.now() - ts_start);
-                if (err) {
-                    console.error(err);
-                    callback();
-                    return;
-                }
-                if (!data) {
-                    self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
-                    callback();
-                }
-                else {
-                    self.emitCallback(data, stream_id, (err) => {
-                        // in case child object expects confirmation call for this tuple
-                        if (xcallback) {
-                            xcallback(err, callback);
-                        }
-                        else {
-                            callback();
-                        }
-                    });
-                }
+            setImmediate(() => {
+                this.child.next((err, data, stream_id, xcallback) => {
+                    self.telemetryAdd(Date.now() - ts_start);
+                    if (err) {
+                        console.error(err);
+                        callback();
+                        return;
+                    }
+                    if (!data) {
+                        self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
+                        callback();
+                    }
+                    else {
+                        self.emitCallback(data, stream_id, (err) => {
+                            // in case child object expects confirmation call for this tuple
+                            if (xcallback) {
+                                xcallback(err, callback);
+                            }
+                            else {
+                                callback();
+                            }
+                        });
+                    }
+                });
             });
         }
     }

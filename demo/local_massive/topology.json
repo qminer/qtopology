@@ -1,0 +1,38 @@
+{
+    "general": {
+        "name": "Topology name",
+        "heartbeat": 1000,
+        "initialization": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            }
+        ],
+        "shutdown": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            }
+        ]
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "inproc",
+            "working_dir": ".",
+            "cmd": "spout_inproc.js",
+            "init": {}
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt_console",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [{ "source": "pump1" }],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
