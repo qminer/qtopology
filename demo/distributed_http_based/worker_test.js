@@ -1,10 +1,5 @@
 "use strict";
 
-// const cmdln = require("../../src/util/cmdline");
-// const wrkr = require("../../src/distributed/topology_worker");
-// const coor = require("../../src/distributed/topology_coordinator");
-// const stor = require("../../src/distributed/http_based/http_coordinator");
-
 const qtoplogy = require("../../");
 const cmdln_lib = qtoplogy.util.cmdline;
 const wrkr = qtoplogy.distributed.worker;
