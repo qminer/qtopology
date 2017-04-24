@@ -18,9 +18,11 @@ class TopologyWorker {
         this.topologies = [];
         let self = this;
         self.coordinator.on("start", (msg) => {
+            console.log("[Worker] Received start instruction from coordinator");
             self.start(msg.uuid, msg.config);
         });
         self.coordinator.on("shutdown", (msg) => {
+            console.log("[Worker] Received shutdown instruction from coordinator");
             self.shutdown(() => { });
         });
     }
@@ -82,7 +84,7 @@ class TopologyWorker {
             let item = itemx;
             item.proxy.shutdown((err) => {
                 if (err) {
-                    console.log("Error while shutting down topology", item.uuid, err);
+                    console.log("[Worker] Error while shutting down topology", item.uuid, err);
                 }
                 else {
                     self.coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
@@ -90,7 +92,7 @@ class TopologyWorker {
             });
         }, (err) => {
             if (err) {
-                console.log("Error while shutting down topologies:", err);
+                console.log("[Worker] Error while shutting down topologies:", err);
             }
             self.coordinator.shutdown(callback);
         });
