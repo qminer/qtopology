@@ -27,7 +27,7 @@ export class ConsoleBolt implements intf.Bolt {
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        console.log(this.prefix, "Inside receive", data, "stream_id=" + stream_id);
+        console.log(this.prefix, `[stream_id=${stream_id}]`, data);
         this.onEmit(data, stream_id, callback);
     }
 }
