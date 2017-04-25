@@ -8,7 +8,7 @@ class FileCoordinator {
         this.msgs = [];
         this.dir_name = dir_name;
         this.dir_name = path.resolve(this.dir_name);
-        this.file_patterns = (file_pattern instanceof String ? [file_pattern] : file_pattern);
+        this.file_patterns = (typeof file_pattern === "string" ? [file_pattern] : file_pattern);
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
         let items = fs.readdirSync(this.dir_name);
