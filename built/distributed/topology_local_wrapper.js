@@ -40,7 +40,7 @@ class TopologyLocalWrapper {
     handle(msg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            console.log("Initializing topology", msg.data.general.name);
+            console.log("[Local wrapper] Initializing topology", msg.data.general.name);
             self.name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
@@ -60,7 +60,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            console.log("Shutting down topology", self.name);
+            console.log("[Local wrapper] Shutting down topology", self.name);
             self.topology_local.shutdown((err) => {
                 self.send(intf.ChildMsgCode.response_shutdown, { err: err });
                 setTimeout(() => {
@@ -79,7 +79,7 @@ class TopologyLocalWrapper {
         }
         else {
             // we're running in dev/test mode as a standalone process
-            console.log("Sending command", { cmd: cmd, data: data });
+            console.log("[Local wrapper] Sending command", { cmd: cmd, data: data });
         }
     }
 }
