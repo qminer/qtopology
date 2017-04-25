@@ -8,16 +8,23 @@ class FileCoordinator {
         this.msgs = [];
         this.dir_name = dir_name;
         this.dir_name = path.resolve(this.dir_name);
-        this.file_pattern = file_pattern;
-        this.file_pattern_regex = this.createRegexpForPattern(this.file_pattern);
+        this.file_patterns = (file_pattern instanceof String ? [file_pattern] : file_pattern);
+        this.file_patterns_regex = this.file_patterns
+            .map(x => this.createRegexpForPattern(x));
         let items = fs.readdirSync(this.dir_name);
-        console.log("Starting file-based coordination, from directory", this.dir_name);
+        console.log("[FileCoordinator] Starting file-based coordination, from directory", this.dir_name);
         for (let item of items) {
-            if (path.extname(item) != ".json")
+            let is_ok = false;
+            for (let pattern of this.file_patterns_regex) {
+                if (item.match(pattern)) {
+                    is_ok = true;
+                    continue;
+                }
+            }
+            if (!is_ok) {
                 continue;
-            if (!item.match(this.file_pattern_regex))
-                continue;
-            console.log("Found topology file", item);
+            }
+            console.log("[FileCoordinator] Found topology file", item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
@@ -58,11 +65,11 @@ class FileCoordinator {
         callback(null);
     }
     setTopologyStatus(uuid, status, error, callback) {
-        console.log(`Setting topology status: uuid=${uuid} status=${status} error=${error}`);
+        console.log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null);
     }
     setWorkerStatus(worker, status, callback) {
-        console.log(`Setting worker status: name=${worker} status=${status}`);
+        console.log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
     createRegexpForPattern(str) {
