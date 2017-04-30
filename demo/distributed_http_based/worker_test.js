@@ -15,24 +15,3 @@ let opts = cmdln.process(process.argv);
 let storage = new stor.HttpCoordinator();
 let w = new wrkr.TopologyWorker(opts.name, storage);
 w.run();
-
-function shutdown() {
-    if (w) {
-        w.shutdown(() => {
-            process.exit(1);
-        });
-        w = null;
-    }
-}
-
-//do something when app is closing
-process.on("exit", shutdown);
-
-//catches ctrl+c event
-process.on("SIGINT", shutdown);
-
-//catches uncaught exceptions
-process.on("uncaughtException", (dat) => {
-    console.log("uncaughtException", dat);
-    shutdown();
-});
