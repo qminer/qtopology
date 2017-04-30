@@ -18,6 +18,7 @@ List of standard bolts:
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
+- [Bomb bolt](#bomb-bolt)
 
 ## Test spout
 
@@ -338,3 +339,25 @@ The result of the call will be emitted into the topology after each time interva
     }
 }
 ```````````````````````````````
+
+## Bomb bolt
+
+This bolt is used for testing the disaster-recorvery of the topology.
+It causes an exception that propagates to the root of the process after predefined time interval.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "bomb",
+    "inputs": [],
+    "init": {
+        "explode_after": 10000
+    }
+}
+```````````````````````````````
+
+This bolt will cause an exception after 10 seconds after it's `init` method was called.
+
+Bolt can have inputs and it will just forward the data on to listeners, preserving the `stream_id`.
