@@ -35,6 +35,22 @@ export class TopologyWorker {
             console.log("[Worker] Received shutdown instruction from coordinator");
             self.shutdown(() => { });
         });
+
+        process.on('uncaughtException', (err) => {
+            console.log("[Worker] Unhandeled exception caught");
+            console.log("[Worker]", err);
+            console.log("[Worker] Worker shutting down gracefully");
+            self.shutdown(() => {
+                process.exit(1);
+            });
+        });
+        process.on('SIGINT', () => {
+            console.log("[Worker] Received Shutdown signal from system")
+            console.log("[Worker] Worker shutting down gracefully");
+            self.shutdown(() => {
+                process.exit(1);
+            });
+        });
     }
 
     /** Starts this worker */
