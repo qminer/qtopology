@@ -150,10 +150,11 @@ export class TopologyLocal {
         }
         let self = this;
         self.isShuttingDown = true;
+        // disable heartbeat
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
             self.heartbeatCallback();
-        }
+        }        
         self.pause((err) => {
             let tasks = [];
             self.spouts.forEach((spout) => {

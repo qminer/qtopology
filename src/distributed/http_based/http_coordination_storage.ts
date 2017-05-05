@@ -46,7 +46,7 @@ class HttpCoordinationStorage {
         this.messages = [];
     }
 
-    addTopology(config) {
+    addTopology(config: any) {
         this.topologies.push({
             uuid: config.general.name,
             config: config,
@@ -58,7 +58,7 @@ class HttpCoordinationStorage {
     }
 
     /** Performs upsert of worker record. It's initial status is alive */
-    registerWorker(name) {
+    registerWorker(name: string) {
         let rec = null;
         console.log("Registering worker", name);
         for (let worker of this.workers) {
@@ -214,13 +214,13 @@ class HttpCoordinationStorage {
         topology.error = error;
     }
 
-    setTopologyPing(uuid) {
+    setTopologyPing(uuid: string) {
         let topology = this.topologies.filter(x => x.uuid == uuid)[0];
         topology.last_ping = Date.now();
         return { success: true };
     }
 
-    setTopologyStatus(uuid, status, error) {
+    setTopologyStatus(uuid: string, status: string, error: string) {
         if (status == "running") return this.markTopologyAsRunning(uuid);
         if (status == "stopped") return this.markTopologyAsStopped(uuid);
         if (status == "unassigned") return this.markTopologyAsStopped(uuid);
@@ -231,7 +231,7 @@ class HttpCoordinationStorage {
         };
     }
 
-    setWorkerStatus(name, status) {
+    setWorkerStatus(name: string, status: string) {
         let hits = this.workers.filter(x => x.name === name);
         if (hits.length > 0) {
             hits[0].status = status;
@@ -244,14 +244,14 @@ class HttpCoordinationStorage {
         }
     }
 
-    getMessagesForWorker(name) {
+    getMessagesForWorker(name: string) {
         this.pingWorker(name);
         let result = this.messages.filter(x => x.worker === name);
         this.messages = this.messages.filter(x => x.worker !== name);
         return result;
     }
 
-    private pingWorker(name) {
+    private pingWorker(name: string) {
         for (let worker of this.workers) {
             if (worker.name == name) {
                 worker.last_ping = Date.now();
@@ -263,7 +263,7 @@ class HttpCoordinationStorage {
     private unassignWaitingTopologies() {
         // set topologies to unassigned if they have been waiting too long
         let d = Date.now() - 30 * 1000;
-        let worker_map = {};
+        let worker_map : { [email: string]: string } = {};
         for (let worker of this.workers) {
             worker_map[worker.name] = worker.status;
         }
@@ -371,9 +371,9 @@ http_server.addHandler('/set-worker-status', (data, callback) => {
 
 /////////////////////////////////////////////////////////////////////////////
 
-exports.addTopology = function (config) {
+exports.addTopology = function (config: any) {
     storage.addTopology(config);
 }
-exports.run = function (options) {
+exports.run = function (options: any) {
     http_server.run(options);
 }
