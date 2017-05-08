@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const log = require("../util/logger");
 /** This bolt explodes after predefined time interval.
  * Primarily used for testing.
 */
@@ -19,7 +20,7 @@ class BombBolt {
     }
     heartbeat() {
         if (Date.now() - this.started_at >= this.explode_after) {
-            console.log("Bomb about to explode");
+            log.logger().log("Bomb about to explode");
             eval("this.someBadName();");
         }
     }

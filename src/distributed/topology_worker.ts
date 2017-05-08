@@ -3,6 +3,7 @@ import * as tlp from "./topology_local_proxy";
 import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 class TopologyItem {
     uuid: string;
@@ -28,25 +29,25 @@ export class TopologyWorker {
 
         let self = this;
         self.coordinator.on("start", (msg) => {
-            console.log("[Worker] Received start instruction from coordinator");
+            log.logger().important("[Worker] Received start instruction from coordinator");
             self.start(msg.uuid, msg.config);
         });
         self.coordinator.on("shutdown", (msg) => {
-            console.log("[Worker] Received shutdown instruction from coordinator");
+            log.logger().important("[Worker] Received shutdown instruction from coordinator");
             self.shutdown(() => { });
         });
 
         process.on('uncaughtException', (err) => {
-            console.log("[Worker] Unhandeled exception caught");
-            console.log("[Worker]", err);
-            console.log("[Worker] Worker shutting down gracefully");
+            log.logger().error("[Worker] Unhandled exception caught");
+            log.logger().exception(err);
+            log.logger().warn("[Worker] Worker shutting down gracefully");
             self.shutdown(() => {
                 process.exit(1);
             });
         });
         process.on('SIGINT', () => {
-            console.log("[Worker] Received Shutdown signal from system")
-            console.log("[Worker] Worker shutting down gracefully");
+            log.logger().important("[Worker] Received Shutdown signal from system")
+            log.logger().important("[Worker] Worker shutting down gracefully");
             self.shutdown(() => {
                 process.exit(1);
             });
@@ -114,7 +115,8 @@ export class TopologyWorker {
                 let item = itemx as TopologyItem;
                 item.proxy.shutdown((err) => {
                     if (err) {
-                        console.log("[Worker] Error while shutting down topology", item.uuid, err);
+                        log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
+                        log.logger().exception(err);
                     } else {
                         self.coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
                     }
@@ -122,7 +124,8 @@ export class TopologyWorker {
             },
             (err) => {
                 if (err) {
-                    console.log("[Worker] Error while shutting down topologies:", err);
+                    log.logger().error("[Worker] Error while shutting down topologies:");
+                    log.logger().exception(err);
                 }
                 self.coordinator.shutdown(callback);
             }

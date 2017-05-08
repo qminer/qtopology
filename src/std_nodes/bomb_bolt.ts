@@ -1,4 +1,5 @@
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /** This bolt explodes after predefined time interval. 
  * Primarily used for testing.
@@ -27,7 +28,7 @@ export class BombBolt implements intf.Bolt {
 
     heartbeat() {
         if (Date.now() - this.started_at >= this.explode_after) {
-            console.log("Bomb about to explode");
+            log.logger().log("Bomb about to explode");
             eval("this.someBadName();");
         }
     }

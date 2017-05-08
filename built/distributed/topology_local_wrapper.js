@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const topology_compiler = require("../topology_compiler");
 const tl = require("../topology_local");
 const intf = require("../topology_interfaces");
+const log = require("../util/logger");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
@@ -30,7 +31,7 @@ class TopologyLocalWrapper {
     handle(msg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            console.log("[Local wrapper] Initializing topology", msg.data.general.name);
+            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.name);
             self.name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
@@ -50,7 +51,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            console.log("[Local wrapper] Shutting down topology", self.name);
+            log.logger().important("[Local wrapper] Shutting down topology " + self.name);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
                 // we have the original error from the data field of the message

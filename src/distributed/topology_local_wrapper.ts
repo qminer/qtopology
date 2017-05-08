@@ -2,6 +2,7 @@
 import * as topology_compiler from "../topology_compiler";
 import * as tl from "../topology_local";
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /**
  * This class acts as wrapper for local topology when
@@ -36,7 +37,7 @@ class TopologyLocalWrapper {
     private handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            console.log("[Local wrapper] Initializing topology", msg.data.general.name);
+            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.name);
             self.name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
@@ -56,7 +57,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            console.log("[Local wrapper] Shutting down topology", self.name);
+            log.logger().important("[Local wrapper] Shutting down topology " + self.name);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
                 // we have the original error from the data field of the message

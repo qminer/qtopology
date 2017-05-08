@@ -19,6 +19,7 @@ import * as gs from "./std_nodes/get_spout";
 import * as tss from "./std_nodes/test_spout";
 
 import * as tel from "./util/telemetry";
+import * as log from "./util/logger";
 
 /** Wrapper for "spout" in-process */
 export class TopologySpoutInproc {
@@ -70,7 +71,8 @@ export class TopologySpoutInproc {
             }
             this.isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc spout", e);
+            log.logger().error("Error while creating an inproc spout");
+            log.logger().exception(e);
             this.isStarted = true;
             this.isClosed = true;
             this.isExit = true;
@@ -130,9 +132,9 @@ export class TopologySpoutInproc {
                     self.next(xcallback);
                 }
             },
-            (err) => {
+            (err: Error) => {
                 if (err) {
-                    console.log(err)
+                    log.logger().exception(err)
                 }
             });
     }
@@ -148,7 +150,7 @@ export class TopologySpoutInproc {
                 this.child.next((err, data, stream_id, xcallback) => {
                     self.telemetryAdd(Date.now() - ts_start);
                     if (err) {
-                        console.error(err);
+                        log.logger().exception(err);
                         callback();
                         return;
                     }
@@ -262,7 +264,8 @@ export class TopologyBoltInproc {
             }
             this.isStarted = true;
         } catch (e) {
-            console.error("Error while creating an inproc bolt", e);
+            log.logger().error("Error while creating an inproc bolt");
+            log.logger().exception(e);
             this.isStarted = true;
             this.isClosed = true;
             this.isExit = true;

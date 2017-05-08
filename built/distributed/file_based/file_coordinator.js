@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
+const log = require("../../util/logger");
 //////////////////////////////////////////////////////////////////////
 class FileCoordinator {
     constructor(dir_name, file_pattern) {
@@ -12,7 +13,7 @@ class FileCoordinator {
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
         let items = fs.readdirSync(this.dir_name);
-        console.log("[FileCoordinator] Starting file-based coordination, from directory", this.dir_name);
+        log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
         for (let item of items) {
             let is_ok = false;
             for (let pattern of this.file_patterns_regex) {
@@ -24,7 +25,7 @@ class FileCoordinator {
             if (!is_ok) {
                 continue;
             }
-            console.log("[FileCoordinator] Found topology file", item);
+            log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
@@ -65,11 +66,11 @@ class FileCoordinator {
         callback(null);
     }
     setTopologyStatus(uuid, status, error, callback) {
-        console.log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
+        log.logger().log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null);
     }
     setWorkerStatus(worker, status, callback) {
-        console.log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
+        log.logger().log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
     createRegexpForPattern(str) {

@@ -1,4 +1,5 @@
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /** This bolt just writes all incoming data to console. */
 export class ConsoleBolt implements intf.Bolt {
@@ -27,7 +28,7 @@ export class ConsoleBolt implements intf.Bolt {
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        console.log(this.prefix, `[stream_id=${stream_id}]`, data);
+        log.logger().log(`${this.prefix} [stream_id=${stream_id}] ${JSON.stringify(data)}`);
         this.onEmit(data, stream_id, callback);
     }
 }

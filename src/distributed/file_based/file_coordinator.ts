@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
+import * as log from "../../util/logger";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -21,7 +22,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
             .map(x => this.createRegexpForPattern(x));
 
         let items = fs.readdirSync(this.dir_name);
-        console.log("[FileCoordinator] Starting file-based coordination, from directory", this.dir_name);
+        log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
         for (let item of items) {
             let is_ok = false;
             for (let pattern of this.file_patterns_regex) {
@@ -33,7 +34,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
             if (!is_ok) {
                 continue;
             }
-            console.log("[FileCoordinator] Found topology file", item);
+            log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
@@ -75,11 +76,11 @@ export class FileCoordinator implements intf.CoordinationStorage {
         callback(null);
     }
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
-        console.log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
+        log.logger().log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null);
     }
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback) {
-        console.log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
+        log.logger().log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
 

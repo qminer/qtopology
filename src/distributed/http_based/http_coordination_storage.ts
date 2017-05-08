@@ -60,7 +60,6 @@ class HttpCoordinationStorage {
     /** Performs upsert of worker record. It's initial status is alive */
     registerWorker(name: string) {
         let rec = null;
-        console.log("Registering worker", name);
         for (let worker of this.workers) {
             if (worker.name == name) {
                 rec = worker;
