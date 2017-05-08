@@ -8,11 +8,13 @@ const cb = require("./std_nodes/console_bolt");
 const ab = require("./std_nodes/attacher_bolt");
 const gb = require("./std_nodes/get_bolt");
 const rb = require("./std_nodes/router_bolt");
+const bb = require("./std_nodes/bomb_bolt");
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
 const tss = require("./std_nodes/test_spout");
 const tel = require("./util/telemetry");
+const log = require("./util/logger");
 /** Wrapper for "spout" in-process */
 class TopologySpoutInproc {
     /** Constructor needs to receive all data */
@@ -42,7 +44,8 @@ class TopologySpoutInproc {
             this.isStarted = true;
         }
         catch (e) {
-            console.error("Error while creating an inproc spout", e);
+            log.logger().error("Error while creating an inproc spout");
+            log.logger().exception(e);
             this.isStarted = true;
             this.isClosed = true;
             this.isExit = true;
@@ -94,7 +97,7 @@ class TopologySpoutInproc {
             }
         }, (err) => {
             if (err) {
-                console.log(err);
+                log.logger().exception(err);
             }
         });
     }
@@ -110,7 +113,7 @@ class TopologySpoutInproc {
                 this.child.next((err, data, stream_id, xcallback) => {
                     self.telemetryAdd(Date.now() - ts_start);
                     if (err) {
-                        console.error(err);
+                        log.logger().exception(err);
                         callback();
                         return;
                     }
@@ -196,7 +199,8 @@ class TopologyBoltInproc {
             this.isStarted = true;
         }
         catch (e) {
-            console.error("Error while creating an inproc bolt", e);
+            log.logger().error("Error while creating an inproc bolt");
+            log.logger().exception(e);
             this.isStarted = true;
             this.isClosed = true;
             this.isExit = true;
@@ -276,6 +280,7 @@ class TopologyBoltInproc {
             case "post": return new pb.PostBolt();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
+            case "bomb": return new bb.BombBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }
