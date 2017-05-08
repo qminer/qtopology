@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const log = require("../util/logger");
 /** This bolt just writes all incoming data to console. */
 class ConsoleBolt {
     constructor() {
@@ -18,7 +19,7 @@ class ConsoleBolt {
         callback();
     }
     receive(data, stream_id, callback) {
-        console.log(this.prefix, "Inside receive", data, "stream_id=" + stream_id);
+        log.logger().log(`${this.prefix} [stream_id=${stream_id}] ${JSON.stringify(data)}`);
         this.onEmit(data, stream_id, callback);
     }
 }

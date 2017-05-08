@@ -2,6 +2,7 @@ import * as intf from "./topology_interfaces";
 import * as async from "async";
 import * as path from "path";
 import * as top_inproc from "./topology_local_inprocess";
+import * as log from "./util/logger";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -124,7 +125,7 @@ export class TopologyLocal {
         if (!this.isInitialized) {
             throw new Error("Topology not initialized and cannot run.");
         }
-        console.log("Local topology started");
+        log.logger().log("Local topology started");
         for (let spout of this.spouts) {
             spout.run();
         }
@@ -150,10 +151,11 @@ export class TopologyLocal {
         }
         let self = this;
         self.isShuttingDown = true;
+        // disable heartbeat
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
             self.heartbeatCallback();
-        }
+        }        
         self.pause((err) => {
             let tasks = [];
             self.spouts.forEach((spout) => {

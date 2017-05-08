@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const leader = require("./topology_leader");
 const EventEmitter = require("events");
+const log = require("../util/logger");
 /** This class handles communication with topology coordination storage.
  */
 class TopologyCoordinator extends EventEmitter {
@@ -29,7 +30,7 @@ class TopologyCoordinator extends EventEmitter {
                 self.handleIncommingRequests(xcallback);
             }, self.loopTimeout);
         }, (err) => {
-            console.log("Coordinator shutdown finished.");
+            log.logger().important("[Coordinator] Coordinator shutdown finished.");
             if (self.shutdownCallback) {
                 self.shutdownCallback(err);
             }
@@ -40,13 +41,15 @@ class TopologyCoordinator extends EventEmitter {
         let self = this;
         self.reportWorker(self.name, "dead", "", (err) => {
             if (err) {
-                console.log("Error while reporting worker status as 'dead':", err);
+                log.logger().error("Error while reporting worker status as 'dead':");
+                log.logger().exception(err);
             }
             self.leadership.shutdown((err) => {
                 if (err) {
-                    console.log("Error while shutting down leader:", err);
+                    log.logger().error("Error while shutting down leader:");
+                    log.logger().exception(err);
                 }
-                console.log("Coordinator set for shutdown");
+                log.logger().log("[Coordinator] Coordinator set for shutdown");
                 self.shutdownCallback = callback;
                 self.isRunning = false;
             });
@@ -56,9 +59,9 @@ class TopologyCoordinator extends EventEmitter {
     reportTopology(uuid, status, error, callback) {
         this.storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
-                console.log("Couldn't report topology status");
-                console.log("Topology:", uuid, status, error);
-                console.log("Error:", err);
+                log.logger().error("[Coordinator] Couldn't report topology status");
+                log.logger().error(`Topology: ${uuid}, status=${status}, error=${error}`);
+                log.logger().exception(err);
             }
             if (callback) {
                 callback(err);
@@ -69,9 +72,9 @@ class TopologyCoordinator extends EventEmitter {
     reportWorker(name, status, error, callback) {
         this.storage.setWorkerStatus(name, status, (err) => {
             if (err) {
-                console.log("Couldn't report worker status");
-                console.log("Worker:", name, status);
-                console.log("Error:", err);
+                log.logger().error("[Coordinator] Couldn't report worker status");
+                log.logger().error(`Worker: name=${name}, status=${status}`);
+                log.logger().exception(err);
             }
             if (callback) {
                 callback(err);

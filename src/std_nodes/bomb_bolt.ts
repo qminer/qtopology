@@ -1,34 +1,43 @@
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
-/** This bolt just writes all incoming data to console. */
-export class ConsoleBolt implements intf.Bolt {
+/** This bolt explodes after predefined time interval. 
+ * Primarily used for testing.
+*/
+export class BombBolt implements intf.Bolt {
 
     private name: string;
-    private prefix: string;
+    private explode_after: number;
+    private started_at: number;
     private onEmit: intf.BoltEmitCallback;
 
     constructor() {
         this.name = null;
-        this.prefix = "";
         this.onEmit = null;
+        this.explode_after = null;
+        this.started_at = null;
     }
 
     init(name: string, config: any, callback: intf.SimpleCallback) {
         this.name = name;
-        this.prefix = `[InprocBolt ${this.name}]`;
         this.onEmit = config.onEmit;
+        this.explode_after = config.explode_after || 10 * 1000;
+        this.started_at = Date.now();
         callback();
     }
 
-    heartbeat() { }
+    heartbeat() {
+        if (Date.now() - this.started_at >= this.explode_after) {
+            log.logger().log("Bomb about to explode");
+            eval("this.someBadName();");
+        }
+    }
 
     shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        log.logger().log(`${this.prefix} [stream_id=${stream_id}] ${JSON.stringify(data)}`);
         this.onEmit(data, stream_id, callback);
     }
 }

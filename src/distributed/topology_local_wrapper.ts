@@ -2,6 +2,7 @@
 import * as topology_compiler from "../topology_compiler";
 import * as tl from "../topology_local";
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /**
  * This class acts as wrapper for local topology when
@@ -16,37 +17,27 @@ class TopologyLocalWrapper {
     constructor() {
         let self = this;
         this.topology_local = new tl.TopologyLocal();
-        process.on('message', (msg) => {
+        process.on("message", (msg) => {
             self.handle(msg);
+        });
+        process.on("unhandeledException", (e) => {
+            self.handle({
+                cmd: intf.ParentMsgCode.shutdown,
+                data: e
+            });
         });
     }
 
     /** Starts infinite loop by reading messages from parent or console */
     start() {
         let self = this;
-        // process.stdin.addListener("data", function (d) {
-        //     try {
-        //         d = d.toString().trim();
-        //         let i = d.indexOf(" ");
-        //         if (i > 0) {
-        //             self._handle({
-        //                 cmd: d.substr(0, i),
-        //                 data: JSON.parse(d.substr(i))
-        //             });
-        //         } else {
-        //             self._handle({ cmd: d, data: {} });
-        //         }
-        //     } catch (e) {
-        //         console.error(e);
-        //     }
-        // });
     }
 
     /** Internal main handler for incoming messages */
     private handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            console.log("Initializing topology", msg.data.general.name);
+            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.name);
             self.name = msg.data.general.name;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
@@ -66,9 +57,11 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            console.log("Shutting down topology", self.name);
+            log.logger().important("[Local wrapper] Shutting down topology " + self.name);
             self.topology_local.shutdown((err) => {
-                self.send(intf.ChildMsgCode.response_shutdown, { err: err });
+                // if we are shutting down due to unhandeled exception,
+                // we have the original error from the data field of the message
+                self.send(intf.ChildMsgCode.response_shutdown, { err: err || msg.data });
                 setTimeout(() => {
                     process.exit(0);
                 }, 100);
@@ -85,7 +78,7 @@ class TopologyLocalWrapper {
             process.send({ cmd: cmd, data: data });
         } else {
             // we're running in dev/test mode as a standalone process
-            console.log("Sending command", { cmd: cmd, data: data });
+            console.log("[Local wrapper] Sending command", { cmd: cmd, data: data });
         }
     }
 }

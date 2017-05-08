@@ -31,12 +31,3 @@ function shutdown() {
 }
 
 setTimeout(() => { shutdown(); }, 5000);
-
-//do something when app is closing
-process.on('exit', shutdown);
-
-//catches ctrl+c event
-process.on('SIGINT', shutdown);
-
-//catches uncaught exceptions
-process.on('uncaughtException', shutdown);

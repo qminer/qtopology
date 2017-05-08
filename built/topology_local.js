@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const path = require("path");
 const top_inproc = require("./topology_local_inprocess");
+const log = require("./util/logger");
 ////////////////////////////////////////////////////////////////////
 /** Internal record for router mapping */
 class OutputRouterDestination {
@@ -99,7 +100,7 @@ class TopologyLocal {
         if (!this.isInitialized) {
             throw new Error("Topology not initialized and cannot run.");
         }
-        console.log("Local topology started");
+        log.logger().log("Local topology started");
         for (let spout of this.spouts) {
             spout.run();
         }
@@ -123,6 +124,7 @@ class TopologyLocal {
         }
         let self = this;
         self.isShuttingDown = true;
+        // disable heartbeat
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
             self.heartbeatCallback();
