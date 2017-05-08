@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
+import * as log from "../../util/logger";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -9,22 +10,31 @@ export class FileCoordinator implements intf.CoordinationStorage {
 
     private msgs: intf.StorageResultMessage[];
     private dir_name: string;
-    private file_pattern: string;
-    private file_pattern_regex: RegExp;
+    private file_patterns: string[];
+    private file_patterns_regex: RegExp[];
 
-    constructor(dir_name: string, file_pattern: string) {
+    constructor(dir_name: string, file_pattern: string | string[]) {
         this.msgs = [];
         this.dir_name = dir_name;
         this.dir_name = path.resolve(this.dir_name);
-        this.file_pattern = file_pattern;
-        this.file_pattern_regex = this.createRegexpForPattern(this.file_pattern);
+        this.file_patterns = (typeof file_pattern === "string" ? [file_pattern as string] : file_pattern as string[]);
+        this.file_patterns_regex = this.file_patterns
+            .map(x => this.createRegexpForPattern(x));
 
         let items = fs.readdirSync(this.dir_name);
-        console.log("Starting file-based coordination, from directory", this.dir_name);
+        log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
         for (let item of items) {
-            if (path.extname(item) != ".json") continue;
-            if (!item.match(this.file_pattern_regex)) continue;
-            console.log("Found topology file", item);
+            let is_ok = false;
+            for (let pattern of this.file_patterns_regex) {
+                if (item.match(pattern)) {
+                    is_ok = true;
+                    continue;
+                }
+            }
+            if (!is_ok) {
+                continue;
+            }
+            log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
@@ -66,11 +76,11 @@ export class FileCoordinator implements intf.CoordinationStorage {
         callback(null);
     }
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
-        console.log(`Setting topology status: uuid=${uuid} status=${status} error=${error}`);
+        log.logger().log(`[FileCoordinator] Setting topology status: uuid=${uuid} status=${status} error=${error}`);
         callback(null);
     }
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback) {
-        console.log(`Setting worker status: name=${worker} status=${status}`);
+        log.logger().log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
 
