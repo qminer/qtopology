@@ -24,6 +24,8 @@ module.exports = {
     },
     // some exposed utilities
     util: {
+        // for logging stuff
+        logging: require("./built/util/logger"),
         // for validating schema
         validation: require("./built/topology_validation"),
         // easier parsing of command line
