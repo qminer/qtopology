@@ -54,6 +54,7 @@ export class TopologyLocal {
     private spouts: top_inproc.TopologySpoutInproc[];
     private bolts: top_inproc.TopologyBoltInproc[];
     private config: any;
+    private name: string;
     private heartbeatTimeout: number;
     private router: OutputRouter;
     private isInitialized: boolean;
@@ -67,6 +68,7 @@ export class TopologyLocal {
         this.spouts = [];
         this.bolts = [];
         this.config = null;
+        this.name = null;
         this.heartbeatTimeout = 10000;
         this.router = new OutputRouter();
 
@@ -83,6 +85,7 @@ export class TopologyLocal {
     init(config: any, callback: intf.SimpleCallback) {
         let self = this;
         self.config = config;
+        self.name = config.general.name;
         self.heartbeatTimeout = config.general.heartbeat;
         self.isInitialized = true;
         self.initContext((err, context) => {
@@ -155,7 +158,7 @@ export class TopologyLocal {
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
             self.heartbeatCallback();
-        }        
+        }
         self.pause((err) => {
             let tasks = [];
             self.spouts.forEach((spout) => {
@@ -265,6 +268,7 @@ export class TopologyLocal {
                 (init_conf, xcallback) => {
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
+                    init_conf.init.$name = self.name;
                     require(module_path).init(init_conf.init, common_context, xcallback);
                 },
                 (err) => {
