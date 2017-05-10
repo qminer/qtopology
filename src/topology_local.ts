@@ -268,6 +268,7 @@ export class TopologyLocal {
                 (init_conf, xcallback) => {
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
+                    init_conf.init = init_conf.init || {};
                     init_conf.init.$name = self.name;
                     require(module_path).init(init_conf.init, common_context, xcallback);
                 },
