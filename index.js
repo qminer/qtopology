@@ -1,8 +1,8 @@
 "use strict";
 
 module.exports = {
-    // used for nodes that run in subprocess
-    child: require("./built/topology_node"),
+    // used for compiling configuration
+    compiler: require("./built/topology_compiler"),
     // used for running single local topology in same process
     local: require("./built/topology_local"),
     // when running fully capable topology workers
