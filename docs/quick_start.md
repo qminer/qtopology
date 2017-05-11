@@ -1,38 +1,15 @@
-# qtopology
+# QTopology - Tutorial 
 
-![Build status](https://travis-ci.org/qminer/qtopology.svg?branch=master "Travis CI status")
-![npm version](https://badge.fury.io/js/qtopology.svg "NPM version")
+## Prepare environment
 
-NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/package/qtopology)
+`````````bash
+npm init
+npm install qtopology --save
+`````````
 
-### Installation
+## Create topology definition
 
-`````````````bash
-npm install qtopology
-`````````````
-
-## Intro
-
-QTopology is a distributed stream processing layer, written in `node.js`.
-
-It uses the following terminology, originating in [Storm](http://storm.apache.org/) project:
-
-- **Topology** - Organization of nodes into a graph that determines paths where messages must travel.
-- **Bolt** - Node in topology that receives input data from other nodes and emits new data into the topology.
-- **Spout** - Node in topology that reads data from external sources and emits the data into the topology.
-- **Stream** - When data flows through the topology, it is optionaly tagged with stream ID. This can be used for routing.
-
-When running in distributed mode, `qtopology` also uses the following:
-
-- **Coordination storage** - must be resilient, receives worker registrations and sends them the initialization data. Also sends shutdown signals. Implementation is custom. `QTopology` provides `REST`-based service out-of-the-box, but the design is similar for other options like `MySQL` storage etc.
-- **Worker** - Runs on single server. Registers with coordination storage, receives initialization data and instantiates local topologies in separate subprocesses.
-    - **Leader** - one of the active workers is announced leader and it performs leadership tasks such as assigning of topologies to workers, detection of dead or inactive workers.
-
-## Quick start
-
-Define your spouts and bolts and connect them into topology. Bolts and spouts run as `inproc` objects.
-
-### Topology definition
+Save this into file `topology.json`
 
 `````````````````````````json
 {
@@ -66,19 +43,9 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ru
 
 `````````````````````````
 
-### Bolt
+## Create custom bolt
 
-Interface in typescript notation:
-
-```````````````````````typescript
-interface Bolt {
-    init(name: string, config: any, callback: SimpleCallback);
-    heartbeat();
-    shutdown(callback: SimpleCallback);
-    receive(data: any, stream_id: string, callback: SimpleCallback);
-}
-`````````````````````````````
-Sample implementation
+Put code for custom bolt into `my_bolt.js`
 
 ```````````````````````javascript
 "use strict";
@@ -115,22 +82,9 @@ class MyBolt {
 
 exports.create = function () { return new MyBolt(); };
 ```````````````````````
+## Create custom spout
 
-### Spout
-Interface in typescript notation:
-
-```````````````````````typescript
-export interface Spout {
-    init(name: string, config: any, callback: SimpleCallback);
-    heartbeat();
-    shutdown(callback: SimpleCallback);
-    run();
-    pause();
-    next(callback: SpoutNextCallback);
-}
-`````````````````````````````
-
-Sample implementation
+Put code for custom spout into `my_spout.js`
 
 ```````````````````````javascript
 "use strict";
@@ -173,7 +127,7 @@ class MySpout {
 exports.create = function () { return new MySpout(); };
 ```````````````````````
 
-### Top-level code
+## Create top-level code
 
 ``````````````````````javascript
 "use strict";
@@ -182,9 +136,8 @@ const qtopology = require("qtopology");
 const tn = qtopology.local;
 const validator = qtopology.validation;
 
-// load configuration from file and validate it
+// load configuration from file
 let config = require("./topology.json");
-validator.validate({ config: config, exitOnError: true });
 
 // compile it - injects variables and performs some checks
 let compiler = new qtopology.compiler.TopologyCompiler(config);
@@ -203,13 +156,6 @@ topology.init(config, (err) => {
             if (err) { console.log(err); }
             console.log("Finished.");
         });
-    }, 4000);
+    }, 20 * 1000);
 });
 ``````````````````````
-
-## Further reading
-
-- [Topology definition](topology-definition.md)
-- [Standard nodes](std-nodes.md)
-- [How to write bolts and spouts](how-to-write-bolts-and-spouts.md)
-- [Internal protocols](protocols.md)
