@@ -149,7 +149,7 @@ let topology = new tn.TopologyLocal();
 topology.init(config, (err) => {
     if (err) { console.log(err); return; }
 
-    // let topology run for 4 seconds
+    // let topology run for several seconds
     topology.run();
     setTimeout(() => {
         topology.shutdown((err) => {
