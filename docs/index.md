@@ -213,3 +213,4 @@ topology.init(config, (err) => {
 - [Standard nodes](std-nodes.md)
 - [How to write bolts and spouts](how-to-write-bolts-and-spouts.md)
 - [Internal protocols](protocols.md)
+- [Quick start](quick_start.md)
