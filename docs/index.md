@@ -30,7 +30,7 @@ When running in distributed mode, `qtopology` also uses the following:
 
 ## Quick start
 
-Define your spouts and bolts and connect them into topology. Bolts and spouts can run as `inproc` (in-process) or `subproc` (in its own process).
+Define your spouts and bolts and connect them into topology. Bolts and spouts run as `inproc` objects.
 
 ### Topology definition
 
@@ -68,6 +68,18 @@ Define your spouts and bolts and connect them into topology. Bolts and spouts ca
 
 ### Bolt
 
+Interface in typescript notation:
+
+```````````````````````typescript
+interface Bolt {
+    init(name: string, config: any, callback: SimpleCallback);
+    heartbeat();
+    shutdown(callback: SimpleCallback);
+    receive(data: any, stream_id: string, callback: SimpleCallback);
+}
+`````````````````````````````
+Sample implementation
+
 ```````````````````````javascript
 "use strict";
 
@@ -101,11 +113,24 @@ class MyBolt {
     }
 }
 
-// this type of export is used for in-proc bolts
 exports.create = function () { return new MyBolt(); };
 ```````````````````````
 
 ### Spout
+Interface in typescript notation:
+
+```````````````````````typescript
+export interface Spout {
+    init(name: string, config: any, callback: SimpleCallback);
+    heartbeat();
+    shutdown(callback: SimpleCallback);
+    run();
+    pause();
+    next(callback: SpoutNextCallback);
+}
+`````````````````````````````
+
+Sample implementation
 
 ```````````````````````javascript
 "use strict";
@@ -145,7 +170,6 @@ class MySpout {
     }
 }
 
-// this type of export is used for in-proc spouts
 exports.create = function () { return new MySpout(); };
 ```````````````````````
 
@@ -155,12 +179,18 @@ exports.create = function () { return new MySpout(); };
 "use strict";
 
 const async = require("async");
-const tn = require("qtopology").local;
-const validator = require("qtopology").validation;
+const qtopology = require("qtopology");
+const tn = qtopology.local;
+const validator = qtopology.validation;
 
 // load configuration from file and validate it
 let config = require("./topology.json");
 validator.validate({ config: config, exitOnError: true });
+
+// compile it - injects variables and performs some checks
+let compiler = new qtopology.compiler.TopologyCompiler(config);
+compiler.compile();
+config = compiler.getWholeConfig();
 
 // ok, create topology
 let topology = new tn.TopologyLocal();
