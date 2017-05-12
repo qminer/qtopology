@@ -1,4 +1,6 @@
-# QTopology - Tutorial 
+# QTopology - Quick start
+
+Define your spouts and bolts and connect them into topology. Bolts and spouts run as `inproc` objects.
 
 ## Prepare environment
 
@@ -9,7 +11,7 @@ npm install qtopology --save
 
 ## Create topology definition
 
-Save this into file `topology.json`
+Save this topology into file `topology.json`
 
 `````````````````````````json
 {
@@ -52,7 +54,7 @@ Put code for custom bolt into `my_bolt.js`
 
 class MyBolt {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
         this._onEmit = null;
     }
@@ -80,8 +82,9 @@ class MyBolt {
     }
 }
 
-exports.create = function () { return new MyBolt(); };
+exports.create = function (context) { return new MyBolt(context); };
 ```````````````````````
+
 ## Create custom spout
 
 Put code for custom spout into `my_spout.js`
@@ -91,7 +94,7 @@ Put code for custom spout into `my_spout.js`
 
 class MySpout {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
     }
 
@@ -124,10 +127,12 @@ class MySpout {
     }
 }
 
-exports.create = function () { return new MySpout(); };
+exports.create = function (context) { return new MySpout(context); };
 ```````````````````````
 
 ## Create top-level code
+
+This sample top-level code will construct the topology, start it and let it run for 20 seconds.
 
 ``````````````````````javascript
 "use strict";
@@ -149,7 +154,7 @@ let topology = new tn.TopologyLocal();
 topology.init(config, (err) => {
     if (err) { console.log(err); return; }
 
-    // let topology run for several seconds
+    // let topology run for 20 seconds
     topology.run();
     setTimeout(() => {
         topology.shutdown((err) => {
@@ -159,3 +164,12 @@ topology.init(config, (err) => {
     }, 20 * 1000);
 });
 ``````````````````````
+
+## Further steps
+
+To explore the capabilities further, one can:
+
+- Define new bolts and connect them **sequentially** and **parallely**.
+- Use **stream ids** of messages for routing and filtering
+- Use **standard bolts and spouts** for common tasks such as filtering
+- Use **telemetry data** (`stream_id=$telemetry` and `stream_id=$telemetry-total`) of nodes that comes out-of-the-box with the topology
