@@ -20,7 +20,7 @@ It uses the following terminology, originating in [Storm](http://storm.apache.or
 - **Topology** - Organization of nodes into a graph that determines paths where messages must travel.
 - **Bolt** - Node in topology that receives input data from other nodes and emits new data into the topology.
 - **Spout** - Node in topology that reads data from external sources and emits the data into the topology.
-- **Stream** - When data flows through the topology, it is optionaly tagged with stream ID. This can be used for routing.
+- **Stream** - When data flows through the topology, it is optionaly tagged with stream ID. This can be used for routing and filtering.
 
 When running in distributed mode, `qtopology` also uses the following:
 
@@ -85,7 +85,7 @@ Sample implementation
 
 class MyBolt {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
         this._onEmit = null;
     }
@@ -113,7 +113,7 @@ class MyBolt {
     }
 }
 
-exports.create = function () { return new MyBolt(); };
+exports.create = function (context) { return new MyBolt(context); };
 ```````````````````````
 
 ### Spout
@@ -137,7 +137,7 @@ Sample implementation
 
 class MySpout {
 
-    constructor() {
+    constructor(context) {
         this._name = null;
     }
 
@@ -170,7 +170,7 @@ class MySpout {
     }
 }
 
-exports.create = function () { return new MySpout(); };
+exports.create = function (context) { return new MySpout(context); };
 ```````````````````````
 
 ### Top-level code
