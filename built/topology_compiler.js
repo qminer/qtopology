@@ -34,7 +34,7 @@ class TopologyCompiler {
         // first validate the definition
         validator.validate({
             config: this.config,
-            exitOnError: true,
+            exitOnError: false,
             throwOnError: true
         });
         let vars = this.config.variables || {};

@@ -20,7 +20,7 @@ describe('FilterBolt', function () {
             filter: {}
         };
         let target = new fb.FilterBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
             done();
         });
@@ -38,7 +38,7 @@ describe('FilterBolt', function () {
             filter: {}
         };
         let target = new fb.FilterBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
 
             target.receive(xdata, xstream_id, (err) => {
@@ -63,7 +63,7 @@ describe('FilterBolt', function () {
             filter: { test: true }
         };
         let target = new fb.FilterBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
 
             target.receive(xdata, xstream_id, (err) => {
@@ -88,7 +88,7 @@ describe('FilterBolt', function () {
             filter: { test: false }
         };
         let target = new fb.FilterBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
 
             target.receive(xdata, xstream_id, (err) => {

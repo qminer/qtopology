@@ -188,7 +188,7 @@ describe('TopologyCompiler', function () {
 
         let create = function () {
             return {
-                general: {},
+                general: { name: "a", heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",
@@ -210,9 +210,20 @@ describe('TopologyCompiler', function () {
                 variables: {}
             };
         };
+        it('1 spout, 1 bolt - valid schema', function () {
+            let config = create();
+            let tcc = new tc.TopologyCompiler(config);
+            tcc.compile();
+        });
         it('1 spout, 1 bolt - bad input source reference', function () {
             let config = create();
             config.bolts[0].inputs[0].source = "spoutx";
+            let tcc = new tc.TopologyCompiler(config);
+            assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
+        });
+        it('1 spout, 1 bolt - miss-spelled "stream_id", "stream" instead', function () {
+            let config = create();
+            config.bolts[0].inputs[0].stream = "some_stream";
             let tcc = new tc.TopologyCompiler(config);
             assert.throws(() => { tcc.compile(); }, Error, "Should throw an error");
         });
