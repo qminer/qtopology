@@ -78,6 +78,7 @@ class MyBolt {
     receive(data, stream_id, callback) {
         // process incoming data
         // possible emit new data, using this._onEmit
+        console.log(data, stream_id);
         callback();
     }
 }
@@ -90,17 +91,25 @@ exports.create = function () { return new MyBolt(); };
 Put code for custom spout into `my_spout.js`
 
 ```````````````````````javascript
+
 "use strict";
 
 class MySpout {
 
     constructor() {
         this._name = null;
+		this._data = [];
+		this._data_index = 0;
     }
 
-    init(name, config, context, callback) {
+    init(name, config, callback) {
         this._name = name;
         // use other fields from config to control your execution
+
+        for (let i = 0; i < 100; i++) {
+            this._data.push({ id: i});
+        }
+
         callback();
     }
 
@@ -123,11 +132,16 @@ class MySpout {
 
     next(callback) {
         // return new tuple or null. Third parameter is stream id.
-        callback(null, data, null);
+        if (this._data_index >= this._data.length) {
+            callback(null, null, null); // or just callback()
+        } else {
+            callback(null, this._data[this._data_index++], "xstream");
+        }
     }
 }
 
 exports.create = function () { return new MySpout(); };
+
 ```````````````````````
 
 ## Create top-level code
