@@ -120,7 +120,7 @@ exports.create = function (context) { return new MyBolt(context); };
 Interface in typescript notation:
 
 ```````````````````````typescript
-export interface Spout {
+interface Spout {
     init(name: string, config: any, callback: SimpleCallback);
     heartbeat();
     shutdown(callback: SimpleCallback);

@@ -1,4 +1,3 @@
-
 # QTopology
 
 Node.js platform for running stream processing
@@ -40,6 +39,15 @@ QTopology does the wiring and routing between the nodes
 - Can emit 0, 1 or multiple new messages on multiple streams
 - Must acknowledge the input tuple
 
+``````````typescript
+interface Bolt {
+    init(name: string, config: any, callback: SimpleCallback);
+    heartbeat();
+    shutdown(callback: SimpleCallback);
+    receive(data: any, stream_id: string, callback: SimpleCallback);
+}
+``````````
+
 ---
 
 ## Spout
@@ -47,6 +55,37 @@ QTopology does the wiring and routing between the nodes
 - Receives calls to `next()`
 - Can emit single data tuple
   - null means no data, this spout wont be queried in the next 1000msec
+  - emitted tuple can be acknowledged
+
+``````````typescript
+interface Spout {
+    init(name: string, config: any, callback: SimpleCallback);
+    heartbeat();
+    shutdown(callback: SimpleCallback);
+    run();
+    pause();
+    next(callback: SpoutNextCallback);
+}
+``````````
+---
+
+## Standard Bolts
+
+- Timer spout
+- GET spout
+- REST spout
+- Test spout
+
+---
+
+## Standard Spouts
+
+- Attacher bolt
+- Filter bolt
+- Router bolt
+- GET bolt
+- POST bolt
+- Bomb bolt
 
 ---
 
@@ -70,17 +109,26 @@ QTopology does the wiring and routing between the nodes
 
 ## Local vs Distributed setting
 
-- **Local**: QTopology runs inside the process. Only single topology is executed
+- **Local**: QTopology runs inside the process.
+  - only single topology is executed
 - **Distributed**: Each machine runs it's own worker, which:
   - connects to common storage
   - receives topologies to execute
   - runs each topology in separate process
+  - can take over leadership role
+
+---
+
+## QTopology is less than Storm
+
+- Single topology is processed on single worker
+- Simpler routing
 
 ---
 
 ## Thank you
 
-- Architecture is subject to future changes
+- QTopology is written in `typescript`
+- Architecture and interfaces are subject to future changes
 
-
-> This presentation can be viewed using [Marp](https://yhatt.github.io/marp/)
+> This presentation was created using [Marp](https://yhatt.github.io/marp/), a markdown presentation writer
