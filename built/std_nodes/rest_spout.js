@@ -13,7 +13,7 @@ class RestSpout {
         this.queue = [];
         this.server = null;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.port = config.port;
         this.stream_id = config.stream_id;

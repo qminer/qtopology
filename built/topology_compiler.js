@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const validator = require("./topology_validation");
 /** Helper function for injecting the variables in ${VARNAME} location.
  * Case-insensitive.
  */
@@ -30,6 +31,12 @@ class TopologyCompiler {
     }
     /** Checks and compiles the topology. */
     compile() {
+        // first validate the definition
+        validator.validate({
+            config: this.config,
+            exitOnError: true,
+            throwOnError: true
+        });
         let vars = this.config.variables || {};
         if (this.config.general.initialization) {
             for (let init_top of this.config.general.initialization) {

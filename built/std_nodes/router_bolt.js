@@ -12,7 +12,7 @@ class RouterBolt {
         this.matchers = [];
     }
     /** Initializes routing patterns */
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         for (let stream_id in config.routes) {

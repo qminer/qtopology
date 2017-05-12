@@ -14,7 +14,7 @@ export class AttacherBolt implements intf.Bolt {
         this.extra_fields = null;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));

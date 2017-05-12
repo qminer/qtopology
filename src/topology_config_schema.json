@@ -122,6 +122,9 @@
                     "cmd": {
                         "type": "string"
                     },
+                    "subtype": {
+                        "type": "string"
+                    },
                     "inputs": {
                         "type": "array",
                         "items": {

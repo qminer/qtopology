@@ -10,7 +10,7 @@ describe('TopologyCompiler', function () {
     describe('Ok configs', function () {
         it('empty arrays', function () {
             let config = {
-                general: {},
+                general: { name: "a", heartbeat: 1000 },
                 spouts: [],
                 bolts: [],
                 variables: {}
@@ -20,7 +20,7 @@ describe('TopologyCompiler', function () {
         });
         it('1 spout, 1 bolt', function () {
             let config = {
-                general: {},
+                general: { name: "a", heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",
@@ -45,7 +45,7 @@ describe('TopologyCompiler', function () {
             let tcc = new tc.TopologyCompiler(config);
             tcc.compile();
             assert.deepEqual(tcc.getWholeConfig(), {
-                general: {},
+                general: { name: "a", heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",
@@ -71,9 +71,12 @@ describe('TopologyCompiler', function () {
         it('1 spout, 1 bolt + variables', function () {
             let config = {
                 general: {
+                    name: "a",
+                    heartbeat: 1000,
                     initialization: [
                         {
                             working_dir: "/${MY_VAR}/dir1",
+                            cmd: "a",
                             init: {
                                 a: "--${MY_VAR}--",
                                 b: "--${MY_VAR2}--"
@@ -82,6 +85,7 @@ describe('TopologyCompiler', function () {
                     shutdown: [
                         {
                             working_dir: "/${MY_VAR}/dir1",
+                            cmd: "a",
                             init: {
                                 c: "--${MY_VAR}--"
                             }
@@ -126,9 +130,12 @@ describe('TopologyCompiler', function () {
             });
             assert.deepEqual(tcc.getWholeConfig(), {
                 general: {
+                    name: "a",
+                    heartbeat: 1000,
                     initialization: [
                         {
                             working_dir: "/my_var/dir1",
+                            cmd: "a",
                             init: {
                                 a: "--my_var--",
                                 b: "--my_var2--"
@@ -137,6 +144,7 @@ describe('TopologyCompiler', function () {
                     shutdown: [
                         {
                             working_dir: "/my_var/dir1",
+                            cmd: "a",
                             init: {
                                 c: "--my_var--"
                             }

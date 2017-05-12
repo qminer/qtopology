@@ -23,6 +23,7 @@ class TopologySpoutInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
         this.isStarted = false;
         this.isClosed = false;
@@ -34,12 +35,12 @@ class TopologySpoutInproc {
         let self = this;
         try {
             if (config.type == "sys") {
-                this.child = this.createSysSpout(config, context);
+                this.child = this.createSysSpout(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         }
@@ -80,7 +81,7 @@ class TopologySpoutInproc {
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
     /** Sends run signal and starts the "pump"" */
     run() {
@@ -142,7 +143,7 @@ class TopologySpoutInproc {
         this.child.pause();
     }
     /** Factory method for sys spouts */
-    createSysSpout(spout_config, context) {
+    createSysSpout(spout_config) {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
@@ -167,6 +168,7 @@ class TopologyBoltInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
             if (self.isShuttingDown) {
@@ -189,12 +191,12 @@ class TopologyBoltInproc {
         this.telemetry_total = new tel.Telemetry(config.name);
         try {
             if (config.type == "sys") {
-                this.child = this.createSysBolt(config, context);
+                this.child = this.createSysBolt(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         }
@@ -236,7 +238,7 @@ class TopologyBoltInproc {
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
@@ -272,7 +274,7 @@ class TopologyBoltInproc {
         }
     }
     /** Factory method for sys bolts */
-    createSysBolt(bolt_config, context) {
+    createSysBolt(bolt_config) {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();

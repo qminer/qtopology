@@ -14,7 +14,7 @@ class GetSpout {
         this.next_tuple = null;
         this.next_ts = Date.now();
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.url = config.url;
         this.repeat = config.repeat;

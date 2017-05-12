@@ -23,7 +23,7 @@ export class RestSpout implements intf.Spout {
         this.server = null;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.port = config.port;
         this.stream_id = config.stream_id;
