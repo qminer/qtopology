@@ -16,15 +16,15 @@ Topology is defined via `JSON`. It follows this structure:
             - `cmd`: name of the file where initialization code resides.
 - `spouts`: array of spout definitions
     - `name`: spout name
-    - `type`: `inproc` (in-process) or `subproc` (sub-process) mode of execution for this spout
+    - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
-    - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`. In sub-process scenario this file is used for `fork()` call
+    - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`.
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
-    - `type`: `inproc` (in-process) or `subproc` (sub-process) mode of execution for this bolt
+    - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
-    - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`. In sub-process scenario this file is used for `fork()` call
+    - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
     - `inputs`: array of input nodes (spouts and bolts) for this bolt
         - `name`: logical namo of input node
         - `stream_id`: (optional) id of stream that this bolt will read. Empty means default stream.

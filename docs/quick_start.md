@@ -54,12 +54,12 @@ Put code for custom bolt into `my_bolt.js`
 
 class MyBolt {
 
-    constructor(context) {
+    constructor() {
         this._name = null;
         this._onEmit = null;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this._name = name;
         this._onEmit = config.onEmit;
         // use other fields from config to control your execution
@@ -82,7 +82,7 @@ class MyBolt {
     }
 }
 
-exports.create = function (context) { return new MyBolt(context); };
+exports.create = function () { return new MyBolt(); };
 ```````````````````````
 
 ## Create custom spout
@@ -94,11 +94,11 @@ Put code for custom spout into `my_spout.js`
 
 class MySpout {
 
-    constructor(context) {
+    constructor() {
         this._name = null;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this._name = name;
         // use other fields from config to control your execution
         callback();
@@ -127,7 +127,7 @@ class MySpout {
     }
 }
 
-exports.create = function (context) { return new MySpout(context); };
+exports.create = function () { return new MySpout(); };
 ```````````````````````
 
 ## Create top-level code
