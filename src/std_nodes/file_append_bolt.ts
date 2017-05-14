@@ -8,7 +8,7 @@ import * as pm from "../util/pattern_matcher";
 const injection_placeholder = "##INJECT##";
 
 /** This bolt writes incoming messages to file. */
-export class FilterBolt implements intf.Bolt {
+export class FileAppendBolt implements intf.Bolt {
 
     private name: string;
 
@@ -35,14 +35,15 @@ export class FilterBolt implements intf.Bolt {
         this.prepend_timestamp = config.prepend_timestamp;
         this.timestamp_in_utc = config.timestamp_in_utc;
         this.split_over_time = config.split_over_time;
-        this.split_period = config.split_period;
+        this.split_period = config.split_period || 60 * 60 * 1000;
 
         // prepare filename template for injection
         if (this.split_over_time) {
             let ext = path.extname(this.file_name_template);
+            this.next_split_after = Math.floor(Date.now() / this.split_period) * this.split_period;
             this.file_name_template =
                 this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
-                injection_placeholder +
+                "_" + injection_placeholder +
                 ext;
         } else {
             this.file_name_current = this.file_name_template;
@@ -51,15 +52,17 @@ export class FilterBolt implements intf.Bolt {
         callback();
     }
 
-    private toISOFormatLocal(d: Date): string {
+    private toISOFormatLocal(d: number): string {
         let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
-        let s = (new Date(d.getTime() - tzoffset)).toISOString().slice(0, -1);
+        let s = (new Date(d - tzoffset)).toISOString().slice(0, -1);
         return s;
     }
 
     private fileNameTimestampValue(): string {
-        let s = this.toISOFormatLocal(new Date());
-        s.replace(/\:/i, "_").replace(/\-/i, "_");
+        let d = Math.floor(Date.now() / this.split_period) * this.split_period;
+        let s = this.toISOFormatLocal(d);
+        s = s.slice(0, s.indexOf("."));
+        s = s.replace(/\:/ig, "_").replace(/\-/ig, "_");
         return s;
     }
 
@@ -73,7 +76,8 @@ export class FilterBolt implements intf.Bolt {
         }
 
         let s = this.current_data;
-        this.current_data = null;
+        this.current_data = "";
+
         fs.appendFile(this.file_name_current, s, callback);
     }
 
@@ -88,9 +92,10 @@ export class FilterBolt implements intf.Bolt {
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let s = "";
         if (this.prepend_timestamp) {
-            s += this.toISOFormatLocal(new Date()) + " ";
+            s += this.toISOFormatLocal(Date.now()) + " ";
         }
-        this.current_data += s;
+        s += JSON.stringify(data);
+        this.current_data += s + "\n";
         callback();
     }
 }
