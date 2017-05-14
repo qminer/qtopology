@@ -5,6 +5,38 @@
     },
     "spouts": [
         {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        },
+        {
+            "name": "pump2",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "b"
+                }
+            }
+        },
+        {
+            "name": "pump3",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "get",
+            "init": {
+                "repeat": 5000,
+                "url": "http://siol.net"
+            }
+        },
+        {
             "name": "pump4",
             "type": "sys",
             "working_dir": "",
@@ -35,7 +67,59 @@
             "cmd": "console",
             "inputs": [
                 {
+                    "source": "pump1"
+                },
+                {
+                    "source": "pump2"
+                },
+                {
                     "source": "pump4"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt_router",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "router",
+            "inputs": [
+                {
+                    "source": "pump4"
+                }
+            ],
+            "init": {
+                "routes": {
+                    "extra_stream": {
+                        "a": 15
+                    }
+                }
+            }
+        },
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "filter",
+            "inputs": [
+                {
+                    "source": "bolt1"
+                }
+            ],
+            "init": {
+                "filter": {
+                    "field1": "b"
+                }
+            }
+        },
+        {
+            "name": "bolt3",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "bolt2"
                 }
             ],
             "init": {}
@@ -51,10 +135,32 @@
                 }
             ],
             "init": {
-                "file_name_template": "./logs/test.txt",
-                "prepend_timestamp": true,
-                "split_over_time": true
+                "file_name_template": "./logs/test.txt"
             }
+        },
+        {
+            "name": "bolt4",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "$telemetry"
+                },
+                {
+                    "source": "pump1",
+                    "stream_id": "$telemetry-total"
+                },
+                {
+                    "source": "pump3"
+                },
+                {
+                    "source": "bolt_router",
+                    "stream_id": "extra_stream"
+                }
+            ],
+            "init": {}
         }
     ],
     "variables": {}

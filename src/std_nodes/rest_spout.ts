@@ -51,12 +51,12 @@ export class RestSpout implements intf.Spout {
                         let body_obj = JSON.parse(body_s);
                         if (self.send_request_metadata) {
                             // send both body and some request properties
-                            self.queue.push({ 
+                            self.queue.push({
                                 request: {
                                     method: req.method,
                                     url: req.url
                                 },
-                                body:body_obj
+                                body: body_obj
                             });
                         } else {
                             // send only body
