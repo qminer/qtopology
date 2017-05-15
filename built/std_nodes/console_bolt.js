@@ -8,7 +8,7 @@ class ConsoleBolt {
         this.prefix = "";
         this.onEmit = null;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.prefix = `[InprocBolt ${this.name}]`;
         this.onEmit = config.onEmit;

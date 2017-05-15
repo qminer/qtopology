@@ -23,7 +23,11 @@
                     "source": "pump1"
                 }
             ],
-            "init": {}
+            "init": {
+                "db_dir": "./db1",
+                "model_dir": "./model1",
+                "use_target": "target1"
+            }
         },
         {
             "name": "bolt_qm2",
@@ -36,7 +40,9 @@
                 }
             ],
             "init": {
-                "use_target2": true
+                "db_dir": "./db2",
+                "model_dir": "./model2",
+                "use_target": "target2"
             }
         }
     ],

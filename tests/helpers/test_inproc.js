@@ -16,11 +16,12 @@ class InprocHelper {
         this._shutdown_called = 0;
     }
 
-    init(name, init, callback) {
+    init(name, init, context, callback) {
         this._init_called++;
         this._name = name;
         this._init = init;
         this._onEmit = init.onEmit;
+        this._context = context;
         callback();
     }
 

@@ -19,7 +19,7 @@ async.series(
             topology.run();
             setTimeout(function () {
                 xcallback();
-            }, 20000);
+            }, 5000);
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");

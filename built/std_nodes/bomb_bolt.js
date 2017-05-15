@@ -11,7 +11,7 @@ class BombBolt {
         this.explode_after = null;
         this.started_at = null;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.explode_after = config.explode_after || 10 * 1000;

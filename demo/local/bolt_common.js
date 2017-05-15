@@ -4,16 +4,17 @@
 
 class MyBolt {
 
-    constructor(context) {
+    constructor() {
         this._name = null;
-        this._context = context;
+        this._context = null;
         this._prefix = "";
         this._sum = 0;
         this._forward = true;
         this._onEmit = null;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
+        this._context = context;
         this._name = name;
         this._prefix = `[InprocBolt ${this._name}]`;
         console.log(this._prefix, "Inside init:", config);

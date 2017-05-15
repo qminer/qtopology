@@ -47,11 +47,11 @@ class QMinerBolt {
         this._aggr_max = null;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this._name = name;
         this._prefix = `[QmBolt ${this._name}]`;
 
-        this._target_field_name = (config.use_target2 ? "target2" : "target1");
+        this._target_field_name = config.use_target || "target1";
         this._onEmit = config.onEmit;
         try {
             this._model_dir = path.resolve(config.model_dir || "./models");

@@ -12,11 +12,13 @@ import * as ab from "./std_nodes/attacher_bolt";
 import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
 import * as bb from "./std_nodes/bomb_bolt";
+import * as fab from "./std_nodes/file_append_bolt";
 
 import * as rs from "./std_nodes/rest_spout";
 import * as ts from "./std_nodes/timer_spout";
 import * as gs from "./std_nodes/get_spout";
 import * as tss from "./std_nodes/test_spout";
+import * as ds from "./std_nodes/dir_watcher_spout";
 
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
@@ -28,6 +30,7 @@ export class TopologySpoutInproc {
     private context: any;
     private working_dir: string;
     private cmd: string;
+    private subtype: string;
     private init_params: any
     private isStarted: boolean;
     private isClosed: boolean;
@@ -49,6 +52,7 @@ export class TopologySpoutInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
 
         this.isStarted = false;
@@ -63,11 +67,11 @@ export class TopologySpoutInproc {
         let self = this;
         try {
             if (config.type == "sys") {
-                this.child = this.createSysSpout(config, context);
+                this.child = this.createSysSpout(config);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         } catch (e) {
@@ -114,7 +118,7 @@ export class TopologySpoutInproc {
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
 
     /** Sends run signal and starts the "pump"" */
@@ -179,11 +183,12 @@ export class TopologySpoutInproc {
     }
 
     /** Factory method for sys spouts */
-    private createSysSpout(spout_config: any, context: any): intf.Spout {
+    private createSysSpout(spout_config: any): intf.Spout {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
             case "rest": return new rs.RestSpout();
+            case "dir": return new ds.DirWatcherSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
@@ -203,6 +208,7 @@ export class TopologyBoltInproc {
     private context: any;
     private working_dir: string;
     private cmd: string;
+    private subtype: string;
     private init_params: any
     private isStarted: boolean;
     private isClosed: boolean;
@@ -230,6 +236,7 @@ export class TopologyBoltInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
             if (self.isShuttingDown) {
@@ -256,11 +263,11 @@ export class TopologyBoltInproc {
 
         try {
             if (config.type == "sys") {
-                this.child = this.createSysBolt(config, context);
+                this.child = this.createSysBolt(config);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         } catch (e) {
@@ -306,7 +313,7 @@ export class TopologyBoltInproc {
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
 
     /** Sends data to child object. */
@@ -342,7 +349,7 @@ export class TopologyBoltInproc {
     }
 
     /** Factory method for sys bolts */
-    private createSysBolt(bolt_config: any, context: any) {
+    private createSysBolt(bolt_config: any) {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
@@ -350,6 +357,7 @@ export class TopologyBoltInproc {
             case "post": return new pb.PostBolt();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
+            case "file": return new fab.FileAppendBolt();
             case "bomb": return new bb.BombBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }

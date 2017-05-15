@@ -17,7 +17,7 @@ export class PostBolt implements intf.Bolt  {
         this.fixed_url = null;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;

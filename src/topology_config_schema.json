@@ -31,7 +31,8 @@
                         "required": [
                             "working_dir",
                             "cmd"
-                        ]
+                        ],
+                        "additionalProperties": false
                     }
                 },
                 "shutdown": {
@@ -44,19 +45,25 @@
                             },
                             "cmd": {
                                 "type": "string"
+                            },
+                            "init": {
+                                "type": "object",
+                                "additionalProperties": true
                             }
                         },
                         "required": [
                             "working_dir",
                             "cmd"
-                        ]
+                        ],
+                        "additionalProperties": false
                     }
                 }
             },
             "required": [
                 "name",
                 "heartbeat"
-            ]
+            ],
+            "additionalProperties": false
         },
         "spouts": {
             "type": "array",
@@ -94,7 +101,8 @@
                     "working_dir",
                     "cmd",
                     "init"
-                ]
+                ],
+                "additionalProperties": false
             }
         },
         "bolts": {
@@ -122,6 +130,9 @@
                     "cmd": {
                         "type": "string"
                     },
+                    "subtype": {
+                        "type": "string"
+                    },
                     "inputs": {
                         "type": "array",
                         "items": {
@@ -136,7 +147,8 @@
                             },
                             "required": [
                                 "source"
-                            ]
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "init": {
@@ -153,7 +165,8 @@
                     "cmd",
                     "inputs",
                     "init"
-                ]
+                ],
+                "additionalProperties": false
             }
         },
         "variables": {
@@ -170,5 +183,6 @@
         "spouts",
         "bolts",
         "variables"
-    ]
+    ],
+    "additionalProperties": false
 }

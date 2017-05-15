@@ -38,7 +38,7 @@ class DummySpout {
         this._generator = new DataGenerator();
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this._name = name;
         this._prefix = `[DummySpout ${this._name}]`;
         console.log(this._prefix, "Inside init:", config);

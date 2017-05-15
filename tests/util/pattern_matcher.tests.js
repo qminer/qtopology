@@ -60,18 +60,61 @@ describe('PaternMatcher', function () {
         let target = new pm.PaternMatcher(filter);
         assert.ok(!target.isMatch(data));
     });
-    it('simple filter - 1 field - string+like - succeed', function () {
+    it('simple filter - 1 field - string+like - succeed 1', function () {
         let data = { a: 4, b: "1ba" };
-        let filter = { b: { $like: "b"} };
+        let filter = { b: { $like: "b" } };
         let target = new pm.PaternMatcher(filter);
         assert.ok(target.isMatch(data));
     });
-    it('simple filter - 1 field - string+like - fail', function () {
+    it('simple filter - 1 field - string+like - fail 1', function () {
         let data = { a: 4, b: "1ba" };
-        let filter = { b: { $like: "c"} };
+        let filter = { b: { $like: "c" } };
         let target = new pm.PaternMatcher(filter);
         assert.ok(!target.isMatch(data));
     });
+    it('simple filter - 1 field - string+like - succeed 2', function () {
+        let data = { a: 4, b: "1ba" };
+        let filter = { b: { $like: "b(a|x)" } };
+        let target = new pm.PaternMatcher(filter);
+        assert.ok(target.isMatch(data));
+    });
+    it('simple filter - 1 field - string+like - fail 2', function () {
+        let data = { a: 4, b: "1bt" };
+        let filter = { b: { $like: "b(a|x)" } };
+        let target = new pm.PaternMatcher(filter);
+        assert.ok(!target.isMatch(data));
+    });
+    it('simple filter - 1 field - string+like - succeed 3', function () {
+        let data = { a: 4, b: "1ba" };
+        let filter = { b: { $like: "[0-5]b" } };
+        let target = new pm.PaternMatcher(filter);
+        assert.ok(target.isMatch(data));
+    });
+    it('simple filter - 1 field - string+like - fail 3', function () {
+        let data = { a: 4, b: "8ba" };
+        let filter = { b: { $like: "$[0-5]b" } };
+        let target = new pm.PaternMatcher(filter);
+        assert.ok(!target.isMatch(data));
+    });
+    describe('nested fields', function () {
+        it('simple filter - 1 field nested - string - succeed 1', function () {
+            let data = { x: { a: 4, b: "1ba" } };
+            let filter = { "x.a": 4 };
+            let target = new pm.PaternMatcher(filter);
+            assert.ok(target.isMatch(data));
+        });
+        it('simple filter - 1 field nested - string - fail - no such field', function () {
+            let data = { x: { a: 4, b: "1ba" } };
+            let filter = { "x.c": 4 };
+            let target = new pm.PaternMatcher(filter);
+            assert.ok(!target.isMatch(data));
+        });
+        it('simple filter - 1 field nested - string - fail - value missmatch', function () {
+            let data = { x: { a: 4, b: "1ba" } };
+            let filter = { "x.a": 5 };
+            let target = new pm.PaternMatcher(filter);
+            assert.ok(!target.isMatch(data));
+        });
+    });
 });
-
 

@@ -8,7 +8,7 @@ class TestSpout {
         this.tuples = null;
         this.should_run = false;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.stream_id = config.stream_id;
         this.tuples = config.tuples || [];
