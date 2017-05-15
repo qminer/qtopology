@@ -18,6 +18,7 @@ import * as rs from "./std_nodes/rest_spout";
 import * as ts from "./std_nodes/timer_spout";
 import * as gs from "./std_nodes/get_spout";
 import * as tss from "./std_nodes/test_spout";
+import * as ds from "./std_nodes/dir_watcher_spout";
 
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
@@ -187,6 +188,7 @@ export class TopologySpoutInproc {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
             case "rest": return new rs.RestSpout();
+            case "dir": return new ds.DirWatcherSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
