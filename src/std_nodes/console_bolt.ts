@@ -14,7 +14,7 @@ export class ConsoleBolt implements intf.Bolt {
         this.onEmit = null;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.prefix = `[InprocBolt ${this.name}]`;
         this.onEmit = config.onEmit;

@@ -41,7 +41,7 @@ QTopology does the wiring and routing between the nodes
 
 ``````````typescript
 interface Bolt {
-    init(name: string, config: any, callback: SimpleCallback);
+    init(name: string, config: any, context: any, callback: SimpleCallback);
     heartbeat();
     shutdown(callback: SimpleCallback);
     receive(data: any, stream_id: string, callback: SimpleCallback);
@@ -59,7 +59,7 @@ interface Bolt {
 
 ``````````typescript
 interface Spout {
-    init(name: string, config: any, callback: SimpleCallback);
+    init(name: string, config: any, context: any, callback: SimpleCallback);
     heartbeat();
     shutdown(callback: SimpleCallback);
     run();

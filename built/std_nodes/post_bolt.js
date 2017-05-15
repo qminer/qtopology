@@ -9,7 +9,7 @@ class PostBolt {
         this.onEmit = null;
         this.fixed_url = null;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;

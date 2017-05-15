@@ -2,14 +2,15 @@
 
 class MyBolt {
 
-    constructor(context) {
-        this._context = context;
+    constructor() {
+        this._context = null;
         this._sum = 0;
         this._forward = true;
         this._onEmit = null;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
+        this._context = context;
         this._onEmit = config.onEmit;
         this._forward = config.forward;
         callback();

@@ -29,16 +29,17 @@ class DataGenerator {
 
 class MySpout {
 
-    constructor(context) {
+    constructor() {
         this._name = null;
-        this._context = context;
+        this._context = null;
         this._prefix = "";
         this._generator = new DataGenerator();
         this._waiting_for_ack = false;
     }
 
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this._name = name;
+        this._context = context;
         this._prefix = `[InprocSpout ${this._name}]`;
         console.log(this._prefix, "Inside init:", config);
         callback();

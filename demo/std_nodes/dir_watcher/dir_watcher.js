@@ -1,8 +1,9 @@
 "use strict";
 
+const fs = require("fs");
 const async = require("async");
-const tn = require("../../").local;
-const validator = require("../../").util.validation;
+const tn = require("../../..").local;
+const validator = require("../../..").util.validation;
 
 // demo configuration
 let config = require("./topology.json");
@@ -12,6 +13,7 @@ let topology = new tn.TopologyLocal();
 async.series(
     [
         (xcallback) => {
+            console.log("Starting init");
             topology.init(config, xcallback);
         },
         (xcallback) => {
@@ -19,7 +21,25 @@ async.series(
             topology.run();
             setTimeout(function () {
                 xcallback();
-            }, 5000);
+            }, 2000);
+        },
+        (xcallback) => {
+            fs.appendFileSync("./temp_file.tmp", "Some content\n", {encoding: "utf8"});
+            setTimeout(function () {
+                xcallback();
+            }, 2000);
+        },
+        (xcallback) => {
+            fs.appendFileSync("./temp_file.tmp", "Another content\n", {encoding: "utf8"});
+            setTimeout(function () {
+                xcallback();
+            }, 2000);
+        },
+        (xcallback) => {
+            fs.unlinkSync("./temp_file.tmp");
+            setTimeout(function () {
+                xcallback();
+            }, 2000);
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");

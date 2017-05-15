@@ -8,7 +8,7 @@ class AttacherBolt {
         this.onEmit = null;
         this.extra_fields = null;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));

@@ -11,7 +11,7 @@ class FilterBolt {
         this.matcher = null;
     }
     /** Initializes filtering pattern */
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.matcher = new pm.PaternMatcher(config.filter);

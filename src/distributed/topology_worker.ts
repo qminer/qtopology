@@ -47,7 +47,7 @@ export class TopologyWorker {
         });
         process.on('SIGINT', () => {
             log.logger().important("[Worker] Received Shutdown signal from system")
-            log.logger().important("[Worker] Worker shutting down gracefully");
+            log.logger().important("[Worker] Starting graceful worker shutdown...");
             self.shutdown(() => {
                 process.exit(1);
             });

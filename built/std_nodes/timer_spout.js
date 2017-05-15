@@ -10,7 +10,7 @@ class TimerSpout {
         this.next_tuple = null;
         this.should_run = false;
     }
-    init(name, config, callback) {
+    init(name, config, context, callback) {
         this.name = name;
         this.stream_id = config.stream_id;
         this.title = config.title || "heartbeat";

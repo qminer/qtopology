@@ -19,7 +19,7 @@ describe('ConsoleBolt', function () {
             }
         };
         let target = new cb.ConsoleBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
             done();
         });
@@ -36,7 +36,7 @@ describe('ConsoleBolt', function () {
             }
         };
         let target = new cb.ConsoleBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
             target.receive(xdata, xstream_id, (err) => {
                 assert.ok(!err);

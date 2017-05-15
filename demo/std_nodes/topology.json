@@ -125,6 +125,20 @@
             "init": {}
         },
         {
+            "name": "bolt_file",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file",
+            "inputs": [
+                {
+                    "source": "pump4"
+                }
+            ],
+            "init": {
+                "file_name_template": "./logs/test.txt"
+            }
+        },
+        {
             "name": "bolt4",
             "working_dir": ".",
             "type": "sys",

@@ -15,7 +15,7 @@ export class TestSpout implements intf.Spout {
         this.should_run = false;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.stream_id = config.stream_id;
         this.tuples = config.tuples || [];
