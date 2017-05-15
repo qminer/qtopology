@@ -9,10 +9,12 @@ const ab = require("./std_nodes/attacher_bolt");
 const gb = require("./std_nodes/get_bolt");
 const rb = require("./std_nodes/router_bolt");
 const bb = require("./std_nodes/bomb_bolt");
+const fab = require("./std_nodes/file_append_bolt");
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
 const tss = require("./std_nodes/test_spout");
+const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
 const log = require("./util/logger");
 /** Wrapper for "spout" in-process */
@@ -23,6 +25,7 @@ class TopologySpoutInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
         this.isStarted = false;
         this.isClosed = false;
@@ -34,12 +37,12 @@ class TopologySpoutInproc {
         let self = this;
         try {
             if (config.type == "sys") {
-                this.child = this.createSysSpout(config, context);
+                this.child = this.createSysSpout(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         }
@@ -80,7 +83,7 @@ class TopologySpoutInproc {
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
     /** Sends run signal and starts the "pump"" */
     run() {
@@ -142,11 +145,12 @@ class TopologySpoutInproc {
         this.child.pause();
     }
     /** Factory method for sys spouts */
-    createSysSpout(spout_config, context) {
+    createSysSpout(spout_config) {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
             case "rest": return new rs.RestSpout();
+            case "dir": return new ds.DirWatcherSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
@@ -167,6 +171,7 @@ class TopologyBoltInproc {
         this.context = context;
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
+        this.subtype = config.subtype;
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
             if (self.isShuttingDown) {
@@ -189,12 +194,12 @@ class TopologyBoltInproc {
         this.telemetry_total = new tel.Telemetry(config.name);
         try {
             if (config.type == "sys") {
-                this.child = this.createSysBolt(config, context);
+                this.child = this.createSysBolt(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
-                this.child = require(module_path).create(context);
+                this.child = require(module_path).create(this.subtype);
             }
             this.isStarted = true;
         }
@@ -236,7 +241,7 @@ class TopologyBoltInproc {
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, callback);
+        this.child.init(this.name, this.init_params, this.context, callback);
     }
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
@@ -272,7 +277,7 @@ class TopologyBoltInproc {
         }
     }
     /** Factory method for sys bolts */
-    createSysBolt(bolt_config, context) {
+    createSysBolt(bolt_config) {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
@@ -280,6 +285,7 @@ class TopologyBoltInproc {
             case "post": return new pb.PostBolt();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
+            case "file": return new fab.FileAppendBolt();
             case "bomb": return new bb.BombBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }

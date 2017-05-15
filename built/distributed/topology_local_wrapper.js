@@ -22,6 +22,12 @@ class TopologyLocalWrapper {
                 data: e
             });
         });
+        process.on('SIGINT', () => {
+            // this process should not handle this signal
+            // it means that parent process (the worker) also got this signal
+            // and it will start the proper shutdown sequence shortly
+            log.logger().warn("[Wrapper] Received SIGINT");
+        });
     }
     /** Starts infinite loop by reading messages from parent or console */
     start() {
@@ -57,7 +63,7 @@ class TopologyLocalWrapper {
                 // we have the original error from the data field of the message
                 self.send(intf.ChildMsgCode.response_shutdown, { err: err || msg.data });
                 setTimeout(() => {
-                    process.exit(0);
+                    //process.exit(0);
                 }, 100);
             });
         }

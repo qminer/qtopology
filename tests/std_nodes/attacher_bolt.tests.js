@@ -20,7 +20,7 @@ describe('AttacherBolt', function () {
             extra_fields: { a: true }
         };
         let target = new ab.AttacherBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
             done();
         });
@@ -39,7 +39,7 @@ describe('AttacherBolt', function () {
             extra_fields: { a: true }
         };
         let target = new ab.AttacherBolt();
-        target.init(name, config, (err) => {
+        target.init(name, config, null, (err) => {
             assert.ok(!err);
             target.receive(xdata, xstream_id, (err) => {
                 assert.ok(!err);

@@ -18,7 +18,7 @@ export class RouterBolt implements intf.Bolt {
     }
 
     /** Initializes routing patterns */
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         for (let stream_id in config.routes) {

@@ -18,7 +18,7 @@ export class BombBolt implements intf.Bolt {
         this.started_at = null;
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.explode_after = config.explode_after || 10 * 1000;

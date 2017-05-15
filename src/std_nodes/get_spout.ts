@@ -28,7 +28,7 @@ export class GetSpout implements intf.Spout {
         this.next_ts = Date.now();
     }
 
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.url = config.url;
         this.repeat = config.repeat;

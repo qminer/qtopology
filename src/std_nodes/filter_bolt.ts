@@ -18,7 +18,7 @@ export class FilterBolt implements intf.Bolt {
     }
 
     /** Initializes filtering pattern */
-    init(name: string, config: any, callback: intf.SimpleCallback) {
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.matcher = new pm.PaternMatcher(config.filter);

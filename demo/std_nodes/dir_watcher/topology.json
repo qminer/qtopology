@@ -1,0 +1,34 @@
+{
+    "general": {
+        "name": "Demo of dir watcher spout",
+        "heartbeat": 500
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "dir",
+            "init": {
+                "dir_name": ".",
+                "stream_id": "some_stream"
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "some_stream"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
