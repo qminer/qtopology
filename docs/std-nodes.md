@@ -9,6 +9,7 @@ List of standard spouts:
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
+- [Dir-watcher spout](#dir-spout)
 - [Test spout](#test-spout)
 
 List of standard bolts:
@@ -20,6 +21,38 @@ List of standard bolts:
 - [POST bolt](#post-bolt)
 - [FileAppend bolt](#file-bolt)
 - [Bomb bolt](#bomb-bolt)
+
+## Dir spout
+
+`cmd="dir"`
+
+This spout a message each time a file is created, changed or deleted inside some
+target directory. 
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "dir",
+    "init": {
+        "dir_name": "/some/input/dir"
+    }
+}
+```````````````````````````````
+
+This spout will emit these messages:
+
+``````````````````````````````json
+{
+    "change_type":"rename",
+    "file_name":"temp_file.tmp",
+    "target_dir": "/some/input/dir",
+    "ts":"2017-05-15T15:45:08.695Z"
+}
+``````````````````````````````
+
+> Change type `rename` is sent when file is created or deleted, while `change` is sent when file content is changed.
 
 ## Test spout
 
