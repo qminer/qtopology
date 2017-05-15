@@ -18,7 +18,6 @@ export class FileAppendBolt implements intf.Bolt {
     private current_data: string;
 
     private prepend_timestamp: boolean;
-    private timestamp_in_utc: boolean;
     private split_over_time: boolean;
     private split_period: number;
     private next_split_after: number;
@@ -33,7 +32,6 @@ export class FileAppendBolt implements intf.Bolt {
         this.name = name;
         this.file_name_template = config.file_name_template;
         this.prepend_timestamp = config.prepend_timestamp;
-        this.timestamp_in_utc = config.timestamp_in_utc;
         this.split_over_time = config.split_over_time;
         this.split_period = config.split_period || 60 * 60 * 1000;
 

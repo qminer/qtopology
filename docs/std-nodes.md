@@ -18,6 +18,7 @@ List of standard bolts:
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
+- [FileAppend bolt](#file-bolt)
 - [Bomb bolt](#bomb-bolt)
 
 ## Test spout
@@ -184,6 +185,59 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
     }
 }
 ```````````````````````````````
+
+
+## File bolt
+
+`cmd="file"`
+
+This bolt attaches incoming messages as `JSON` and appends them to output file.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "file",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "file_name_template": "./logs/log.txt"
+    }
+}
+```````````````````````````````
+
+This example will log all incoming data into file `log.txt` inside `logs` subdirectory of current directory. The directory must already exist.
+
+### Timestamp
+
+You can instruct the bolt to prepend timestamp (in local timezone using ISO format), by setting option `prepend_timestamp` to `true`. The new line in the log file will look something like this:
+
+```````````
+2017-05-14T15:52:07.341 {"ts":"2017-03-16T12:36:33.952Z","a":14.3}
+```````````
+
+### File splitting
+
+The log file can be huge, so the bolt provides option to split files after each time interval. Just set option `split_over_time` to `true` and `split_period` to number of milliseconds that you want to use (3600000 means one hour). The bolt will create new file for each interval (as long as there is some data to write). The timestamp of the interval will be injected into the name of the file.
+
+For eaxmple, setting options to
+
+```````````````json
+{
+    "file_name_template": "./log.txt",
+    "split_over_time": true,
+    "split_period": 3600000
+}
+```````````````
+
+will write data into files with names like:
+
+- `log_2017_05_15T12:00:00.txt`
+- `log_2017_05_15T13:00:00.txt`
+- `log_2017_05_15T14:00:00.txt`
+- ....
 
 ## Router bolt
 

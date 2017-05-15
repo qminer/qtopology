@@ -14,7 +14,6 @@ class FileAppendBolt {
         this.name = name;
         this.file_name_template = config.file_name_template;
         this.prepend_timestamp = config.prepend_timestamp;
-        this.timestamp_in_utc = config.timestamp_in_utc;
         this.split_over_time = config.split_over_time;
         this.split_period = config.split_period || 60 * 60 * 1000;
         // prepare filename template for injection
