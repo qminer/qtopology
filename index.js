@@ -30,8 +30,9 @@ module.exports = {
         validation: require("./built/topology_validation"),
         // easier parsing of command line
         cmdline: require("./built/util/cmdline"),
-        // of rmatching objects to certain pattern/query
+        // for matching objects to certain pattern/query
         pattern_matcher: require("./built/util/pattern_matcher"),
+        // utiliy class for continously running a child process
         child_process_restarter: require("./built/util/child_proc_restarter")
     }
 };
