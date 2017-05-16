@@ -31,6 +31,7 @@ module.exports = {
         // easier parsing of command line
         cmdline: require("./built/util/cmdline"),
         // of rmatching objects to certain pattern/query
-        pattern_matcher: require("./built/util/pattern_matcher")
+        pattern_matcher: require("./built/util/pattern_matcher"),
+        child_process_restarter: require("./built/util/child_proc_restarter")
     }
 };
