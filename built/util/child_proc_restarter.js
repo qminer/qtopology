@@ -1,6 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cp = require("child_process");
+/** This utility method outputs data to console, clipping training new-line if present. */
+function outputToConsole(data) {
+    let s = data.toString();
+    if (s.length > 0 && s.endsWith("\n")) {
+        s = s.substring(0, s.length - 1);
+    }
+    console.log(s);
+}
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits.
  */
@@ -21,8 +29,8 @@ class ChildProcRestarter {
             return;
         }
         this.proc = cp.spawn(this.cmd_line, this.cmd_line_args);
-        this.proc.stdout.on("data", (data) => { console.log(data.toString()); });
-        this.proc.stderr.on("data", (data) => { console.log(data.toString()); });
+        this.proc.stdout.on("data", outputToConsole);
+        this.proc.stderr.on("data", outputToConsole);
         this.proc.on("exit", (code) => {
             delete this.proc;
             self.proc = null;
