@@ -50,15 +50,27 @@ class TopologyWorker {
     createProxy(rec) {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (!rec.proxy.wasShutDown()) {
-                if (err) {
-                    self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+            if (rec.proxy.wasShutDown()) {
+                self.removeTopology(rec.uuid);
+            }
+            else {
+                // TODO check if topology restarted a lot recently 
+                let too_often = true;
+                if (too_often) {
+                    //  report error and remove
+                    if (err) {
+                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                    }
+                    else {
+                        self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
+                    }
+                    self.removeTopology(rec.uuid);
                 }
                 else {
-                    self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
+                    // not too often, just restart
+                    self.createProxy(rec);
                 }
             }
-            self.removeTopology(rec.uuid);
         });
         rec.proxy.init(rec.config, (err) => {
             if (err) {

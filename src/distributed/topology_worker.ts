@@ -78,7 +78,7 @@ export class TopologyWorker {
                     }
                     self.removeTopology(rec.uuid);
                 } else {
-                    // if not too often, then just restart
+                    // not too often, just restart
                     self.createProxy(rec);
                 }
             }
