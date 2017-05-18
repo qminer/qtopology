@@ -46,6 +46,38 @@ class TopologyWorker {
     run() {
         this.coordinator.run();
     }
+    /** Internal method that creates proxy for given topology item */
+    createProxy(rec) {
+        let self = this;
+        rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            if (!rec.proxy.wasShutDown()) {
+                if (err) {
+                    self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                }
+                else {
+                    self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
+                }
+            }
+            self.removeTopology(rec.uuid);
+        });
+        rec.proxy.init(rec.config, (err) => {
+            if (err) {
+                self.removeTopology(rec.uuid);
+                self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+            }
+            else {
+                rec.proxy.run((err) => {
+                    if (err) {
+                        self.removeTopology(rec.uuid);
+                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                    }
+                    else {
+                        self.coordinator.reportTopology(rec.uuid, "running", "");
+                    }
+                });
+            }
+        });
+    }
     /** Starts single topology */
     start(uuid, config) {
         let compiler = new comp.TopologyCompiler(config);
@@ -60,34 +92,7 @@ class TopologyWorker {
         rec.uuid = uuid;
         rec.config = config;
         self.topologies.push(rec);
-        rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (!rec.proxy.wasShutDown()) {
-                if (err) {
-                    self.coordinator.reportTopology(uuid, "error", "" + err);
-                }
-                else {
-                    self.coordinator.reportTopology(uuid, "stopped", "" + err);
-                }
-            }
-            self.removeTopology(uuid);
-        });
-        rec.proxy.init(config, (err) => {
-            if (err) {
-                self.removeTopology(uuid);
-                self.coordinator.reportTopology(uuid, "error", "" + err);
-            }
-            else {
-                rec.proxy.run((err) => {
-                    if (err) {
-                        self.removeTopology(uuid);
-                        self.coordinator.reportTopology(uuid, "error", "" + err);
-                    }
-                    else {
-                        self.coordinator.reportTopology(uuid, "running", "");
-                    }
-                });
-            }
-        });
+        self.createProxy(rec);
     }
     /** Remove specified topology from internal list */
     removeTopology(uuid) {
