@@ -132,7 +132,9 @@ class HttpCoordinationStorage {
             return {
                 uuid: x.uuid,
                 status: x.status,
-                worker: x.worker
+                worker: x.worker,
+                weight: 1,
+                worker_affinity: []
             };
         });
     }
@@ -143,7 +145,9 @@ class HttpCoordinationStorage {
             return {
                 uuid: x.uuid,
                 status: x.status,
-                worker: x.worker
+                worker: x.worker,
+                weight: 1,
+                worker_affinity: []
             };
         });
     }
