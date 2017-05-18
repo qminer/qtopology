@@ -87,7 +87,7 @@ export class TopologyLeader {
      */
     private performLeaderLoop(callback: intf.SimpleCallback) {
         let self = this;
-        let alive_workers = null;
+        let alive_workers: intf.LeadershipResultWorkerStatus[] = null;
         async.series(
             [
                 (xcallback) => {
@@ -118,8 +118,12 @@ export class TopologyLeader {
                     }
                     self.storage.getTopologyStatus((err, topologies) => {
                         if (err) return xcallback(err);
-                        // each topology: name, status
+                        // each topology: name, status, worker, weight, affinity
                         // possible statuses: unassigned, waiting, running, error, stopped
+                        topologies.forEach(x => {
+                            x.weight = x.weight || 1;
+                            x.worker_affinity = x.worker_affinity || [];
+                        });
                         let unassigned_topologies = topologies
                             .filter(x => x.status === "unassigned" || x.status === "stopped")
                             .map(x => x.uuid);
@@ -127,7 +131,12 @@ export class TopologyLeader {
                             log.logger().log("[Leader] Found unassigned topologies: " + unassigned_topologies)
                         }
                         let load_balancer = new lb.LoadBalancer(
-                            alive_workers.map(x => { return { name: x.name, weight: x.topology_count }; })
+                            alive_workers.map(x => {
+                                return {
+                                    name: x.name,
+                                    weight: x.topology_count
+                                };
+                            })
                         );
                         async.each(
                             unassigned_topologies,

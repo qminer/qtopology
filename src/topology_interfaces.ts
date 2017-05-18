@@ -98,6 +98,8 @@ export interface LeadershipResultTopologyStatus {
     uuid: string;
     status: string;
     worker: string;
+    weight: number;
+    worker_affinity: string[];
 }
 export interface StorageResultMessage {
     cmd: string;
