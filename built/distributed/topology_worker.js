@@ -5,6 +5,7 @@ const tlp = require("./topology_local_proxy");
 const coord = require("./topology_coordinator");
 const comp = require("../topology_compiler");
 const log = require("../util/logger");
+const fe = require("../util/freq_estimator");
 class TopologyItem {
 }
 /** This class handles topology worker - singleton instance on
@@ -54,8 +55,9 @@ class TopologyWorker {
                 self.removeTopology(rec.uuid);
             }
             else {
-                // TODO check if topology restarted a lot recently 
-                let too_often = true;
+                // check if topology restarted a lot recently 
+                let score = rec.error_frequency_score.add(new Date());
+                let too_often = (score >= 10);
                 if (too_often) {
                     //  report error and remove
                     if (err) {
@@ -68,7 +70,9 @@ class TopologyWorker {
                 }
                 else {
                     // not too often, just restart
-                    self.createProxy(rec);
+                    setTimeout(() => {
+                        self.createProxy(rec);
+                    }, 0);
                 }
             }
         });
@@ -103,6 +107,7 @@ class TopologyWorker {
         let rec = new TopologyItem();
         rec.uuid = uuid;
         rec.config = config;
+        rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
         self.topologies.push(rec);
         self.createProxy(rec);
     }

@@ -4,12 +4,13 @@ import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
+import * as fe from "../util/freq_estimator";
 
 class TopologyItem {
     uuid: string;
     config: any;
     proxy: tlp.TopologyLocalProxy;
-    error_count: number;
+    error_frequency_score: fe.EventFrequencyScore;
 }
 
 /** This class handles topology worker - singleton instance on
@@ -67,8 +68,9 @@ export class TopologyWorker {
             if (rec.proxy.wasShutDown()) {
                 self.removeTopology(rec.uuid);
             } else {
-                // TODO check if topology restarted a lot recently 
-                let too_often = true;
+                // check if topology restarted a lot recently 
+                let score = rec.error_frequency_score.add(new Date());
+                let too_often = (score >= 10);
                 if (too_often) {
                     //  report error and remove
                     if (err) {
@@ -79,7 +81,9 @@ export class TopologyWorker {
                     self.removeTopology(rec.uuid);
                 } else {
                     // not too often, just restart
-                    self.createProxy(rec);
+                    setTimeout(() => {
+                        self.createProxy(rec);
+                    }, 0);
                 }
             }
         });
@@ -114,6 +118,7 @@ export class TopologyWorker {
         let rec = new TopologyItem();
         rec.uuid = uuid;
         rec.config = config;
+        rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
         self.topologies.push(rec);
         self.createProxy(rec);
     }
