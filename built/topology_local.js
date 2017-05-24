@@ -195,12 +195,21 @@ class TopologyLocal {
     redirect(source, data, stream_id, callback) {
         let self = this;
         let destinations = self.router.getDestinationsForSource(source, stream_id);
-        async.each(destinations, (destination, xcallback) => {
-            let data_clone = {};
-            Object.assign(data_clone, data);
-            let bolt = self.getBolt(destination);
-            bolt.receive(data_clone, stream_id, xcallback);
-        }, callback);
+        if (destinations.length === 1) {
+            // when single destination is defined, send data directly, no cloning
+            let bolt = self.getBolt(destinations[0]);
+            bolt.receive(data, stream_id, callback);
+        }
+        else {
+            // when multiple destinations are sent,
+            // create a clone of the message for each destination
+            async.each(destinations, (destination, xcallback) => {
+                let data_clone = {};
+                Object.assign(data_clone, data);
+                let bolt = self.getBolt(destination);
+                bolt.receive(data_clone, stream_id, xcallback);
+            }, callback);
+        }
     }
     /** Find bolt with given name.
      * @param {string} name - Name of the bolt that we need to find
