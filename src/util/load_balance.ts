@@ -1,5 +1,5 @@
 
-interface Worker {
+export interface Worker {
     name: string;
     weight: number;
 }
