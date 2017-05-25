@@ -195,6 +195,8 @@ class TopologyLocal {
     redirect(source, data, stream_id, callback) {
         let self = this;
         let destinations = self.router.getDestinationsForSource(source, stream_id);
+        // each successor should receive a copy of current message
+        // this encapsulates down-stream processing and changes
         async.each(destinations, (destination, xcallback) => {
             let data_clone = {};
             Object.assign(data_clone, data);

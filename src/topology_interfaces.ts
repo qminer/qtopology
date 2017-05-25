@@ -87,7 +87,6 @@ export interface LeadershipResultStatus {
 export interface LeadershipResultWorkerStatus {
     name: string;
     status: string;
-    topology_count: number;
     lstatus: string,
     last_ping_d: number,
     last_ping: Date,

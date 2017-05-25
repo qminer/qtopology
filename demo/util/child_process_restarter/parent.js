@@ -1,7 +1,6 @@
 const qtoplogy = require("../../..");
-const cpr = qtoplogy.util.child_process_restarter;
 
-let obj = new cpr.ChildProcRestarter("node", ["child.js"]);
+let obj = new qtoplogy.ChildProcRestarter("node", ["child.js"]);
 obj.start();
 
 

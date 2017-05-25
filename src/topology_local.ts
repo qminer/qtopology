@@ -232,6 +232,8 @@ export class TopologyLocal {
     private redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let destinations = self.router.getDestinationsForSource(source, stream_id);
+        // each successor should receive a copy of current message
+        // this encapsulates down-stream processing and changes
         async.each(
             destinations,
             (destination, xcallback) => {
