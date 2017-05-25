@@ -88,6 +88,7 @@ export class TopologyLeader {
     private performLeaderLoop(callback: intf.SimpleCallback) {
         let self = this;
         let alive_workers: intf.LeadershipResultWorkerStatus[] = null;
+        let worker_weights: Map<string, number> = new Map<string, number>();
         async.series(
             [
                 (xcallback) => {
@@ -123,6 +124,18 @@ export class TopologyLeader {
                         topologies.forEach(x => {
                             x.weight = x.weight || 1;
                             x.worker_affinity = x.worker_affinity || [];
+                            if (x.status == "") {
+                                for (let worker of alive_workers) {
+                                    if (worker.name == x.worker) {
+                                        let old_weight = 0;
+                                        if (worker_weights.has(name)) {
+                                            old_weight = worker_weights.get(name);
+                                        }
+                                        worker_weights.set(name, old_weight + x.weight);
+                                        break;
+                                    }
+                                }
+                            }
                         });
                         let unassigned_topologies = topologies
                             .filter(x => x.status === "unassigned" || x.status === "stopped");
@@ -131,7 +144,7 @@ export class TopologyLeader {
                         }
                         let load_balancer = new lb.LoadBalancerEx(
                             alive_workers.map(x => {
-                                return { name: x.name, weight: x.topology_count };
+                                return { name: x.name, weight: worker_weights.get(x.name) };
                             }),
                             5 // affinity means 5x stronger gravitational pull to that worker
                         );
