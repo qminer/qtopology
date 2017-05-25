@@ -212,7 +212,13 @@ class HttpCoordinationStorage {
         this.pingWorker(name);
         let result = this.messages.filter(x => x.worker === name);
         this.messages = this.messages.filter(x => x.worker !== name);
-        return result;
+        return result.map(x => {
+            return {
+                cmd: x.cmd,
+                content: x.content,
+                worker: x.worker
+            };
+        });
     }
     pingWorker(name) {
         for (let worker of this.workers) {
@@ -263,6 +269,7 @@ class HttpCoordinationStorage {
         }
     }
 }
+exports.HttpCoordinationStorage = HttpCoordinationStorage;
 ////////////////////////////////////////////////////////////////////
 // Initialize storage
 let storage = new HttpCoordinationStorage();

@@ -68,7 +68,7 @@ export class TopologyWorker {
             if (rec.proxy.wasShutDown()) {
                 self.removeTopology(rec.uuid);
             } else {
-                // check if topology restarted a lot recently 
+                // check if topology restarted a lot recently
                 let score = rec.error_frequency_score.add(new Date());
                 let too_often = (score >= 10);
                 if (too_often) {

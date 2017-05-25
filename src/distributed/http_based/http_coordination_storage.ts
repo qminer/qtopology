@@ -34,7 +34,7 @@ class RecMessage {
 // worker lstatus: leader, candidate, ""
 // Topology status: unassigned, waiting, running, error, stopped
 
-class HttpCoordinationStorage {
+export class HttpCoordinationStorage {
 
     private workers: RecWorker[];
     private topologies: RecTopology[];
@@ -247,7 +247,13 @@ class HttpCoordinationStorage {
         this.pingWorker(name);
         let result = this.messages.filter(x => x.worker === name);
         this.messages = this.messages.filter(x => x.worker !== name);
-        return result;
+        return result.map(x => {
+            return {
+                cmd: x.cmd,
+                content: x.content,
+                worker: x.worker
+            }
+        });
     }
 
     private pingWorker(name: string) {
@@ -262,7 +268,7 @@ class HttpCoordinationStorage {
     private unassignWaitingTopologies() {
         // set topologies to unassigned if they have been waiting too long
         let d = Date.now() - 30 * 1000;
-        let worker_map : { [email: string]: string } = {};
+        let worker_map: { [email: string]: string } = {};
         for (let worker of this.workers) {
             worker_map[worker.name] = worker.status;
         }

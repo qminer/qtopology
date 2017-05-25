@@ -1,13 +1,12 @@
 "use strict";
 
 const async = require("async");
-const tn = require("../../").local;
-const validator = require("../../").util.validation;
+const qtopology = require("../../");
 
 // demo configuration
 let config = require("./topology.json");
-validator.validate({ config: config, exitOnError: true });
-let topology = new tn.TopologyLocal();
+qtopology.validate({ config: config, exitOnError: true });
+let topology = new qtopology.TopologyLocal();
 
 async.series(
     [
