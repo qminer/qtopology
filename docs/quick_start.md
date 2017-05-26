@@ -98,8 +98,8 @@ class MySpout {
 
     constructor() {
         this._name = null;
-		this._data = [];
-		this._data_index = 0;
+        this._data = [];
+        this._data_index = 0;
     }
 
     init(name, config, callback) {
@@ -152,8 +152,6 @@ This sample top-level code will construct the topology, start it and let it run 
 "use strict";
 
 const qtopology = require("qtopology");
-const tn = qtopology.local;
-const validator = qtopology.validation;
 
 // load configuration from file
 let config = require("./topology.json");
@@ -164,7 +162,7 @@ compiler.compile();
 config = compiler.getWholeConfig();
 
 // ok, create topology
-let topology = new tn.TopologyLocal();
+let topology = new qtopology.TopologyLocal();
 topology.init(config, (err) => {
     if (err) { console.log(err); return; }
 

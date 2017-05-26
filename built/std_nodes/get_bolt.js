@@ -23,22 +23,13 @@ class GetBolt {
     }
     receive(data, stream_id, callback) {
         let self = this;
-        if (self.fixed_url) {
-            let req = self.client.get(self.fixed_url, (new_data, response) => {
-                self.onEmit({ body: new_data }, null, callback);
-            });
-            req.on('error', function (err) {
-                callback(err);
-            });
-        }
-        else {
-            let req = self.client.get(data.url, (new_data, response) => {
-                self.onEmit({ body: new_data }, null, callback);
-            });
-            req.on('error', function (err) {
-                callback(err);
-            });
-        }
+        let url = self.fixed_url || data.url;
+        let req = self.client.get(url, (new_data, response) => {
+            self.onEmit({ body: new_data.toString() }, null, callback);
+        });
+        req.on('error', function (err) {
+            callback(err);
+        });
     }
 }
 exports.GetBolt = GetBolt;

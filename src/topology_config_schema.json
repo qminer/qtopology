@@ -12,6 +12,15 @@
                 "heartbeat": {
                     "type": "integer"
                 },
+                "weight": {
+                    "type": "integer"
+                },
+                "worker_affinity": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "initialization": {
                     "type": "array",
                     "items": {

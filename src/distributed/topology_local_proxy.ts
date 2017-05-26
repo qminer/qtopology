@@ -25,7 +25,7 @@ export class TopologyLocalProxy {
         this.shutdown_cb = null;
         this.was_shut_down = false;
         this.child_exit_callback = child_exit_callback || (() => { });
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], {silent: false});
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
 
         self.child.on("message", (msgx) => {
             let msg = msgx as intf.ChildMsg;

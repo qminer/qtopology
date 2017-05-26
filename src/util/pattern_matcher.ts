@@ -1,4 +1,3 @@
-
 class SingleFilter {
     $like: RegExp[];
     values: any[];
@@ -81,3 +80,4 @@ export class PaternMatcher {
         return true;
     }
 }
+

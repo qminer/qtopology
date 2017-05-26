@@ -4,11 +4,13 @@ import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
+import * as fe from "../util/freq_estimator";
 
 class TopologyItem {
     uuid: string;
     config: any;
     proxy: tlp.TopologyLocalProxy;
+    error_frequency_score: fe.EventFrequencyScore;
 }
 
 /** This class handles topology worker - singleton instance on
@@ -55,8 +57,51 @@ export class TopologyWorker {
     }
 
     /** Starts this worker */
-    run() {
+    run(): void {
         this.coordinator.run();
+    }
+
+    /** Internal method that creates proxy for given topology item */
+    private createProxy(rec: TopologyItem): void {
+        let self = this;
+        rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            if (rec.proxy.wasShutDown()) {
+                self.removeTopology(rec.uuid);
+            } else {
+                // check if topology restarted a lot recently
+                let score = rec.error_frequency_score.add(new Date());
+                let too_often = (score >= 10);
+                if (too_often) {
+                    //  report error and remove
+                    if (err) {
+                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                    } else {
+                        self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
+                    }
+                    self.removeTopology(rec.uuid);
+                } else {
+                    // not too often, just restart
+                    setTimeout(() => {
+                        self.createProxy(rec);
+                    }, 0);
+                }
+            }
+        });
+        rec.proxy.init(rec.config, (err) => {
+            if (err) {
+                self.removeTopology(rec.uuid);
+                self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+            } else {
+                rec.proxy.run((err) => {
+                    if (err) {
+                        self.removeTopology(rec.uuid);
+                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                    } else {
+                        self.coordinator.reportTopology(rec.uuid, "running", "");
+                    }
+                });
+            }
+        });
     }
 
     /** Starts single topology */
@@ -73,32 +118,9 @@ export class TopologyWorker {
         let rec = new TopologyItem();
         rec.uuid = uuid;
         rec.config = config;
+        rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
         self.topologies.push(rec);
-        rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (!rec.proxy.wasShutDown()) {
-                if (err) {
-                    self.coordinator.reportTopology(uuid, "error", "" + err);
-                } else {
-                    self.coordinator.reportTopology(uuid, "stopped", "" + err);
-                }
-            }
-            self.removeTopology(uuid);
-        });
-        rec.proxy.init(config, (err) => {
-            if (err) {
-                self.removeTopology(uuid);
-                self.coordinator.reportTopology(uuid, "error", "" + err);
-            } else {
-                rec.proxy.run((err) => {
-                    if (err) {
-                        self.removeTopology(uuid);
-                        self.coordinator.reportTopology(uuid, "error", "" + err);
-                    } else {
-                        self.coordinator.reportTopology(uuid, "running", "");
-                    }
-                });
-            }
-        });
+        self.createProxy(rec);
     }
 
     /** Remove specified topology from internal list */

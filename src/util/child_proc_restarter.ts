@@ -16,13 +16,15 @@ export class ChildProcRestarter {
 
     private cmd_line: string;
     private cmd_line_args: string[];
+    private cwd: string
     private proc: cp.ChildProcess;
     private paused: boolean;
 
     /** Simple constructor */
-    constructor(cmd: string, args: string[]) {
+    constructor(cmd: string, args: string[], cwd?: string) {
         this.cmd_line = cmd;
         this.cmd_line_args = args;
+        this.cwd = cwd;
         this.paused = true;
     }
 
@@ -35,7 +37,11 @@ export class ChildProcRestarter {
         if (this.paused) {
             return;
         }
-        this.proc = cp.spawn(this.cmd_line, this.cmd_line_args);
+        let options = {} as cp.SpawnOptions;
+        if (this.cwd) {
+            options.cwd = this.cwd;
+        }
+        this.proc = cp.spawn(this.cmd_line, this.cmd_line_args, options);
         this.proc.stdout.on("data", outputToConsole);
         this.proc.stderr.on("data", outputToConsole);
         this.proc.on("exit", (code) => {
@@ -61,3 +67,4 @@ export class ChildProcRestarter {
         }
     }
 }
+
