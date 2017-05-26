@@ -44,7 +44,7 @@ export class GetSpout implements intf.Spout {
         if (this.next_ts < Date.now()) {
             let self = this;
             let req = self.client.get(self.url, (new_data, response) => {
-                this.next_tuple = { body: new_data };
+                self.next_tuple = { body: new_data.toString() };
                 self.next_ts = Date.now() + self.repeat;
             });
         }

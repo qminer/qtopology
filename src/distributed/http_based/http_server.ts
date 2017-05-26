@@ -9,7 +9,7 @@ export interface RequestWithBody extends http.IncomingMessage {
 interface Handler {
     (req: RequestWithBody, res: http.ServerResponse);
 }
-interface ProcessingHandlerCallback {
+export interface ProcessingHandlerCallback {
     (err: Error, data: any);
 }
 export interface ProcessingHandler {

@@ -2,13 +2,11 @@
 
 const async = require("async");
 const qtopology = require("../../../");
-const tn = qtopology.local;
-const validator = qtopology.util.validation;
 
 // demo configuration
 let config = require("./topology.json");
-validator.validate({ config: config, exitOnError: true });
-let topology = new tn.TopologyLocal();
+qtopology.validate({ config: config, exitOnError: true });
+let topology = new qtopology.TopologyLocal();
 
 async.series(
     [

@@ -14,9 +14,10 @@ function outputToConsole(data) {
  */
 class ChildProcRestarter {
     /** Simple constructor */
-    constructor(cmd, args) {
+    constructor(cmd, args, cwd) {
         this.cmd_line = cmd;
         this.cmd_line_args = args;
+        this.cwd = cwd;
         this.paused = true;
     }
     /** Internal method for starting the child process */
@@ -28,7 +29,11 @@ class ChildProcRestarter {
         if (this.paused) {
             return;
         }
-        this.proc = cp.spawn(this.cmd_line, this.cmd_line_args);
+        let options = {};
+        if (this.cwd) {
+            options.cwd = this.cwd;
+        }
+        this.proc = cp.spawn(this.cmd_line, this.cmd_line_args, options);
         this.proc.stdout.on("data", outputToConsole);
         this.proc.stderr.on("data", outputToConsole);
         this.proc.on("exit", (code) => {
