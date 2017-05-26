@@ -22,9 +22,6 @@ export declare class HttpCoordinationStorage {
     markTopologyAsRunning(uuid: string): void;
     markTopologyAsStopped(uuid: string): void;
     markTopologyAsError(uuid: string, error: string): void;
-    setTopologyPing(uuid: string): {
-        success: boolean;
-    };
     setTopologyStatus(uuid: string, status: string, error: string): void | {
         success: boolean;
         error: string;
