@@ -217,11 +217,11 @@ export class HttpCoordinationStorage {
         topology.error = error;
     }
 
-    setTopologyPing(uuid: string) {
-        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
-        topology.last_ping = Date.now();
-        return { success: true };
-    }
+    // setTopologyPing(uuid: string) {
+    //     let topology = this.topologies.filter(x => x.uuid == uuid)[0];
+    //     topology.last_ping = Date.now();
+    //     return { success: true };
+    // }
 
     setTopologyStatus(uuid: string, status: string, error: string) {
         if (status == "running") return this.markTopologyAsRunning(uuid);
