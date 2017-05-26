@@ -87,7 +87,6 @@ export interface LeadershipResultStatus {
 export interface LeadershipResultWorkerStatus {
     name: string;
     status: string;
-    topology_count: number;
     lstatus: string,
     last_ping_d: number,
     last_ping: Date,
@@ -98,6 +97,8 @@ export interface LeadershipResultTopologyStatus {
     uuid: string;
     status: string;
     worker: string;
+    weight: number;
+    worker_affinity: string[];
 }
 export interface StorageResultMessage {
     cmd: string;

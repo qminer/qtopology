@@ -34,24 +34,14 @@ export class GetBolt implements intf.Bolt {
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
-        if (self.fixed_url) {
-            let req = self.client.get(
-                self.fixed_url,
-                (new_data, response) => {
-                    self.onEmit({ body: new_data }, null, callback);
-                });
-            req.on('error', function (err) {
-                callback(err);
+        let url = self.fixed_url || data.url;
+        let req = self.client.get(
+            url,
+            (new_data, response) => {
+                self.onEmit({ body: new_data.toString() }, null, callback);
             });
-        } else {
-            let req = self.client.get(
-                data.url,
-                (new_data, response) => {
-                    self.onEmit({ body: new_data }, null, callback);
-                });
-            req.on('error', function (err) {
-                callback(err);
-            });
-        }
+        req.on('error', function (err) {
+            callback(err);
+        });
     }
 }

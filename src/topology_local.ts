@@ -232,11 +232,13 @@ export class TopologyLocal {
     private redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let destinations = self.router.getDestinationsForSource(source, stream_id);
+        // each successor should receive a copy of current message
+        // this encapsulates down-stream processing and changes
+        let s = JSON.stringify(data);
         async.each(
             destinations,
             (destination, xcallback) => {
-                let data_clone = {};
-                Object.assign(data_clone, data);
+                let data_clone = JSON.parse(s);
                 let bolt = self.getBolt(destination);
                 bolt.receive(data_clone, stream_id, xcallback);
             },

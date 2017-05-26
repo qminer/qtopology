@@ -132,7 +132,9 @@ class HttpCoordinationStorage {
             return {
                 uuid: x.uuid,
                 status: x.status,
-                worker: x.worker
+                worker: x.worker,
+                weight: 1,
+                worker_affinity: []
             };
         });
     }
@@ -143,7 +145,9 @@ class HttpCoordinationStorage {
             return {
                 uuid: x.uuid,
                 status: x.status,
-                worker: x.worker
+                worker: x.worker,
+                weight: 1,
+                worker_affinity: []
             };
         });
     }
@@ -176,11 +180,11 @@ class HttpCoordinationStorage {
         topology.last_ping = Date.now();
         topology.error = error;
     }
-    setTopologyPing(uuid) {
-        let topology = this.topologies.filter(x => x.uuid == uuid)[0];
-        topology.last_ping = Date.now();
-        return { success: true };
-    }
+    // setTopologyPing(uuid: string) {
+    //     let topology = this.topologies.filter(x => x.uuid == uuid)[0];
+    //     topology.last_ping = Date.now();
+    //     return { success: true };
+    // }
     setTopologyStatus(uuid, status, error) {
         if (status == "running")
             return this.markTopologyAsRunning(uuid);
@@ -212,7 +216,13 @@ class HttpCoordinationStorage {
         this.pingWorker(name);
         let result = this.messages.filter(x => x.worker === name);
         this.messages = this.messages.filter(x => x.worker !== name);
-        return result;
+        return result.map(x => {
+            return {
+                cmd: x.cmd,
+                content: x.content,
+                worker: x.worker
+            };
+        });
     }
     pingWorker(name) {
         for (let worker of this.workers) {
@@ -263,6 +273,7 @@ class HttpCoordinationStorage {
         }
     }
 }
+exports.HttpCoordinationStorage = HttpCoordinationStorage;
 ////////////////////////////////////////////////////////////////////
 // Initialize storage
 let storage = new HttpCoordinationStorage();
