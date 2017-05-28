@@ -119,8 +119,9 @@ export class TopologyLeader {
                     }
                     self.storage.getTopologyStatus((err, topologies) => {
                         if (err) return xcallback(err);
-                        // each topology: name, status, worker, weight, affinity
+                        // each topology: name, status, worker, weight, affinity, enabled
                         // possible statuses: unassigned, waiting, running, error, stopped
+                        topologies.filter(x => x.enabled);
                         topologies.forEach(x => {
                             x.weight = x.weight || 1;
                             x.worker_affinity = x.worker_affinity || [];

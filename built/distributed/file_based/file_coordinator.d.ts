@@ -16,5 +16,9 @@ export declare class FileCoordinator implements intf.CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
+    registerTopology(uuid: string, config: any, overwrite: boolean, callback: intf.SimpleCallback): void;
+    disableTopology(uuid: string, callback: intf.SimpleCallback): void;
+    enableTopology(uuid: string, callback: intf.SimpleCallback): void;
+    deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
     private createRegexpForPattern(str);
 }

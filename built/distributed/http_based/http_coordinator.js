@@ -43,6 +43,18 @@ class HttpCoordinator {
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
+    registerTopology(uuid, config, overwrite, callback) {
+        callback(new Error("Operation not supported by this storage: registerTopology"));
+    }
+    disableTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: disableTopology"));
+    }
+    enableTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: enableTopology"));
+    }
+    deleteTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: deleteTopology"));
+    }
     call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };

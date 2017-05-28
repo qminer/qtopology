@@ -134,7 +134,8 @@ class HttpCoordinationStorage {
                 status: x.status,
                 worker: x.worker,
                 weight: 1,
-                worker_affinity: []
+                worker_affinity: [],
+                enabled: true
             };
         });
     }
@@ -147,7 +148,8 @@ class HttpCoordinationStorage {
                 status: x.status,
                 worker: x.worker,
                 weight: 1,
-                worker_affinity: []
+                worker_affinity: [],
+                enabled: true
             };
         });
     }
