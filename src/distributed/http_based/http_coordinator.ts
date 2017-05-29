@@ -54,6 +54,19 @@ export class HttpCoordinator implements intf.CoordinationStorage {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
 
+    registerTopology(config: any, overwrite: boolean, callback: intf.SimpleCallback) {
+        this.call("register-topology", { config: config, overwrite: overwrite }, callback);
+    }
+    disableTopology(uuid: string, callback: intf.SimpleCallback) {
+        this.call("disable-topology", { uuid: uuid }, callback);
+    }
+    enableTopology(uuid: string, callback: intf.SimpleCallback) {
+        this.call("enable-topology", { uuid: uuid }, callback);
+    }
+    deleteTopology(uuid: string, callback: intf.SimpleCallback) {
+        this.call("delete-topology", { uuid: uuid }, callback);
+    }
+
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
