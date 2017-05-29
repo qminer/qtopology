@@ -98,12 +98,14 @@ export interface LeadershipResultTopologyStatus {
     status: string;
     worker: string;
     weight: number;
+    enabled: boolean;
     worker_affinity: string[];
 }
 export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
+
 export interface CoordinationStorage {
     getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
     getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>);
@@ -117,4 +119,9 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+
+    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback);
+    disableTopology(uuid: string, callback: SimpleCallback);
+    enableTopology(uuid: string, callback: SimpleCallback);
+    deleteTopology(uuid: string, callback: SimpleCallback);
 }
