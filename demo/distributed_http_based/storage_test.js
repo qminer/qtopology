@@ -1,7 +1,7 @@
 "use strict";
 
 const qtopology = require("../../");
-		
+
 //////////////////////////////////////////////////
 
 let cmdln = new qtopology.CmdLineParser();
