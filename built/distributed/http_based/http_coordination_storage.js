@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const http_server = require("./http_server");
+const hs = require("./http_server");
 class RecWorker {
 }
 class RecTopology {
@@ -31,8 +31,22 @@ class HttpCoordinationStorage {
             status: "unassigned",
             worker: null,
             last_ping: Date.now(),
-            error: null
+            error: null,
+            enabled: true
         });
+    }
+    removeTopology(uuid) {
+        this.topologies = this.topologies.filter(x => x.uuid != uuid);
+    }
+    enableTopology(uuid) {
+        this.topologies
+            .filter(x => x.uuid == uuid)
+            .forEach(x => { x.enabled = true; });
+    }
+    disableTopology(uuid) {
+        this.topologies
+            .filter(x => x.uuid == uuid)
+            .forEach(x => { x.enabled = false; });
     }
     /** Performs upsert of worker record. It's initial status is alive */
     registerWorker(name) {
@@ -134,7 +148,8 @@ class HttpCoordinationStorage {
                 status: x.status,
                 worker: x.worker,
                 weight: 1,
-                worker_affinity: []
+                worker_affinity: [],
+                enabled: x.enabled
             };
         });
     }
@@ -147,7 +162,8 @@ class HttpCoordinationStorage {
                 status: x.status,
                 worker: x.worker,
                 weight: 1,
-                worker_affinity: []
+                worker_affinity: [],
+                enabled: x.enabled
             };
         });
     }
@@ -180,11 +196,6 @@ class HttpCoordinationStorage {
         topology.last_ping = Date.now();
         topology.error = error;
     }
-    // setTopologyPing(uuid: string) {
-    //     let topology = this.topologies.filter(x => x.uuid == uuid)[0];
-    //     topology.last_ping = Date.now();
-    //     return { success: true };
-    // }
     setTopologyStatus(uuid, status, error) {
         if (status == "running")
             return this.markTopologyAsRunning(uuid);
@@ -273,73 +284,89 @@ class HttpCoordinationStorage {
         }
     }
 }
-exports.HttpCoordinationStorage = HttpCoordinationStorage;
-////////////////////////////////////////////////////////////////////
-// Initialize storage
-let storage = new HttpCoordinationStorage();
 ////////////////////////////////////////////////////////////////////
 // Initialize simple REST server
-http_server.addHandler('/worker-statuses', (data, callback) => {
-    let result = storage.getWorkerStatuses();
-    callback(null, result);
-});
-http_server.addHandler('/topology-statuses', (data, callback) => {
-    let result = storage.getTopologyStatuses();
-    callback(null, result);
-});
-http_server.addHandler('/leadership-status', (data, callback) => {
-    let result = storage.getLeadershipStatus();
-    callback(null, result);
-});
-http_server.addHandler('/worker-topologies', (data, callback) => {
-    let worker = data.worker;
-    let result = storage.getTopologiesForWorker(worker);
-    callback(null, result);
-});
-http_server.addHandler('/get-messages', (data, callback) => {
-    let worker = data.worker;
-    let result = storage.getMessagesForWorker(worker);
-    callback(null, result);
-});
-http_server.addHandler('/assign-topology', (data, callback) => {
-    let worker = data.worker;
-    let uuid = data.uuid;
-    let result = storage.assignTopology(uuid, worker);
-    callback(null, result);
-});
-http_server.addHandler('/check-leader-candidacy', (data, callback) => {
-    let worker = data.worker;
-    let result = storage.checkLeaderCandidacy(worker);
-    callback(null, result);
-});
-http_server.addHandler('/announce-leader-candidacy', (data, callback) => {
-    let worker = data.worker;
-    let result = storage.announceLeaderCandidacy(worker);
-    callback(null, result);
-});
-http_server.addHandler('/register-worker', (data, callback) => {
-    let worker = data.worker;
-    let result = storage.registerWorker(worker);
-    callback(null, result);
-});
-http_server.addHandler('/set-topology-status', (data, callback) => {
-    let uuid = data.uuid;
-    let status = data.status;
-    let error = data.error;
-    let result = storage.setTopologyStatus(uuid, status, error);
-    callback(null, result);
-});
-http_server.addHandler('/set-worker-status', (data, callback) => {
-    let name = data.name;
-    let status = data.status;
-    let result = storage.setWorkerStatus(name, status);
-    callback(null, result);
-});
+function initHttpServer(storage) {
+    let http_server = new hs.MinimalHttpServer();
+    http_server.addHandler('/worker-statuses', (data, callback) => {
+        let result = storage.getWorkerStatuses();
+        callback(null, result);
+    });
+    http_server.addHandler('/topology-statuses', (data, callback) => {
+        let result = storage.getTopologyStatuses();
+        callback(null, result);
+    });
+    http_server.addHandler('/leadership-status', (data, callback) => {
+        let result = storage.getLeadershipStatus();
+        callback(null, result);
+    });
+    http_server.addHandler('/worker-topologies', (data, callback) => {
+        let worker = data.worker;
+        let result = storage.getTopologiesForWorker(worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/get-messages', (data, callback) => {
+        let worker = data.worker;
+        let result = storage.getMessagesForWorker(worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/assign-topology', (data, callback) => {
+        let worker = data.worker;
+        let uuid = data.uuid;
+        let result = storage.assignTopology(uuid, worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/check-leader-candidacy', (data, callback) => {
+        let worker = data.worker;
+        let result = storage.checkLeaderCandidacy(worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/announce-leader-candidacy', (data, callback) => {
+        let worker = data.worker;
+        let result = storage.announceLeaderCandidacy(worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/register-worker', (data, callback) => {
+        let worker = data.worker;
+        let result = storage.registerWorker(worker);
+        callback(null, result);
+    });
+    http_server.addHandler('/set-topology-status', (data, callback) => {
+        let uuid = data.uuid;
+        let status = data.status;
+        let error = data.error;
+        let result = storage.setTopologyStatus(uuid, status, error);
+        callback(null, result);
+    });
+    http_server.addHandler('/set-worker-status', (data, callback) => {
+        let name = data.name;
+        let status = data.status;
+        let result = storage.setWorkerStatus(name, status);
+        callback(null, result);
+    });
+    http_server.addHandler('/register-topology', (data, callback) => {
+        let result = storage.addTopology(data.config);
+        callback(null, result);
+    });
+    http_server.addHandler('/disable-topology', (data, callback) => {
+        let result = storage.disableTopology(data.config);
+        callback(null, result);
+    });
+    http_server.addHandler('/enable-topology', (data, callback) => {
+        let result = storage.enableTopology(data.config);
+        callback(null, result);
+    });
+    http_server.addHandler('/delete-topology', (data, callback) => {
+        let result = storage.removeTopology(data.config);
+        callback(null, result);
+    });
+    return http_server;
+}
 /////////////////////////////////////////////////////////////////////////////
-exports.addTopology = function (config) {
-    storage.addTopology(config);
-};
-exports.run = function (options) {
+function runHttpServer(options) {
+    let storage = new HttpCoordinationStorage();
+    let http_server = initHttpServer(storage);
     http_server.run(options);
-};
+}
+exports.runHttpServer = runHttpServer;
 //# sourceMappingURL=http_coordination_storage.js.map

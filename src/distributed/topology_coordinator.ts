@@ -20,7 +20,7 @@ export class TopologyCoordinator extends EventEmitter {
         super();
         this.storage = storage;
         this.name = name;
-        this.leadership = new leader.TopologyLeader(this.name, this.storage);
+        this.leadership = new leader.TopologyLeader(this.name, this.storage, null);
         this.isRunning = false;
         this.shutdownCallback = null;
         this.loopTimeout = 2 * 1000; // 2 seconds for refresh

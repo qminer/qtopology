@@ -43,6 +43,18 @@ class HttpCoordinator {
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
+    registerTopology(config, overwrite, callback) {
+        this.call("register-topology", { config: config, overwrite: overwrite }, callback);
+    }
+    disableTopology(uuid, callback) {
+        this.call("disable-topology", { uuid: uuid }, callback);
+    }
+    enableTopology(uuid, callback) {
+        this.call("enable-topology", { uuid: uuid }, callback);
+    }
+    deleteTopology(uuid, callback) {
+        this.call("delete-topology", { uuid: uuid }, callback);
+    }
     call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };

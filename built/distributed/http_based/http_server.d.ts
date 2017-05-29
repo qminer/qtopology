@@ -8,7 +8,14 @@ export interface ProcessingHandlerCallback {
 export interface ProcessingHandler {
     (data: any, callback: ProcessingHandlerCallback): any;
 }
-/** For registering simple handlers */
-export declare function addHandler(addr: string, callback: ProcessingHandler): void;
-/** For running the server */
-export declare function run(port: number): void;
+export declare class MinimalHttpServer {
+    private handlers;
+    constructor();
+    private withBody(handler);
+    private handleResponse(result, response);
+    private handleError(error, response);
+    /** For registering simple handlers */
+    addHandler(addr: string, callback: ProcessingHandler): void;
+    /** For running the server */
+    run(port: number): void;
+}

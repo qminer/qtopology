@@ -73,6 +73,18 @@ class FileCoordinator {
         log.logger().log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
+    registerTopology(config, overwrite, callback) {
+        callback(new Error("Operation not supported by this storage: registerTopology"));
+    }
+    disableTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: disableTopology"));
+    }
+    enableTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: enableTopology"));
+    }
+    deleteTopology(uuid, callback) {
+        callback(new Error("Operation not supported by this storage: deleteTopology"));
+    }
     createRegexpForPattern(str) {
         if (!str)
             return /.*/g;
