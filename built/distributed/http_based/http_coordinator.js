@@ -43,17 +43,17 @@ class HttpCoordinator {
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
-    registerTopology(uuid, config, overwrite, callback) {
-        callback(new Error("Operation not supported by this storage: registerTopology"));
+    registerTopology(config, overwrite, callback) {
+        this.call("register-topology", { config: config, overwrite: overwrite }, callback);
     }
     disableTopology(uuid, callback) {
-        callback(new Error("Operation not supported by this storage: disableTopology"));
+        this.call("disable-topology", { uuid: uuid }, callback);
     }
     enableTopology(uuid, callback) {
-        callback(new Error("Operation not supported by this storage: enableTopology"));
+        this.call("enable-topology", { uuid: uuid }, callback);
     }
     deleteTopology(uuid, callback) {
-        callback(new Error("Operation not supported by this storage: deleteTopology"));
+        this.call("delete-topology", { uuid: uuid }, callback);
     }
     call(addr, req_data, callback) {
         let self = this;

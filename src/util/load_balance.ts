@@ -63,7 +63,6 @@ export class LoadBalancerEx {
 
     /** Returns next worker to receive new load */
     next(affinity: string[], new_load?: number): string {
-
         affinity = affinity || [];
         new_load = new_load || 1;
 

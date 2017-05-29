@@ -73,7 +73,7 @@ class FileCoordinator {
         log.logger().log(`[FileCoordinator] Setting worker status: name=${worker} status=${status}`);
         callback(null);
     }
-    registerTopology(uuid, config, overwrite, callback) {
+    registerTopology(config, overwrite, callback) {
         callback(new Error("Operation not supported by this storage: registerTopology"));
     }
     disableTopology(uuid, callback) {

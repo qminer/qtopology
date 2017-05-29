@@ -17,13 +17,13 @@ export class TopologyLeader {
     private loopTimeout: number;
 
     /** Simple constructor */
-    constructor(name: string, storage: intf.CoordinationStorage) {
+    constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number) {
         this.storage = storage;
         this.name = name;
         this.isRunning = false;
         this.shutdownCallback = null;
         this.isLeader = false;
-        this.loopTimeout = 3 * 1000; // 3 seconds for refresh
+        this.loopTimeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
     }
 
     /** Runs main loop that handles leadership detection */
@@ -74,8 +74,10 @@ export class TopologyLeader {
                     self.isLeader = is_leader;
                     if (self.isLeader) {
                         log.logger().important("[Leader] This worker became a leader...");
+                        self.performLeaderLoop(callback);
+                    } else {
+                        callback();
                     }
-                    callback();
                 });
             });
         });
@@ -94,7 +96,7 @@ export class TopologyLeader {
                 (xcallback) => {
                     self.storage.getWorkerStatus((err, workers) => {
                         if (err) return xcallback(err);
-                        // each worker: name, status, topology_count
+                        // each worker: name, status
                         // possible statuses: alive, dead, unloaded
                         let dead_workers = workers
                             .filter(x => x.status === "dead")
@@ -121,13 +123,14 @@ export class TopologyLeader {
                         if (err) return xcallback(err);
                         // each topology: name, status, worker, weight, affinity, enabled
                         // possible statuses: unassigned, waiting, running, error, stopped
-                        topologies.filter(x => x.enabled);
+                        topologies = topologies.filter(x => x.enabled);
                         topologies.forEach(x => {
                             x.weight = x.weight || 1;
                             x.worker_affinity = x.worker_affinity || [];
                             if (x.status == "") {
                                 for (let worker of alive_workers) {
-                                    if (worker.name == x.worker) {
+                                    let name = worker.name;
+                                    if (name == x.worker) {
                                         let old_weight = 0;
                                         if (worker_weights.has(name)) {
                                             old_weight = worker_weights.get(name);
@@ -141,21 +144,22 @@ export class TopologyLeader {
                         let unassigned_topologies = topologies
                             .filter(x => x.status === "unassigned" || x.status === "stopped");
                         if (unassigned_topologies.length > 0) {
-                            log.logger().log("[Leader] Found unassigned topologies: " + unassigned_topologies)
+                            log.logger().log("[Leader] Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                         }
                         let load_balancer = new lb.LoadBalancerEx(
                             alive_workers.map(x => {
-                                return { name: x.name, weight: worker_weights.get(x.name) };
+                                return { name: x.name, weight: worker_weights.get(x.name) || 0 };
                             }),
-                            5 // affinity means 5x stronger gravitational pull to that worker
+                            5 // affinity means 5x stronger gravitational pull towards that worker
                         );
                         async.each(
                             unassigned_topologies,
                             (unassigned_topology, xxcallback) => {
+                                console.log(unassigned_topology)
                                 let ut = unassigned_topology as intf.LeadershipResultTopologyStatus;
                                 let target = load_balancer.next(ut.worker_affinity, ut.weight);
                                 log.logger().log(`[Leader] Assigning topology ${unassigned_topology} to worker ${target}`);
-                                self.storage.assignTopology(unassigned_topology, target, xxcallback);
+                                self.storage.assignTopology(ut.uuid, target, xxcallback);
                             },
                             xcallback
                         );
