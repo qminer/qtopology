@@ -1,0 +1,96 @@
+{
+    "general": {
+        "name": "Demo of std nodes with disabling",
+        "heartbeat": 1000,
+        "initialization": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            },{
+                "working_dir": ".",
+                "cmd": "init_and_shutdown2.js",
+                "disabled": true
+            }
+        ],
+        "shutdown": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            },
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js",
+                "disabled": true
+            }
+        ]
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "This data is OK to pass"
+                }
+            }
+        },
+        {
+            "name": "pump2",
+            "type": "sys",
+            "working_dir": "",
+            "disabled": true,
+            "cmd": "timer",
+            "init": {
+                "extra_fields": {
+                    "field1": "This data should not be passed anywhere"
+                }
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1"
+                },
+                {
+                    "source": "pump2"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "disabled": true,
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "bolt1"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt3",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "bolt1",
+                    "disabled": true
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
