@@ -92,6 +92,7 @@ export class TopologyLocal {
             let tasks = [];
             self.config.bolts.forEach((bolt_config) => {
                 if (bolt_config.disabled) {
+                    log.logger().debug(`Skipping disabled bolt - ${bolt_config.name}`);
                     return;
                 }
                 bolt_config.onEmit = (data, stream_id, callback) => {
@@ -102,11 +103,17 @@ export class TopologyLocal {
                 self.bolts.push(bolt);
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
+                    if (input.disabled) {
+                        log.logger().debug(`Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                        continue;
+                    }
+                    log.logger().debug(`Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
                     self.router.register(input.source, bolt_config.name, input.stream_id);
                 }
             });
             self.config.spouts.forEach((spout_config) => {
                 if (spout_config.disabled) {
+                    log.logger().debug(`Skipping disabled spout - ${spout_config.name}`);
                     return;
                 }
                 spout_config.onEmit = (data, stream_id, callback) => {
@@ -178,6 +185,7 @@ export class TopologyLocal {
                     };
                 };
                 for (let shutdown_conf of self.config.general.shutdown) {
+                    if (shutdown_conf.disabled) continue; // skip if disabled
                     let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, shutdown_conf.cmd);
                     tasks.push(factory(module_path));
@@ -268,6 +276,7 @@ export class TopologyLocal {
             async.eachSeries(
                 self.config.general.initialization,
                 (init_conf, xcallback) => {
+                    if (init_conf.disabled) return xcallback(); // skip if disabled
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
                     init_conf.init = init_conf.init || {};
