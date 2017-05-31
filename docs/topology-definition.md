@@ -10,24 +10,29 @@ Topology is defined via `JSON`. It follows this structure:
             - `working_dir`: working directory where initialization file is located.
             - `cmd`: name of the file where initialization code resides.
             - `init`: initialization object that is sent to initialization code in `init()` method
+            - `disabled`: optional flag that this step is disabled. This means that it wont be run.
     - `shutdown`: Optional. List of shutdown scripts:
         - Single shutdown script
             - `working_dir`: working directory where initialization file is located.
             - `cmd`: name of the file where initialization code resides.
+            - `disabled`: optional flag that this step is disabled. This means that it wont be run.
 - `spouts`: array of spout definitions
     - `name`: spout name
     - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
+    - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`.
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
     - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
+    - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
     - `inputs`: array of input nodes (spouts and bolts) for this bolt
         - `name`: logical namo of input node
         - `stream_id`: (optional) id of stream that this bolt will read. Empty means default stream.
+        - `disabled`: optional flag that this input is disabled. This means that no data will flow here.
     - `init`: initialization object that is sent to bolt in `init()` method
 - `variables`: map of variables that can be reused when defining spout and bolt paths. Similar to environment variables in Unix.
 
