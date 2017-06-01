@@ -79,10 +79,16 @@ export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
-export interface CoordinationStorage {
-    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
+export interface CoordinationStorageBrowser {
     getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>): any;
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
+    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
+    disableTopology(uuid: string, callback: SimpleCallback): any;
+    enableTopology(uuid: string, callback: SimpleCallback): any;
+    deleteTopology(uuid: string, callback: SimpleCallback): any;
+}
+export interface CoordinationStorage extends CoordinationStorageBrowser {
+    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
@@ -91,8 +97,4 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
-    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
-    disableTopology(uuid: string, callback: SimpleCallback): any;
-    enableTopology(uuid: string, callback: SimpleCallback): any;
-    deleteTopology(uuid: string, callback: SimpleCallback): any;
 }
