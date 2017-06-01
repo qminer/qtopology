@@ -22,7 +22,7 @@ export class GuiBrowserHandler implements intf.CoordinationStorageBrowser {
         if (self.client_side_code) {
             callback(null, self.client_side_code);
         } else {
-            let fname = path.join(__dirname, "client_side_code.js");
+            let fname = path.join(__dirname, "client_side_code.xjs");
             fs.readFile(fname, "utf8", (err, content) => {
                 if (err) return callback(err);
                 self.client_side_code = content;
