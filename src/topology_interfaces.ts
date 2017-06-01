@@ -106,18 +106,10 @@ export interface StorageResultMessage {
     content: any;
 }
 
-export interface CoordinationStorageBrowser {
+export interface CoordinationStorage {
+    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
     getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>);
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
-    
-    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback);
-    disableTopology(uuid: string, callback: SimpleCallback);
-    enableTopology(uuid: string, callback: SimpleCallback);
-    deleteTopology(uuid: string, callback: SimpleCallback);
-}
-
-export interface CoordinationStorage extends CoordinationStorageBrowser {
-    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
 
@@ -127,4 +119,24 @@ export interface CoordinationStorage extends CoordinationStorageBrowser {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+
+    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback);
+    disableTopology(uuid: string, callback: SimpleCallback);
+    enableTopology(uuid: string, callback: SimpleCallback);
+    deleteTopology(uuid: string, callback: SimpleCallback);
+}
+
+export interface CoordinationStorageBrowser {
+
+    init(storage: CoordinationStorage, callback: SimpleCallback);
+
+    getJsFile(callback: SimpleResultCallback<string>);
+
+    getWorkerStatus(callback: SimpleResultCallback<string>);
+    getTopologyStatus(callback: SimpleResultCallback<string>);
+
+    postRegisterTopology(config: any, overwrite: boolean, callback: SimpleCallback);
+    postDisableTopology(uuid: string, callback: SimpleCallback);
+    postEnableTopology(uuid: string, callback: SimpleCallback);
+    postDeleteTopology(uuid: string, callback: SimpleCallback);
 }

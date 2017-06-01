@@ -79,16 +79,10 @@ export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
-export interface CoordinationStorageBrowser {
+export interface CoordinationStorage {
+    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
     getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>): any;
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
-    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
-    disableTopology(uuid: string, callback: SimpleCallback): any;
-    enableTopology(uuid: string, callback: SimpleCallback): any;
-    deleteTopology(uuid: string, callback: SimpleCallback): any;
-}
-export interface CoordinationStorage extends CoordinationStorageBrowser {
-    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
@@ -97,4 +91,18 @@ export interface CoordinationStorage extends CoordinationStorageBrowser {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
+    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
+    disableTopology(uuid: string, callback: SimpleCallback): any;
+    enableTopology(uuid: string, callback: SimpleCallback): any;
+    deleteTopology(uuid: string, callback: SimpleCallback): any;
+}
+export interface CoordinationStorageBrowser {
+    init(storage: CoordinationStorage, callback: SimpleCallback): any;
+    getJsFile(callback: SimpleResultCallback<string>): any;
+    getWorkerStatus(callback: SimpleResultCallback<string>): any;
+    getTopologyStatus(callback: SimpleResultCallback<string>): any;
+    postRegisterTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
+    postDisableTopology(uuid: string, callback: SimpleCallback): any;
+    postEnableTopology(uuid: string, callback: SimpleCallback): any;
+    postDeleteTopology(uuid: string, callback: SimpleCallback): any;
 }

@@ -11,6 +11,7 @@ __export(require("./distributed/topology_worker"));
 __export(require("./distributed/file_based/file_coordinator"));
 __export(require("./distributed/http_based/http_coordination_storage"));
 __export(require("./distributed/http_based/http_coordinator"));
+__export(require("./distributed/gui/gui_browser"));
 __export(require("./util/logger"));
 __export(require("./util/cmdline"));
 __export(require("./util/pattern_matcher"));
