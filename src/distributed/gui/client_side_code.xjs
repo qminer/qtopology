@@ -1,0 +1,7 @@
+function QTopologyBrowserWidget(){
+
+}
+
+QTopologyBrowserWidget.prototype.init(divIdTarget) {
+
+}

@@ -24,9 +24,9 @@ class HttpCoordinationStorage {
         this.topologies = [];
         this.messages = [];
     }
-    addTopology(config) {
+    addTopology(uuid, config) {
         this.topologies.push({
-            uuid: config.general.name,
+            uuid: uuid,
             config: config,
             status: "unassigned",
             worker: null,
@@ -345,7 +345,7 @@ function initHttpServer(storage) {
         callback(null, result);
     });
     http_server.addHandler('/register-topology', (data, callback) => {
-        let result = storage.addTopology(data.config);
+        let result = storage.addTopology(data.uuid, data.config);
         callback(null, result);
     });
     http_server.addHandler('/disable-topology', (data, callback) => {

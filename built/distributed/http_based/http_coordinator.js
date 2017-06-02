@@ -43,8 +43,8 @@ class HttpCoordinator {
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
-    registerTopology(config, overwrite, callback) {
-        this.call("register-topology", { config: config, overwrite: overwrite }, callback);
+    registerTopology(uuid, config, callback) {
+        this.call("register-topology", { uuid: uuid, config: config }, callback);
     }
     disableTopology(uuid, callback) {
         this.call("disable-topology", { uuid: uuid }, callback);
