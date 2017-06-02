@@ -1,5 +1,10 @@
 import * as cp from "child_process";
 
+/** Simple interface that defined standard callback */
+export interface SimpleCallbackChildProcRestarter {
+    (error?: Error): void;
+}
+
 /** This utility method outputs data to console, clipping training new-line if present. */
 function outputToConsole(data) {
     let s = data.toString() as string;
@@ -19,6 +24,7 @@ export class ChildProcRestarter {
     private cwd: string
     private proc: cp.ChildProcess;
     private paused: boolean;
+    private pending_exit_cb: SimpleCallbackChildProcRestarter;
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
@@ -47,9 +53,13 @@ export class ChildProcRestarter {
         this.proc.on("exit", (code) => {
             delete this.proc;
             self.proc = null;
-            setTimeout(() => {
-                self._start();
-            }, 1000);
+            if (self.pending_exit_cb) {
+                self.pending_exit_cb();
+            } else {
+                setTimeout(() => {
+                    self._start();
+                }, 1000);
+            }
         });
     }
 
@@ -60,8 +70,9 @@ export class ChildProcRestarter {
     }
 
     /** Stops child process and doesn't restart it. */
-    stop() {
+    stop(cb: SimpleCallbackChildProcRestarter) {
         this.paused = true;
+        this.pending_exit_cb = cb || (() => { });
         if (this.proc) {
             this.proc.kill("SIGINT");
         }
