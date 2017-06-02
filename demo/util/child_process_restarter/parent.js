@@ -12,7 +12,9 @@ setTimeout(() => {
         obj.start();
         setTimeout(() => {
             console.log("Parent will stop the child - 2");
-            obj.stop();
+            obj.stop(() => {
+                console.log("Parent stopped the child - 3");
+            });
         }, 300);
     }, 5000);
 }, 17000);
