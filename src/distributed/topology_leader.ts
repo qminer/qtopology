@@ -37,7 +37,7 @@ export class TopologyLeader {
                     if (self.isLeader) {
                         self.performLeaderLoop(xcallback);
                     } else {
-                        self.checkIfLeader(xcallback);
+                        self.checkIfLeaderDetermined(xcallback);
                     }
                 }, self.loopTimeout);
             },
@@ -60,27 +60,59 @@ export class TopologyLeader {
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
-    private checkIfLeader(callback: intf.SimpleCallback) {
+    private checkIfLeaderDetermined(callback: intf.SimpleCallback) {
         let self = this;
-        self.storage.getLeadershipStatus((err, res) => {
-            if (err) return callback(err);
-            if (res.leadership == "ok") return callback();
-            if (res.leadership == "pending") return callback();
-            // status is vacant
-            self.storage.announceLeaderCandidacy(self.name, (err) => {
-                if (err) return callback(err);
-                self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
-                    if (err) return callback(err);
-                    self.isLeader = is_leader;
-                    if (self.isLeader) {
-                        log.logger().important("[Leader] This worker became a leader...");
-                        self.performLeaderLoop(callback);
-                    } else {
-                        callback();
-                    }
-                });
-            });
-        });
+        let should_announce = true;
+        async.series(
+            [
+                (xcallback) => {
+                    self.storage.getLeadershipStatus((err, res) => {
+                        if (err) return callback(err);
+                        if (res.leadership == "ok" || res.leadership == "pending") {
+                            should_announce = false;
+                        }
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    if (!should_announce) return xcallback();
+                    self.storage.announceLeaderCandidacy(self.name, xcallback);
+                },
+                (xcallback) => {
+                    if (!should_announce) return xcallback();
+                    self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
+                        if (err) return xcallback(err);
+                        self.isLeader = is_leader;
+                        if (self.isLeader) {
+                            log.logger().important("[Leader] This worker became a leader...");
+                            self.performLeaderLoop(xcallback);
+                        } else {
+                            xcallback();
+                        }
+                    });
+                }
+            ],
+            callback()
+        );
+        // self.storage.getLeadershipStatus((err, res) => {
+        //     if (err) return callback(err);
+        //     if (res.leadership == "ok") return callback();
+        //     if (res.leadership == "pending") return callback();
+        //     // status is vacant
+        //     self.storage.announceLeaderCandidacy(self.name, (err) => {
+        //         if (err) return callback(err);
+        //         self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
+        //             if (err) return callback(err);
+        //             self.isLeader = is_leader;
+        //             if (self.isLeader) {
+        //                 log.logger().important("[Leader] This worker became a leader...");
+        //                 self.performLeaderLoop(callback);
+        //             } else {
+        //                 callback();
+        //             }
+        //         });
+        //     });
+        // });
     }
 
     /** Single step in performing leadership role.
@@ -89,6 +121,7 @@ export class TopologyLeader {
      */
     private performLeaderLoop(callback: intf.SimpleCallback) {
         let self = this;
+        let perform_loop = true;
         let alive_workers: intf.LeadershipResultWorkerStatus[] = null;
         let worker_weights: Map<string, number> = new Map<string, number>();
         async.series(
@@ -96,8 +129,14 @@ export class TopologyLeader {
                 (xcallback) => {
                     self.storage.getWorkerStatus((err, workers) => {
                         if (err) return xcallback(err);
-                        // each worker: name, status
                         // possible statuses: alive, dead, unloaded
+                        let this_worker_lstatus = workers
+                            .filter(x => x.name === self.name)
+                            .map(x => x.lstatus)[0];
+                        if (this_worker_lstatus != "leader") {
+                            perform_loop = false;
+                            return xcallback();
+                        }
                         let dead_workers = workers
                             .filter(x => x.status === "dead")
                             .map(x => x.name);
@@ -116,7 +155,7 @@ export class TopologyLeader {
                     });
                 },
                 (xcallback) => {
-                    if (alive_workers.length == 0) {
+                    if (!perform_loop || alive_workers.length == 0) {
                         return xcallback();
                     }
                     self.storage.getTopologyStatus((err, topologies) => {
