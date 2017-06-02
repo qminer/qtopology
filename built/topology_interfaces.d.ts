@@ -91,8 +91,18 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
-    registerTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
+    registerTopology(uuid: string, config: any, callback: SimpleCallback): any;
     disableTopology(uuid: string, callback: SimpleCallback): any;
     enableTopology(uuid: string, callback: SimpleCallback): any;
     deleteTopology(uuid: string, callback: SimpleCallback): any;
+}
+export interface CoordinationStorageBrowser {
+    init(storage: CoordinationStorage, callback: SimpleCallback): any;
+    getJsFile(callback: SimpleResultCallback<string>): any;
+    getWorkerStatus(callback: SimpleResultCallback<string>): any;
+    getTopologyStatus(callback: SimpleResultCallback<string>): any;
+    postRegisterTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;
+    postDisableTopology(uuid: string, callback: SimpleCallback): any;
+    postEnableTopology(uuid: string, callback: SimpleCallback): any;
+    postDeleteTopology(uuid: string, callback: SimpleCallback): any;
 }
