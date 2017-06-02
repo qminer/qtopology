@@ -39,9 +39,14 @@ class ChildProcRestarter {
         this.proc.on("exit", (code) => {
             delete this.proc;
             self.proc = null;
-            setTimeout(() => {
-                self._start();
-            }, 1000);
+            if (self.pending_exit_cb) {
+                self.pending_exit_cb();
+            }
+            else {
+                setTimeout(() => {
+                    self._start();
+                }, 1000);
+            }
         });
     }
     /** Starts child process */
@@ -50,8 +55,9 @@ class ChildProcRestarter {
         this._start();
     }
     /** Stops child process and doesn't restart it. */
-    stop() {
+    stop(cb) {
         this.paused = true;
+        this.pending_exit_cb = cb || (() => { });
         if (this.proc) {
             this.proc.kill("SIGINT");
         }
