@@ -8,6 +8,7 @@ export * from "./distributed/file_based/file_coordinator";
 export * from "./distributed/http_based/http_coordination_storage";
 export * from "./distributed/http_based/http_coordinator";
 export * from "./distributed/gui/gui_browser";
+export * from "./distributed/cli/command_line";
 
 export * from "./util/logger";
 export * from "./util/cmdline";
