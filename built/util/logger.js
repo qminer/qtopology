@@ -35,6 +35,9 @@ class ConsoleLogger {
         if (level == "debug") {
             return DEBUG;
         }
+        else if (level == "log") {
+            return INFO;
+        }
         else if (level == "info") {
             return INFO;
         }

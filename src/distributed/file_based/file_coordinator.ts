@@ -84,7 +84,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
         callback(null);
     }
 
-    registerTopology(config: any, overwrite: boolean, callback: intf.SimpleCallback) {
+    registerTopology(uuid: string, config: any, callback: intf.SimpleCallback) {
         callback(new Error("Operation not supported by this storage: registerTopology"));
     }
     disableTopology(uuid: string, callback: intf.SimpleCallback) {
