@@ -6,6 +6,7 @@ export declare class TopologyLeader {
     private storage;
     private name;
     private isRunning;
+    private isShutDown;
     private isLeader;
     private shutdownCallback;
     private loopTimeout;

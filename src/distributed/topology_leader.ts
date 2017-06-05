@@ -12,6 +12,7 @@ export class TopologyLeader {
     private storage: intf.CoordinationStorage;
     private name: string;
     private isRunning: boolean;
+    private isShutDown: boolean;
     private isLeader: boolean;
     private shutdownCallback: intf.SimpleCallback;
     private loopTimeout: number;
@@ -23,12 +24,14 @@ export class TopologyLeader {
         this.isRunning = false;
         this.shutdownCallback = null;
         this.isLeader = false;
+        this.isShutDown = false;
         this.loopTimeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
     }
 
     /** Runs main loop that handles leadership detection */
     run() {
         let self = this;
+        self.isShutDown = false;
         self.isRunning = true;
         async.whilst(
             () => { return self.isRunning; },
@@ -46,6 +49,8 @@ export class TopologyLeader {
                 if (self.shutdownCallback) {
                     self.shutdownCallback(err);
                 }
+                self.isShutDown = true;
+                self.isRunning = false;
             }
         );
     }
@@ -53,8 +58,12 @@ export class TopologyLeader {
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
-        self.shutdownCallback = callback;
-        self.isRunning = false;
+        if (self.isShutDown) {
+            callback();
+        } else {
+            self.shutdownCallback = callback;
+            self.isRunning = false;
+        }
     }
 
     /** Single step in checking if current node should be
@@ -94,25 +103,6 @@ export class TopologyLeader {
             ],
             callback()
         );
-        // self.storage.getLeadershipStatus((err, res) => {
-        //     if (err) return callback(err);
-        //     if (res.leadership == "ok") return callback();
-        //     if (res.leadership == "pending") return callback();
-        //     // status is vacant
-        //     self.storage.announceLeaderCandidacy(self.name, (err) => {
-        //         if (err) return callback(err);
-        //         self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
-        //             if (err) return callback(err);
-        //             self.isLeader = is_leader;
-        //             if (self.isLeader) {
-        //                 log.logger().important("[Leader] This worker became a leader...");
-        //                 self.performLeaderLoop(callback);
-        //             } else {
-        //                 callback();
-        //             }
-        //         });
-        //     });
-        // });
     }
 
     /** Single step in performing leadership role.
