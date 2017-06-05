@@ -144,7 +144,7 @@ describe('TopologyLeader', function () {
     });
     it('run - no leader, 1 worker, 1 enabled topology', function (done) {
         let target_name = "name1";
-        let worker_name = "wrkr1";
+        let worker_name = target_name; //"wrkr1";
         let getLeadershipStatus_called = 0;
         let announceLeaderCandidacy_name = null;
         let topology_record = {
@@ -164,7 +164,7 @@ describe('TopologyLeader', function () {
                 cb(null, { isLeader: true });
             },
             getWorkerStatus: (cb) => {
-                cb(null, [{ name: worker_name, status: "alive" }]);
+                cb(null, [{ name: worker_name, status: "alive", lstatus: "leader" }]);
             },
             getTopologyStatus: (cb) => {
                 cb(null, [topology_record]);
