@@ -6,6 +6,7 @@ export declare class TopologyLeader {
     private storage;
     private name;
     private isRunning;
+    private isShutDown;
     private isLeader;
     private shutdownCallback;
     private loopTimeout;
@@ -18,7 +19,7 @@ export declare class TopologyLeader {
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
-    private checkIfLeader(callback);
+    private checkIfLeaderDetermined(callback);
     /** Single step in performing leadership role.
      * Checks work statuses and redistributes topologies for dead
      * to alive workers.
