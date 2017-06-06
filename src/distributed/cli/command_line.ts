@@ -45,7 +45,7 @@ export class CommandLineHandler {
                 } catch (e) {
                     return handleError(e, callback);
                 }
-                this.storage.registerTopology(params[1],config, (err) => {
+                this.storage.registerTopology(params[1], config, (err) => {
                     handleError(err, callback);
                 });
             });

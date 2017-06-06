@@ -15,7 +15,7 @@ w.run();
 // after 5sec register new topology
 setTimeout(() => {
     let topo1 = require("./topology.json");
-    storage.registerTopology(topo1, true, (err) => {
+    storage.registerTopology("topology.1", topo1, (err) => {
         if (err) {
             console.log("Topology was not registered:", err);
         } else {

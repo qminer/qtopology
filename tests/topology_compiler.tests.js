@@ -10,7 +10,7 @@ describe('TopologyCompiler', function () {
     describe('Ok configs', function () {
         it('empty arrays', function () {
             let config = {
-                general: { name: "a", heartbeat: 1000 },
+                general: { heartbeat: 1000 },
                 spouts: [],
                 bolts: [],
                 variables: {}
@@ -20,7 +20,7 @@ describe('TopologyCompiler', function () {
         });
         it('1 spout, 1 bolt', function () {
             let config = {
-                general: { name: "a", heartbeat: 1000 },
+                general: { heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",
@@ -45,7 +45,7 @@ describe('TopologyCompiler', function () {
             let tcc = new tc.TopologyCompiler(config);
             tcc.compile();
             assert.deepEqual(tcc.getWholeConfig(), {
-                general: { name: "a", heartbeat: 1000 },
+                general: { heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",
@@ -71,7 +71,6 @@ describe('TopologyCompiler', function () {
         it('1 spout, 1 bolt + variables', function () {
             let config = {
                 general: {
-                    name: "a",
                     heartbeat: 1000,
                     initialization: [
                         {
@@ -130,7 +129,6 @@ describe('TopologyCompiler', function () {
             });
             assert.deepEqual(tcc.getWholeConfig(), {
                 general: {
-                    name: "a",
                     heartbeat: 1000,
                     initialization: [
                         {
@@ -188,7 +186,7 @@ describe('TopologyCompiler', function () {
 
         let create = function () {
             return {
-                general: { name: "a", heartbeat: 1000 },
+                general: { heartbeat: 1000 },
                 spouts: [
                     {
                         name: "spout1",

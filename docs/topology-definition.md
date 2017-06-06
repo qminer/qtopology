@@ -3,7 +3,6 @@
 Topology is defined via `JSON`. It follows this structure:
 
 - `general`: general information about the topology
-    - `name`: name of the topology
     - `heartbeat`: Defines heartbeat frequency in msec
     - `pass_binary_messages`: Optional. If true, the messages are passed in binary form from one node to the other. Otherwise they are serialized into JSON and deserialized in each subsequent node. Default is false. **See notes at the bottom.**
     - `initialization`: Optional. List of initialization scripts:
@@ -42,7 +41,6 @@ An example:
 ```````````json
 {
     "general": {
-        "name": "Topology name",
         "heartbeat": 3200,
         "initialization": [
             { "working_dir": ".", "cmd": "init.js" }

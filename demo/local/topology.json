@@ -1,6 +1,5 @@
 {
     "general": {
-        "name": "Topology name",
         "heartbeat": 4000,
         "pass_binary_messages": true,
         "initialization": [

@@ -30,7 +30,7 @@ class FileCoordinator {
             this.msgs.push({
                 cmd: "start",
                 content: {
-                    uuid: config.general.name,
+                    uuid: item,
                     config: config
                 }
             });
