@@ -2,6 +2,7 @@
     "general": {
         "name": "demo.topology.2",
         "heartbeat": 1000,
+        "pass_binary_messages": true,
         "initialization": [
             {
                 "working_dir": ".",

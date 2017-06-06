@@ -5,6 +5,7 @@ Topology is defined via `JSON`. It follows this structure:
 - `general`: general information about the topology
     - `name`: name of the topology
     - `heartbeat`: Defines heartbeat frequency in msec
+    - `pass_binary_messages`: Optional. If true, the messages are passed in binary form from one node to the other. Otherwise they are serialized into JSON and deserialized in each subsequent node. Default is false. **See notes at the bottom.**
     - `initialization`: Optional. List of initialization scripts:
         - Single initialization script
             - `working_dir`: working directory where initialization file is located.
@@ -114,3 +115,18 @@ let config = {....};
 const validator = require("qtopology").validation;
 validator.validate({ config: config, exitOnError: true });
 ``````````
+
+## Notes
+
+### Passing binary messages or not?
+
+Use this option at your own risk. You have to explicitely enable it.
+
+If messages are passed in binary form, there is a chance that one of the subsequent nodes changes the messages and this change will be visible to all other nodes. There is no isolation between the siblings. Also, there is no guarantied order of execution between siblings and their children.
+
+So, when should we use it? When the following assumptions are true:
+
+- You want performance / you want to pass fields that are binary classes (e.g. `Date` type).
+- Data fields of the message never changes. Only new fields are added.
+- There is no expectation of the order of execution between peer nodes and their children. Any dependency is purely upstream.
+
