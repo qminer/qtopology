@@ -10,7 +10,7 @@ import * as log from "../util/logger";
  */
 class TopologyLocalWrapper {
 
-    private name: string;
+    private uuid: string;
     private topology_local: tl.TopologyLocal;
 
     /** Constructor that sets up call routing */
@@ -43,12 +43,13 @@ class TopologyLocalWrapper {
     private handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.name);
-            self.name = msg.data.general.name;
+            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.uuid);
+            self.uuid = msg.data.general.uuid;
+            delete msg.data.general.uuid;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
-            self.topology_local.init(topology, (err) => {
+            self.topology_local.init(self.uuid, topology, (err) => {
                 self.topology_local.run();
                 self.send(intf.ChildMsgCode.response_init, { err: err });
             });
@@ -63,7 +64,7 @@ class TopologyLocalWrapper {
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-            log.logger().important("[Local wrapper] Shutting down topology " + self.name);
+            log.logger().important("[Local wrapper] Shutting down topology " + self.uuid);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
                 // we have the original error from the data field of the message

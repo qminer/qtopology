@@ -54,7 +54,7 @@ export class TopologyLocal {
     private spouts: top_inproc.TopologySpoutInproc[];
     private bolts: top_inproc.TopologyBoltInproc[];
     private config: any;
-    private name: string;
+    private uuid: string;
     private pass_binary_messages: boolean;
     private heartbeatTimeout: number;
     private router: OutputRouter;
@@ -69,7 +69,7 @@ export class TopologyLocal {
         this.spouts = [];
         this.bolts = [];
         this.config = null;
-        this.name = null;
+        this.uuid = null;
         this.pass_binary_messages = false;
         this.heartbeatTimeout = 10000;
         this.router = new OutputRouter();
@@ -84,10 +84,10 @@ export class TopologyLocal {
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    init(config: any, callback: intf.SimpleCallback) {
+    init(uuid: string, config: any, callback: intf.SimpleCallback) {
         let self = this;
         self.config = config;
-        self.name = config.general.name;
+        self.uuid = uuid;
         self.heartbeatTimeout = config.general.heartbeat;
         self.pass_binary_messages = config.general.pass_binary_messages || false;
         self.isInitialized = true;
@@ -95,7 +95,7 @@ export class TopologyLocal {
             let tasks = [];
             self.config.bolts.forEach((bolt_config) => {
                 if (bolt_config.disabled) {
-                    log.logger().debug(`Skipping disabled bolt - ${bolt_config.name}`);
+                    log.logger().debug(`[TopologyLocal] Skipping disabled bolt - ${bolt_config.name}`);
                     return;
                 }
                 bolt_config.onEmit = (data, stream_id, callback) => {
@@ -107,16 +107,16 @@ export class TopologyLocal {
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
                     if (input.disabled) {
-                        log.logger().debug(`Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                        log.logger().debug(`[TopologyLocal] Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
                         continue;
                     }
-                    log.logger().debug(`Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                    log.logger().debug(`[TopologyLocal] Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
                     self.router.register(input.source, bolt_config.name, input.stream_id);
                 }
             });
             self.config.spouts.forEach((spout_config) => {
                 if (spout_config.disabled) {
-                    log.logger().debug(`Skipping disabled spout - ${spout_config.name}`);
+                    log.logger().debug(`[TopologyLocal] Skipping disabled spout - ${spout_config.name}`);
                     return;
                 }
                 spout_config.onEmit = (data, stream_id, callback) => {
@@ -136,9 +136,9 @@ export class TopologyLocal {
     /** Sends run signal to all spouts */
     run() {
         if (!this.isInitialized) {
-            throw new Error("Topology not initialized and cannot run.");
+            throw new Error("[TopologyLocal] Topology not initialized and cannot run.");
         }
-        log.logger().log("Local topology started");
+        log.logger().log("[TopologyLocal] Local topology started");
         for (let spout of this.spouts) {
             spout.run();
         }
@@ -148,7 +148,7 @@ export class TopologyLocal {
     /** Sends pause signal to all spouts */
     pause(callback: intf.SimpleCallback) {
         if (!this.isInitialized) {
-            throw new Error("Topology not initialized and cannot be paused.");
+            throw new Error("[TopologyLocal] Topology not initialized and cannot be paused.");
         }
         for (let spout of this.spouts) {
             spout.pause();
@@ -287,7 +287,7 @@ export class TopologyLocal {
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
                     init_conf.init = init_conf.init || {};
-                    init_conf.init.$name = self.name;
+                    init_conf.init.$name = self.uuid;
                     require(module_path).init(init_conf.init, common_context, xcallback);
                 },
                 (err) => {

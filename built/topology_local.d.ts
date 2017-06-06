@@ -21,7 +21,7 @@ export declare class TopologyLocal {
     private spouts;
     private bolts;
     private config;
-    private name;
+    private uuid;
     private pass_binary_messages;
     private heartbeatTimeout;
     private router;
@@ -35,7 +35,7 @@ export declare class TopologyLocal {
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    init(config: any, callback: intf.SimpleCallback): void;
+    init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to all spouts */
     run(): void;
     /** Sends pause signal to all spouts */

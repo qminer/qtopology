@@ -1,6 +1,5 @@
 {
     "general": {
-        "name": "Demo of POST and REST nodes",
         "heartbeat": 1000
     },
     "spouts": [

@@ -16,7 +16,6 @@ Save this topology into file `topology.json`
 `````````````````````````json
 {
     "general": {
-        "name": "Topology name",
         "heartbeat": 1000
     },
     "spouts": [
@@ -163,7 +162,7 @@ config = compiler.getWholeConfig();
 
 // ok, create topology
 let topology = new qtopology.TopologyLocal();
-topology.init(config, (err) => {
+topology.init("uuid.1", config, (err) => {
     if (err) { console.log(err); return; }
 
     // let topology run for 20 seconds

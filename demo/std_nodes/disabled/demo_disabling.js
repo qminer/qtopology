@@ -10,7 +10,7 @@ let topology = new qtopology.TopologyLocal();
 async.series(
     [
         (xcallback) => {
-            topology.init(config, xcallback);
+            topology.init("topology.1", config, xcallback);
         },
         (xcallback) => {
             console.log("Init done");

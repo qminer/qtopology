@@ -13,7 +13,7 @@ async.series(
     [
         (xcallback) => {
             console.log("Starting init");
-            topology.init(config, xcallback);
+            topology.init("topology.1", config, xcallback);
         },
         (xcallback) => {
             console.log("Init done");

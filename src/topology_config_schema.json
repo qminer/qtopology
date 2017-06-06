@@ -6,9 +6,6 @@
         "general": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string"
-                },
                 "heartbeat": {
                     "type": "integer"
                 },
@@ -78,7 +75,6 @@
                 }
             },
             "required": [
-                "name",
                 "heartbeat"
             ],
             "additionalProperties": false

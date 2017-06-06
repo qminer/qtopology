@@ -20,7 +20,7 @@ class TopologyWorker {
         this.topologies = [];
         let self = this;
         self.coordinator.on("start", (msg) => {
-            log.logger().important("[Worker] Received start instruction from coordinator");
+            log.logger().important("[Worker] Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
         self.coordinator.on("shutdown", (msg) => {
@@ -76,7 +76,7 @@ class TopologyWorker {
                 }
             }
         });
-        rec.proxy.init(rec.config, (err) => {
+        rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 self.removeTopology(rec.uuid);
                 self.coordinator.reportTopology(rec.uuid, "error", "" + err);
