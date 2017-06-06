@@ -55,6 +55,7 @@ export class TopologyLocal {
     private bolts: top_inproc.TopologyBoltInproc[];
     private config: any;
     private name: string;
+    private pass_binary_messages: boolean;
     private heartbeatTimeout: number;
     private router: OutputRouter;
     private isInitialized: boolean;
@@ -69,6 +70,7 @@ export class TopologyLocal {
         this.bolts = [];
         this.config = null;
         this.name = null;
+        this.pass_binary_messages = false;
         this.heartbeatTimeout = 10000;
         this.router = new OutputRouter();
 
@@ -87,6 +89,7 @@ export class TopologyLocal {
         self.config = config;
         self.name = config.general.name;
         self.heartbeatTimeout = config.general.heartbeat;
+        self.pass_binary_messages = config.general.pass_binary_messages || false;
         self.isInitialized = true;
         self.initContext((err, context) => {
             let tasks = [];
@@ -240,13 +243,17 @@ export class TopologyLocal {
     private redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
         let self = this;
         let destinations = self.router.getDestinationsForSource(source, stream_id);
-        // each successor should receive a copy of current message
-        // this encapsulates down-stream processing and changes
+        // by default, each successor should receive a copy of current message
+        // this encapsulates down-stream processing and changes.
+        // This behavoir is opt-out, using let data_clone = JSON.parse(s);.
         let s = JSON.stringify(data);
         async.each(
             destinations,
             (destination, xcallback) => {
-                let data_clone = JSON.parse(s);
+                let data_clone = data;
+                if (!self.pass_binary_messages) {
+                    let data_clone = JSON.parse(s);
+                }
                 let bolt = self.getBolt(destination);
                 bolt.receive(data_clone, stream_id, xcallback);
             },

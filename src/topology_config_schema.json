@@ -21,6 +21,9 @@
                         "type": "string"
                     }
                 },
+                "pass_binary_messages": {
+                    "type": "boolean"
+                },
                 "initialization": {
                     "type": "array",
                     "items": {

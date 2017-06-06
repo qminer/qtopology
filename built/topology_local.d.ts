@@ -22,6 +22,7 @@ export declare class TopologyLocal {
     private bolts;
     private config;
     private name;
+    private pass_binary_messages;
     private heartbeatTimeout;
     private router;
     private isInitialized;
