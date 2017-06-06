@@ -1,6 +1,5 @@
 {
     "general": {
-        "name": "Demo of dir watcher spout",
         "heartbeat": 500
     },
     "spouts": [

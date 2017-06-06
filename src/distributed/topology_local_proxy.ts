@@ -111,11 +111,12 @@ export class TopologyLocalProxy {
     }
 
     /** Sends initialization signal to underlaying process */
-    init(config: any, callback: intf.SimpleCallback) {
+    init(uuid: string, config: any, callback: intf.SimpleCallback) {
         if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
         this.init_cb = callback;
+        config.general.uuid = uuid;
         this.send(intf.ParentMsgCode.init, config);
     }
 

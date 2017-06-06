@@ -133,7 +133,7 @@ class TopologyLeader {
                 self.storage.getTopologyStatus((err, topologies) => {
                     if (err)
                         return xcallback(err);
-                    // each topology: name, status, worker, weight, affinity, enabled
+                    // each topology: uuid, status, worker, weight, affinity, enabled
                     // possible statuses: unassigned, waiting, running, error, stopped
                     topologies = topologies.filter(x => x.enabled);
                     topologies.forEach(x => {
@@ -163,10 +163,9 @@ class TopologyLeader {
                     }), 5 // affinity means 5x stronger gravitational pull towards that worker
                     );
                     async.each(unassigned_topologies, (unassigned_topology, xxcallback) => {
-                        console.log(unassigned_topology);
                         let ut = unassigned_topology;
                         let target = load_balancer.next(ut.worker_affinity, ut.weight);
-                        log.logger().log(`[Leader] Assigning topology ${unassigned_topology} to worker ${target}`);
+                        log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
                         self.storage.assignTopology(ut.uuid, target, xxcallback);
                     }, xcallback);
                 });

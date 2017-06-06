@@ -31,7 +31,7 @@ export class TopologyWorker {
 
         let self = this;
         self.coordinator.on("start", (msg) => {
-            log.logger().important("[Worker] Received start instruction from coordinator");
+            log.logger().important("[Worker] Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
         self.coordinator.on("shutdown", (msg) => {
@@ -87,7 +87,7 @@ export class TopologyWorker {
                 }
             }
         });
-        rec.proxy.init(rec.config, (err) => {
+        rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 self.removeTopology(rec.uuid);
                 self.coordinator.reportTopology(rec.uuid, "error", "" + err);
@@ -105,7 +105,7 @@ export class TopologyWorker {
     }
 
     /** Starts single topology */
-    private start(uuid, config) {
+    private start(uuid: string, config: any) {
         let compiler = new comp.TopologyCompiler(config);
         compiler.compile();
         config = compiler.getWholeConfig();

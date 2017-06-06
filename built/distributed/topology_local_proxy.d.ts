@@ -19,7 +19,7 @@ export declare class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     private callPendingCallbacks2(e);
     /** Sends initialization signal to underlaying process */
-    init(config: any, callback: intf.SimpleCallback): void;
+    init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to underlaying process */
     run(callback: intf.SimpleCallback): void;
     /** Sends pause signal to underlaying process */
