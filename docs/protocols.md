@@ -6,7 +6,7 @@ The following components comprise the distributed setting for `qtopology`:
 
 ### Worker
 
-Ideally, runs as single instance on single server (but there is no):
+Ideally, runs as single instance on single server (but there is no obstacle to having several workers on single machine):
 
 - logical name
 - method of coordination
@@ -51,8 +51,8 @@ The worker first performs the initialization sequence and the runs two sequences
 
 | Coordination storage | Worker |
 |-------------|--------|
-|  | Register worker | 
-| Puts worker in worker list  |  | 
+|  | Register worker |
+| Puts worker in worker list  |  |
 
 ![Topology statuses](imgs/sequence_register.svg)
 

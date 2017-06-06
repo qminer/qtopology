@@ -1,6 +1,5 @@
 {
     "general": {
-        "name": "Demo of std nodes with disabling",
         "heartbeat": 1000,
         "initialization": [
             {

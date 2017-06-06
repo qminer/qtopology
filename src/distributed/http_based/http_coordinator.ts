@@ -55,7 +55,7 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     }
 
     registerTopology(uuid: string, config: any, callback: intf.SimpleCallback) {
-        this.call("register-topology", { uuid:uuid, config: config }, callback);
+        this.call("register-topology", { uuid: uuid, config: config }, callback);
     }
     disableTopology(uuid: string, callback: intf.SimpleCallback) {
         this.call("disable-topology", { uuid: uuid }, callback);

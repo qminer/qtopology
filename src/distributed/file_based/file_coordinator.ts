@@ -39,7 +39,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
             this.msgs.push({
                 cmd: "start",
                 content: {
-                    uuid: config.general.name,
+                    uuid: item,
                     config: config
                 }
             });
