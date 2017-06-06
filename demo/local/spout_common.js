@@ -70,6 +70,9 @@ class MySpout {
             return callback(null, null, null); // no data
         }
         let data = this._generator.next();
+        if (data) {
+            data.ts_tag = new Date();
+        }
         this._waiting_for_ack = (data !== null);
         callback(null, data, null, (err, xcallback) => {
             this._waiting_for_ack = false;
