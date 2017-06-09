@@ -22,6 +22,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `working_dir`: working directory where main file is located
     - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`.
+    - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple spouts inside single source file.
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
@@ -29,6 +30,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `working_dir`: working directory where main file is located
     - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
+    - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple bolts inside single source file.
     - `inputs`: array of input nodes (spouts and bolts) for this bolt
         - `name`: logical namo of input node
         - `stream_id`: (optional) id of stream that this bolt will read. Empty means default stream.
@@ -71,6 +73,7 @@ An example:
             "working_dir": ".",
             "type": "inproc",
             "cmd": "bolt_inproc.js",
+            "subtype": "subtype1",
             "inputs": [{ "source": "pump1" }],
             "init": {}
         },
