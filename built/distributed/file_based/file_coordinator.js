@@ -25,12 +25,13 @@ class FileCoordinator {
             if (!is_ok) {
                 continue;
             }
+            let topology_uid = item.slice(0, -path.extname(item).length); // file name without extension
             log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
                 content: {
-                    uuid: item,
+                    uuid: topology_uid,
                     config: config
                 }
             });
