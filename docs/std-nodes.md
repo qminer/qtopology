@@ -20,6 +20,7 @@ List of standard bolts:
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [FileAppend bolt](#file-bolt)
+- [Counter bolt](#counter-bolt)
 - [Bomb bolt](#bomb-bolt)
 
 ## Dir spout
@@ -189,6 +190,29 @@ This bolt just logs every incoming message to `stdout` and forwards it on to lis
         { "source": "pump1" }
     ],
     "init": {}
+}
+```````````````````````````````
+
+## Counter bolt
+
+`cmd="counter"`
+
+This bolt counts incoming messages and output single line of code to 
+log in predefined intervals. The line displays the number of 
+received messages since last display.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "counter",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "timeout": 5000
+    }
 }
 ```````````````````````````````
 

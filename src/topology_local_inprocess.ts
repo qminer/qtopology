@@ -13,6 +13,7 @@ import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
 import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
+import * as cntb from "./std_nodes/counter_bolt";
 
 import * as rs from "./std_nodes/rest_spout";
 import * as ts from "./std_nodes/timer_spout";
@@ -359,6 +360,7 @@ export class TopologyBoltInproc {
             case "router": return new rb.RouterBolt();
             case "file": return new fab.FileAppendBolt();
             case "bomb": return new bb.BombBolt();
+            case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }

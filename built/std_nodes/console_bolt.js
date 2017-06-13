@@ -10,7 +10,7 @@ class ConsoleBolt {
     }
     init(name, config, context, callback) {
         this.name = name;
-        this.prefix = `[InprocBolt ${this.name}]`;
+        this.prefix = `[${this.name}]`;
         this.onEmit = config.onEmit;
         callback();
     }
