@@ -92,8 +92,7 @@
                             "subproc",
                             "inproc",
                             "sys"
-                        ],
-                        "default": "subproc"
+                        ]
                     },
                     "disabled": {
                         "type": "boolean"
@@ -102,6 +101,9 @@
                         "type": "string"
                     },
                     "cmd": {
+                        "type": "string"
+                    },
+                    "subtype": {
                         "type": "string"
                     },
                     "init": {

@@ -83,6 +83,15 @@ class MyBolt {
 }
 
 exports.create = function () { return new MyBolt(); };
+/*
+// alternatively, one could have several bolts in single file.
+// in that case, "subtype" attribute of the bolt declaration would be 
+// sent into create method and we could use it to choose appropriate implementation.
+exports.create = function (subtype) {
+    if (subtype == "subtype1") return new MyOtherBolt();
+    return new MyBolt();
+};
+*/
 ```````````````````````
 
 ## Create custom spout
