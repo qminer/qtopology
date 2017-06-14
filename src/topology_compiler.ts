@@ -44,6 +44,7 @@ export class TopologyCompiler {
         });
 
         let vars = this.config.variables || {};
+        this.resolveAllVars(vars);
         if (this.config.general.initialization) {
             for (let init_top of this.config.general.initialization) {
                 init_top.working_dir = injectVars(init_top.working_dir, vars);
@@ -97,5 +98,10 @@ export class TopologyCompiler {
     /** Returns compiled configuration . */
     getWholeConfig(): any {
         return JSON.parse(JSON.stringify(this.config));
+    }
+
+    /** Resolves all references to variables within variables */
+    private resolveAllVars(vars) {
+        injectVars(vars, vars);
     }
 }
