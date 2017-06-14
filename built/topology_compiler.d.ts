@@ -7,4 +7,6 @@ export declare class TopologyCompiler {
     compile(): void;
     /** Returns compiled configuration . */
     getWholeConfig(): any;
+    /** Resolves all references to variables within variables */
+    private resolveAllVars(vars);
 }
