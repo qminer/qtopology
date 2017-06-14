@@ -18,6 +18,26 @@ describe('TopologyCompiler', function () {
             let tcc = new tc.TopologyCompiler(config);
             tcc.compile();
         });
+        it('variable injection', function () {
+            let config = {
+                general: { heartbeat: 1000 },
+                spouts: [],
+                bolts: [],
+                variables: {
+                    "X": "file",
+                    "Y": "dir${X}",
+                    "Z": "dir${Y}",
+                }
+            };
+            let tcc = new tc.TopologyCompiler(config);
+            tcc.compile();
+            let compiled_config = tcc.getWholeConfig();
+            assert.deepEqual(compiled_config.variables, {
+                "X": "file",
+                "Y": "dirfile",
+                "Z": "dirdirfile",
+            });
+        });
         it('1 spout, 1 bolt', function () {
             let config = {
                 general: { heartbeat: 1000 },
