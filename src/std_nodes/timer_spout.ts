@@ -1,4 +1,5 @@
 import * as intf from "../topology_interfaces";
+import * as oo from "../util/object_override";
 
 /** This spout emits single tuple each heartbeat */
 export class TimerSpout implements intf.Spout {
@@ -33,11 +34,7 @@ export class TimerSpout implements intf.Spout {
             title: this.title,
             ts: new Date().toISOString()
         };
-        for (let f in this.extra_fields) {
-            if (this.extra_fields.hasOwnProperty(f)) {
-                this.next_tuple[f] = this.extra_fields[f];
-            }
-        }
+        oo.overrideObject(this.next_tuple, this.extra_fields, false);
     }
 
     shutdown(callback: intf.SimpleCallback) {

@@ -37,7 +37,8 @@
                 { "source": "pump1" }
             ],
             "init": {
-                "timeout": 3500
+                "timeout": 3500,
+                "prefix": "Demo topology"
             }
         }
     ],

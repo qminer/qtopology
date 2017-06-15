@@ -12,6 +12,9 @@ class CounterBolt {
     init(name, config, context, callback) {
         this.name = name;
         this.prefix = `[${this.name}]`;
+        if (config.prefix) {
+            this.prefix += ` ${config.prefix}`;
+        }
         this.timeout = config.timeout;
         callback();
     }
@@ -19,7 +22,7 @@ class CounterBolt {
         let d = Date.now();
         if (d >= this.last_output + this.timeout) {
             let sec = Math.round(d - this.last_output) / 1000;
-            log.logger().log(`${this.prefix} processed=${this.counter} in ${sec} sec`);
+            log.logger().log(`${this.prefix} processed ${this.counter} in ${sec} sec`);
             this.counter = 0;
             this.last_output = d;
         }
