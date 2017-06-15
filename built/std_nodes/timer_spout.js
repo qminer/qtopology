@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const oo = require("../util/object_override");
 /** This spout emits single tuple each heartbeat */
 class TimerSpout {
     constructor() {
@@ -22,11 +23,7 @@ class TimerSpout {
             title: this.title,
             ts: new Date().toISOString()
         };
-        for (let f in this.extra_fields) {
-            if (this.extra_fields.hasOwnProperty(f)) {
-                this.next_tuple[f] = this.extra_fields[f];
-            }
-        }
+        oo.overrideObject(this.next_tuple, this.extra_fields, false);
     }
     shutdown(callback) {
         callback();
