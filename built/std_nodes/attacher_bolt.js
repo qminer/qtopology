@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const oo = require("../util/object_override");
 /** This bolt attaches fixed fields to incoming messages
  * and sends them forward. */
 class AttacherBolt {
@@ -19,11 +20,7 @@ class AttacherBolt {
         callback();
     }
     receive(data, stream_id, callback) {
-        for (let f in this.extra_fields) {
-            if (this.extra_fields.hasOwnProperty(f)) {
-                data[f] = this.extra_fields[f];
-            }
-        }
+        oo.override(data, this.extra_fields, false);
         this.onEmit(data, stream_id, callback);
     }
 }
