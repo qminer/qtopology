@@ -20,12 +20,14 @@ class TopologyItem {
 export class TopologyWorker {
 
     private name: string;
+    private overrides: any;
     private coordinator: coord.TopologyCoordinator;
     private topologies: TopologyItem[];
 
     /** Initializes this object */
-    constructor(name: string, storage: intf.CoordinationStorage) {
+    constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
         this.name = name;
+        this.overrides = overrides || {};
         this.coordinator = new coord.TopologyCoordinator(name, storage);
         this.topologies = [];
 
@@ -106,6 +108,8 @@ export class TopologyWorker {
 
     /** Starts single topology */
     private start(uuid: string, config: any) {
+        this.injectOverrides(config);
+
         let compiler = new comp.TopologyCompiler(config);
         compiler.compile();
         config = compiler.getWholeConfig();
@@ -121,6 +125,16 @@ export class TopologyWorker {
         rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
         self.topologies.push(rec);
         self.createProxy(rec);
+    }
+
+    /** This method injects override values into variables section of the configuration. */
+    private injectOverrides(config: any) {
+        config.variables = config.variables || {};
+        for (let f in this.overrides) {
+            if (this.overrides.hasOwnProperty(f)) {
+                config.variables[f] = this.overrides[f];
+            }
+        }
     }
 
     /** Remove specified topology from internal list */
