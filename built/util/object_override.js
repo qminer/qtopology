@@ -5,7 +5,7 @@
  * base object will be extended.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-function override(baseObject, overrideObject, createNew) {
+function overrideObject(baseObject, overrideObject, createNew) {
     if (!baseObject) {
         baseObject = {};
     }
@@ -14,7 +14,7 @@ function override(baseObject, overrideObject, createNew) {
     }
     Object.keys(overrideObject).forEach(function (key) {
         if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
-            override(baseObject[key], overrideObject[key], false);
+            overrideObject(baseObject[key], overrideObject[key], false);
         }
         else {
             baseObject[key] = overrideObject[key];
@@ -22,7 +22,8 @@ function override(baseObject, overrideObject, createNew) {
     });
     return baseObject;
 }
-exports.override = override;
+exports.overrideObject = overrideObject;
+/** Helper function */
 function isObjectAndNotArray(object) {
     return (typeof object === 'object' && !Array.isArray(object));
 }

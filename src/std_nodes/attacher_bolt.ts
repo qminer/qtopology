@@ -29,7 +29,7 @@ export class AttacherBolt implements intf.Bolt {
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        oo.override(data, this.extra_fields, false);
+        oo.overrideObject(data, this.extra_fields, false);
         this.onEmit(data, stream_id, callback);
     }
 }

@@ -5,7 +5,7 @@
  * base object will be extended.
  */
 
-export function override(baseObject: any, overrideObject: any, createNew?: boolean) {
+export function overrideObject(baseObject: any, overrideObject: any, createNew?: boolean) {
     if (!baseObject) {
         baseObject = {};
     }
@@ -14,7 +14,7 @@ export function override(baseObject: any, overrideObject: any, createNew?: boole
     }
     Object.keys(overrideObject).forEach(function (key) {
         if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
-            override(baseObject[key], overrideObject[key], false);
+            overrideObject(baseObject[key], overrideObject[key], false);
         }
         else {
             baseObject[key] = overrideObject[key];
@@ -23,7 +23,7 @@ export function override(baseObject: any, overrideObject: any, createNew?: boole
     return baseObject;
 }
 
-
+/** Helper function */
 function isObjectAndNotArray(object) {
     return (typeof object === 'object' && !Array.isArray(object));
 }

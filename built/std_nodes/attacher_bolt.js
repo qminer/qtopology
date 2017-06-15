@@ -20,7 +20,7 @@ class AttacherBolt {
         callback();
     }
     receive(data, stream_id, callback) {
-        oo.override(data, this.extra_fields, false);
+        oo.overrideObject(data, this.extra_fields, false);
         this.onEmit(data, stream_id, callback);
     }
 }
