@@ -5,19 +5,19 @@
  * base object will be extended.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-function overrideObject(baseObject, overrideObject, createNew) {
+function overrideObject(baseObject, additional_data, createNew) {
     if (!baseObject) {
         baseObject = {};
     }
     if (createNew) {
         baseObject = JSON.parse(JSON.stringify(baseObject));
     }
-    Object.keys(overrideObject).forEach(function (key) {
-        if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
-            overrideObject(baseObject[key], overrideObject[key], false);
+    Object.keys(additional_data).forEach(function (key) {
+        if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(additional_data[key])) {
+            overrideObject(baseObject[key], additional_data[key], false);
         }
         else {
-            baseObject[key] = overrideObject[key];
+            baseObject[key] = additional_data[key];
         }
     });
     return baseObject;

@@ -5,19 +5,18 @@
  * base object will be extended.
  */
 
-export function overrideObject(baseObject: any, overrideObject: any, createNew?: boolean) {
+export function overrideObject(baseObject: any, additional_data: any, createNew?: boolean) {
     if (!baseObject) {
         baseObject = {};
     }
     if (createNew) {
         baseObject = JSON.parse(JSON.stringify(baseObject));
     }
-    Object.keys(overrideObject).forEach(function (key) {
-        if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
-            overrideObject(baseObject[key], overrideObject[key], false);
-        }
-        else {
-            baseObject[key] = overrideObject[key];
+    Object.keys(additional_data).forEach(function (key) {
+        if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(additional_data[key])) {
+            overrideObject(baseObject[key], additional_data[key], false);
+        } else {
+            baseObject[key] = additional_data[key];
         }
     });
     return baseObject;
