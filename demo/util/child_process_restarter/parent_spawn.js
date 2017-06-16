@@ -1,6 +1,6 @@
-const qtoplogy = require("../../..");
+const qtopology = require("../../..");
 
-let obj = new qtoplogy.ChildProcRestarter("node", ["child.js"]);
+let obj = new qtopology.ChildProcRestarter("node", ["child.js"]);
 obj.start();
 
 

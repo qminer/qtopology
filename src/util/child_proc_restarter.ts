@@ -17,20 +17,22 @@ function outputToConsole(data) {
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits.
  */
-export class ChildProcRestarter {
+export class ChildProcRestarterInner {
 
-    private cmd_line: string;
+    private cmd: string;
     private cmd_line_args: string[];
-    private cwd: string
+    private cwd: string;
+    private use_fork: boolean;
     private proc: cp.ChildProcess;
     private paused: boolean;
     private pending_exit_cb: SimpleCallbackChildProcRestarter;
 
     /** Simple constructor */
-    constructor(cmd: string, args: string[], cwd?: string) {
-        this.cmd_line = cmd;
+    constructor(cmd: string, args: string[], cwd: string, use_fork: boolean) {
+        this.cmd = cmd;
         this.cmd_line_args = args;
         this.cwd = cwd;
+        this.use_fork = use_fork;
         this.paused = true;
     }
 
@@ -43,13 +45,22 @@ export class ChildProcRestarter {
         if (this.paused) {
             return;
         }
-        let options = {} as cp.SpawnOptions;
-        if (this.cwd) {
-            options.cwd = this.cwd;
+        if (this.use_fork) {
+            let options = {} as cp.ForkOptions;
+            options.silent = false;
+            if (this.cwd) {
+                options.cwd = this.cwd;
+            }
+            this.proc = cp.fork(this.cmd, this.cmd_line_args, options);
+        } else {
+            let options = {} as cp.SpawnOptions;
+            if (this.cwd) {
+                options.cwd = this.cwd;
+            }
+            this.proc = cp.spawn(this.cmd, this.cmd_line_args, options);
+            this.proc.stdout.on("data", outputToConsole);
+            this.proc.stderr.on("data", outputToConsole);
         }
-        this.proc = cp.spawn(this.cmd_line, this.cmd_line_args, options);
-        this.proc.stdout.on("data", outputToConsole);
-        this.proc.stderr.on("data", outputToConsole);
         this.proc.on("exit", (code) => {
             delete this.proc;
             self.proc = null;
@@ -79,3 +90,24 @@ export class ChildProcRestarter {
     }
 }
 
+/** Simple class that starts child process, monitors it
+ * and restarts it when it exits.
+ */
+export class ChildProcRestarter extends ChildProcRestarterInner {
+
+    /** Simple constructor */
+    constructor(cmd: string, args: string[], cwd?: string) {
+        super(cmd, args, cwd, false);
+    }
+}
+
+/** Simple class that starts child process WITH FORK, monitors it
+ * and restarts it when it exits.
+ */
+export class ChildProcRestarterFork extends ChildProcRestarterInner {
+
+    /** Simple constructor */
+    constructor(cmd: string, args: string[], cwd?: string) {
+        super(cmd, args, cwd, true);
+    }
+}
