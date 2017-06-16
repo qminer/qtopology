@@ -91,7 +91,7 @@ export class ChildProcRestarterInner {
 }
 
 /** Simple class that starts child process, monitors it
- * and restarts it when it exits.
+ * and restarts it when it exits. The first argument is the executable to run.
  */
 export class ChildProcRestarter extends ChildProcRestarterInner {
 
@@ -102,7 +102,7 @@ export class ChildProcRestarter extends ChildProcRestarterInner {
 }
 
 /** Simple class that starts child process WITH FORK, monitors it
- * and restarts it when it exits.
+ * and restarts it when it exits. The first argument is the javascript file to run.
  */
 export class ChildProcRestarterFork extends ChildProcRestarterInner {
 
