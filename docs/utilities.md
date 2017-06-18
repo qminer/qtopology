@@ -18,11 +18,11 @@ Utility class for parsing command-line parameters.
 ```````````````````javascript
 let qtopology = require("qtopology");
 let cmdl = new qtopology.CmdLineParser();
-cmdl.define("n", "name", "ii", "smthng");
+cmdl.define("n", "name", "default_name", "This parameter sets the name");
 let res = cmdl.process(some_string_arry);
 ```````````````````
 
-This code processes input array of string (most often this would be `argv`) and it would output an object with property `name`.
+This code processes input array of string (most often this would be `process.argv`) and it would output an object with property `name`.
 
 For instance, if command line would be any of the following:
 
