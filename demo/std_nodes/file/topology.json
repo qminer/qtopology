@@ -23,6 +23,17 @@
                 "file_format": "csv",
                 "stream_id": "stream2"
             }
+        },
+        {
+            "name": "pump3",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "file",
+            "init": {
+                "file_name": "data.txt",
+                "file_format": "raw",
+                "stream_id": "stream3"
+            }
         }
     ],
     "bolts": [
@@ -32,8 +43,18 @@
             "type": "sys",
             "cmd": "console",
             "inputs": [
-                { "source": "pump1", "stream_id": "stream1" },
-                { "source": "pump2", "stream_id": "stream2" }
+                {
+                    "source": "pump1",
+                    "stream_id": "stream1"
+                },
+                {
+                    "source": "pump2",
+                    "stream_id": "stream2"
+                },
+                {
+                    "source": "pump3",
+                    "stream_id": "stream3"
+                }
             ],
             "init": {}
         }

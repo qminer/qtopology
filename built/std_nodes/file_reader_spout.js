@@ -28,6 +28,9 @@ class FileReaderSpout {
         else if (this.file_format == "csv") {
             this.readCsvFile(content);
         }
+        else if (this.file_format == "raw") {
+            this.readRawFile(content);
+        }
         else {
             callback(new Error("Unsupported file format: " + this.file_format));
         }
@@ -61,6 +64,15 @@ class FileReaderSpout {
             if (line.length == 0)
                 continue;
             this.tuples.push(JSON.parse(line));
+        }
+    }
+    readRawFile(content) {
+        let lines = content.split("\n");
+        for (let line of lines) {
+            line = line.trim().replace("\r", "");
+            if (line.length == 0)
+                continue;
+            this.tuples.push({ content: line });
         }
     }
     readCsvFile(content) {

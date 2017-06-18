@@ -17,5 +17,6 @@ export declare class FileReaderSpout implements intf.Spout {
     pause(): void;
     next(callback: intf.SpoutNextCallback): void;
     private readJsonFile(content);
+    private readRawFile(content);
     private readCsvFile(content);
 }

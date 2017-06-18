@@ -45,6 +45,7 @@ This spout reads target file and emits messages that are stored inside.
 
 Messages can be stored in several formats:
 
+- `raw` - reads text as lines and emits medssages with songle field `content` that contains raw text line form the file.
 - `json` - each non-empty line of the file contains a JSON serialized object.
 - `csv` - the first line contains a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
     - All fields are emited as strings.
