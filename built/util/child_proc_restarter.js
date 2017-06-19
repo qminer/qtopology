@@ -111,7 +111,7 @@ exports.ChildProcRestarter = ChildProcRestarter;
 class ChildProcRestarterFork extends ChildProcRestarterInner {
     /** Simple constructor */
     constructor(cmd, args, cwd) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
+        super({ cmd: cmd, args: args, cwd: cwd, use_fork: true });
     }
 }
 exports.ChildProcRestarterFork = ChildProcRestarterFork;

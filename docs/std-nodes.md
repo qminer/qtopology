@@ -7,6 +7,7 @@ To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriat
 List of standard spouts:
 
 - [File spout](#file-spout)
+- [Process spout](#process-spout)
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
@@ -53,6 +54,27 @@ Messages can be stored in several formats:
     - We can filter the emited fields inside messages by providing a list of allowed fields as `fields` paarmeter. This will result in messages that have only some of the fields from the CSV file present - this that are in this list. If there is a field in the list but it is not present in the CSV file, it will be ignored.
 
 > At the moment the implementation loads all data into memory first and then emits the messages. This is not suitable for larger files, so use this spout with care.
+
+## Process spout
+
+`cmd="process"`
+
+This spout behaves the `file` spout - the difference is that it executes specified commandline, reads stdout and emits messages. 
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z",
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
 
 ## Dir spout
 

@@ -136,6 +136,6 @@ export class ChildProcRestarterFork extends ChildProcRestarterInner {
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
+        super({ cmd: cmd, args: args, cwd: cwd, use_fork: true });
     }
 }
