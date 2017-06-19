@@ -1,38 +1,46 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
-const cp = require("child_process");
+const rl = require("readline");
+const high_water = 500;
+const low_water = 10;
 /** This spout reads input file in several supported formats and emits tuples. */
-class StringReaderSpout {
+class FileReaderSpout {
     constructor() {
         this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
+        this.file_name = null;
         this.should_run = false;
+        this.line_reader_paused = false;
     }
     init(name, config, context, callback) {
         this.name = name;
         this.stream_id = config.stream_id;
+        this.file_name = config.file_name;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
             this.csv_separator = config.separator || ",";
             this.csv_fields = config.fields;
         }
-        let content = this.getContent();
-        if (this.file_format == "json") {
-            this.readJsonFile(content);
-        }
-        else if (this.file_format == "csv") {
-            this.readCsvFile(content);
-        }
-        else if (this.file_format == "raw") {
-            this.readRawFile(content);
-        }
-        else {
-            callback(new Error("Unsupported file format: " + this.file_format));
-        }
+        this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
+        this.line_reader.on('line', (line) => {
+            if (this.file_format == "json") {
+                this.processLineJson(line);
+            }
+            else if (this.file_format == "csv") {
+                this.processLineCsv(line);
+            }
+            else if (this.file_format == "raw") {
+                this.processLineRaw(line);
+            }
+            if (this.tuples.length > high_water && !this.line_reader_paused) {
+                this.line_reader.pause();
+                this.line_reader_paused = true;
+            }
+        });
         callback();
     }
     heartbeat() { }
@@ -49,6 +57,10 @@ class StringReaderSpout {
         if (!this.should_run) {
             return callback(null, null, null);
         }
+        if (this.tuples.length < low_water && this.line_reader_paused) {
+            this.line_reader.resume();
+            this.line_reader_paused = false;
+        }
         if (this.tuples.length === 0) {
             return callback(null, null, null);
         }
@@ -56,7 +68,7 @@ class StringReaderSpout {
         this.tuples = this.tuples.slice(1);
         callback(null, data, this.stream_id);
     }
-    readJsonFile(content) {
+    processLineJson(content) {
         let lines = content.split("\n");
         for (let line of lines) {
             line = line.trim();
@@ -65,66 +77,35 @@ class StringReaderSpout {
             this.tuples.push(JSON.parse(line));
         }
     }
-    readRawFile(content) {
+    processLineRaw(content) {
         let lines = content.split("\n");
         for (let line of lines) {
             line = line.trim().replace("\r", "");
             if (line.length == 0)
-                continue;
+                return;
             this.tuples.push({ content: line });
         }
     }
-    readCsvFile(content) {
-        let lines = content.split("\n");
-        let header = lines[0].replace("\r", "");
-        let fields = header.split(this.csv_separator);
-        lines = lines.slice(1);
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
+    processLineCsv(line) {
+        if (!this.csv_header) {
+            this.csv_header = line.split(this.csv_separator);
+            return;
+        }
+        else {
+            line = line.trim();
             if (line.length == 0)
-                continue;
+                return;
             let values = line.split(this.csv_separator);
             let result = {};
-            for (let i = 0; i < fields.length; i++) {
-                result[fields[i]] = values[i];
+            for (let i = 0; i < this.csv_header.length; i++) {
+                let name = this.csv_header[i];
+                if (!this.csv_fields || this.csv_fields.indexOf(name) >= 0) {
+                    result[name] = values[i];
+                }
             }
             this.tuples.push(result);
         }
     }
 }
-exports.StringReaderSpout = StringReaderSpout;
-/** This spout reads input file in several supported formats and emits tuples. */
-class FileReaderSpout extends StringReaderSpout {
-    constructor() {
-        super();
-        this.file_name = null;
-    }
-    init(name, config, context, callback) {
-        this.file_name = config.file_name;
-        super.init(name, config, context, callback);
-    }
-    getContent() {
-        return fs.readFileSync(this.file_name, "utf8");
-    }
-}
 exports.FileReaderSpout = FileReaderSpout;
-/** This spout reads input file in several supported formats and emits tuples. */
-class ProcessSpout extends StringReaderSpout {
-    constructor() {
-        super();
-        this.cmd_line = null;
-    }
-    init(name, config, context, callback) {
-        this.cmd_line = config.cmd_line;
-        super.init(name, config, context, callback);
-    }
-    getContent() {
-        let args = this.cmd_line.split(" ");
-        let cmd = args[0];
-        args = args.slice(1);
-        let content2 = cp.spawnSync(cmd, args).output[1];
-        return content2.toString();
-    }
-}
-exports.ProcessSpout = ProcessSpout;
 //# sourceMappingURL=file_reader_spout.js.map
