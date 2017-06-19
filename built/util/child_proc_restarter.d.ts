@@ -13,7 +13,7 @@ export declare class ChildProcRestarterOptions {
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits.
  */
-export declare class ChildProcRestarterInner {
+export declare class ChildProcRestarter {
     private cmd;
     private cmd_line_args;
     private cwd;
@@ -35,14 +35,14 @@ export declare class ChildProcRestarterInner {
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits. The first argument is the executable to run.
  */
-export declare class ChildProcRestarter extends ChildProcRestarterInner {
+export declare class ChildProcRestarterSpawn extends ChildProcRestarter {
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string);
 }
 /** Simple class that starts child process WITH FORK, monitors it
  * and restarts it when it exits. The first argument is the javascript file to run.
  */
-export declare class ChildProcRestarterFork extends ChildProcRestarterInner {
+export declare class ChildProcRestarterFork extends ChildProcRestarter {
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string);
 }

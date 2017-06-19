@@ -18,7 +18,7 @@ exports.ChildProcRestarterOptions = ChildProcRestarterOptions;
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits.
  */
-class ChildProcRestarterInner {
+class ChildProcRestarter {
     /** Simple constructor */
     constructor(options) {
         this.cmd = options.cmd;
@@ -94,21 +94,21 @@ class ChildProcRestarterInner {
         }
     }
 }
-exports.ChildProcRestarterInner = ChildProcRestarterInner;
+exports.ChildProcRestarter = ChildProcRestarter;
 /** Simple class that starts child process, monitors it
  * and restarts it when it exits. The first argument is the executable to run.
  */
-class ChildProcRestarter extends ChildProcRestarterInner {
+class ChildProcRestarterSpawn extends ChildProcRestarter {
     /** Simple constructor */
     constructor(cmd, args, cwd) {
         super({ cmd: cmd, args: args, cwd: cwd, use_fork: false, stop_score: -1 });
     }
 }
-exports.ChildProcRestarter = ChildProcRestarter;
+exports.ChildProcRestarterSpawn = ChildProcRestarterSpawn;
 /** Simple class that starts child process WITH FORK, monitors it
  * and restarts it when it exits. The first argument is the javascript file to run.
  */
-class ChildProcRestarterFork extends ChildProcRestarterInner {
+class ChildProcRestarterFork extends ChildProcRestarter {
     /** Simple constructor */
     constructor(cmd, args, cwd) {
         super({ cmd: cmd, args: args, cwd: cwd, use_fork: true });
