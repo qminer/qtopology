@@ -11,6 +11,8 @@ const rb = require("./std_nodes/router_bolt");
 const bb = require("./std_nodes/bomb_bolt");
 const fab = require("./std_nodes/file_append_bolt");
 const cntb = require("./std_nodes/counter_bolt");
+const frs = require("./std_nodes/file_reader_spout");
+const ps = require("./std_nodes/process_spout");
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
@@ -152,6 +154,8 @@ class TopologySpoutInproc {
             case "get": return new gs.GetSpout();
             case "rest": return new rs.RestSpout();
             case "dir": return new ds.DirWatcherSpout();
+            case "file": return new frs.FileReaderSpout();
+            case "process": return new ps.ProcessSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }

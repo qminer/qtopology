@@ -37,3 +37,4 @@ Read [this quick-start guide](quick_start.md) to quickly create your own topolog
 - [Topology definition](topology-definition.md)
 - [Standard nodes](std-nodes.md)
 - [Internal protocols](protocols.md)
+- [Exposed utilities](utilities.md)
