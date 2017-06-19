@@ -127,7 +127,7 @@
             "name": "bolt_file",
             "working_dir": ".",
             "type": "sys",
-            "cmd": "file",
+            "cmd": "file_append",
             "inputs": [
                 {
                     "source": "pump4"

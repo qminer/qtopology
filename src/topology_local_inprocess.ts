@@ -14,6 +14,7 @@ import * as rb from "./std_nodes/router_bolt";
 import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
 import * as cntb from "./std_nodes/counter_bolt";
+import * as dtb from "./std_nodes/date_transform_bolt";
 
 import * as frs from "./std_nodes/file_reader_spout";
 import * as rs from "./std_nodes/rest_spout";
@@ -191,7 +192,7 @@ export class TopologySpoutInproc {
             case "get": return new gs.GetSpout();
             case "rest": return new rs.RestSpout();
             case "dir": return new ds.DirWatcherSpout();
-            case "file": return new frs.FileReaderSpout();
+            case "file_reader": return new frs.FileReaderSpout();
             case "process": return new frs.ProcessSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
@@ -361,7 +362,8 @@ export class TopologyBoltInproc {
             case "post": return new pb.PostBolt();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
-            case "file": return new fab.FileAppendBolt();
+            case "file_append": return new fab.FileAppendBolt();
+            case "date_transform": return new dtb.DateTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
