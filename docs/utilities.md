@@ -1,6 +1,6 @@
 # Exported utilities
 
-QTopology exports several utiity classes that are used internally, but can be used entirely on their own.
+QTopology exports several utility classes that are used internally, but can be used entirely on their own.
 
 - [logger](#logger)
 - [cmdline](#cmdline)
@@ -9,7 +9,7 @@ QTopology exports several utiity classes that are used internally, but can be us
 
 ## logger
 
-Utility class and interface for logging output of the library
+Utility class and interface for logging output of the library.
 
 ## cmdline
 
@@ -46,6 +46,20 @@ Simple pattern-matching class, used for instance in filtering and routing.
 
 ## child process restarter
 
-This class provides automatic restarting of given child process (similar to `forever` module)
+This class provides automatic restarting of given child process (similar to `forever` module). See demo for an example.
 
+It comes in 2 flavors, one calls `spawn` and the other calls`fork`. The former one can call any executable and the latter one just need path to the javascript file.
 
+````````````````````````````javascript
+const qtopology = require("qtopology");
+let obj = new qtopology.ChildProcRestarterFork("child.js", []);
+obj.start();
+````````````````````````````
+
+or
+
+````````````````````````````javascript
+const qtopology = require("qtopology");
+let obj = new qtopology.ChildProcRestarterSpawn("node", ["child.js"]);
+obj.start();
+````````````````````````````
