@@ -16,7 +16,6 @@ import * as fab from "./std_nodes/file_append_bolt";
 import * as cntb from "./std_nodes/counter_bolt";
 
 import * as frs from "./std_nodes/file_reader_spout";
-import * as ps from "./std_nodes/process_spout";
 import * as rs from "./std_nodes/rest_spout";
 import * as ts from "./std_nodes/timer_spout";
 import * as gs from "./std_nodes/get_spout";
@@ -193,7 +192,7 @@ export class TopologySpoutInproc {
             case "rest": return new rs.RestSpout();
             case "dir": return new ds.DirWatcherSpout();
             case "file": return new frs.FileReaderSpout();
-            case "process": return new ps.ProcessSpout();
+            case "process": return new frs.ProcessSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
