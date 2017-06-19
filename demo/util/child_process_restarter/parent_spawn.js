@@ -1,14 +1,8 @@
 const qtopology = require("../../..");
 
-let options = {
-    cmd : "node",
-    args: ["child.js"],
-    use_fork: false,
-    stop_score: 5
-};
-
-let obj = new qtopology.ChildProcRestarter(options);
+let obj = new qtopology.ChildProcRestarterSpawn("node", ["child.js"]);
 obj.start();
+
 
 setTimeout(() => {
     console.log("Parent will stop the child");

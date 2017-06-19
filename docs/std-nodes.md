@@ -6,6 +6,8 @@ To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriat
 
 List of standard spouts:
 
+- [File spout](#file-spout)
+- [Process spout](#process-spout)
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
@@ -23,11 +25,62 @@ List of standard bolts:
 - [Counter bolt](#counter-bolt)
 - [Bomb bolt](#bomb-bolt)
 
+## File spout
+
+`cmd="file"`
+
+This spout reads target file and emits messages that are stored inside. 
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "file",
+    "init": {
+        "file_name": "/some/file.txt",
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+Messages can be stored in several formats:
+
+- `raw` - reads text as lines and emits medssages with songle field `content` that contains raw text line form the file.
+- `json` - each non-empty line of the file contains a JSON serialized object.
+- `csv` - the first line contains a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
+    - All fields are emited as strings.
+    - Separator character by default is comma (","). This can, however, be changed with additional parameter `separator`.
+    - We can filter the emited fields inside messages by providing a list of allowed fields as `fields` paarmeter. This will result in messages that have only some of the fields from the CSV file present - this that are in this list. If there is a field in the list but it is not present in the CSV file, it will be ignored.
+
+> At the moment the implementation loads all data into memory first and then emits the messages. This is not suitable for larger files, so use this spout with care.
+
+## Process spout
+
+`cmd="process"`
+
+This spout behaves the `file` spout - the difference is that it executes specified commandline, reads stdout and emits messages. 
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z",
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
+
 ## Dir spout
 
 `cmd="dir"`
 
-This spout a message each time a file is created, changed or deleted inside some
+This spout emits a message each time a file is created, changed or deleted inside some
 target directory. 
 
 ```````````````````````````````json
