@@ -1,12 +1,13 @@
 import * as intf from "../topology_interfaces";
 import * as fs from "fs";
+import * as cp from "child_process";
+
 
 /** This spout reads input file in several supported formats and emits tuples. */
-export class FileReaderSpout implements intf.Spout {
+export abstract class StringReaderSpout implements intf.Spout {
 
     private name: string;
     private stream_id: string;
-    private file_name: string;
     private file_format: string;
     private csv_separator: string;
     private csv_fields: string[];
@@ -16,7 +17,6 @@ export class FileReaderSpout implements intf.Spout {
     constructor() {
         this.name = null;
         this.stream_id = null;
-        this.file_name = null;
         this.file_format = null;
         this.tuples = null;
         this.should_run = false;
@@ -25,7 +25,6 @@ export class FileReaderSpout implements intf.Spout {
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.stream_id = config.stream_id;
-        this.file_name = config.file_name;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
@@ -33,7 +32,7 @@ export class FileReaderSpout implements intf.Spout {
             this.csv_fields = config.fields;
         }
 
-        let content = fs.readFileSync(this.file_name, "utf8");
+        let content = this.getContent();
         if (this.file_format == "json") {
             this.readJsonFile(content);
         } else if (this.file_format == "csv") {
@@ -46,6 +45,8 @@ export class FileReaderSpout implements intf.Spout {
 
         callback();
     }
+
+    abstract getContent(): string;
 
     heartbeat() { }
 
@@ -108,5 +109,51 @@ export class FileReaderSpout implements intf.Spout {
             }
             this.tuples.push(result);
         }
+    }
+}
+
+/** This spout reads input file in several supported formats and emits tuples. */
+export class FileReaderSpout extends StringReaderSpout {
+
+    private file_name: string;
+
+    constructor() {
+        super();
+        this.file_name = null;
+    }
+
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+        this.file_name = config.file_name;
+        super.init(name, config, context, callback);
+    }
+
+
+    getContent(): string {
+        return fs.readFileSync(this.file_name, "utf8");
+    }
+}
+
+/** This spout reads input file in several supported formats and emits tuples. */
+export class ProcessSpout extends StringReaderSpout {
+
+    private cmd_line: string;
+
+    constructor() {
+        super();
+        this.cmd_line = null;
+    }
+
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+        this.cmd_line = config.cmd_line;
+        super.init(name, config, context, callback);
+    }
+
+
+    getContent(): string {
+        let args = this.cmd_line.split(" ");
+        let cmd = args[0];
+        args = args.slice(1);
+        let content2 = cp.spawnSync(cmd, args).output[1];
+        return content2.toString();
     }
 }
