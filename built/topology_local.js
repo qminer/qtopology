@@ -55,6 +55,7 @@ class TopologyLocal {
         this.isInitialized = false;
         this.heartbeatTimer = null;
         this.heartbeatCallback = null;
+        this.logging_prefix = null;
     }
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
@@ -63,6 +64,7 @@ class TopologyLocal {
         let self = this;
         self.config = config;
         self.uuid = uuid;
+        self.logging_prefix = `[TopologyLocal ${uuid}] `;
         self.heartbeatTimeout = config.general.heartbeat;
         self.pass_binary_messages = config.general.pass_binary_messages || false;
         self.isInitialized = true;
@@ -70,7 +72,7 @@ class TopologyLocal {
             let tasks = [];
             self.config.bolts.forEach((bolt_config) => {
                 if (bolt_config.disabled) {
-                    log.logger().debug(`[TopologyLocal] Skipping disabled bolt - ${bolt_config.name}`);
+                    log.logger().debug(self.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
                     return;
                 }
                 bolt_config.onEmit = (data, stream_id, callback) => {
@@ -82,16 +84,16 @@ class TopologyLocal {
                 tasks.push((xcallback) => { bolt.init(xcallback); });
                 for (let input of bolt_config.inputs) {
                     if (input.disabled) {
-                        log.logger().debug(`[TopologyLocal] Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                        log.logger().debug(self.logging_prefix + `Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
                         continue;
                     }
-                    log.logger().debug(`[TopologyLocal] Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                    log.logger().debug(self.logging_prefix + `Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
                     self.router.register(input.source, bolt_config.name, input.stream_id);
                 }
             });
             self.config.spouts.forEach((spout_config) => {
                 if (spout_config.disabled) {
-                    log.logger().debug(`[TopologyLocal] Skipping disabled spout - ${spout_config.name}`);
+                    log.logger().debug(self.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
                     return;
                 }
                 spout_config.onEmit = (data, stream_id, callback) => {
@@ -109,9 +111,9 @@ class TopologyLocal {
     /** Sends run signal to all spouts */
     run() {
         if (!this.isInitialized) {
-            throw new Error("[TopologyLocal] Topology not initialized and cannot run.");
+            throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
         }
-        log.logger().log("[TopologyLocal] Local topology started");
+        log.logger().log(this.logging_prefix + "Local topology started");
         for (let spout of this.spouts) {
             spout.run();
         }
@@ -120,7 +122,7 @@ class TopologyLocal {
     /** Sends pause signal to all spouts */
     pause(callback) {
         if (!this.isInitialized) {
-            throw new Error("[TopologyLocal] Topology not initialized and cannot be paused.");
+            throw new Error(this.logging_prefix + "Topology not initialized and cannot be paused.");
         }
         for (let spout of this.spouts) {
             spout.pause();
@@ -246,7 +248,7 @@ class TopologyLocal {
                 init_conf.init.$name = self.uuid;
                 require(module_path).init(init_conf.init, common_context, xcallback);
             }, (err) => {
-                callback(null, common_context);
+                callback(err, common_context);
             });
         }
         else {
