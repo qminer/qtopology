@@ -54,7 +54,6 @@ export class FileReaderSpout implements intf.Spout {
                 this.processLineRaw(line);
             }
             if (this.tuples.length > high_water && !this.line_reader_paused) {
-                console.log("### pausing...");
                 this.line_reader.pause();
                 this.line_reader_paused = true;
             }
@@ -83,7 +82,6 @@ export class FileReaderSpout implements intf.Spout {
         }
         if (this.tuples.length < low_water && this.line_reader_paused) {
             this.line_reader.resume();
-            console.log("### resuming....");
             this.line_reader_paused = false;
         }
 
