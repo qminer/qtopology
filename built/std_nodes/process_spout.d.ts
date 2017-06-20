@@ -1,17 +1,14 @@
 import * as intf from "../topology_interfaces";
-/** This spout reads input file in several supported formats and emits tuples. */
-export declare class FileReaderSpout implements intf.Spout {
+/** This spout executes specified process, collects its stdout, parses it and emits tuples. */
+export declare class ProcessSpout implements intf.Spout {
     private name;
     private stream_id;
+    private cmd_line;
     private file_format;
-    private file_name;
     private csv_separator;
     private csv_fields;
-    private csv_header;
     private tuples;
     private should_run;
-    private line_reader;
-    private line_reader_paused;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
     heartbeat(): void;
@@ -19,7 +16,7 @@ export declare class FileReaderSpout implements intf.Spout {
     run(): void;
     pause(): void;
     next(callback: intf.SpoutNextCallback): void;
-    private processLineJson(content);
-    private processLineRaw(content);
-    private processLineCsv(line);
+    private readJsonFile(content);
+    private readRawFile(content);
+    private readCsvFile(content);
 }
