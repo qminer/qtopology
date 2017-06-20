@@ -44,7 +44,7 @@ class FileAppendBolt {
     }
     writeToFile(callback) {
         if (this.current_data.length == 0)
-            return;
+            return callback();
         let d = Date.now();
         if (this.split_over_time && this.next_split_after < d) {
             this.file_name_current = this.file_name_template.replace(injection_placeholder, this.fileNameTimestampValue());

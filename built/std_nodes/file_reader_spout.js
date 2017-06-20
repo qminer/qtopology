@@ -37,7 +37,6 @@ class FileReaderSpout {
                 this.processLineRaw(line);
             }
             if (this.tuples.length > high_water && !this.line_reader_paused) {
-                console.log("### pausing...");
                 this.line_reader.pause();
                 this.line_reader_paused = true;
             }
@@ -60,7 +59,6 @@ class FileReaderSpout {
         }
         if (this.tuples.length < low_water && this.line_reader_paused) {
             this.line_reader.resume();
-            console.log("### resuming....");
             this.line_reader_paused = false;
         }
         if (this.tuples.length === 0) {
