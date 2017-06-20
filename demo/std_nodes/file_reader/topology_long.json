@@ -1,0 +1,31 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "file_reader",
+            "init": {
+                "file_name": "data.long.txt",
+                "file_format": "json"
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "disabled": false,
+            "inputs": [
+                { "source": "pump" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}
