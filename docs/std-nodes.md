@@ -6,7 +6,7 @@ To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriat
 
 List of standard spouts:
 
-- [File spout](#file-spout)
+- [File spout](#file-reader-spout)
 - [Process spout](#process-spout)
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
@@ -21,13 +21,14 @@ List of standard bolts:
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
-- [FileAppend bolt](#file-bolt)
+- [File-append bolt](#file-append-bolt)
 - [Counter bolt](#counter-bolt)
+- [Date-transform bolt](#date-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
 
-## File spout
+## File-reader spout
 
-`cmd="file"`
+`cmd="file_reader"`
 
 This spout reads target file and emits messages that are stored inside. 
 
@@ -36,7 +37,7 @@ This spout reads target file and emits messages that are stored inside.
     "name": "pump1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "file",
+    "cmd": "file_reader",
     "init": {
         "file_name": "/some/file.txt",
         "file_format": "json"
@@ -75,6 +76,28 @@ This spout behaves the `file` spout - the difference is that it executes specifi
 ```````````````````````````````
 
 For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
+
+## Date-transform bolt
+
+`cmd="date_transform"`
+
+This bolt takes incoming messages and transforms predefined fields into `Date` objects, since 
+this only type is the only one that cannot be properly serialized and deserialized from JSON. 
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "date_transform",
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
+
+> Using this bolt only makes sense when messages are passed in binary form.
 
 ## Dir spout
 
@@ -297,9 +320,9 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 ```````````````````````````````
 
 
-## File bolt
+## File-append bolt
 
-`cmd="file"`
+`cmd="file_append"`
 
 This bolt attaches incoming messages as `JSON` and appends them to output file.
 
@@ -308,7 +331,7 @@ This bolt attaches incoming messages as `JSON` and appends them to output file.
     "name": "bolt1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "file",
+    "cmd": "file_append",
     "inputs": [
         { "source": "pump1" }
     ],
