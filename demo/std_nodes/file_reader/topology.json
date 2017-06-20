@@ -7,7 +7,7 @@
             "name": "pump1",
             "type": "sys",
             "working_dir": "",
-            "cmd": "file",
+            "cmd": "file_reader",
             "init": {
                 "file_name": "data.ldjson",
                 "stream_id": "stream1"
@@ -17,7 +17,7 @@
             "name": "pump2",
             "type": "sys",
             "working_dir": "",
-            "cmd": "file",
+            "cmd": "file_reader",
             "init": {
                 "file_name": "data.csv",
                 "file_format": "csv",
@@ -28,7 +28,7 @@
             "name": "pump3",
             "type": "sys",
             "working_dir": "",
-            "cmd": "file",
+            "cmd": "file_reader",
             "init": {
                 "file_name": "data.txt",
                 "file_format": "raw",
@@ -38,13 +38,29 @@
     ],
     "bolts": [
         {
+            "name": "bolt_date",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "date_transform",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "stream1"
+                }
+            ],
+            "init": {
+                "date_transform_fields": ["ts"],
+                "reuse_stream_id": true
+            }
+        },
+        {
             "name": "bolt1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",
             "inputs": [
                 {
-                    "source": "pump1",
+                    "source": "bolt_date",
                     "stream_id": "stream1"
                 },
                 {
