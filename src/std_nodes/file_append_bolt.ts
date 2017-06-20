@@ -65,7 +65,7 @@ export class FileAppendBolt implements intf.Bolt {
     }
 
     private writeToFile(callback: intf.SimpleCallback) {
-        if (this.current_data.length == 0) return;
+        if (this.current_data.length == 0) return callback();
 
         let d = Date.now();
         if (this.split_over_time && this.next_split_after < d) {
