@@ -39,6 +39,24 @@ describe('CmdLineParser', function () {
             let res = cmdl.process(data);
             assert.deepEqual(res, { name: "abc" });
         });
+        it('Short name - multi', function () {
+            let data = ["-n", "abc", "-c", "def"];
+            let cmdl = new cmdl_lib.CmdLineParser();
+            cmdl
+                .define("n", "name", "ii", "smthng")
+                .define("c", "config", "jj", "smthng");
+            let res = cmdl.process(data);
+            assert.deepEqual(res, { name: "abc", config: "def" });
+        });
+        it('Short+long name - multi and mixed', function () {
+            let data = ["-n", "abc", "--config", "def"];
+            let cmdl = new cmdl_lib.CmdLineParser();
+            cmdl
+                .define("n", "name", "ii", "smthng")
+                .define("c", "config", "jj", "smthng");
+            let res = cmdl.process(data);
+            assert.deepEqual(res, { name: "abc", config: "def" });
+        });
         it('Long name - missing value', function () {
             let data = ["--name"];
             let cmdl = new cmdl_lib.CmdLineParser();
@@ -54,6 +72,17 @@ describe('CmdLineParser', function () {
                 .define("n", "name", "ii", "smthng");
             let res = cmdl.process(data);
             assert.deepEqual(res, { name: "abc" });
+        });
+    });
+    describe('Flags', function () {
+        it('Short name', function () {
+            let data = ["-n"];
+            let cmdl = new cmdl_lib.CmdLineParser();
+            cmdl
+                .define("n", "name", false, "smthng", { flag: true })
+                .define("c", "config", false, "smthng", { flag: true });
+            let res = cmdl.process(data);
+            assert.deepEqual(res, { name: true });
         });
     });
 });
