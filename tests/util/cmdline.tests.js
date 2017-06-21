@@ -84,5 +84,23 @@ describe('CmdLineParser', function () {
             let res = cmdl.process(data);
             assert.deepEqual(res, { name: true });
         });
+        it('Long name', function () {
+            let data = ["--name"];
+            let cmdl = new cmdl_lib.CmdLineParser();
+            cmdl
+                .define("n", "name", false, "smthng", { flag: true })
+                .define("c", "config", false, "smthng", { flag: true });
+            let res = cmdl.process(data);
+            assert.deepEqual(res, { name: true });
+        });
+        it('Mixed name', function () {
+            let data = ["-c", "--name"];
+            let cmdl = new cmdl_lib.CmdLineParser();
+            cmdl
+                .define("n", "name", false, "smthng", { flag: true })
+                .define("c", "config", false, "smthng", { flag: true });
+            let res = cmdl.process(data);
+            assert.deepEqual(res, { name: true, config: true });
+        });
     });
 });
