@@ -11,6 +11,7 @@ List of standard spouts:
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
+- [TSS spout](#rss-spout)
 - [Dir-watcher spout](#dir-spout)
 - [Test spout](#test-spout)
 
@@ -521,6 +522,28 @@ The result of the call will be emitted into the topology after each time interva
     "cmd": "get",
     "init": {
         "url": "http://my.server.com/api",
+        "repeat": 60000,
+        "stream_id": "SomeStreamId"
+    }
+}
+```````````````````````````````
+
+## RSS spout
+
+`cmd="rss"`
+
+This spout retrieves content of specified RSS feed in regular time intervals and forwards the parsed response.
+
+The result of the call will be emitted into the topology after each time interval (the `repeat` parameter).
+
+```````````````````````````````json
+{
+    "name": "spout1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "rss",
+    "init": {
+        "url": "http://my.source.com/rss",
         "repeat": 60000,
         "stream_id": "SomeStreamId"
     }

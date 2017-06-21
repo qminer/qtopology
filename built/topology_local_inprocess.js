@@ -17,6 +17,7 @@ const ps = require("./std_nodes/process_spout");
 const rs = require("./std_nodes/rest_spout");
 const ts = require("./std_nodes/timer_spout");
 const gs = require("./std_nodes/get_spout");
+const rss = require("./std_nodes/rss_spout");
 const tss = require("./std_nodes/test_spout");
 const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
@@ -157,6 +158,7 @@ class TopologySpoutInproc {
             case "dir": return new ds.DirWatcherSpout();
             case "file_reader": return new frs.FileReaderSpout();
             case "process": return new ps.ProcessSpout();
+            case "rss": return new rss.RssSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
