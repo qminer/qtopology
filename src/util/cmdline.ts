@@ -7,6 +7,29 @@ export class OptionsDescription {
     flag: string;
 }
 
+export function parseCommandLine(argv: string[]): any {
+    let res = { _: [] };
+
+    let last_switch = null;
+    for (let i = 0; i < argv.length; i++) {
+        let curr = argv[i];
+        if (curr.slice(0, 2) == "--") {
+            last_switch = curr.slice(2);
+            res[last_switch] = true;
+        } else if (curr.slice(0, 1) == "-") {
+            last_switch = curr.slice(1);
+            res[last_switch] = true;
+        } else if (last_switch) {
+            res[last_switch] = curr;
+            last_switch = null;
+        } else {
+            res._.push(curr);
+        }
+    }
+
+    return res;
+}
+
 export class CmdLineParser {
 
     private shortnames: Map<string, OptionsDescription>;

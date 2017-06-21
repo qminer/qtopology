@@ -104,3 +104,40 @@ describe('CmdLineParser', function () {
         });
     });
 });
+describe('parseCommandLine', function () {
+    it('empty', function () {
+        let data = [];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { _: [] });
+    });
+    it('simple, no tags', function () {
+        let data = ["a", "b", "c"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { _: ["a", "b", "c"] });
+    });
+    it('simple, short binary tags', function () {
+        let data = ["-a", "-b", "-c"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { a: true, b: true, c: true, _: [] });
+    });
+    it('simple, long binary tags', function () {
+        let data = ["--a", "--b", "--c"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { a: true, b: true, c: true, _: [] });
+    });
+    it('simple, short value tags', function () {
+        let data = ["-a", "1", "-b", "2", "-c", "3"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { a: "1", b: "2", c: "3", _: [] });
+    });
+    it('simple, long value tags', function () {
+        let data = ["--a", "1", "--b", "2", "--c", "3"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { a: "1", b: "2", c: "3", _: [] });
+    });
+    it('complex', function () {
+        let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+        let res = cmdl_lib.parseCommandLine(data);
+        assert.deepEqual(res, { a: "1", b: "2", c: true, _: ["some_value1", "some_value2"] });
+    });
+});

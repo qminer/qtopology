@@ -6,6 +6,7 @@ export declare class OptionsDescription {
     target: string;
     flag: string;
 }
+export declare function parseCommandLine(argv: string[]): any;
 export declare class CmdLineParser {
     private shortnames;
     private names;
