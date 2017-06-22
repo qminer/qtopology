@@ -89,7 +89,7 @@ export class CmdLineParser {
             return description.target;
         }
         return description.name;
-    }    
+    }
 
     define(shortname: string, name: string, defaultValue: string | number, text: string, options?: any) {
         options = options || {};
