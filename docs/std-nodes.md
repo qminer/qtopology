@@ -11,7 +11,7 @@ List of standard spouts:
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
-- [TSS spout](#rss-spout)
+- [RSS spout](#rss-spout)
 - [Dir-watcher spout](#dir-spout)
 - [Test spout](#test-spout)
 
