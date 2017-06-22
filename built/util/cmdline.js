@@ -1,8 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class OptionsDescription {
-}
-exports.OptionsDescription = OptionsDescription;
 function parseCommandLine(argv) {
     let res = { _: [] };
     let last_switch = null;
@@ -27,6 +24,20 @@ function parseCommandLine(argv) {
     return res;
 }
 exports.parseCommandLine = parseCommandLine;
+function parseCommandLineEx(argv, map) {
+    map = map || {};
+    let res = parseCommandLine(argv);
+    for (let field in map) {
+        if (map.hasOwnProperty(field) && res[field]) {
+            res[map[field]] = res[field];
+        }
+    }
+    return res;
+}
+exports.parseCommandLineEx = parseCommandLineEx;
+class OptionsDescription {
+}
+exports.OptionsDescription = OptionsDescription;
 class CmdLineParser {
     constructor() {
         this.shortnames = new Map();

@@ -141,3 +141,42 @@ describe('parseCommandLine', function () {
         assert.deepEqual(res, { a: "1", b: "2", c: true, _: ["some_value1", "some_value2"] });
     });
 });
+
+describe('parseCommandLineEx', function () {
+    describe('parseCommandLineEx - no map parameter', function () {
+        it('empty', function () {
+            let data = [];
+            let res = cmdl_lib.parseCommandLineEx(data);
+            assert.deepEqual(res, { _: [] });
+        });
+        it('complex', function () {
+            let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+            let res = cmdl_lib.parseCommandLineEx(data);
+            assert.deepEqual(res, { a: "1", b: "2", c: true, _: ["some_value1", "some_value2"] });
+        });
+    });
+    describe('parseCommandLineEx - with empty map parameter', function () {
+        it('empty', function () {
+            let data = [];
+            let res = cmdl_lib.parseCommandLineEx(data, {});
+            assert.deepEqual(res, { _: [] });
+        });
+        it('complex', function () {
+            let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+            let res = cmdl_lib.parseCommandLineEx(data, {});
+            assert.deepEqual(res, { a: "1", b: "2", c: true, _: ["some_value1", "some_value2"] });
+        });
+    });
+    describe('parseCommandLineEx - with non-empty map parameter', function () {
+        it('empty', function () {
+            let data = [];
+            let res = cmdl_lib.parseCommandLineEx(data, { c: "config" });
+            assert.deepEqual(res, { _: [] });
+        });
+        it('complex', function () {
+            let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+            let res = cmdl_lib.parseCommandLineEx(data, { a: "actor", c: "config" });
+            assert.deepEqual(res, { a: "1", actor: "1", b: "2", c: true, config: true, _: ["some_value1", "some_value2"] });
+        });
+    });
+});

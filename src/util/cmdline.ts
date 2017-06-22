@@ -1,12 +1,3 @@
-export class OptionsDescription {
-    shortname: string;
-    name: string;
-    default: string | number;
-    text: string;
-    target: string;
-    flag: string;
-}
-
 export function parseCommandLine(argv: string[]): any {
     let res = { _: [] };
 
@@ -28,6 +19,26 @@ export function parseCommandLine(argv: string[]): any {
     }
 
     return res;
+}
+
+export function parseCommandLineEx(argv: string[], map: any): any {
+    map = map || {};
+    let res = parseCommandLine(argv);
+    for (let field in map) {
+        if (map.hasOwnProperty(field) && res[field]) {
+            res[map[field]] = res[field];
+        }
+    }
+    return res;
+}
+
+export class OptionsDescription {
+    shortname: string;
+    name: string;
+    default: string | number;
+    text: string;
+    target: string;
+    flag: string;
 }
 
 export class CmdLineParser {
@@ -78,7 +89,7 @@ export class CmdLineParser {
             return description.target;
         }
         return description.name;
-    }
+    }    
 
     define(shortname: string, name: string, defaultValue: string | number, text: string, options?: any) {
         options = options || {};
