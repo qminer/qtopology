@@ -1,0 +1,30 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump_rss",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "rss",
+            "init": {
+                "repeat": 6000,
+                "url": "http://rss.cnn.com/rss/cnn_topstories.rss"
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                { "source": "pump_rss" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

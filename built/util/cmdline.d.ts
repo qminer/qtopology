@@ -1,3 +1,5 @@
+export declare function parseCommandLine(argv: string[]): any;
+export declare function parseCommandLineEx(argv: string[], map: any): any;
 export declare class OptionsDescription {
     shortname: string;
     name: string;
