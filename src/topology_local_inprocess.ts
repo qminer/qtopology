@@ -21,6 +21,7 @@ import * as ps from "./std_nodes/process_spout";
 import * as rs from "./std_nodes/rest_spout";
 import * as ts from "./std_nodes/timer_spout";
 import * as gs from "./std_nodes/get_spout";
+import * as rss from "./std_nodes/rss_spout";
 import * as tss from "./std_nodes/test_spout";
 import * as ds from "./std_nodes/dir_watcher_spout";
 
@@ -195,6 +196,7 @@ export class TopologySpoutInproc {
             case "dir": return new ds.DirWatcherSpout();
             case "file_reader": return new frs.FileReaderSpout();
             case "process": return new ps.ProcessSpout();
+            case "rss": return new rss.RssSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }

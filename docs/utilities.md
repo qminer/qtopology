@@ -13,6 +13,57 @@ Utility class and interface for logging output of the library.
 
 ## cmdline
 
+### parseCommandLine function
+
+Parses input array of strings (e.g. argv) and returns an object with colected values.
+
+- It supports `-` and `--` prefixes for names.
+- Names without values are set to true.
+- Unnamed values are returned in a property `_`.
+
+```````````````javascript
+let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+let res = qtopology.parseCommandLine(data);
+```````````````
+
+The result is the following:
+
+```````````````javacsript
+{
+    a: "1",
+    b: "2",
+    c: true,
+    _: ["some_value1", "some_value2"]
+}
+```````````````
+
+### parseCommandLineEx function
+
+The same as `parseCommandLine` with additional parameter that describes mapping:
+
+
+```````````````javascript
+let data = ["--a", "1", "-b", "2", "some_value1", "some_value2", "-c"];
+let res = qtopology.parseCommandLineEx(data, { a: "action", c: "config" });
+```````````````
+
+The result is the following:
+
+```````````````javacsript
+{
+    a: "1",
+    action: "1",
+    b: "2",
+    c: true,
+    config: true,
+    _: ["some_value1", "some_value2"]
+}
+```````````````
+
+This way you can 
+
+### CmdLineParser object
+
 Utility class for parsing command-line parameters.
 
 ```````````````````javascript
