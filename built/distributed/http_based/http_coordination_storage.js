@@ -38,6 +38,12 @@ class HttpCoordinationStorage {
     removeTopology(uuid) {
         this.topologies = this.topologies.filter(x => x.uuid != uuid);
     }
+    getTopologyDefinition(uuid) {
+        let targets = this.topologies.filter(x => x.uuid == uuid);
+        if (targets.length == 0)
+            return { config: null };
+        return targets[0].config;
+    }
     enableTopology(uuid) {
         this.topologies
             .filter(x => x.uuid == uuid)
@@ -358,6 +364,10 @@ function initHttpServer(storage) {
     });
     http_server.addHandler('/delete-topology', (data, callback) => {
         let result = storage.removeTopology(data.config);
+        callback(null, result);
+    });
+    http_server.addHandler('/topology-definition', (data, callback) => {
+        let result = storage.getTopologyDefinition(data.uuid);
         callback(null, result);
     });
     return http_server;

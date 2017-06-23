@@ -85,6 +85,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
+    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<any>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
     announceLeaderCandidacy(name: string, callback: SimpleCallback): any;
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): any;
