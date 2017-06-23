@@ -22,6 +22,10 @@ class HttpCoordinator {
     getTopologiesForWorker(name, callback) {
         this.call("worker-topologies", { worker: name }, callback);
     }
+    getTopologyDefinition(uuid, callback) {
+        //callback(new Error("NOT IMPLEMENTED - getTopologyDefinition"));
+        this.call("topology-definition", { uuid: uuid }, callback);
+    }
     getLeadershipStatus(callback) {
         this.call("leadership-status", {}, callback);
     }

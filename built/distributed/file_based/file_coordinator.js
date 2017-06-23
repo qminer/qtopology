@@ -12,6 +12,7 @@ class FileCoordinator {
         this.file_patterns = (typeof file_pattern === "string" ? [file_pattern] : file_pattern);
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
+        this.topology_configs = new Map();
         let items = fs.readdirSync(this.dir_name);
         log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
         for (let item of items) {
@@ -25,16 +26,17 @@ class FileCoordinator {
             if (!is_ok) {
                 continue;
             }
-            let topology_uid = item.slice(0, -path.extname(item).length); // file name without extension
+            let topology_uuid = item.slice(0, -path.extname(item).length); // file name without extension
             log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
                 content: {
-                    uuid: topology_uid,
+                    uuid: topology_uuid,
                     config: config
                 }
             });
+            this.topology_configs.set(topology_uuid, config);
         }
     }
     getMessages(name, callback) {
@@ -47,6 +49,14 @@ class FileCoordinator {
     }
     getTopologyStatus(callback) {
         callback(null, []);
+    }
+    getTopologyDefinition(uuid, callback) {
+        if (this.topology_configs.has(uuid)) {
+            callback(null, this.topology_configs.get(uuid));
+        }
+        else {
+            callback(new Error("Topology with given uuid doesn't exist: " + uuid));
+        }
     }
     getTopologiesForWorker(worker, callback) {
         callback(null, []);

@@ -107,11 +107,13 @@ export interface StorageResultMessage {
 }
 
 export interface CoordinationStorage {
+
     getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
     getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>);
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
+    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<any>);
 
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
