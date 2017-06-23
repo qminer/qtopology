@@ -20,6 +20,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `name`: spout name
     - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
+    - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`.
     - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple spouts inside single source file.
@@ -28,6 +29,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `name`: bolt name
     - `type`: `inproc` (in-process) or `sys` (standard)
     - `working_dir`: working directory where main file is located
+    - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
     - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple bolts inside single source file.

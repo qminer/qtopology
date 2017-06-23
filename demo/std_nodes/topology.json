@@ -148,10 +148,6 @@
                     "stream_id": "$telemetry"
                 },
                 {
-                    "source": "pump1",
-                    "stream_id": "$telemetry-total"
-                },
-                {
                     "source": "pump3"
                 },
                 {
