@@ -106,6 +106,9 @@
                     "subtype": {
                         "type": "string"
                     },
+                    "telemetry_timeout": {
+                        "type": "number"
+                    },
                     "init": {
                         "type": "object",
                         "additionalProperties": true
@@ -146,6 +149,9 @@
                     },
                     "subtype": {
                         "type": "string"
+                    },
+                    "telemetry_timeout": {
+                        "type": "number"
                     },
                     "inputs": {
                         "type": "array",

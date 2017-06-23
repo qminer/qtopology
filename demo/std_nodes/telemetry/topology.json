@@ -1,0 +1,40 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "spout1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "telemetry_timeout": 3000,
+            "init": {}
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "telemetry_timeout": 2000,
+            "inputs": [
+                { "source": "spout1" }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                { "source": "spout1", "stream_id": "$telemetry" },
+                { "source": "bolt1", "stream_id": "$telemetry" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

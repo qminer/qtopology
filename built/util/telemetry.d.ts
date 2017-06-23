@@ -8,8 +8,11 @@ export declare class Telemetry {
     constructor(name: string);
     add(duration: number): void;
     reset(): void;
-    get(): {
+    get(add_name?: boolean): {
         name: string;
+        cnt: number;
+        avg: number;
+    } | {
         cnt: number;
         avg: number;
     };

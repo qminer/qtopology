@@ -22,10 +22,44 @@ const tss = require("./std_nodes/test_spout");
 const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
 const log = require("./util/logger");
+/** Base class for spouts and bolts - contains telemetry support */
+class TopologyNodeBaseInproc {
+    constructor(name, telemetry_timeout) {
+        this.name = name;
+        this.telemetry = new tel.Telemetry(name);
+        this.telemetry_total = new tel.Telemetry(name);
+        this.telemetry_next_emit = Date.now();
+        this.telemetry_timeout = telemetry_timeout || 60 * 1000;
+    }
+    /** This method checks if telemetry data should be emitted
+     * and calls provided callback if that is the case.
+     */
+    telemetryHeartbeat(emitCallback) {
+        let now = Date.now();
+        if (now >= this.telemetry_next_emit) {
+            let msg = {
+                name: this.name,
+                ts: Date.now(),
+                total: this.telemetry_total.get(),
+                last: this.telemetry.get()
+            };
+            emitCallback(msg, "$telemetry");
+            this.telemetry.reset();
+            this.telemetry_next_emit = now + this.telemetry_timeout;
+        }
+    }
+    /** Adds duration to internal telemetry */
+    telemetryAdd(duration) {
+        this.telemetry.add(duration);
+        this.telemetry_total.add(duration);
+    }
+}
+exports.TopologyNodeBaseInproc = TopologyNodeBaseInproc;
 /** Wrapper for "spout" in-process */
-class TopologySpoutInproc {
+class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Constructor needs to receive all data */
     constructor(config, context) {
+        super(config.name, config.telemetry_timeout);
         this.name = config.name;
         this.context = context;
         this.working_dir = config.working_dir;
@@ -37,8 +71,6 @@ class TopologySpoutInproc {
         this.isExit = false;
         this.isError = false;
         this.onExit = null;
-        this.telemetry = new tel.Telemetry(config.name);
-        this.telemetry_total = new tel.Telemetry(config.name);
         let self = this;
         try {
             if (config.type == "sys") {
@@ -77,10 +109,9 @@ class TopologySpoutInproc {
     heartbeat() {
         let self = this;
         self.child.heartbeat();
-        // emit telemetry
-        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
-        self.telemetry.reset();
-        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
+        self.telemetryHeartbeat((msg, stream_id) => {
+            self.emitCallback(msg, stream_id, () => { });
+        });
     }
     /** Shuts down the process */
     shutdown(callback) {
@@ -163,17 +194,13 @@ class TopologySpoutInproc {
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
     }
-    /** Adds duration to internal telemetry */
-    telemetryAdd(duration) {
-        this.telemetry.add(duration);
-        this.telemetry_total.add(duration);
-    }
 }
 exports.TopologySpoutInproc = TopologySpoutInproc;
 /** Wrapper for "bolt" in-process */
-class TopologyBoltInproc {
+class TopologyBoltInproc extends TopologyNodeBaseInproc {
     /** Constructor needs to receive all data */
     constructor(config, context) {
+        super(config.name, config.telemetry_timeout);
         let self = this;
         this.name = config.name;
         this.context = context;
@@ -198,8 +225,6 @@ class TopologyBoltInproc {
         this.inSend = 0;
         this.pendingSendRequests = [];
         this.pendingShutdownCallback = null;
-        this.telemetry = new tel.Telemetry(config.name);
-        this.telemetry_total = new tel.Telemetry(config.name);
         try {
             if (config.type == "sys") {
                 this.child = this.createSysBolt(config);
@@ -232,10 +257,9 @@ class TopologyBoltInproc {
     heartbeat() {
         let self = this;
         self.child.heartbeat();
-        // emit telemetry
-        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
-        self.telemetry.reset();
-        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
+        self.telemetryHeartbeat((msg, stream_id) => {
+            self.emitCallback(msg, stream_id, () => { });
+        });
     }
     /** Shuts down the child */
     shutdown(callback) {
@@ -259,15 +283,13 @@ class TopologyBoltInproc {
             self.pendingSendRequests.push({
                 data: data,
                 stream_id: stream_id,
-                callback: (err) => {
-                    self.telemetryAdd(Date.now() - ts_start);
-                    callback(err);
-                }
+                callback: callback
             });
         }
         else {
             self.inSend++;
             self.child.receive(data, stream_id, (err) => {
+                self.telemetryAdd(Date.now() - ts_start);
                 callback(err);
                 self.inSend--;
                 if (self.inSend === 0) {
@@ -299,11 +321,6 @@ class TopologyBoltInproc {
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
-    }
-    /** Adds duration to internal telemetry */
-    telemetryAdd(duration) {
-        this.telemetry.add(duration);
-        this.telemetry_total.add(duration);
     }
 }
 exports.TopologyBoltInproc = TopologyBoltInproc;
