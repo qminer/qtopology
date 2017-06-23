@@ -107,7 +107,9 @@ export class TopologyCoordinator extends EventEmitter {
                 msgs,
                 (msg, xcallback) => {
                     if (msg.cmd === "start") {
-                        self.emit("start", msg.content);
+                        self.storage.getTopologyDefinition(msg.content.uuid, (err, config) => {
+                            self.emit("start", { uuid: msg.content.uuid, config: config });
+                        })
                     }
                     if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});

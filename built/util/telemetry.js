@@ -31,9 +31,15 @@ class Telemetry {
         this.min = 0;
         this.max = 0;
     }
-    get() {
+    get(add_name) {
+        if (add_name) {
+            return {
+                name: this.name,
+                cnt: this.cnt,
+                avg: this.avg
+            };
+        }
         return {
-            name: this.name,
             cnt: this.cnt,
             avg: this.avg
         };

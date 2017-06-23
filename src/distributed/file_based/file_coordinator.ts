@@ -12,6 +12,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
     private dir_name: string;
     private file_patterns: string[];
     private file_patterns_regex: RegExp[];
+    private topology_configs: Map<string, any>;
 
     constructor(dir_name: string, file_pattern: string | string[]) {
         this.msgs = [];
@@ -20,6 +21,7 @@ export class FileCoordinator implements intf.CoordinationStorage {
         this.file_patterns = (typeof file_pattern === "string" ? [file_pattern as string] : file_pattern as string[]);
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
+        this.topology_configs = new Map<string, any>();
 
         let items = fs.readdirSync(this.dir_name);
         log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
@@ -35,16 +37,17 @@ export class FileCoordinator implements intf.CoordinationStorage {
                 continue;
             }
 
-            let topology_uid = item.slice(0, -path.extname(item).length); // file name without extension
+            let topology_uuid = item.slice(0, -path.extname(item).length); // file name without extension
             log.logger().log("[FileCoordinator] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.msgs.push({
                 cmd: "start",
                 content: {
-                    uuid: topology_uid,
+                    uuid: topology_uuid,
                     config: config
                 }
             });
+            this.topology_configs.set(topology_uuid, config);
         }
     }
 
@@ -59,6 +62,14 @@ export class FileCoordinator implements intf.CoordinationStorage {
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
         callback(null, []);
     }
+    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<any>) {
+        if (this.topology_configs.has(uuid)) {
+            callback(null, this.topology_configs.get(uuid));
+        } else {
+            callback(new Error("Topology with given uuid doesn't exist: " + uuid));
+        }
+    }
+
     getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
         callback(null, []);
     }
