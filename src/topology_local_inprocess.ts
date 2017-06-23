@@ -28,10 +28,52 @@ import * as ds from "./std_nodes/dir_watcher_spout";
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
 
-/** Wrapper for "spout" in-process */
-export class TopologySpoutInproc {
+/** Base class for spouts and bolts - contains telemetry support */
+export class TopologyNodeBaseInproc {
 
-    private name: string;
+    protected name: string;
+    private telemetry_next_emit: number;
+    private telemetry_timeout: number;
+    private telemetry: tel.Telemetry;
+    private telemetry_total: tel.Telemetry;
+
+    constructor(name: string, telemetry_timeout: number) {
+        this.name = name;
+        this.telemetry = new tel.Telemetry(name);
+        this.telemetry_total = new tel.Telemetry(name);
+        this.telemetry_next_emit = Date.now();
+        this.telemetry_timeout = telemetry_timeout || 60 * 1000;
+    }
+
+    /** This method checks if telemetry data should be emitted
+     * and calls provided callback if that is the case.
+     */
+    telemetryHeartbeat(emitCallback: (msg: any, stream_id: string) => void) {
+        let now = Date.now();
+        if (now >= this.telemetry_next_emit) {
+            let msg = {
+                name: this.name,
+                ts: Date.now(),
+                total: this.telemetry_total.get(),
+                last: this.telemetry.get()
+            }
+            emitCallback(msg, "$telemetry");
+            this.telemetry.reset();
+            this.telemetry_next_emit = now + this.telemetry_timeout;
+        }
+    }
+
+    /** Adds duration to internal telemetry */
+    telemetryAdd(duration: number) {
+        this.telemetry.add(duration);
+        this.telemetry_total.add(duration);
+    }
+}
+
+
+/** Wrapper for "spout" in-process */
+export class TopologySpoutInproc extends TopologyNodeBaseInproc {
+
     private context: any;
     private working_dir: string;
     private cmd: string;
@@ -45,14 +87,14 @@ export class TopologySpoutInproc {
     private isPaused: boolean;
     private nextTs: number;
 
-    private telemetry: tel.Telemetry;
-    private telemetry_total: tel.Telemetry;
 
     private child: intf.Spout;
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
+        super(config.name, config.telemetry_timeout);
+
         this.name = config.name;
         this.context = context;
         this.working_dir = config.working_dir;
@@ -65,9 +107,6 @@ export class TopologySpoutInproc {
         this.isExit = false;
         this.isError = false;
         this.onExit = null;
-
-        this.telemetry = new tel.Telemetry(config.name);
-        this.telemetry_total = new tel.Telemetry(config.name);
 
         let self = this;
         try {
@@ -109,11 +148,9 @@ export class TopologySpoutInproc {
     heartbeat() {
         let self = this;
         self.child.heartbeat();
-
-        // emit telemetry
-        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
-        self.telemetry.reset();
-        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
+        self.telemetryHeartbeat((msg, stream_id) => {
+            self.emitCallback(msg, stream_id, () => { });
+        });
     }
 
     /** Shuts down the process */
@@ -201,18 +238,11 @@ export class TopologySpoutInproc {
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
         }
     }
-
-    /** Adds duration to internal telemetry */
-    private telemetryAdd(duration: number) {
-        this.telemetry.add(duration);
-        this.telemetry_total.add(duration);
-    }
 }
 
 /** Wrapper for "bolt" in-process */
-export class TopologyBoltInproc {
+export class TopologyBoltInproc extends TopologyNodeBaseInproc {
 
-    private name: string;
     private context: any;
     private working_dir: string;
     private cmd: string;
@@ -231,14 +261,12 @@ export class TopologyBoltInproc {
     private pendingSendRequests: any[];
     private pendingShutdownCallback: intf.SimpleCallback;
 
-    private telemetry: tel.Telemetry;
-    private telemetry_total: tel.Telemetry;
-
     private child: intf.Bolt;
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
+        super(config.name, config.telemetry_timeout);
         let self = this;
         this.name = config.name;
         this.context = context;
@@ -265,9 +293,6 @@ export class TopologyBoltInproc {
         this.inSend = 0;
         this.pendingSendRequests = [];
         this.pendingShutdownCallback = null;
-
-        this.telemetry = new tel.Telemetry(config.name);
-        this.telemetry_total = new tel.Telemetry(config.name);
 
         try {
             if (config.type == "sys") {
@@ -302,11 +327,9 @@ export class TopologyBoltInproc {
     heartbeat() {
         let self = this;
         self.child.heartbeat();
-
-        // emit telemetry
-        self.emitCallback(self.telemetry.get(), "$telemetry", () => { });
-        self.telemetry.reset();
-        self.emitCallback(self.telemetry_total.get(), "$telemetry-total", () => { });
+        self.telemetryHeartbeat((msg, stream_id) => {
+            self.emitCallback(msg, stream_id, () => { });
+        });
     }
 
     /** Shuts down the child */
@@ -332,14 +355,12 @@ export class TopologyBoltInproc {
             self.pendingSendRequests.push({
                 data: data,
                 stream_id: stream_id,
-                callback: (err) => {
-                    self.telemetryAdd(Date.now() - ts_start);
-                    callback(err);
-                }
+                callback: callback
             });
         } else {
             self.inSend++;
             self.child.receive(data, stream_id, (err) => {
+                self.telemetryAdd(Date.now() - ts_start);
                 callback(err);
                 self.inSend--;
                 if (self.inSend === 0) {
@@ -371,11 +392,5 @@ export class TopologyBoltInproc {
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
-    }
-
-    /** Adds duration to internal telemetry */
-    private telemetryAdd(duration: number) {
-        this.telemetry.add(duration);
-        this.telemetry_total.add(duration);
     }
 }

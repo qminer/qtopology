@@ -38,9 +38,15 @@ export class Telemetry {
         this.max = 0;
     }
 
-    get() {
+    get(add_name?: boolean) {
+        if (add_name) {
+            return {
+                name: this.name,
+                cnt: this.cnt,
+                avg: this.avg
+            };
+        }
         return {
-            name: this.name,
             cnt: this.cnt,
             avg: this.avg
         };

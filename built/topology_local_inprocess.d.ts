@@ -1,7 +1,21 @@
 import * as intf from "./topology_interfaces";
+/** Base class for spouts and bolts - contains telemetry support */
+export declare class TopologyNodeBaseInproc {
+    protected name: string;
+    private telemetry_next_emit;
+    private telemetry_timeout;
+    private telemetry;
+    private telemetry_total;
+    constructor(name: string, telemetry_timeout: number);
+    /** This method checks if telemetry data should be emitted
+     * and calls provided callback if that is the case.
+     */
+    telemetryHeartbeat(emitCallback: (msg: any, stream_id: string) => void): void;
+    /** Adds duration to internal telemetry */
+    telemetryAdd(duration: number): void;
+}
 /** Wrapper for "spout" in-process */
-export declare class TopologySpoutInproc {
-    private name;
+export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     private context;
     private working_dir;
     private cmd;
@@ -14,8 +28,6 @@ export declare class TopologySpoutInproc {
     private onExit;
     private isPaused;
     private nextTs;
-    private telemetry;
-    private telemetry_total;
     private child;
     private emitCallback;
     /** Constructor needs to receive all data */
@@ -38,12 +50,9 @@ export declare class TopologySpoutInproc {
     pause(): void;
     /** Factory method for sys spouts */
     private createSysSpout(spout_config);
-    /** Adds duration to internal telemetry */
-    private telemetryAdd(duration);
 }
 /** Wrapper for "bolt" in-process */
-export declare class TopologyBoltInproc {
-    private name;
+export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
     private context;
     private working_dir;
     private cmd;
@@ -61,8 +70,6 @@ export declare class TopologyBoltInproc {
     private inSend;
     private pendingSendRequests;
     private pendingShutdownCallback;
-    private telemetry;
-    private telemetry_total;
     private child;
     private emitCallback;
     /** Constructor needs to receive all data */
@@ -81,6 +88,4 @@ export declare class TopologyBoltInproc {
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
     /** Factory method for sys bolts */
     private createSysBolt(bolt_config);
-    /** Adds duration to internal telemetry */
-    private telemetryAdd(duration);
 }
