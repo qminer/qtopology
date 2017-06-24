@@ -14,8 +14,11 @@ class DashboardServer {
     getFile(name, callback) {
         let self = this;
         this.server = new http_server.MinimalHttpServer();
-        this.server.addRoute("dashboard.html", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.html"));
-        this.server.addRoute("dashboard.js", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.js"));
+        // first register static files
+        let static_dir = path.join(__dirname, "../../../resources/gui/");
+        static_dir = path.resolve(static_dir);
+        this.server.addDirectory(static_dir);
+        // now add REST handlers
         this.server.addHandler("worker-status", (data, callback) => {
             self.storage.getWorkerStatus(callback);
         });

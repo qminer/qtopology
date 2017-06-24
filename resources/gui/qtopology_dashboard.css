@@ -1,0 +1,51 @@
+body, div, p, h1, h2, h3, h4, h5{
+    margin: 0px;
+    padding: 0px;
+}
+body{
+    background-color: #111;
+    color: #fff;
+    margin: 0px;
+    font-family: sans-serif, arial;
+}
+
+.header{
+    background-color: #333;
+    color: #eee;
+    margin: 0px;
+    padding: 15px 25px 15px 15px;
+}
+
+.cell-2 {
+    position:relative;
+    min-height:1px;
+    margin-top: 10px;
+    padding-right: 10px;
+}
+@media (min-width:768px){
+    .cell-2 {
+        min-height:1px;
+        float: left;
+        width: 48%;
+        margin-top: 10px;
+        padding-right: 1px;
+    }
+}
+
+@media (min-width:1000px){
+    .cell-2 {
+        min-height:1px;
+        float: left;
+        width: 49%;
+        margin-top: 10px;
+        padding-right: 10px;
+    }
+}
+.panel-header{
+    background-color: #345;
+    color: #eee;
+    padding: 10px;
+}
+.panel-header .title{
+    font-size: 1.5em;
+}

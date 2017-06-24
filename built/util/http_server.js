@@ -51,6 +51,13 @@ class MinimalHttpServer {
         rec.mime = mime_map.getMImeType(ext);
         this.routes.set(addr, rec);
     }
+    /** For registering all files from certain directory as simple static paths */
+    addDirectory(dir) {
+        let files = fs.readdirSync(dir);
+        files.forEach(x => {
+            this.addRoute(x, path.join(dir, x));
+        });
+    }
     /** For running the server */
     run(port) {
         var server = http.createServer(this.withBody((req, resp) => {

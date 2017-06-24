@@ -19,6 +19,8 @@ export declare class MinimalHttpServer {
     addHandler(addr: string, callback: ProcessingHandler): void;
     /** For registering simple static paths */
     addRoute(addr: string, local_path: string): void;
+    /** For registering all files from certain directory as simple static paths */
+    addDirectory(dir: string): void;
     /** For running the server */
     run(port: number): void;
 }
