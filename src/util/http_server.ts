@@ -61,15 +61,21 @@ export class MinimalHttpServer {
 
     /** For registering simple handlers */
     addHandler(addr: string, callback: ProcessingHandler) {
-        this.handlers[addr] = callback;
+        if (!addr.startsWith("/")) {
+            addr = "/" + addr;
+        }
+        this.handlers.set(addr, callback);
     }
     /** For registering simple static paths */
     addRoute(addr: string, local_path: string) {
+        if (!addr.startsWith("/")) {
+            addr = "/" + addr;
+        }
         let rec = new RouteRec();
         rec.local_path = path.resolve(local_path);
         let ext = path.extname(local_path);
         rec.mime = mime_map.getMImeType(ext);
-        this.routes[addr] = rec;
+        this.routes.set(addr, rec);
     }
 
     /** For running the server */
@@ -81,21 +87,21 @@ export class MinimalHttpServer {
             var addr = req.url;
             let data = null;
             logger.logger().debug("Handling " + addr);
-            try {
-                data = JSON.parse(req.body);
-            } catch (e) {
-                this.handleError("" + e, resp);
-                return;
-            }
-            logger.logger().debug("Handling " + req.body);
 
-            if (this.routes[addr]) {
+            if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
                 let stat = fs.statSync(rec.local_path);
                 resp.writeHead(200, { 'Content-Type': rec.mime, 'Content-Length': stat.size });
                 let readStream = fs.createReadStream(rec.local_path);
                 readStream.pipe(resp);
-            } else if (this.handlers[addr]) {
+            } else if (this.handlers.has(addr)) {
+                try {
+                    data = JSON.parse(req.body);
+                } catch (e) {
+                    this.handleError("" + e, resp);
+                    return;
+                }
+                logger.logger().debug("Handling " + req.body);
                 try {
                     this.handlers[addr](data, (err, data) => {
                         if (err) return this.handleError(err, resp);

@@ -1,10 +1,7 @@
-class QTopologyBrowserWidget {
+function QTopologyDashboardWidget() {
 
-    constructor() {
+}
 
-    }
+QTopologyDashboardWidget.prototype.init = function (divIdTarget, callback) {
 
-    init(divIdTarget) {
-
-    }
 }
