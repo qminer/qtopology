@@ -10,12 +10,15 @@ export interface ProcessingHandler {
 }
 export declare class MinimalHttpServer {
     private handlers;
+    private routes;
     constructor();
     private withBody(handler);
     private handleResponse(result, response);
     private handleError(error, response);
     /** For registering simple handlers */
     addHandler(addr: string, callback: ProcessingHandler): void;
+    /** For registering simple static paths */
+    addRoute(addr: string, local_path: string): void;
     /** For running the server */
     run(port: number): void;
 }

@@ -1,4 +1,8 @@
 import * as http from "http";
+import * as path from "path";
+import * as fs from "fs";
+import * as logger from "./logger";
+import * as mime_map from "./http_server_mime_map";
 
 ///////////////////////////////////////////////////////////////////////////
 // Bare minimum REST server
@@ -15,14 +19,21 @@ export interface ProcessingHandlerCallback {
 export interface ProcessingHandler {
     (data: any, callback: ProcessingHandlerCallback);
 }
+class RouteRec {
+    local_path: string;
+    mime: string;
+}
 
 export class MinimalHttpServer {
 
     // registered handlers
     private handlers: Map<string, ProcessingHandler>;
+    // registered static content
+    private routes: Map<string, RouteRec>;
 
     constructor() {
         this.handlers = new Map<string, ProcessingHandler>();
+        this.routes = new Map<string, RouteRec>();
     }
 
     // Utility function that reads requests body
@@ -36,14 +47,14 @@ export class MinimalHttpServer {
 
     // Utility function for returning response
     private handleResponse(result: any, response: http.ServerResponse) {
-        console.log("Sending response", result);
+        logger.logger().debug("Sending response " + result);
         response.writeHead(200, { "Content-Type": "application/json" })
         response.end(JSON.stringify(result));
     }
 
     // Utility function for returning error response
     private handleError(error: string, response: http.ServerResponse) {
-        console.log("Sending ERROR", error);
+        logger.logger().error("Sending ERROR " + error);
         response.writeHead(500)
         response.end(error);
     }
@@ -51,6 +62,14 @@ export class MinimalHttpServer {
     /** For registering simple handlers */
     addHandler(addr: string, callback: ProcessingHandler) {
         this.handlers[addr] = callback;
+    }
+    /** For registering simple static paths */
+    addRoute(addr: string, local_path: string) {
+        let rec = new RouteRec();
+        rec.local_path = path.resolve(local_path);
+        let ext = path.extname(local_path);
+        rec.mime = mime_map.getMImeType(ext);
+        this.routes[addr] = rec;
     }
 
     /** For running the server */
@@ -61,18 +80,22 @@ export class MinimalHttpServer {
             var method = req.method;
             var addr = req.url;
             let data = null;
-            console.log("Handling", addr);
+            logger.logger().debug("Handling " + addr);
             try {
                 data = JSON.parse(req.body);
             } catch (e) {
                 this.handleError("" + e, resp);
                 return;
             }
-            console.log("Handling", req.body);
+            logger.logger().debug("Handling " + req.body);
 
-            if (!this.handlers[addr]) {
-                this.handleError(`Unknown request: "${addr}"`, resp);
-            } else {
+            if (this.routes[addr]) {
+                let rec = this.routes.get(addr);
+                let stat = fs.statSync(rec.local_path);
+                resp.writeHead(200, { 'Content-Type': rec.mime, 'Content-Length': stat.size });
+                let readStream = fs.createReadStream(rec.local_path);
+                readStream.pipe(resp);
+            } else if (this.handlers[addr]) {
                 try {
                     this.handlers[addr](data, (err, data) => {
                         if (err) return this.handleError(err, resp);
@@ -82,15 +105,17 @@ export class MinimalHttpServer {
                     this.handleError("" + e, resp);
                     return;
                 }
+            } else {
+                this.handleError(`Unknown request: "${addr}"`, resp);
             }
         }));
 
-        server.listen(port, (err) => {
+        server.listen(port, (err: Error) => {
             if (err) {
-                console.log("Error while starting server on port", port);
-                console.log("Error:", err);
+                logger.logger().error("Error while starting server on port " + port);
+                logger.logger().exception(err);
             } else {
-                console.log("Server running on port", port);
+                logger.logger().important("Server running on port " + port);
             }
         });
     }
