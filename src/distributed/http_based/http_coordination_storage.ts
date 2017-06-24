@@ -1,4 +1,4 @@
-import * as hs from "./http_server";
+import * as hs from "../../util/http_server";
 import * as intf from "../../topology_interfaces";
 
 class RecWorker {

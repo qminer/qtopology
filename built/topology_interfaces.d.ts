@@ -99,7 +99,7 @@ export interface CoordinationStorage {
 }
 export interface CoordinationStorageBrowser {
     init(storage: CoordinationStorage, callback: SimpleCallback): any;
-    getJsFile(callback: SimpleResultCallback<string>): any;
+    getFile(name: string, callback: SimpleResultCallback<string>): any;
     getWorkerStatus(callback: SimpleResultCallback<string>): any;
     getTopologyStatus(callback: SimpleResultCallback<string>): any;
     postRegisterTopology(config: any, overwrite: boolean, callback: SimpleCallback): any;

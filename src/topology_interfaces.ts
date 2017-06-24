@@ -132,7 +132,7 @@ export interface CoordinationStorageBrowser {
 
     init(storage: CoordinationStorage, callback: SimpleCallback);
 
-    getJsFile(callback: SimpleResultCallback<string>);
+    getFile(name: string, callback: SimpleResultCallback<string>);
 
     getWorkerStatus(callback: SimpleResultCallback<string>);
     getTopologyStatus(callback: SimpleResultCallback<string>);

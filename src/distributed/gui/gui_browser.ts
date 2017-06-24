@@ -17,7 +17,7 @@ export class GuiBrowserHandler implements intf.CoordinationStorageBrowser {
         callback();
     }
 
-    getJsFile(callback: intf.SimpleResultCallback<string>) {
+    getFile(name: string, callback: intf.SimpleResultCallback<string>) {
         let self = this;
         if (self.client_side_code) {
             callback(null, self.client_side_code);
