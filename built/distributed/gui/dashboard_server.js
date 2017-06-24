@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const path = require("path");
 const http_server = require("../../util/http_server");
 //////////////////////////////////////////////////////////////////////
 class DashboardServer {
@@ -13,6 +14,8 @@ class DashboardServer {
     getFile(name, callback) {
         let self = this;
         this.server = new http_server.MinimalHttpServer();
+        this.server.addRoute("dashboard.html", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.html"));
+        this.server.addRoute("dashboard.js", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.js"));
         this.server.addHandler("worker-status", (data, callback) => {
             self.storage.getWorkerStatus(callback);
         });

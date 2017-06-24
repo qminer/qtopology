@@ -25,6 +25,10 @@ export class DashboardServer {
     getFile(name: string, callback: intf.SimpleResultCallback<string>) {
         let self = this;
         this.server = new http_server.MinimalHttpServer();
+
+        this.server.addRoute("dashboard.html", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.html"));
+        this.server.addRoute("dashboard.js", path.join(__dirname, "../../../resources/gui/qtopology_dashboard.js"));
+
         this.server.addHandler("worker-status", (data, callback) => {
             self.storage.getWorkerStatus(callback);
         });
