@@ -5,5 +5,5 @@ export declare class DashboardServer {
     private server;
     constructor();
     init(port: number, storage: intf.CoordinationStorage, callback: intf.SimpleCallback): void;
-    getFile(name: string, callback: intf.SimpleResultCallback<string>): void;
+    run(): void;
 }

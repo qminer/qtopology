@@ -16,30 +16,40 @@ body{
     padding: 15px 25px 15px 15px;
 }
 
-.cell-2 {
+/**************************************************/
+
+.cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+.cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
     position:relative;
     min-height:1px;
-    margin-top: 10px;
-    padding-right: 10px;
+    margin-top: 1px;
+    padding-right: 0px;
 }
 @media (min-width:768px){
-    .cell-2 {
-        min-height:1px;
+    .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+    .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
         float: left;
-        width: 48%;
-        margin-top: 10px;
-        padding-right: 1px;
-    }
+    }    
+    .cell-1 { width: 8.33%; }
+    .cell-2 { width: 16.66%; }
+    .cell-3 { width: 25%; }
+    .cell-4 { width: 33.33%; }
+    .cell-5 { width: 41.666%; }
+    .cell-6 { width: 58.33%; }
+    .cell-7 { width: 66.66%; }
+    .cell-8 { width: 66.66%; }
+    .cell-9 { width: 75%; }
+    .cell-10 { width: 83.33%; }
+    .cell-11 { width: 91.66%; }
+    .cell-12 { width: 100%; }
 }
 
-@media (min-width:1000px){
-    .cell-2 {
-        min-height:1px;
-        float: left;
-        width: 49%;
-        margin-top: 10px;
-        padding-right: 10px;
-    }
+
+/**************************************************/
+
+.panel{
+    border:  1px solid #345;
+    margin: 0px 1px 0px 1px;
 }
 .panel-header{
     background-color: #345;
@@ -48,4 +58,32 @@ body{
 }
 .panel-header .title{
     font-size: 1.5em;
+}
+
+.panel-body{
+    color: #eee;
+    padding: 1px;
+}
+
+/**************************************************/
+
+.ticket {
+    background-color: #222;
+    padding: 10px;
+    margin-bottom: 1px;
+}
+.ticket:hover {
+    background-color: #333;
+}
+
+/**************************************************/
+
+label {
+    padding: 5px 15px 5px 0px;
+    color: #a87;
+    font-size: 1.5em;
+}
+.value {
+    background-color: #555;
+    padding: 5px 15px 5px 15px;
 }

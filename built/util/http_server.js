@@ -29,9 +29,10 @@ class MinimalHttpServer {
     }
     // Utility function for returning error response
     handleError(error, response) {
-        logger.logger().error("Sending ERROR " + error);
+        logger.logger().error("Sending ERROR " + error.message);
+        logger.logger().exception(error);
         response.writeHead(500);
-        response.end(error);
+        response.end(error.message);
     }
     /** For registering simple handlers */
     addHandler(addr, callback) {
@@ -65,7 +66,7 @@ class MinimalHttpServer {
             var method = req.method;
             var addr = req.url;
             let data = null;
-            logger.logger().debug("Handling " + addr);
+            logger.logger().debug(`Handling ${req.method} ${addr}`);
             if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
                 let stat = fs.statSync(rec.local_path);
@@ -78,24 +79,24 @@ class MinimalHttpServer {
                     data = JSON.parse(req.body);
                 }
                 catch (e) {
-                    this.handleError("" + e, resp);
+                    this.handleError(e, resp);
                     return;
                 }
                 logger.logger().debug("Handling " + req.body);
                 try {
-                    this.handlers[addr](data, (err, data) => {
+                    this.handlers.get(addr)(data, (err, data) => {
                         if (err)
                             return this.handleError(err, resp);
                         this.handleResponse(data, resp);
                     });
                 }
                 catch (e) {
-                    this.handleError("" + e, resp);
+                    this.handleError(e, resp);
                     return;
                 }
             }
             else {
-                this.handleError(`Unknown request: "${addr}"`, resp);
+                this.handleError(new Error(`Unknown request: "${addr}"`), resp);
             }
         }));
         server.listen(port, (err) => {

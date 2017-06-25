@@ -14,18 +14,65 @@
         <h1>QTopology dashboard</h1>
     </div>
     <div class="content">
-        <div class="panel cell-2">
-            <div class="panel-header">
-                <div class="title">Servers</div>
+        <div class="cell-4">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Workers</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: workers">
+                        <div class="ticket">
+                            <label data-bind="text: name"></label><br/> 
+                            <span data-bind="text: status"></span>
+                            &bullet;
+                            topologies: <span data-bind="text: topologies_count"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="panel cell-2">
-            <div class="panel-header">
-                <div class="title">Topologies</div>
+        <div class="cell-5">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Topologies</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: topologies">
+                        <div class="ticket">
+                            <label data-bind="text: name"></label><br/> 
+                            enabled: <span data-bind="text: enabled"></span>,
+                            &bullet;
+                            status: running
+                        </div>
+                    </div>
+                </div>
             </div>
-
+        </div>
+        <div class="cell-3">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Coordination storage</div>
+                </div>
+                <div class="panel-body">
+                    <div class="ticket">
+                        <label>Type</label>
+                        <div class="value">MySQL storage</div>
+                    </div>
+                    <div class="ticket">
+                        <label>Server</label>
+                        <div class="value">mysql-server-1</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
+<script language="javascript" type="text/javascript">
+    $(function () {
+        var model = new QTopologyDashboardViewModel();
+        ko.applyBindings(model);
+        model.init();
+    });
+</script>
 
 </html>
