@@ -192,4 +192,115 @@ To explore the capabilities further, one can:
 - Define new bolts and connect them **sequentially** and **parallely**.
 - Use **stream ids** of messages for routing and filtering
 - Use **standard bolts and spouts** for common tasks such as filtering
-- Use **telemetry data** (`stream_id=$telemetry` and `stream_id=$telemetry-total`) of nodes that comes out-of-the-box with the topology
+- Use **telemetry data** (`stream_id=$telemetry`) of nodes that comes out-of-the-box with the topology
+
+## Advanced usage - distributed mode
+
+To set up distributed scenario, one needs to use some implementation coordination storage. QTopology by itself provides HTTP and file-based coordination, a separate project provides [MySQL-based storage](https://github.com/qminer/qtopology-mysql) and developers can create their own.
+
+In this section we will use MySQL-based storage as an example, but changes to use other implementations are minimal (i.e. changing the names of the classes).
+
+### Worker instance
+
+Normally, there would be one worker instance per server. The steps to create a worker are:
+
+- create an instance of your coordinator
+- initialize the coordinator
+- create an instance of worker object, passing coordinator to it
+- take care of shutdown event for a gracefull  
+
+`````````````````````````````````javascript
+"use strict";
+
+const qtopology = require("qtopology");
+const coor = require("qtopology-mysql");
+
+let coordinator = new coor.MySqlCoordinator({
+    host: "localhost",
+    database: "xtest",
+    user: "dummy",
+    password: "dummy",
+    port: 3306
+});
+
+// get worker name from the command line
+let cmdln = new qtopology.CmdLineParser();
+cmdln.define('n', 'name', 'worker1', 'Logical name of the worker');
+let opts = cmdln.process(process.argv);
+let w = null;
+
+coordinator.init((err) => {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    let w = new qtopology.TopologyWorker(opts.name, coordinator);
+    w.run();
+    // for demo purposes, we shut this worker down after 20 seconds
+    setTimeout(() => { shutdown(); }, 200000);
+})
+
+// take care of shutdown sequence
+function shutdown() {
+if (!w) return;
+    w.shutdown((err) => {
+        if (err) { console.log("Error while global shutdown:", err); }
+        console.log("Shutdown complete");
+        process.exit(0);
+    });
+    w = null;
+}
+`````````````````````````````````
+
+### Command-line tool (CLI)
+
+A simple command-line tool for managing the distributed topologies is available. All it needs is an instance of your coordination storage.
+
+``````````````````````````````````javascript
+"use strict";
+const qtopology = require("qtopology");
+const coor = require("qtopology-mysql");
+
+qtopology.logger().setLevel("normal");
+
+let coordinator = new coor.MySqlCoordinator({
+    host: "localhost",
+    database: "xtest",
+    user: "dummy",
+    password: "dummy",
+    port: 3306
+});
+
+let cmd = new qtopology.CommandLineHandler(coordinator);
+cmd.run(() => {
+    coordinator.close(() => {
+        qtopology.logger().log("Done.");
+     })
+});
+``````````````````````````````````
+
+Usage examples are as folows:
+
+**register**
+
+With this command you register new (or overwrite existing) topology:
+
+``````````````````````````````````bash
+node my_cli.js register <uuid> <file>
+``````````````````````````````````
+
+**enable**
+
+With this command you enable topology with given uuid:
+
+``````````````````````````````````bash
+node my_cli.js enable <uuid>
+``````````````````````````````````
+
+**disable**
+
+With this command you disable topology with given uuid:
+
+``````````````````````````````````bash
+node my_cli.js disable <uuid>
+``````````````````````````````````

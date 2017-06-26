@@ -6,6 +6,7 @@ QTopology exports several utility classes that are used internally, but can be u
 - [cmdline](#cmdline)
 - [pattern matcher](#pattern-matcher)
 - [child process restarter](#childprocess-restarter)
+- [minimal HTTP server](#minimal-http-server)
 
 ## logger
 
@@ -144,3 +145,11 @@ let obj = new qtopology.ChildProcRestarter({
 });
 obj.start();
 ````````````````````````````
+
+## Minimal HTTP server
+
+This utility class represents minimal HTTP server that serves simple REST requests as well as GET requests for static content. There is no:
+
+- server-side rendering
+- complex routing
+- route parameter parsing
