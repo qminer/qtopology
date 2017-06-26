@@ -6,16 +6,9 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.storage_props = ko.observableArray();
 
     // blade worker
-    this.selected_worker = {
-        name: ko.observable(""),
-        status: ko.observable("")
-    };
+    this.selected_worker = ko.observable();
     // blade topology
-    this.selected_topology = {
-        uuid: ko.observable(""),
-        enabled: ko.observable(false),
-        status: ko.observable("")
-    };
+    this.selected_topology = ko.observable();
 
     this.bladeWorker = "bladeWorker";
     this.bladeTopology = "bladeTopology";
@@ -40,6 +33,7 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
         self.workers.removeAll();
         for (let d of data) {
             d.open = function () { self.showWorkerInfo(d.name); };
+            d.topologies = ko.observableArray();
             self.workers.push(d);
         }
     });
@@ -59,19 +53,27 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
 }
 
 QTopologyDashboardViewModel.prototype.showBlade = function (name) {
-    $("#" + name).show({ duration: 500, easing: "swing" });
+    for (var blade_name of this.blades) {
+        $("#" + blade_name).hide();
+    }
+    //$("#" + name).show({ duration: 200, easing: "swing" });
+    $("#" + name).show();
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
-    var worker = this.workers().filter(function(x) { return x.name == name; })[0];
-    this.selected_worker.name(worker.name);
-    this.selected_worker.status(worker.status);
+    var worker = this.workers().filter(function (x) { return x.name == name; })[0];
+    this.selected_worker(worker);
+    this.selected_worker().topologies.removeAll();
+    var self = this;
+    this.topologies().forEach(function (x) {
+        if (x.worker == name) {
+            self.selected_worker().topologies.push(x);
+        }
+    });
     this.showBlade(this.bladeWorker);
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
-    var topology = this.topologies().filter(function(x) { return x.uuid == uuid; })[0];
-    this.selected_topology.uuid(topology.uuid);
-    this.selected_topology.enabled(topology.enabled);
-    this.selected_topology.status(topology.status);
+    var topology = this.topologies().filter(function (x) { return x.uuid == uuid; })[0];
+    this.selected_topology(topology);
     this.showBlade(this.bladeTopology);
 }
 
