@@ -11,6 +11,7 @@ class DemoStorage {
         this.workers.push({ name: "worker1", status: "alive", topologies_count: 3 });
         this.workers.push({ name: "worker2", status: "alive", topologies_count: 1 });
         this.workers.push({ name: "worker3", status: "dead", topologies_count: 0 });
+        this.workers.push({ name: "worker4", status: "unloaded", topologies_count: 0 });
 
         this.topologies.push({
             uuid: "topology.test.1",

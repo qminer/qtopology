@@ -18,6 +18,7 @@ class DashboardServer {
         let static_dir = path.join(__dirname, "../../../resources/gui/");
         static_dir = path.resolve(static_dir);
         self.server.addDirectory(static_dir);
+        self.server.addRoute("/", path.join(static_dir, "qtopology_dashboard.html"));
         // now add REST handlers
         self.server.addHandler("worker-status", (data, callback) => {
             self.storage.getWorkerStatus(callback);
