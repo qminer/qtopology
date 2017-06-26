@@ -17,7 +17,7 @@ body{
 }
 
 /**************************************************/
-
+/* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
 .blade {
     visibility: none;
     position: fixed;
@@ -31,10 +31,10 @@ body{
     background-color: rgb(0,0,0,0.4);
 }
 .blade-content {
-    background-color: #222;
-    margin: 15% auto; /* 15% from the top and centered */
+    /*background-color: #222;*/
+    /*margin: 15% auto;*/     /* 15% from the top and centered */
     padding: 20px;
-    border: 1px solid #888;
+    /*border: 1px solid #555;*/
     width: 80%; /* Could be more or less, depending on screen size */
 }
 
@@ -48,15 +48,25 @@ body{
 
 .blade-close:hover,
 .blade-close:focus {
-    color: black;
+    color: goldenrod;
     text-decoration: none;
     cursor: pointer;
+}
+
+.blade-content > h1 {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #666;
+}
+.blade-content h2 {
+    padding: 10px;
+    text-align: center;
 }
 /**************************************************/
 
 .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
 .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
-    position:relative;
+    /*position:relative;*/
     min-height:1px;
     margin-top: 1px;
     padding-right: 0px;
@@ -71,8 +81,8 @@ body{
     .cell-3 { width: 25%; }
     .cell-4 { width: 33.33%; }
     .cell-5 { width: 41.666%; }
-    .cell-6 { width: 58.33%; }
-    .cell-7 { width: 66.66%; }
+    .cell-6 { width: 50%; }    
+    .cell-7 { width: 58.33%; }    
     .cell-8 { width: 66.66%; }
     .cell-9 { width: 75%; }
     .cell-10 { width: 83.33%; }

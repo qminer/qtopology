@@ -5,6 +5,18 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.topologies = ko.observableArray();
     this.storage_props = ko.observableArray();
 
+    // blade worker
+    this.selected_worker = {
+        name: ko.observable(""),
+        status: ko.observable("")
+    };
+    // blade topology
+    this.selected_topology = {
+        uuid: ko.observable(""),
+        enabled: ko.observable(false),
+        status: ko.observable("")
+    };
+
     this.bladeWorker = "bladeWorker";
     this.bladeTopology = "bladeTopology";
 
@@ -20,9 +32,6 @@ QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
         data: JSON.stringify(data),
         success: callback
     });
-    // $.post("/" + cmd, data)
-    //     .done(function (res) { callback(null, res); })
-    //     .error(function (err) { callback(err); });
 }
 
 QTopologyDashboardViewModel.prototype.init = function (callback) {
@@ -42,7 +51,7 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
         }
     });
     // self.post("worker-status", {}, function(err, data) {
-
+    //     TODO
     // });
     if (callback) {
         callback();
@@ -50,15 +59,19 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
 }
 
 QTopologyDashboardViewModel.prototype.showBlade = function (name) {
-    //$("#" + name).toggle("slide", { direction: "right"}, 500);
     $("#" + name).show({ duration: 500, easing: "swing" });
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
-    //$("#" + this.bladeWorker).toggle("slide", { direction: "right"}, 500);
+    var worker = this.workers().filter(function(x) { return x.name == name; })[0];
+    this.selected_worker.name(worker.name);
+    this.selected_worker.status(worker.status);
     this.showBlade(this.bladeWorker);
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
-    //$("#" + this.bladeTopology).toggle("slide", { direction: "right"}, 500);
+    var topology = this.topologies().filter(function(x) { return x.uuid == uuid; })[0];
+    this.selected_topology.uuid(topology.uuid);
+    this.selected_topology.enabled(topology.enabled);
+    this.selected_topology.status(topology.status);
     this.showBlade(this.bladeTopology);
 }
 

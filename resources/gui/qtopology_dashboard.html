@@ -17,11 +17,23 @@
         <div class="blade-content">
             <span class="blade-close">&times;</span>
             <h1>Worker info</h1>
-            <div>
-                <div class="cell-6">
+            <div data-bind="with: selected_worker">
+                <div class="cell-3">
                     <h2>Properties</h2>
+                    <div class="ticket">
+                        <label class="cell-6">Name</label>
+                        <div class="value" data-bind="text: name"></div>
+                    </div>
+                    <div class="ticket">
+                        <label class="cell-6">Status</label>
+                        <div class="value">
+                            <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
+                            <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                            <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="cell-6">
+                <div class="cell-9">
                     <h2>Topologies</h2>
                 </div>
             </div>
@@ -31,11 +43,31 @@
         <div class="blade-content">
             <span class="blade-close">&times;</span>
             <h1>Topology info</h1>
-            <div>
-                <div class="cell-6">
+            <div data-bind="with: selected_topology">
+                <div class="cell-3">
                     <h2>Properties</h2>
+                    <div class="ticket">
+                        <label>UUID</label>
+                        <div class="value" data-bind="text: uuid"></div>
+                    </div>
+                    <div class="ticket">
+                        <label>Enabled</label>
+                        <div class="value">
+                            <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                            <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
+                        </div>
+                    </div>
+                    <div class="ticket">
+                        <label>Status</label>
+                        <div class="value">
+                            <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                            <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                            <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                            <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="cell-6">
+                <div class="cell-9">
                     <h2>Run-time info</h2>
                 </div>
             </div>
@@ -77,12 +109,12 @@
                         <div class="ticket">
                             <div class="pull-right">
                                 <!-- Enabled/diabled badge -->
-                                <span class="badge" data-bind="visible: enabled==true">Enabled</span>
-                                <span class="badge badge-gray" data-bind="visible: enabled==false">Disabled</span>
+                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
                                 <!--Status badge-->
                                 <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
                                 <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                <span class="badge" data-bind="visible: status=='unloadded'">Unloaded</span>
+                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
                                 <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
                             </div>
                             <label data-bind="text: uuid"></label>
