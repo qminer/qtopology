@@ -87,3 +87,31 @@ label {
     background-color: #555;
     padding: 5px 15px 5px 15px;
 }
+
+.badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 1em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    /*background-color: #ffffff;*/
+    border: 1px solid #fff;
+    border-radius: 10px;
+}
+.badge-green {
+    background-color: #4a4;
+}
+.badge-red {
+    background-color: red;
+}
+.badge-gray {
+    background-color: #888;
+}
+.badge-orange {
+    background-color: darkorange;
+}

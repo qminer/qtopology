@@ -12,11 +12,36 @@ class DemoStorage {
         this.workers.push({ name: "worker2", status: "alive", topologies_count: 1 });
         this.workers.push({ name: "worker3", status: "dead", topologies_count: 0 });
 
-        this.topologies.push({ name: "topology.test.1", enabled: true });
-        this.topologies.push({ name: "topology.test.2", enabled: true });
-        this.topologies.push({ name: "test.x", enabled: false });
-        this.topologies.push({ name: "test.y", enabled: false });
-        this.topologies.push({ name: "test.z", enabled: true });
+        this.topologies.push({
+            uuid: "topology.test.1",
+            enabled: true,
+            status: "running",
+            worker: "worker1"
+        });
+        this.topologies.push({
+            uuid: "topology.test.2",
+            enabled: true,
+            status: "waiting",
+            worker: "worker1"
+        });
+        this.topologies.push({
+            uuid: "test.x",
+            enabled: false,
+            status: "unloaded",
+            worker: null
+        });
+        this.topologies.push({
+            uuid: "test.y",
+            enabled: false,
+            status: "unloaded",
+            worker: null
+        });
+        this.topologies.push({
+            uuid: "test.z",
+            enabled: true,
+            status: "running",
+            worker: "worker2"
+        });
     }
 
     getWorkerStatus(callback) {

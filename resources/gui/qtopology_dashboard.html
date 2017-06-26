@@ -40,9 +40,18 @@
                     <div data-bind="foreach: topologies">
                         <div class="ticket">
                             <label data-bind="text: name"></label><br/> 
-                            enabled: <span data-bind="text: enabled"></span>,
+                            <span class="badge" data-bind="visibile: enabled==true">Enabled</span>
+                            <span class="badge badge-gray" data-bind="visibile: enabled==false">Disabled</span>
+
+                            <span class="badge badge-green" data-bind="visibile: status=='running'">Running</span>
+                            <span class="badge badge-red" data-bind="visibile: status=='error'">Error</span>
+                            <span class="badge badge-gray" data-bind="visibile: status=='unloadded'">Unloaded</span>
+                            <span class="badge badge-orange" data-bind="visibile: status=='waiting'">Waiting</span>
+                            enabled: 	&#10003; <span data-bind="text: enabled"></span>
                             &bullet;
-                            status: running
+                            status: <span data-bind="text: status"></span>
+                            &bullet;
+                            worker: <span data-bind="text: worker"></span>
                         </div>
                     </div>
                 </div>

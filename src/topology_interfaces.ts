@@ -86,7 +86,7 @@ export interface LeadershipResultStatus {
 }
 export interface LeadershipResultWorkerStatus {
     name: string;
-    status: string;
+    status: string; // dead, unloaded
     lstatus: string,
     last_ping_d: number,
     last_ping: Date,
