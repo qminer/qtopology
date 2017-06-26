@@ -18,6 +18,42 @@ body{
 
 /**************************************************/
 
+.blade {
+    visibility: none;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: 100;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgb(0,0,0,0.4);
+}
+.blade-content {
+    background-color: #222;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.blade-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.blade-close:hover,
+.blade-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+/**************************************************/
+
 .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
 .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
     position:relative;
@@ -46,6 +82,9 @@ body{
 
 /**************************************************/
 
+.right {
+    text-align: right;
+}
 .pull-right {
     float: right!important;
 }
