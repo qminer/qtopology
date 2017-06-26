@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const hs = require("./http_server");
+const hs = require("../../util/http_server");
 class RecWorker {
 }
 class RecTopology {
