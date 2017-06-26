@@ -20,13 +20,13 @@
             <div data-bind="with: selected_worker">
                 <div class="cell-3">
                     <h2>Properties</h2>
-                    <div class="ticket">
+                    <div class="row ticket">
                         <label class="cell-6">Name</label>
-                        <div class="value" data-bind="text: name"></div>
+                        <div class="cell-6 value" data-bind="text: name"></div>
                     </div>
-                    <div class="ticket">
+                    <div class="row ticket">
                         <label class="cell-6">Status</label>
-                        <div class="value">
+                        <div class="cell-6 value">
                             <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                             <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
                             <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
@@ -46,20 +46,20 @@
             <div data-bind="with: selected_topology">
                 <div class="cell-3">
                     <h2>Properties</h2>
-                    <div class="ticket">
-                        <label>UUID</label>
-                        <div class="value" data-bind="text: uuid"></div>
+                    <div class="row ticket">
+                        <label class="cell-6">UUID</label>
+                        <div class="cell-6 value" data-bind="text: uuid"></div>
                     </div>
-                    <div class="ticket">
-                        <label>Enabled</label>
-                        <div class="value">
+                    <div class="row ticket">
+                        <label class="cell-6">Enabled</label>
+                        <div class="cell-6 value">
                             <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
                             <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                         </div>
                     </div>
-                    <div class="ticket">
-                        <label>Status</label>
-                        <div class="value">
+                    <div class="row ticket">
+                        <label class="cell-6">Status</label>
+                        <div class="cell-6 value">
                             <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                             <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                             <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
@@ -135,13 +135,13 @@
                     <div class="title">Coordination storage</div>
                 </div>
                 <div class="panel-body">
-                    <div class="ticket">
-                        <label>Type</label>
-                        <div class="value">MySQL storage</div>
+                    <div class="row ticket">
+                        <label class="cell-3">Type</label>
+                        <div class="cell-9 value">MySQL storage</div>
                     </div>
-                    <div class="ticket">
-                        <label>Server</label>
-                        <div class="value">mysql-server-1</div>
+                    <div class="row ticket">
+                        <label class="cell-3">Server</label>
+                        <div class="cell-9 value">mysql-server-1</div>
                     </div>
                 </div>
             </div>

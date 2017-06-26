@@ -63,10 +63,13 @@ body{
     text-align: center;
 }
 /**************************************************/
-
+.row {
+    display: flex;
+    width: 100%;
+}
 .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
 .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
-    /*position:relative;*/
+    position:relative;
     min-height:1px;
     margin-top: 1px;
     padding-right: 0px;
@@ -135,7 +138,7 @@ body{
 label {
     padding: 5px 15px 5px 0px;
     color: #a87;
-    font-size: 1.5em;
+    /*font-size: 1.2em;*/
 }
 .value {
     background-color: #555;
