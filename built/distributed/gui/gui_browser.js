@@ -9,7 +9,7 @@ class GuiBrowserHandler {
         this.storage = storage;
         callback();
     }
-    getJsFile(callback) {
+    getFile(name, callback) {
         let self = this;
         if (self.client_side_code) {
             callback(null, self.client_side_code);

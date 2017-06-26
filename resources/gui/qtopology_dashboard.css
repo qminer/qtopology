@@ -1,0 +1,174 @@
+body, div, p, h1, h2, h3, h4, h5{
+    margin: 0px;
+    padding: 0px;
+}
+body{
+    background-color: #111;
+    color: #fff;
+    margin: 0px;
+    font-family: sans-serif, arial;
+}
+
+.header{
+    background-color: #333;
+    color: #eee;
+    margin: 0px;
+    padding: 15px 25px 15px 15px;
+}
+
+/**************************************************/
+/* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
+.blade {
+    visibility: none;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: 100;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgb(0,0,0,0.4);
+}
+.blade-content {
+    /*background-color: #222;*/
+    /*margin: 15% auto;*/     /* 15% from the top and centered */
+    padding: 20px;
+    /*border: 1px solid #555;*/
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.blade-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.blade-close:hover,
+.blade-close:focus {
+    color: goldenrod;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.blade-content > h1 {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #666;
+}
+.blade-content h2 {
+    padding: 10px;
+    text-align: center;
+}
+/**************************************************/
+.row {
+    display: flex;
+    width: 100%;
+}
+.cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+.cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
+    position:relative;
+    min-height:1px;
+    margin-top: 1px;
+    padding-right: 0px;
+}
+@media (min-width:768px){
+    .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+    .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
+        float: left;
+    }    
+    .cell-1 { width: 8.33%; }
+    .cell-2 { width: 16.66%; }
+    .cell-3 { width: 25%; }
+    .cell-4 { width: 33.33%; }
+    .cell-5 { width: 41.666%; }
+    .cell-6 { width: 50%; }    
+    .cell-7 { width: 58.33%; }    
+    .cell-8 { width: 66.66%; }
+    .cell-9 { width: 75%; }
+    .cell-10 { width: 83.33%; }
+    .cell-11 { width: 91.66%; }
+    .cell-12 { width: 100%; }
+}
+
+/**************************************************/
+
+.right {
+    text-align: right;
+}
+.pull-right {
+    float: right!important;
+}
+
+/**************************************************/
+
+.panel{
+    border:  1px solid #345;
+    margin: 0px 1px 0px 1px;
+}
+.panel-header{
+    background-color: #345;
+    color: #eee;
+    padding: 10px;
+}
+.panel-header .title{
+    font-size: 1.5em;
+}
+
+.panel-body{
+    color: #eee;
+    padding: 1px;
+}
+
+/**************************************************/
+
+.ticket {
+    background-color: #222;
+    padding: 10px;
+    margin-bottom: 1px;
+}
+.ticket:hover {
+    background-color: #333;
+}
+
+/**************************************************/
+
+label {
+    padding: 5px 15px 5px 0px;
+    color: #a87;
+    /*font-size: 1.2em;*/
+}
+.value {
+    background-color: #555;
+    padding: 5px 15px 5px 15px;
+}
+
+.badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 1em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    /*background-color: #ffffff;*/
+    border: 1px solid #fff;
+    border-radius: 10px;
+}
+.badge-green {
+    background-color: #4a4;
+}
+.badge-red {
+    background-color: red;
+}
+.badge-gray {
+    background-color: #888;
+}
+.badge-orange {
+    background-color: darkorange;
+}
