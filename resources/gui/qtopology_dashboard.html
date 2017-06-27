@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <link rel="stylesheet" href="qtopology_dashboard.css" />
     <script src="qtopology_dashboard.js"></script>
@@ -7,6 +8,7 @@
     <script src="jquery-2.2.0.min.js"></script>
     <script src="knockout-3.4.0.js"></script>
 </head>
+
 <body>
     <div class="header">
         <h1>QTopology dashboard</h1>
@@ -19,15 +21,19 @@
                 <div class="cell-3">
                     <h2>Properties</h2>
                     <div class="row ticket">
-                        <label class="cell-6">Name</label>
-                        <div class="cell-6 value" data-bind="text: name"></div>
+                        <div class="ticket-inner">
+                            <label class="cell-6">Name</label>
+                            <div class="cell-6 value" data-bind="text: name"></div>
+                        </div>
                     </div>
                     <div class="row ticket">
-                        <label class="cell-6">Status</label>
-                        <div class="cell-6 value">
-                            <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
-                            <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
-                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                        <div class="ticket-inner">
+                            <label class="cell-6">Status</label>
+                            <div class="cell-6 value">
+                                <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
+                                <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -35,22 +41,24 @@
                     <h2>Topologies</h2>
                     <div data-bind="foreach: topologies">
                         <div class="ticket">
-                            <div class="pull-right">
-                                <!-- Enabled/diabled badge -->
-                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
-                                <!--Status badge-->
-                                <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                                <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
-                            </div>
-                            <label data-bind="text: uuid"></label>
-                            <div>
-                                worker: <span data-bind="text: worker"></span>
-                            </div>
-                            <div class="right">
-                                <button data-bind="click: open">More</button>
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <!-- Enabled/diabled badge -->
+                                    <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                    <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                    <!--Status badge-->
+                                    <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                    <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                    <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                </div>
+                                <label data-bind="text: uuid"></label>
+                                <div>
+                                    worker: <span data-bind="text: worker"></span>
+                                </div>
+                                <div class="right">
+                                    <button data-bind="click: open">More</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -66,23 +74,29 @@
                 <div class="cell-3">
                     <h2>Properties</h2>
                     <div class="row ticket">
-                        <label class="cell-6">UUID</label>
-                        <div class="cell-6 value" data-bind="text: uuid"></div>
-                    </div>
-                    <div class="row ticket">
-                        <label class="cell-6">Enabled</label>
-                        <div class="cell-6 value">
-                            <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                            <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                        <div class="ticket-inner">
+                            <label class="cell-6">UUID</label>
+                            <div class="cell-6 value" data-bind="text: uuid"></div>
                         </div>
                     </div>
                     <div class="row ticket">
-                        <label class="cell-6">Status</label>
-                        <div class="cell-6 value">
-                            <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                            <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                            <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                        <div class="ticket-inner">
+                            <label class="cell-6">Enabled</label>
+                            <div class="cell-6 value">
+                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ticket">
+                        <div class="ticket-inner">
+                            <label class="cell-6">Status</label>
+                            <div class="cell-6 value">
+                                <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -101,17 +115,19 @@
                 <div class="panel-body">
                     <div data-bind="foreach: workers">
                         <div class="ticket">
-                            <div class="pull-right">
-                                <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
-                                <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
-                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                            </div>
-                            <label data-bind="text: name"></label>
-                            <div>
-                                topologies: <span data-bind="text: topologies_count"></span>
-                            </div>
-                            <div class="right">
-                                <button data-bind="click: open">More</button>
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
+                                    <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                </div>
+                                <label data-bind="text: name"></label>
+                                <div>
+                                    topologies: <span data-bind="text: topologies_count"></span>
+                                </div>
+                                <div class="right">
+                                    <button data-bind="click: open">More</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -126,22 +142,24 @@
                 <div class="panel-body">
                     <div data-bind="foreach: topologies">
                         <div class="ticket">
-                            <div class="pull-right">
-                                <!-- Enabled/diabled badge -->
-                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
-                                <!--Status badge-->
-                                <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                                <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
-                            </div>
-                            <label data-bind="text: uuid"></label>
-                            <div>
-                                worker: <span data-bind="text: worker"></span>
-                            </div>
-                            <div class="right">
-                                <button data-bind="click: open">More</button>
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <!-- Enabled/diabled badge -->
+                                    <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                    <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                    <!--Status badge-->
+                                    <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                    <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                    <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                </div>
+                                <label data-bind="text: uuid"></label>
+                                <div>
+                                    worker: <span data-bind="text: worker"></span>
+                                </div>
+                                <div class="right">
+                                    <button data-bind="click: open">More</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -155,12 +173,16 @@
                 </div>
                 <div class="panel-body">
                     <div class="row ticket">
-                        <label class="cell-3">Type</label>
-                        <div class="cell-9 value">MySQL storage</div>
+                        <div class="ticket-inner">
+                            <label class="cell-3">Type</label>
+                            <div class="cell-9 value">MySQL storage</div>
+                        </div>
                     </div>
                     <div class="row ticket">
-                        <label class="cell-3">Server</label>
-                        <div class="cell-9 value">mysql-server-1</div>
+                        <div class="ticket-inner">
+                            <label class="cell-3">Server</label>
+                            <div class="cell-9 value">mysql-server-1</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -173,5 +195,7 @@
         ko.applyBindings(model);
         model.init();
     });
+
 </script>
+
 </html>
