@@ -15,6 +15,7 @@ import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
 import * as cntb from "./std_nodes/counter_bolt";
 import * as dtb from "./std_nodes/date_transform_bolt";
+import * as dmb from "./std_nodes/date_merger_bolt";
 
 import * as frs from "./std_nodes/file_reader_spout";
 import * as ps from "./std_nodes/process_spout";
@@ -386,6 +387,7 @@ export class TopologyBoltInproc extends TopologyNodeBaseInproc {
             case "post": return new pb.PostBolt();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
+            case "date_merge": return new dmb.DateMergerBolt();
             case "file_append": return new fab.FileAppendBolt();
             case "date_transform": return new dtb.DateTransformBolt();
             case "bomb": return new bb.BombBolt();
