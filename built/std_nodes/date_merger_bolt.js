@@ -50,7 +50,13 @@ class DateMergerBolt {
             return;
         // find the oldest data
         self.wait_list = self.wait_list.sort((a, b) => {
-            return a[self.comparison_field] - b[self.comparison_field];
+            let data_a = a[self.comparison_field];
+            let data_b = b[self.comparison_field];
+            if (data_a < data_b)
+                return -1;
+            if (data_a > data_b)
+                return 1;
+            return 0;
         });
         let rec = self.wait_list[0];
         self.wait_list = self.wait_list.slice(1);
