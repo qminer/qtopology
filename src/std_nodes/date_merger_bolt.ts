@@ -60,7 +60,6 @@ export class DateMergerBolt implements intf.Bolt {
             target_value: stream_id,
             callback: callback
         });
-        log.logger().log(`wait-list ${JSON.stringify(this.wait_list)}`);
         if (this.in_initial_delay) {
             return;
         } else {
@@ -76,7 +75,6 @@ export class DateMergerBolt implements intf.Bolt {
         if (self.in_call) return;
         if (self.wait_list.length == 0) return;
         // find the oldest data
-        log.logger().log(`wait-list ${JSON.stringify(self.wait_list)}`);
         self.wait_list = self.wait_list.sort((a, b) => {
             let data_a = a[self.comparison_field];
             let data_b = b[self.comparison_field];
@@ -84,7 +82,6 @@ export class DateMergerBolt implements intf.Bolt {
             if (data_a > data_b) return 1;
             return 0;
         });
-        log.logger().log(`wait-list ${JSON.stringify(self.wait_list)}`);
         let rec = self.wait_list[0];
         self.wait_list = self.wait_list.slice(1);
         // send the data and catch the returning calls
