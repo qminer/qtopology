@@ -3,7 +3,7 @@ import * as intf from "../topology_interfaces";
  * so that they are interleaved with respect to specific field value. */
 export declare class DateMergerBolt implements intf.Bolt {
     private name;
-    private keep_stream_id;
+    private stream_id;
     private comparison_field;
     private initial_delay;
     private in_initial_delay;
