@@ -25,7 +25,6 @@ List of standard bolts:
 - [File-append bolt](#file-append-bolt)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
-- [Date-merger bolt](#date-merger-bolt)
 - [Bomb bolt](#bomb-bolt)
 
 ## File-reader spout
@@ -100,35 +99,6 @@ this only type is the only one that cannot be properly serialized and deserializ
 ```````````````````````````````
 
 > Using this bolt only makes sense when messages are passed in binary form.
-
-## Date-merger bolt
-
-`cmd="date_merge"`
-
-This bolt takes incoming messages from two or more streams and 
-interleaves them with respect to some field value.
-
-```````````````````````````````json
-{
-    "name": "bolt_merge_1",
-    "working_dir": ".",
-    "type": "sys",
-    "cmd": "date_merge",
-    "init": {
-        "comparison_field": "field1",
-        "stream_id": "new_stream_id",
-        "initial_delay": 3000
-    }
-}
-```````````````````````````````
-
-Here the bolt will sort the incomming data by the field `field1` and send it forward with stream id `new_stream_id`. The bolt will wait for some time before starting the merge (parameter `initial_delay`, default is 10 seconds).
-
-Allowed data types for comparison:
-
-- `Date`
-- `Number`
-- `String`
 
 ## Dir spout
 
