@@ -23,9 +23,11 @@ class ChildProcRestarter {
     constructor(options) {
         this.cmd = options.cmd;
         this.cmd_line_args = options.args;
+        this.cmd_line_args_restart = options.args_restart || options.args;
         this.cwd = options.cwd;
         this.use_fork = options.use_fork;
         this.paused = true;
+        this.first_start = true;
         if (options.stop_score > 0) {
             this.stop_score = options.stop_score;
             this.error_frequency_score = new fe.EventFrequencyScore(options.stop_score * 60 * 1000);
@@ -40,20 +42,25 @@ class ChildProcRestarter {
         if (this.paused) {
             return;
         }
+        let args = this.cmd_line_args_restart;
+        if (this.first_start) {
+            this.first_start = false;
+            args = this.cmd_line_args;
+        }
         if (this.use_fork) {
             let options = {};
             options.silent = false;
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
-            this.proc = cp.fork(this.cmd, this.cmd_line_args, options);
+            this.proc = cp.fork(this.cmd, args, options);
         }
         else {
             let options = {};
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
-            this.proc = cp.spawn(this.cmd, this.cmd_line_args, options);
+            this.proc = cp.spawn(this.cmd, args, options);
             this.proc.stdout.on("data", outputToConsole);
             this.proc.stderr.on("data", outputToConsole);
         }
@@ -101,7 +108,7 @@ exports.ChildProcRestarter = ChildProcRestarter;
 class ChildProcRestarterSpawn extends ChildProcRestarter {
     /** Simple constructor */
     constructor(cmd, args, cwd) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false, stop_score: -1 });
+        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
     }
 }
 exports.ChildProcRestarterSpawn = ChildProcRestarterSpawn;
