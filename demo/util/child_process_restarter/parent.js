@@ -3,6 +3,7 @@ const qtopology = require("../../..");
 let options = {
     cmd : "node",
     args: ["child.js"],
+    args_restart: ["child.js", "-restart"],
     use_fork: false,
     stop_score: 5
 };

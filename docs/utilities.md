@@ -5,7 +5,7 @@ QTopology exports several utility classes that are used internally, but can be u
 - [logger](#logger)
 - [cmdline](#cmdline)
 - [pattern matcher](#pattern-matcher)
-- [child process restarter](#childprocess-restarter)
+- [child process restarter](#child-process-restarter)
 - [minimal HTTP server](#minimal-http-server)
 
 ## logger
@@ -109,7 +109,7 @@ target.isMatch(data2); // returns true
 
 This class provides automatic restarting of given child process (similar to `forever` module). See demo for an example.
 
-It comes in 3 flavors, one calls `spawn` and the other calls`fork`. The former one can call any executable and the latter one just need path to the javascript file.
+It comes in two flavors, one calls `spawn` and the other calls `fork`. The former one can call any executable and the latter one just need path to the javascript file.
 
 ### Spawn
 
@@ -140,11 +140,16 @@ const qtopology = require("qtopology");
 let obj = new qtopology.ChildProcRestarter({
     cmd : "node",
     args: ["child.js"],
+    args_restart: ["child.js", "-a"],
     use_fork: false,
     stop_score: 5
 });
 obj.start();
 ````````````````````````````
+
+Parameter `args_restart` is optional and, when present, is used upon process restart. In that scenarion, the argument `args` is used only the first time.
+
+If parameter `args_restart` is not provided, the argument `args` is used each time.
 
 ## Minimal HTTP server
 

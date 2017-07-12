@@ -77,7 +77,8 @@ export class TopologyLeader {
                 (xcallback) => {
                     self.storage.getLeadershipStatus((err, res) => {
                         if (err) return callback(err);
-                        if (res.leadership == "ok" || res.leadership == "pending") {
+                        //if (res.leadership == "ok" || res.leadership == "pending") {
+                        if (res.leadership == "ok") {
                             should_announce = false;
                         }
                         xcallback();

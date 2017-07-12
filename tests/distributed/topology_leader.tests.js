@@ -28,18 +28,31 @@ describe('TopologyLeader', function () {
         }, 1000);
     });
     it('run - leader pending', function (done) {
+        let target_name = "name1";
         let getLeadershipStatus_called = false;
+        let announceLeaderCandidacy_name = null;
         let mock_storage = {
             getLeadershipStatus: (cb) => {
                 getLeadershipStatus_called = true;
                 cb(null, { leadership: "pending" });
+            },
+            announceLeaderCandidacy: (name, cb) => {
+                announceLeaderCandidacy_name = name;
+                cb();
+            },
+            checkLeaderCandidacy: (name, cb) => {
+                cb(null, { isLeader: true });
+            },
+            getWorkerStatus: (cb) => {
+                cb(null, []);
             }
         };
-        let target = new tl.TopologyLeader("name1", mock_storage, 100);
+        let target = new tl.TopologyLeader(target_name, mock_storage, 100);
         target.run();
         setTimeout(() => {
             target.shutdown((err) => {
                 assert.ok(getLeadershipStatus_called);
+                assert.equal(announceLeaderCandidacy_name, target_name);
                 done();
             });
         }, 1000);

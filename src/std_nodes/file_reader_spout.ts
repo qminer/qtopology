@@ -90,7 +90,11 @@ export class FileReaderSpout implements intf.Spout {
         }
         let data = this.tuples[0];
         this.tuples = this.tuples.slice(1);
-        callback(null, data, this.stream_id);
+        let self = this;
+        setImmediate(() => {
+            callback(null, data, self.stream_id);
+        });
+
     }
 
     private processLineJson(content: string) {
