@@ -26,32 +26,39 @@ QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
         success: callback
     });
 }
-
-QTopologyDashboardViewModel.prototype.init = function (callback) {
+QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     let self = this;
-    self.post("worker-status", {}, function (data) {
-        self.workers.removeAll();
-        for (let d of data) {
-            d.open = function () { self.showWorkerInfo(d.name); };
-            d.topologies = ko.observableArray();
-            self.workers.push(d);
-        }
-    });
-    self.post("topology-status", {}, function (data) {
+    self.post("topology-status", {}, function (data_topologies) {
         self.topologies.removeAll();
-        for (let d of data) {
+        for (let d of data_topologies) {
             d.open = function () { self.showTopologyInfo(d.uuid); };
             self.topologies.push(d);
         }
+        self.post("worker-status", {}, function (data_workers) {
+            self.workers.removeAll();
+            for (let d of data_workers) {
+                d.open = function () { self.showWorkerInfo(d.name); };
+                d.topologies = ko.observableArray();
+                self.topologies().forEach(function (x) {
+                    if (x.worker == name) {
+                        d.topologies.push(x);
+                    }
+                });
+                d.topologies_count = ko.observable(d.topologies().length);
+                self.workers.push(d);
+            }
+            if (callback) {
+                callback();
+            }
+        });
     });
-    // self.post("worker-status", {}, function(err, data) {
+    // self.post("storage-info", {}, function(err, data) {
     //     TODO
     // });
-    if (callback) {
-        callback();
-    }
 }
-
+QTopologyDashboardViewModel.prototype.init = function (callback) {
+    this.loadData(callback);
+}
 QTopologyDashboardViewModel.prototype.showBlade = function (name) {
     for (var blade_name of this.blades) {
         $("#" + blade_name).hide();
@@ -62,13 +69,6 @@ QTopologyDashboardViewModel.prototype.showBlade = function (name) {
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     var worker = this.workers().filter(function (x) { return x.name == name; })[0];
     this.selected_worker(worker);
-    this.selected_worker().topologies.removeAll();
-    var self = this;
-    this.topologies().forEach(function (x) {
-        if (x.worker == name) {
-            self.selected_worker().topologies.push(x);
-        }
-    });
     this.showBlade(this.bladeWorker);
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {

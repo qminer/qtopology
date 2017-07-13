@@ -67,7 +67,7 @@ body{
     display: flex;
     width: 100%;
 }
-.cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+.cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6,
 .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
     position:relative;
     min-height:1px;
@@ -75,17 +75,17 @@ body{
     padding-right: 0px;
 }
 @media (min-width:768px){
-    .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6, 
+    .cell-1, .cell-2, .cell-3, .cell-4, .cell-5, .cell-6,
     .cell-7, .cell-8, .cell-9, .cell-10, .cell-11, .cell-12  {
         float: left;
-    }    
+    }
     .cell-1 { width: 8.33%; }
     .cell-2 { width: 16.66%; }
     .cell-3 { width: 25%; }
     .cell-4 { width: 33.33%; }
     .cell-5 { width: 41.666%; }
-    .cell-6 { width: 50%; }    
-    .cell-7 { width: 58.33%; }    
+    .cell-6 { width: 50%; }
+    .cell-7 { width: 58.33%; }
     .cell-8 { width: 66.66%; }
     .cell-9 { width: 75%; }
     .cell-10 { width: 83.33%; }
@@ -126,18 +126,22 @@ body{
 
 .ticket {
     background-color: #222;
-    padding: 10px;
+    padding: 0;
     margin-bottom: 1px;
 }
 .ticket:hover {
     background-color: #333;
 }
-
+.ticket-inner {
+    padding: 10px;
+    /*width: 100%;*/
+}
 /**************************************************/
 
 label {
     padding: 5px 15px 5px 0px;
     color: #a87;
+    /*margin-left: 10px;*/
     /*font-size: 1.2em;*/
 }
 .value {

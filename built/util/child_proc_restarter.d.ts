@@ -6,6 +6,7 @@ export interface SimpleCallbackChildProcRestarter {
 export declare class ChildProcRestarterOptions {
     cmd: string;
     args: string[];
+    args_restart?: string[];
     cwd: string;
     use_fork: boolean;
     stop_score?: number;
@@ -16,12 +17,14 @@ export declare class ChildProcRestarterOptions {
 export declare class ChildProcRestarter {
     private cmd;
     private cmd_line_args;
+    private cmd_line_args_restart;
     private cwd;
     private use_fork;
     private stop_score;
     private error_frequency_score;
     private proc;
     private paused;
+    private first_start;
     private pending_exit_cb;
     /** Simple constructor */
     constructor(options: ChildProcRestarterOptions);
