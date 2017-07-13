@@ -1,6 +1,5 @@
 import * as path from "path";
 import * as fs from "fs";
-import * as glob from "glob";
 
 import * as intf from "../../topology_interfaces";
 import * as log from "../../util/logger";

@@ -30,6 +30,51 @@ export interface ValidationOptions {
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Basic topology-definition type
+
+export interface TopologyDefinition {
+    general: TopologyDefinitionGeneral;
+    spouts: TopologyDefinitionSpout[];
+    bolts: TopologyDefinitionBolt[];
+    variables: any;
+}
+
+export interface TopologyDefinitionGeneral {
+    heartbeat: number;
+    weight?: number;
+    worker_affinity?: string[];
+    pass_binary_messages?: boolean;
+}
+
+export interface TopologyDefinitionSpout {
+    name: string;
+    type?: string;
+    disabled?: boolean;
+    working_dir: string;
+    cmd: string;
+    subtype?: string;
+    telemetry_timeout?: number;
+    init: any;
+}
+export interface TopologyDefinitionBolt {
+    name: string;
+    type?: string;
+    disabled?: boolean;
+    working_dir: string;
+    cmd: string;
+    subtype?: string;
+    telemetry_timeout?: number;
+    inputs: TopologyDefinitionBoltInput[];
+    init: any;
+    allow_parallel?: boolean;
+}
+export interface TopologyDefinitionBoltInput {
+    source: string;
+    stream_id?: string;
+    disabled?: boolean;
+}
+
+////////////////////////////////////////////////////////////////////////
 // Inetrface that need to be implemented by custom bolts and spouts
 
 export interface Bolt {
@@ -105,7 +150,14 @@ export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
+export interface TopologyDefinitionResponse {
+    config: TopologyDefinition;
+    current_worker: string;
+}
 
+/**
+ * Interface that needs to be implemented by all storage implementations.
+ */
 export interface CoordinationStorage {
 
     getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
@@ -113,7 +165,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
-    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<any>);
+    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<TopologyDefinitionResponse>);
 
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
@@ -122,23 +174,8 @@ export interface CoordinationStorage {
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
 
-    registerTopology(uuid: string, config: any, callback: SimpleCallback);
+    registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
 }
-
-// export interface CoordinationStorageBrowser {
-
-//     init(storage: CoordinationStorage, callback: SimpleCallback);
-
-//     getFile(name: string, callback: SimpleResultCallback<string>);
-
-//     getWorkerStatus(callback: SimpleResultCallback<string>);
-//     getTopologyStatus(callback: SimpleResultCallback<string>);
-
-//     postRegisterTopology(config: any, overwrite: boolean, callback: SimpleCallback);
-//     postDisableTopology(uuid: string, callback: SimpleCallback);
-//     postEnableTopology(uuid: string, callback: SimpleCallback);
-//     postDeleteTopology(uuid: string, callback: SimpleCallback);
-// }

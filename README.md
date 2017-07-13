@@ -28,7 +28,7 @@ When running in distributed mode, `qtopology` also uses the following:
 
 - **Coordination storage** - must be resilient, receives worker registrations and sends them the initialization data. Also sends shutdown signals. Implementation is custom. `QTopology` provides `REST`-based service out-of-the-box, but the design is similar for other options like `MySQL` storage etc.
 - **Worker** - Runs on single server. Registers with coordination storage, receives initialization data and instantiates local topologies in separate subprocesses.
-    - **Leader** - one of the active workers is announced leader and it performs leadership tasks such as assigning of topologies to workers, detection of dead or inactive workers.
+  - **Leader** - one of the active workers is announced leader and it performs leadership tasks such as assigning of topologies to workers, detection of dead or inactive workers.
 
 ## Quick start
 
