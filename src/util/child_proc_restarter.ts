@@ -20,6 +20,7 @@ function outputToConsole(data) {
 export class ChildProcRestarterOptions {
     cmd: string;
     args: string[];
+    args_restart?: string[];
     cwd: string;
     use_fork: boolean;
     stop_score?: number;
@@ -32,21 +33,25 @@ export class ChildProcRestarter {
 
     private cmd: string;
     private cmd_line_args: string[];
+    private cmd_line_args_restart: string[];
     private cwd: string;
     private use_fork: boolean;
     private stop_score: number;
     private error_frequency_score: fe.EventFrequencyScore;
     private proc: cp.ChildProcess;
     private paused: boolean;
+    private first_start: boolean;
     private pending_exit_cb: SimpleCallbackChildProcRestarter;
 
     /** Simple constructor */
     constructor(options: ChildProcRestarterOptions) {
         this.cmd = options.cmd;
         this.cmd_line_args = options.args;
+        this.cmd_line_args_restart = options.args_restart || options.args;
         this.cwd = options.cwd;
         this.use_fork = options.use_fork;
         this.paused = true;
+        this.first_start = true;
         if (options.stop_score > 0) {
             this.stop_score = options.stop_score;
             this.error_frequency_score = new fe.EventFrequencyScore(options.stop_score * 60 * 1000);
@@ -62,19 +67,24 @@ export class ChildProcRestarter {
         if (this.paused) {
             return;
         }
+        let args = this.cmd_line_args_restart;
+        if (this.first_start) {
+            this.first_start = false;
+            args = this.cmd_line_args;
+        }
         if (this.use_fork) {
             let options = {} as cp.ForkOptions;
             options.silent = false;
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
-            this.proc = cp.fork(this.cmd, this.cmd_line_args, options);
+            this.proc = cp.fork(this.cmd, args, options);
         } else {
             let options = {} as cp.SpawnOptions;
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
-            this.proc = cp.spawn(this.cmd, this.cmd_line_args, options);
+            this.proc = cp.spawn(this.cmd, args, options);
             this.proc.stdout.on("data", outputToConsole);
             this.proc.stderr.on("data", outputToConsole);
         }
@@ -125,7 +135,7 @@ export class ChildProcRestarterSpawn extends ChildProcRestarter {
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false, stop_score: -1 });
+        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
     }
 }
 
