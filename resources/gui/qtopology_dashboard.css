@@ -15,7 +15,12 @@ body{
     margin: 0px;
     padding: 15px 25px 15px 15px;
 }
-
+.logo {
+    float: left;
+    height: 35px;
+     background-color: #ccc; 
+    margin-right: 20px;
+}
 /**************************************************/
 /* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
 .blade {
