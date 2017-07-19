@@ -90,4 +90,9 @@ QTopologyDashboardViewModel.prototype.prepareBlades = function () {
         // var $input = $('<input id="btnClose' + blade_name + '" type="button" value="Close.." />');
         // blade_obj.prepend(blade_obj);
     })(ii);
+    $(document).keyup(function (e) {
+        if (e.keyCode === 27) {
+            $(".blade").hide();
+        }
+    });
 }

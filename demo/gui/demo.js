@@ -20,13 +20,16 @@ coordinator.setWorkerStatus("worker3", "dead", () => { });
 coordinator.setWorkerStatus("worker4", "unloaded", () => { });
 
 coordinator.registerTopology("topology.test.1", dummy_topology_config, () => { });
-coordinator.registerTopology("topology.test.1", dummy_topology_config, () => { });
+coordinator.registerTopology("topology.test.2", dummy_topology_config, () => { });
 coordinator.registerTopology("topology.test.x", dummy_topology_config, () => { });
 coordinator.registerTopology("topology.test.y", dummy_topology_config, () => { });
 coordinator.registerTopology("topology.test.z", dummy_topology_config, () => { });
 
+coordinator.enableTopology("topology.test.1", () => { });
+coordinator.enableTopology("topology.test.2", () => { });
 coordinator.disableTopology("topology.test.x", () => { });
 coordinator.disableTopology("topology.test.y", () => { });
+coordinator.enableTopology("topology.test.z", () => { });
 
 coordinator.assignTopology("topology.test.1", "worker1", () => { });
 coordinator.assignTopology("topology.test.2", "worker2", () => { });

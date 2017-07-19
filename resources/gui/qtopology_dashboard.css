@@ -149,6 +149,22 @@ label {
     padding: 5px 15px 5px 15px;
 }
 
+dt {
+  float: left;
+  clear: left;
+  margin: 0;
+  padding: 5px .5em 5px 0;
+  width: 30%;
+  text-align: right;
+    color: #a87;
+}
+dd {
+    margin: 0;
+  padding: 5px .5em 5px 0;
+    /* background-color: #555; */
+    /* width: 69% */
+}
+
 .badge {
     display: inline-block;
     min-width: 10px;

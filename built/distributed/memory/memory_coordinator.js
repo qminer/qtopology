@@ -103,6 +103,9 @@ class MemoryCoordinator {
             obj[0].lstatus = "leader";
             callback(null, true);
         }
+        else if (obj[0].lstatus == "leader") {
+            callback(null, true);
+        }
         else {
             obj[0].lstatus = "";
             callback(null, false);
@@ -110,19 +113,19 @@ class MemoryCoordinator {
     }
     assignTopology(uuid, worker, callback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.worker = worker; });
         callback();
     }
     setTopologyStatus(uuid, status, error, callback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.status = status; });
         callback();
     }
     setWorkerStatus(worker, status, callback) {
         this.workers
-            .filter(x => x.name != worker)
+            .filter(x => x.name == worker)
             .forEach(x => { x.status = status; });
         callback();
     }
@@ -140,13 +143,13 @@ class MemoryCoordinator {
     }
     disableTopology(uuid, callback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.enabled = false; });
         callback();
     }
     enableTopology(uuid, callback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.enabled = true; });
         callback();
     }

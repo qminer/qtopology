@@ -121,12 +121,14 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         let leaders = this.workers
             .filter(x => x.name != name && x.status == "leader")
             .length;
-            
+
         if (leaders == 0 && obj[0].lstatus == "candidate") {
             this.workers
                 .filter(x => x.name != name && x.lstatus != "candidate")
                 .forEach(x => { x.lstatus = ""; });
             obj[0].lstatus = "leader";
+            callback(null, true);
+        } else if (obj[0].lstatus == "leader") {
             callback(null, true);
         } else {
             obj[0].lstatus = "";
@@ -136,21 +138,21 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
 
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.worker = worker; });
         callback();
     }
 
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.status = status; });
         callback();
     }
 
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback) {
         this.workers
-            .filter(x => x.name != worker)
+            .filter(x => x.name == worker)
             .forEach(x => { x.status = status; });
         callback();
     }
@@ -170,14 +172,14 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
 
     disableTopology(uuid: string, callback: intf.SimpleCallback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.enabled = false; });
         callback();
     }
 
     enableTopology(uuid: string, callback: intf.SimpleCallback) {
         this.topologies
-            .filter(x => x.uuid != uuid)
+            .filter(x => x.uuid == uuid)
             .forEach(x => { x.enabled = true; });
         callback();
     }
