@@ -126,21 +126,22 @@ export enum ChildMsgCode {
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites
 
+// possible values: "vacant", "pending", "ok"
 export interface LeadershipResultStatus {
     leadership: string
 }
 export interface LeadershipResultWorkerStatus {
     name: string;
-    status: string; // dead, unloaded
-    lstatus: string,
-    last_ping_d: number,
-    last_ping: Date,
+    status: string; // alive, dead, unloaded
+    lstatus: string, // leader, candidate, ""
+    last_ping: number,
+    last_ping_d: Date,
     lstatus_ts: number,
     lstatus_ts_d: Date
 }
 export interface LeadershipResultTopologyStatus {
     uuid: string;
-    status: string;
+    status: string; // unassigned, stopped, error, waiting, running
     worker: string;
     weight: number;
     enabled: boolean;

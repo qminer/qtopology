@@ -8,6 +8,7 @@ __export(require("./topology_local"));
 __export(require("./topology_validation"));
 __export(require("./topology_interfaces"));
 __export(require("./distributed/topology_worker"));
+__export(require("./distributed/memory/memory_coordinator"));
 __export(require("./distributed/file_based/file_coordinator"));
 __export(require("./distributed/http_based/http_coordination_storage"));
 __export(require("./distributed/http_based/http_coordinator"));

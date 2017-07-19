@@ -2,69 +2,44 @@
 
 let qtopology = require("../..");
 
-class DemoStorage {
+let dummy_topology_config = {
+    general: { heartbeat: 1000 },
+    spouts: [],
+    bolts: [],
+    variables: {}
+};
 
-    constructor() {
-        this.workers = [];
-        this.topologies = [];
+let coordinator = new qtopology.MemoryCoordinator();
 
-        this.workers.push({ name: "worker1", status: "alive", topologies_count: 3 });
-        this.workers.push({ name: "worker2", status: "alive", topologies_count: 1 });
-        this.workers.push({ name: "worker3", status: "dead", topologies_count: 0 });
-        this.workers.push({ name: "worker4", status: "unloaded", topologies_count: 0 });
+coordinator.registerWorker("worker1", () => { });
+coordinator.registerWorker("worker2", () => { });
+coordinator.registerWorker("worker3", () => { });
+coordinator.registerWorker("worker4", () => { });
 
-        this.topologies.push({
-            uuid: "topology.test.1",
-            enabled: true,
-            status: "running",
-            worker: "worker1"
-        });
-        this.topologies.push({
-            uuid: "topology.test.2",
-            enabled: true,
-            status: "waiting",
-            worker: "worker1"
-        });
-        this.topologies.push({
-            uuid: "test.x",
-            enabled: false,
-            status: "unloaded",
-            worker: null
-        });
-        this.topologies.push({
-            uuid: "test.y",
-            enabled: false,
-            status: "unloaded",
-            worker: null
-        });
-        this.topologies.push({
-            uuid: "test.z",
-            enabled: true,
-            status: "running",
-            worker: "worker2"
-        });
-    }
+coordinator.setWorkerStatus("worker3", "dead", () => { });
+coordinator.setWorkerStatus("worker4", "unloaded", () => { });
 
-    getWorkerStatus(callback) {
-        callback(null, this.workers);
-    }
-    getTopologyStatus(callback) {
-        callback(null, this.topologies);
-    }
-    registerTopology(uuid, config, callback) {
-        callback(null, {});
-    }
-    disableTopology(uuid, callback) {
-        callback(null, {});
-    }
-    enableTopology(uuid, callback) {
-        callback(null, {});
-    }
-}
+coordinator.registerTopology("topology.test.1", dummy_topology_config, () => { });
+coordinator.registerTopology("topology.test.1", dummy_topology_config, () => { });
+coordinator.registerTopology("topology.test.x", dummy_topology_config, () => { });
+coordinator.registerTopology("topology.test.y", dummy_topology_config, () => { });
+coordinator.registerTopology("topology.test.z", dummy_topology_config, () => { });
 
+coordinator.disableTopology("topology.test.x", () => { });
+coordinator.disableTopology("topology.test.y", () => { });
+
+coordinator.assignTopology("topology.test.1", "worker1", () => { });
+coordinator.assignTopology("topology.test.2", "worker2", () => { });
+coordinator.assignTopology("topology.test.z", "worker1", () => { });
+
+coordinator.setTopologyStatus("topology.test.1", "waiting", "", () => { });
+coordinator.setTopologyStatus("topology.test.2", "running", "", () => { });
+coordinator.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
+coordinator.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
+coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 
 let server = new qtopology.DashboardServer();
 
-server.init(3000, new DemoStorage(), function () {
+server.init(3000, coordinator, function () {
     server.run();
 });

@@ -101,8 +101,8 @@ export interface LeadershipResultWorkerStatus {
     name: string;
     status: string;
     lstatus: string;
-    last_ping_d: number;
-    last_ping: Date;
+    last_ping: number;
+    last_ping_d: Date;
     lstatus_ts: number;
     lstatus_ts_d: Date;
 }
