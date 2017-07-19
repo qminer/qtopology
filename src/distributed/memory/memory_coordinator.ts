@@ -31,6 +31,11 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         this.messages = [];
     }
 
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+        let res = [];
+        res.push({ key: "type", value: "MemoryCoordinator" });
+        callback(null, res);
+    }
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
         let res = "vacant";
         let leaders = this.workers.filter(x => x.lstatus == "leader").length;

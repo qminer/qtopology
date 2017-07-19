@@ -4,6 +4,7 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     private topologies;
     private messages;
     constructor();
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;

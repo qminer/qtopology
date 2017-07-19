@@ -12,6 +12,11 @@ class MemoryCoordinator {
         this.topologies = [];
         this.messages = [];
     }
+    getProperties(callback) {
+        let res = [];
+        res.push({ key: "type", value: "MemoryCoordinator" });
+        callback(null, res);
+    }
     getLeadershipStatus(callback) {
         let res = "vacant";
         let leaders = this.workers.filter(x => x.lstatus == "leader").length;

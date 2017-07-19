@@ -51,6 +51,15 @@ export class FileCoordinator implements intf.CoordinationStorage {
         }
     }
 
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+        let res = [];
+        res.push({ key: "type", value: "FileCoordinator" });
+        res.push({ key: "directory", value: this.dir_name });
+        res.push({ key: "file_patterns", value: this.file_patterns });
+        res.push({ key: "file_patterns_regex", value: this.file_patterns_regex });
+        callback(null, res);
+    }
+
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
         let tmp = this.msgs;
         this.msgs = [];

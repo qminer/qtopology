@@ -12,12 +12,20 @@ export class HttpCoordinator implements intf.CoordinationStorage {
 
     private port: number;
     private client: nrc.Client;
-    private urlPrefix: string;
+    private url_prefix: string;
 
     constructor(port?: number) {
         this.port = port || port_default;
         this.client = new nrc.Client();
-        this.urlPrefix = "http://localhost:" + this.port + "/"
+        this.url_prefix = "http://localhost:" + this.port + "/"
+    }
+
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+        let res = [];
+        res.push({ key: "type", value: "HttpCoordinator" });
+        res.push({ key: "port", value: this.port });
+        res.push({ key: "url_prefix", value: this.url_prefix });
+        callback(null, res);
     }
 
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
@@ -74,7 +82,7 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        let req = this.client.post(self.urlPrefix + addr, args, (data, response) => {
+        let req = this.client.post(self.url_prefix + addr, args, (data, response) => {
             callback(null, data);
         });
         req.on('error', (err) => {

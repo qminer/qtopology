@@ -31,6 +31,7 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     self.post("topology-status", {}, function (data_topologies) {
         self.topologies.removeAll();
         for (let d of data_topologies) {
+            d.worker = d.worker || "-";
             d.open = function () { self.showTopologyInfo(d.uuid); };
             self.topologies.push(d);
         }
@@ -39,8 +40,9 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
             for (let d of data_workers) {
                 d.open = function () { self.showWorkerInfo(d.name); };
                 d.topologies = ko.observableArray();
+                d.lstatus = d.lstatus || "-";
                 self.topologies().forEach(function (x) {
-                    if (x.worker == name) {
+                    if (x.worker == d.name) {
                         d.topologies.push(x);
                     }
                 });
@@ -52,9 +54,12 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
             }
         });
     });
-    // self.post("storage-info", {}, function(err, data) {
-    //     TODO
-    // });
+    self.post("storage-info", {}, function(props) {
+        self.storage_props.removeAll();
+        for (var prop of props.data) {
+            self.storage_props.push(prop);
+        }
+    });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.loadData(callback);

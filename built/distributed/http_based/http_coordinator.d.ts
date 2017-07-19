@@ -2,8 +2,9 @@ import * as intf from "../../topology_interfaces";
 export declare class HttpCoordinator implements intf.CoordinationStorage {
     private port;
     private client;
-    private urlPrefix;
+    private url_prefix;
     constructor(port?: number);
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;

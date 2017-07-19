@@ -19,62 +19,58 @@
             <h1>Worker info</h1>
             <div data-bind="with: selected_worker">
                 <div class="cell-4">
-                    <h2>Properties</h2>
-
-                    <dt>Name</dt>
-                    <dd data-bind="text: name"></dd>
-
-                    <dt>Status</dt>
-                    <dd>
-                        <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
-                        <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
-                        <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                    </dd>
-
-                    <dt>Status updated</dt>
-                    <dd data-bind="text: last_ping_d"></dd>
-
-                    <dt>Leadership status</dt>
-                    <dd data-bind="text: lstatus"></dd>
-
-                    <!-- <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-6">Name</label>
-                            <div class="cell-6 value" data-bind="text: name"></div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Properties</div>
                         </div>
-                    </div>
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-6">Status</label>
-                            <div class="cell-6 value">
+                        <div class="panel-body props">
+
+                            <dt>Name</dt>
+                            <dd data-bind="text: name"></dd>
+
+                            <dt>Status</dt>
+                            <dd>
                                 <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
                                 <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
                                 <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                            </div>
+                            </dd>
+
+                            <dt>Status updated</dt>
+                            <dd data-bind="text: last_ping_d"></dd>
+
+                            <dt>Leadership status</dt>
+                            <dd data-bind="text: lstatus"></dd>
                         </div>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="cell-8">
-                    <h2>Topologies</h2>
-                    <div data-bind="foreach: topologies">
-                        <div class="ticket">
-                            <div class="ticket-inner">
-                                <div class="pull-right">
-                                    <!-- Enabled/diabled badge -->
-                                    <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                    <span class="badge " data-bind="visible: enabled==false">Disabled</span>
-                                    <!--Status badge-->
-                                    <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                    <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                                    <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
-                                </div>
-                                <label data-bind="text: uuid"></label>
-                                <div>
-                                    worker: <span data-bind="text: worker"></span>
-                                </div>
-                                <div class="right">
-                                    <button data-bind="click: open">More</button>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Topologies</div>
+                        </div>
+                        <div class="panel-body">
+                            <div data-bind="foreach: topologies">
+                                <div class="ticket">
+                                    <div class="ticket-inner">
+                                        <div class="pull-right">
+                                            <!-- Enabled/diabled badge -->
+                                            <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                            <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                            <!--Status badge-->
+                                            <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                            <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                            <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                        </div>
+                                        <label data-bind="text: uuid"></label>
+                                        <div>
+                                            worker: <span data-bind="text: worker"></span>
+                                        </div>
+                                        <div class="right">
+                                            <button data-bind="click: open">More</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -83,46 +79,50 @@
             </div>
         </div>
     </div>
+
+
     <div id="bladeTopology" class="blade">
         <div class="blade-content">
             <span class="blade-close">&times;</span>
             <h1>Topology info</h1>
-            <div data-bind="with: selected_topology">
-                <div class="cell-3">
-                    <h2>Properties</h2>
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-6">UUID</label>
-                            <div class="cell-6 value" data-bind="text: uuid"></div>
-                        </div>
+            <div class="cell-3">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="title">Properties</div>
                     </div>
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-6">Enabled</label>
-                            <div class="cell-6 value">
+                    <div class="panel-body">
+                        <div data-bind="with: selected_topology" class="props">
+
+                            <dt>UUID</dt>
+                            <dd data-bind="text: uuid"></dd>
+
+                            <dt>Enabled</dt>
+                            <dd>
                                 <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
                                 <span class="badge " data-bind="visible: enabled==false">Disabled</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-6">Status</label>
-                            <div class="cell-6 value">
+                            </dd>
+
+                            <dt>Status</dt>
+                            <dd>
                                 <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
                                 <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
                                 <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
-                            </div>
+                            </dd>
+
+                            <dt>Worker</dt>
+                            <dd data-bind="text: worker"></dd>
                         </div>
                     </div>
                 </div>
-                <div class="cell-9">
-                    <h2>Run-time info</h2>
-                </div>
+            </div>
+            <div class="cell-9">
+                <h2>Run-time info</h2>
             </div>
         </div>
     </div>
+
+
     <div class="content">
         <div class="cell-4">
             <div class="panel">
@@ -167,7 +167,7 @@
                                     <!--Status badge-->
                                     <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
                                     <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                    <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
                                     <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
                                 </div>
                                 <label data-bind="text: uuid"></label>
@@ -188,18 +188,10 @@
                 <div class="panel-header">
                     <div class="title">Coordination storage</div>
                 </div>
-                <div class="panel-body">
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-3">Type</label>
-                            <div class="cell-9 value">MySQL storage</div>
-                        </div>
-                    </div>
-                    <div class="row ticket">
-                        <div class="ticket-inner">
-                            <label class="cell-3">Server</label>
-                            <div class="cell-9 value">mysql-server-1</div>
-                        </div>
+                <div class="panel-body props">
+                    <div data-bind="foreach: storage_props">
+                        <dt data-bind="text: key"></dt>
+                        <dd data-bind="text: value"></dd>
                     </div>
                 </div>
             </div>

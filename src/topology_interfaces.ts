@@ -151,6 +151,10 @@ export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
+export interface StorageProperty {
+    key: string;
+    value: string | number | boolean;
+}
 export interface TopologyDefinitionResponse {
     config: TopologyDefinition;
     current_worker: string;
@@ -179,4 +183,6 @@ export interface CoordinationStorage {
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
+
+    getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }

@@ -6,6 +6,7 @@ export declare class FileCoordinator implements intf.CoordinationStorage {
     private file_patterns_regex;
     private topology_configs;
     constructor(dir_name: string, file_pattern: string | string[]);
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;

@@ -35,7 +35,7 @@ body{
     /*margin: 15% auto;*/     /* 15% from the top and centered */
     padding: 20px;
     /*border: 1px solid #555;*/
-    width: 80%; /* Could be more or less, depending on screen size */
+    width: 95%;
 }
 
 /* The Close Button */
@@ -61,6 +61,9 @@ body{
 .blade-content h2 {
     padding: 10px;
     text-align: center;
+}
+.props {
+    background-color: #222;
 }
 /**************************************************/
 .row {

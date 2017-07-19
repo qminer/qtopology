@@ -8,7 +8,14 @@ class HttpCoordinator {
     constructor(port) {
         this.port = port || port_default;
         this.client = new nrc.Client();
-        this.urlPrefix = "http://localhost:" + this.port + "/";
+        this.url_prefix = "http://localhost:" + this.port + "/";
+    }
+    getProperties(callback) {
+        let res = [];
+        res.push({ key: "type", value: "HttpCoordinator" });
+        res.push({ key: "port", value: this.port });
+        res.push({ key: "url_prefix", value: this.url_prefix });
+        callback(null, res);
     }
     getMessages(name, callback) {
         this.call("get-messages", { worker: name }, callback);
@@ -62,7 +69,7 @@ class HttpCoordinator {
     call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        let req = this.client.post(self.urlPrefix + addr, args, (data, response) => {
+        let req = this.client.post(self.url_prefix + addr, args, (data, response) => {
             callback(null, data);
         });
         req.on('error', (err) => {
