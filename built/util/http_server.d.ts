@@ -3,7 +3,7 @@ export interface RequestWithBody extends http.IncomingMessage {
     body: string;
 }
 export interface ProcessingHandlerCallback {
-    (err: Error, data: any): any;
+    (err: Error, data?: any): any;
 }
 export interface ProcessingHandler {
     (data: any, callback: ProcessingHandlerCallback): any;

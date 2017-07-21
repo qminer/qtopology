@@ -138,8 +138,8 @@ export class TopologyLeader {
                         }
                         async.each(
                             dead_workers,
-                            (dead_worker, xxcallback) => {
-                                self.handleDeadWorker(dead_worker, xxcallback);
+                            (dead_worker, ycallback) => {
+                                self.handleDeadWorker(dead_worker, ycallback);
                             },
                             xcallback
                         );
@@ -171,6 +171,7 @@ export class TopologyLeader {
                                 }
                             }
                         });
+
                         let unassigned_topologies = topologies
                             .filter(x => x.status === "unassigned" || x.status === "stopped");
                         if (unassigned_topologies.length > 0) {
@@ -182,13 +183,11 @@ export class TopologyLeader {
                             }),
                             5 // affinity means 5x stronger gravitational pull towards that worker
                         );
-                        async.each(
+                        async.eachSeries(
                             unassigned_topologies,
-                            (unassigned_topology, xxcallback) => {
-                                let ut = unassigned_topology as intf.LeadershipResultTopologyStatus;
-                                let target = load_balancer.next(ut.worker_affinity, ut.weight);
-                                log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
-                                self.storage.assignTopology(ut.uuid, target, xxcallback);
+                            (item, ycallback) => {
+                                let ut = item as intf.LeadershipResultTopologyStatus;
+                                self.assignUnassignedTopology(ut, load_balancer, ycallback);
                             },
                             xcallback
                         );
@@ -197,6 +196,21 @@ export class TopologyLeader {
             ],
             callback
         );
+    }
+
+    /**
+     * 
+     * @param ut - unassigned toplogy object
+     * @param load_balancer - load balancer object that tells you which worker to send the topology to
+     * @param callback - callback to call when done
+     */
+    private assignUnassignedTopology(ut: intf.LeadershipResultTopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleCallback) {
+        let self = this;
+        let target = load_balancer.next(ut.worker_affinity, ut.weight);
+        log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
+        self.storage.assignTopology(ut.uuid, target, (err) => {
+            self.storage.sendMessageToWorker(target, "start", { uuid: ut.uuid }, callback);
+        });
     }
 
     /** Handles situation when there is a dead worker and its

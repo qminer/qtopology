@@ -178,6 +178,7 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: SimpleCallback);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);

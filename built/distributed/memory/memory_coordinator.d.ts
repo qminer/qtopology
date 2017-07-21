@@ -15,10 +15,15 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>): void;
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback): void;
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback): void;
     disableTopology(uuid: string, callback: intf.SimpleCallback): void;
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
+    private pingWorker(name);
+    private unassignWaitingTopologies();
+    private disableDefunctWorkers();
+    private disableDefunctLeaders();
 }

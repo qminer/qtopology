@@ -25,6 +25,13 @@ export declare class TopologyLeader {
      * to alive workers.
      */
     private performLeaderLoop(callback);
+    /**
+     *
+     * @param ut - unassigned toplogy object
+     * @param load_balancer - load balancer object that tells you which worker to send the topology to
+     * @param callback - callback to call when done
+     */
+    private assignUnassignedTopology(ut, load_balancer, callback);
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
