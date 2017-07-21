@@ -187,6 +187,12 @@ describe('TopologyLeader', function () {
                 topology_record.worker = wrkr;
                 topology_record.status = "waiting";
                 cb();
+            },
+            sendMessageToWorker: (wrkr, cmd, content, cb) => {
+                assert.equal(wrkr, worker_name);
+                assert.equal(cmd, "start");
+                assert.deepEqual(content, {uuid: topology_record.uuid});
+                cb();
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
