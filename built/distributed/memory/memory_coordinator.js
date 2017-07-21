@@ -51,6 +51,8 @@ class MemoryCoordinator {
         let res = this.messages
             .filter(x => x.name == name)
             .map(x => { return { cmd: x.cmd, content: x.content }; });
+        this.messages = this.messages
+            .filter(x => x.name != name);
         callback(null, res);
     }
     getTopologyDefinition(uuid, callback) {
@@ -120,6 +122,11 @@ class MemoryCoordinator {
         this.topologies
             .filter(x => x.uuid == uuid)
             .forEach(x => { x.worker = worker; });
+        this.messages.push({
+            cmd: "start",
+            name: worker,
+            content: { uuid: uuid }
+        });
         callback();
     }
     setTopologyStatus(uuid, status, error, callback) {
