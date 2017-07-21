@@ -40,7 +40,10 @@
                             <dd data-bind="text: last_ping_d"></dd>
 
                             <dt>Leadership status</dt>
-                            <dd data-bind="text: lstatus"></dd>
+                            <dd>
+                                <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
+                                <span class="badge" data-bind="visible: lstatus!='leader'">Normal</span>
+                            </dd>
                         </div>
                     </div>
                 </div>
@@ -142,6 +145,8 @@
                         <div class="ticket">
                             <div class="ticket-inner">
                                 <div class="pull-right">
+                                    <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
+
                                     <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
                                     <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
                                     <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
