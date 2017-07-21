@@ -41,6 +41,11 @@ class DashboardServer {
                 callback(err, {});
             });
         });
+        self.server.addHandler("storage-info", (data, callback) => {
+            self.storage.getProperties((err, props) => {
+                callback(err, { data: props });
+            });
+        });
         callback();
     }
     run() {

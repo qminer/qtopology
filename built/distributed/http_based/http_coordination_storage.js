@@ -137,8 +137,8 @@ class HttpCoordinationStorage {
                 status: x.status,
                 topology_count: cnt,
                 lstatus: x.lstatus,
-                last_ping_d: x.last_ping,
-                last_ping: new Date(x.last_ping),
+                last_ping: x.last_ping,
+                last_ping_d: new Date(x.last_ping),
                 lstatus_ts: x.lstatus_ts,
                 lstatus_ts_d: new Date(x.lstatus_ts)
             };

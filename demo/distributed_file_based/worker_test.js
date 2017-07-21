@@ -8,6 +8,7 @@ cmdln
     .define('n', 'name', 'worker1', 'Logical name of the worker');
 let opts = cmdln.process(process.argv);
 
+qtopology.logger().setLevel("debug");
 let storage = new qtopology.FileCoordinator("./topologies", "*.json");
 
 let w = new qtopology.TopologyWorker(opts.name, storage);

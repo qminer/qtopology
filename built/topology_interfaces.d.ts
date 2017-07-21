@@ -101,8 +101,8 @@ export interface LeadershipResultWorkerStatus {
     name: string;
     status: string;
     lstatus: string;
-    last_ping_d: number;
-    last_ping: Date;
+    last_ping: number;
+    last_ping_d: Date;
     lstatus_ts: number;
     lstatus_ts_d: Date;
 }
@@ -117,6 +117,10 @@ export interface LeadershipResultTopologyStatus {
 export interface StorageResultMessage {
     cmd: string;
     content: any;
+}
+export interface StorageProperty {
+    key: string;
+    value: string | number | boolean;
 }
 export interface TopologyDefinitionResponse {
     config: TopologyDefinition;
@@ -142,4 +146,5 @@ export interface CoordinationStorage {
     disableTopology(uuid: string, callback: SimpleCallback): any;
     enableTopology(uuid: string, callback: SimpleCallback): any;
     deleteTopology(uuid: string, callback: SimpleCallback): any;
+    getProperties(callback: SimpleResultCallback<StorageProperty[]>): any;
 }
