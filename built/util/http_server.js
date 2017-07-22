@@ -25,7 +25,7 @@ class MinimalHttpServer {
     handleResponse(result, response) {
         logger.logger().debug("Sending response " + JSON.stringify(result));
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify(result));
+        response.end(JSON.stringify(result || {}));
     }
     // Utility function for returning error response
     handleError(error, response) {

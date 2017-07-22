@@ -118,16 +118,9 @@ class TopologyWorker {
             rec.uuid = uuid;
             rec.config = config;
             rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
-            self.topologies.push(rec);
-            //  try {
             self.createProxy(rec);
-            //     } catch (err) {
-            //         log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
-            //         log.logger().exception(err);
-            //         // remove from list of topologies
-            //         self.topologies = self.topologies.filter(x => x != rec);
-            //         self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
-            //     }
+            // only change internal state when all other steps passed
+            self.topologies.push(rec);
         }
         catch (err) {
             log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
