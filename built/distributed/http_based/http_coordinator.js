@@ -69,6 +69,9 @@ class HttpCoordinator {
     deleteTopology(uuid, callback) {
         this.call("delete-topology", { uuid: uuid }, callback);
     }
+    clearTopologyError(uuid, callback) {
+        this.call("clear-topology-error", { uuid: uuid }, callback);
+    }
     call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };

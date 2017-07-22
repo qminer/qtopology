@@ -247,6 +247,20 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         callback();
     }
 
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback) {
+        let hits = this.topologies
+            .filter(x => x.uuid == uuid);
+        if (hits.length == 0) {
+            return callback(new Error("Specified topology not found: " + uuid));
+        }
+        let hit = hits[0];
+        if (hit.status != "error") {
+            return callback(new Error("Specified topology is not marked as error: " + uuid));
+        }
+        hit.status = "";
+        callback();
+    }
+
     private pingWorker(name: string) {
         for (let worker of this.workers) {
             if (worker.name == name) {

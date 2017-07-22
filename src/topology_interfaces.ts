@@ -184,6 +184,7 @@ export interface CoordinationStorage {
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
-
+    clearTopologyError(uuid: string, callback: SimpleCallback);
+    
     getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }

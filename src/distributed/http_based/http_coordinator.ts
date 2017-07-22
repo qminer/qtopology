@@ -82,6 +82,9 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     deleteTopology(uuid: string, callback: intf.SimpleCallback) {
         this.call("delete-topology", { uuid: uuid }, callback);
     }
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback) {
+        this.call("clear-topology-error", { uuid: uuid }, callback);
+    }
 
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         let self = this;

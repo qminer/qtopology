@@ -22,6 +22,7 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     disableTopology(uuid: string, callback: intf.SimpleCallback): void;
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
     private pingWorker(name);
     private unassignWaitingTopologies();
     private disableDefunctWorkers();

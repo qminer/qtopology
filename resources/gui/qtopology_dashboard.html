@@ -27,23 +27,48 @@
                         <div class="panel-body props">
 
                             <dt>Name</dt>
-                            <dd data-bind="text: name"></dd>
+                            <dd data-bind="text: name()"></dd>
 
                             <dt>Status</dt>
                             <dd>
-                                <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
-                                <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
-                                <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
+                                <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                             </dd>
 
                             <dt>Status updated</dt>
-                            <dd data-bind="text: last_ping_d"></dd>
+                            <dd data-bind="text: last_ping()"></dd>
 
                             <dt>Leadership status</dt>
                             <dd>
-                                <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
-                                <span class="badge" data-bind="visible: lstatus!='leader'">Normal</span>
+                                <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
+                                <span class="badge" data-bind="visible: lstatus()!='leader'">Normal</span>
                             </dd>
+
+                            <div class="action-panel" data-bind="visible: status() == 'alive'">
+                                <div class="action-title">
+                                    Shut down
+                                </div>
+                                <div class="action-desc">
+                                    Shuts down this worker. You have to have a mechanism to bring it up again, as it cannot be done via this dashboard.
+                                </div>
+                                <div class="action-btn">
+                                    <button>Shutdown</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: status() == 'dead'">
+                                <div class="action-title">
+                                    Remove dead worker
+                                </div>
+                                <div class="action-desc">
+                                    If this worker record is obsolete, you can remove it from the list of workers.
+                                </div>
+                                <div class="action-btn">
+                                    <button>Remove</button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -59,20 +84,20 @@
                                     <div class="ticket-inner">
                                         <div class="pull-right">
                                             <!-- Enabled/diabled badge -->
-                                            <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                            <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                            <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                                            <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                                             <!--Status badge-->
-                                            <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                            <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
-                                            <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                            <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                            <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                                            <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                                            <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                                         </div>
-                                        <label data-bind="text: uuid"></label>
+                                        <label data-bind="text: uuid()"></label>
                                         <div>
-                                            worker: <span data-bind="text: worker"></span>
+                                            worker: <span data-bind="text: worker()"></span>
                                         </div>
                                         <div class="right">
-                                            <button data-bind="click: open">More</button>
+                                            <a data-bind="click: open">More &raquo;</a>
                                         </div>
                                     </div>
                                 </div>
@@ -98,24 +123,87 @@
                         <div data-bind="with: selected_topology" class="props">
 
                             <dt>UUID</dt>
-                            <dd data-bind="text: uuid"></dd>
+                            <dd data-bind="text: uuid()"></dd>
 
                             <dt>Enabled</dt>
                             <dd>
-                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                                <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                             </dd>
 
                             <dt>Status</dt>
                             <dd>
-                                <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
-                                <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                                <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                             </dd>
 
                             <dt>Worker</dt>
-                            <dd data-bind="text: worker"></dd>
+                            <dd data-bind="text: worker()"></dd>
+                            <dt>Error</dt>
+                            <dd data-bind="text: error()"></dd>
+
+                            <div class="action-panel" data-bind="visible: enabled() == true">
+                                <div class="action-title">
+                                    Disable
+                                </div>
+                                <div class="action-desc">
+                                    <p>
+                                        Click the button to mark the topology as disabled. This will prevent it from running again.
+                                    </p>
+                                    <p>
+                                        It will not stop it, if it is currently running.
+                                    </p>
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: set_disabled">Disable</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: enabled() == false">
+                                <div class="action-title">
+                                    Enable
+                                </div>
+                                <div class="action-desc">
+                                    Click the button to mark the topology as enabled. This will make it available to workers and one of them pick should it up
+                                    very soon, if there is at least one worker running.
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: set_enabled">Enable</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: enabled() == true && status() == 'error'">
+                                <div class="action-title">
+                                    Clear the error
+                                </div>
+                                <div class="action-desc">
+                                    This topology was marked with error. Clear the error tag to make it start running again.
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: clear_error">Clear error</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: status() == 'running'">
+                                <div class="action-title">
+                                    Stop this topology
+                                </div>
+                                <div class="action-desc">
+                                    <p>
+                                        Send STOP signal to the worker that is running this topology. If topology is marked as enabled, it will be assigned again,
+                                        possibly to another worker.
+                                    </p>
+                                    <p>
+                                        Mark it as disabled first if you don't want it to run anymore.
+                                    </p>
+                                </div>
+                                <div class="action-btn">
+                                    <button>Stop topology</button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -127,6 +215,15 @@
                         <div class="title">Run-time info</div>
                     </div>
                     <div class="panel-body">
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="title">Configuration</div>
+                    </div>
+                    <div class="panel-body" data-bind="with: selected_topology">
+                        <pre data-bind="text: JSON.stringify(config(), null, 4)">
+                        </pre>
                     </div>
                 </div>
             </div>
@@ -145,18 +242,18 @@
                         <div class="ticket">
                             <div class="ticket-inner">
                                 <div class="pull-right">
-                                    <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
+                                    <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
 
-                                    <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
-                                    <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
-                                    <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                    <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                    <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                                 </div>
-                                <label data-bind="text: name"></label>
+                                <label data-bind="text: name()"></label>
                                 <div>
-                                    topologies: <span data-bind="text: topologies_count"></span>
+                                    topologies: <span data-bind="text: topologies_count()"></span>
                                 </div>
                                 <div class="right">
-                                    <button data-bind="click: open">More</button>
+                                    <a data-bind="click: open">More &raquo;</a>
                                 </div>
                             </div>
                         </div>
@@ -175,20 +272,20 @@
                             <div class="ticket-inner">
                                 <div class="pull-right">
                                     <!-- Enabled/disabled badge -->
-                                    <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                    <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                    <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                                    <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                                     <!--Status badge-->
-                                    <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                    <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                    <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
-                                    <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                    <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                                    <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                                 </div>
-                                <label data-bind="text: uuid"></label>
+                                <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker: <span data-bind="text: worker"></span>
+                                    worker: <span data-bind="text: worker()"></span>
                                 </div>
                                 <div class="right">
-                                    <button data-bind="click: open">More</button>
+                                    <a data-bind="click: open">More &raquo;</a>
                                 </div>
                             </div>
                         </div>
