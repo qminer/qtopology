@@ -23,12 +23,25 @@ class TopologyCoordinator extends EventEmitter {
         self.isRunning = true;
         self.storage.registerWorker(self.name, () => { });
         self.leadership.run();
+        let check_counter = 0;
         async.whilst(() => {
             return self.isRunning;
         }, (xcallback) => {
-            setTimeout(function () {
-                self.handleIncommingRequests(xcallback);
-            }, self.loopTimeout);
+            async.parallel([
+                (ycallback) => {
+                    setTimeout(function () {
+                        self.handleIncommingRequests(ycallback);
+                    }, self.loopTimeout);
+                },
+                (ycallback) => {
+                    if (++check_counter % 5 == 0) {
+                        self.checkAssignedTopologies(ycallback);
+                    }
+                    else {
+                        ycallback();
+                    }
+                }
+            ], xcallback);
         }, (err) => {
             log.logger().important("[Coordinator] Coordinator shutdown finished.");
             if (self.shutdownCallback) {
@@ -101,6 +114,20 @@ class TopologyCoordinator extends EventEmitter {
                 }
                 xcallback();
             }, callback);
+        });
+    }
+    /** This method checks if all topologies, assigned to this worker, actually run. */
+    checkAssignedTopologies(callback) {
+        let self = this;
+        self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
+            if (err)
+                return callback(err);
+            for (let top of topologies) {
+                if (top.status == "running") {
+                    self.emit("verify-topology", { uuid: top.uuid });
+                }
+            }
+            callback();
         });
     }
 }

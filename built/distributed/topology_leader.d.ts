@@ -26,7 +26,7 @@ export declare class TopologyLeader {
      */
     private performLeaderLoop(callback);
     /**
-     *
+     * This method assigns topology to the worker that is provided by the load-balancer.
      * @param ut - unassigned toplogy object
      * @param load_balancer - load balancer object that tells you which worker to send the topology to
      * @param callback - callback to call when done

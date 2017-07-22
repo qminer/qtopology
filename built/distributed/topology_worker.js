@@ -24,6 +24,13 @@ class TopologyWorker {
             log.logger().important("[Worker] Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
+        self.coordinator.on("verify-topology", (msg) => {
+            let uuid = msg.uuid;
+            if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
+                log.logger().log("[Worker] Topology is assigned to this worker, but it is not running here: " + msg.uuid);
+                self.coordinator.reportTopology(uuid, "", "", () => { });
+            }
+        });
         self.coordinator.on("shutdown", (msg) => {
             log.logger().important("[Worker] Received shutdown instruction from coordinator");
             self.shutdown(() => { });
@@ -97,21 +104,36 @@ class TopologyWorker {
     }
     /** Starts single topology */
     start(uuid, config) {
-        this.injectOverrides(config);
-        let compiler = new comp.TopologyCompiler(config);
-        compiler.compile();
-        config = compiler.getWholeConfig();
         let self = this;
-        if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
-            self.coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
-            return;
+        try {
+            self.injectOverrides(config);
+            let compiler = new comp.TopologyCompiler(config);
+            compiler.compile();
+            config = compiler.getWholeConfig();
+            if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
+                self.coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
+                return;
+            }
+            let rec = new TopologyItem();
+            rec.uuid = uuid;
+            rec.config = config;
+            rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
+            self.topologies.push(rec);
+            //  try {
+            self.createProxy(rec);
+            //     } catch (err) {
+            //         log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
+            //         log.logger().exception(err);
+            //         // remove from list of topologies
+            //         self.topologies = self.topologies.filter(x => x != rec);
+            //         self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
+            //     }
         }
-        let rec = new TopologyItem();
-        rec.uuid = uuid;
-        rec.config = config;
-        rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
-        self.topologies.push(rec);
-        self.createProxy(rec);
+        catch (err) {
+            log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
+            log.logger().exception(err);
+            self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
+        }
     }
     /** This method injects override values into variables section of the configuration. */
     injectOverrides(config) {
