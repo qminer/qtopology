@@ -74,8 +74,17 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
     http_server.addHandler('/clear-topology-error', (data, callback) => {
         storage.clearTopologyError(data.uuid, callback);
     });
+    http_server.addHandler('/stop-topology', (data, callback) => {
+        storage.stopTopology(data.uuid, callback);
+    });
     http_server.addHandler('/topology-definition', (data, callback) => {
         storage.getTopologyDefinition(data.uuid, callback);
+    });
+    http_server.addHandler('/delete-worker', (data, callback) => {
+        storage.deleteWorker(data.name, callback);
+    });
+    http_server.addHandler('/shut-down-worker', (data, callback) => {
+        storage.shutDownWorker(data.name, callback);
     });
     return http_server;
 }

@@ -50,6 +50,15 @@ export class DashboardServer {
         self.server.addHandler("enable-topology", (data, callback) => {
             self.storage.enableTopology(data.uuid, callback);
         });
+        self.server.addHandler("stop-topology", (data, callback) => {
+            self.storage.stopTopology(data.uuid, callback);
+        });
+        self.server.addHandler("delete-worker", (data, callback) => {
+            self.storage.deleteWorker(data.name, callback);
+        });
+        self.server.addHandler("shut-down-worker", (data, callback) => {
+            self.storage.shutDownWorker(data.uuid, callback);
+        });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
                 callback(err, { data: props });

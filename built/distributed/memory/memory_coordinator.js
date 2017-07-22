@@ -211,6 +211,17 @@ class MemoryCoordinator {
             .filter(x => x.uuid != uuid);
         callback();
     }
+    stopTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == "running");
+        if (hits.length > 0) {
+            self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, callback);
+        }
+        else {
+            callback();
+        }
+    }
     clearTopologyError(uuid, callback) {
         let hits = this.topologies
             .filter(x => x.uuid == uuid);
@@ -221,8 +232,26 @@ class MemoryCoordinator {
         if (hit.status != "error") {
             return callback(new Error("Specified topology is not marked as error: " + uuid));
         }
-        hit.status = "";
+        hit.status = "stopped";
         callback();
+    }
+    deleteWorker(name, callback) {
+        let hits = this.workers.filter(x => x.name == name);
+        if (hits.length > 0) {
+            if (hits[0].status == "dead") {
+                this.workers = this.workers.filter(x => x.name != name);
+                callback();
+            }
+            else {
+                callback(new Error("Specified worker is not dead and cannot be deleted."));
+            }
+        }
+        else {
+            callback(new Error("Specified worker doesn't exist and thus cannot be deleted."));
+        }
+    }
+    shutDownWorker(name, callback) {
+        this.sendMessageToWorker(name, "shutdown", {}, callback);
     }
     pingWorker(name) {
         for (let worker of this.workers) {

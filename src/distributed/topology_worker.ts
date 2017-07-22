@@ -40,8 +40,12 @@ export class TopologyWorker {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
                 log.logger().log("[Worker] Topology is assigned to this worker, but it is not running here: " + msg.uuid);
-                self.coordinator.reportTopology(uuid, "", "", () => { });
+                self.coordinator.reportTopology(uuid, "stopped", "", () => { });
             }
+        });
+        self.coordinator.on("stop-topology", (msg) => {
+            let uuid = msg.uuid;
+            self.shutDownTopology(uuid, () => { })
         });
         self.coordinator.on("shutdown", (msg) => {
             log.logger().important("[Worker] Received shutdown instruction from coordinator");
@@ -163,14 +167,7 @@ export class TopologyWorker {
             self.topologies,
             (itemx, xcallback) => {
                 let item = itemx as TopologyItem;
-                item.proxy.shutdown((err) => {
-                    if (err) {
-                        log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
-                        log.logger().exception(err);
-                    } else {
-                        self.coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
-                    }
-                });
+                self.shutDownTopologyInternal(item, xcallback);
             },
             (err) => {
                 if (err) {
@@ -180,5 +177,27 @@ export class TopologyWorker {
                 self.coordinator.shutdown(callback);
             }
         );
+    }
+
+    private shutDownTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies.filter(x => x.uuid == uuid);
+        if (hits.length >= 0) {
+            let hit = hits[0];
+            self.shutDownTopologyInternal(hit, callback);
+        } else {
+            callback();
+        }
+    }
+    private shutDownTopologyInternal(item: TopologyItem, callback: intf.SimpleCallback) {
+        let self = this;
+        item.proxy.shutdown((err) => {
+            if (err) {
+                log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
+                log.logger().exception(err);
+            } else {
+                self.coordinator.reportTopology(item.uuid, "stopped", "", () => { });
+            }
+        });
     }
 }

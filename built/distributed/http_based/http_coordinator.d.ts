@@ -23,5 +23,8 @@ export declare class HttpCoordinator implements intf.CoordinationStorage {
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
     clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
+    stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    deleteWorker(name: string, callback: intf.SimpleCallback): void;
+    shutDownWorker(name: string, callback: intf.SimpleCallback): void;
     private call(addr, req_data, callback);
 }

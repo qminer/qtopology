@@ -91,14 +91,15 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
                 open: function () { self.showTopologyInfo(uuid); },
                 set_enabled: function () { self.setTopologyEnabled(uuid); },
                 set_disabled: function () { self.setTopologyDisabled(uuid); },
-                clear_error: function () { self.clearTopologyError(uuid); }
+                clear_error: function () { self.clearTopologyError(uuid); },
+                stop: function () { self.stopTopology(uuid); }
             };
             obj = rec;
         } else {
             let hit = hits[0];
             hit.enabled(d.enabled);
             hit.last_ping(new Date(d.last_ping));
-            hit.status(d.status);
+            hit.status(d.status || "-");
             hit.config(d.config);
             hit.error(d.error || "-");
             hit.worker(d.worker || "-");
@@ -123,7 +124,9 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
                 lstatus_ts: ko.observable(new Date(d.lstatus_ts)),
                 topologies_count: ko.observable(0),
                 topologies: ko.observableArray(),
-                open: function () { self.showWorkerInfo(name); }
+                open: function () { self.showWorkerInfo(name); },
+                shut_down: function () { self.shutDownWorker(name); },
+                remove: function () { self.deleteWorker(name); }
             };
             obj = rec;
         } else {
@@ -199,6 +202,24 @@ QTopologyDashboardViewModel.prototype.setTopologyDisabled = function (uuid) {
 QTopologyDashboardViewModel.prototype.clearTopologyError = function (uuid) {
     let self = this;
     self.post("clear-topology-error", { uuid: uuid }, function () {
+        self.loadData();
+    });
+}
+QTopologyDashboardViewModel.prototype.stopTopology = function (uuid) {
+    let self = this;
+    self.post("stop-topology", { uuid: uuid }, function () {
+        self.loadData();
+    });
+}
+QTopologyDashboardViewModel.prototype.deleteWorker = function (name) {
+    let self = this;
+    self.post("delete-worker", { name: name }, function () {
+        self.loadData();
+    });
+}
+QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
+    let self = this;
+    self.post("shut-down-worker", { name: name }, function () {
         self.loadData();
     });
 }

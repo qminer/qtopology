@@ -53,19 +53,19 @@
                                     Shuts down this worker. You have to have a mechanism to bring it up again, as it cannot be done via this dashboard.
                                 </div>
                                 <div class="action-btn">
-                                    <button>Shutdown</button>
+                                    <button data-bind="click: shut_down">Shutdown</button>
                                 </div>
                             </div>
 
                             <div class="action-panel" data-bind="visible: status() == 'dead'">
                                 <div class="action-title">
-                                    Remove dead worker
+                                    Delete dead worker
                                 </div>
                                 <div class="action-desc">
-                                    If this worker record is obsolete, you can remove it from the list of workers.
+                                    If this worker record is obsolete, you can delete it from the list of workers.
                                 </div>
                                 <div class="action-btn">
-                                    <button>Remove</button>
+                                    <button data-bind="click: remove">Delete</button>
                                 </div>
                             </div>
 
@@ -136,6 +136,7 @@
                                 <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                 <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                 <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                             </dd>
 
@@ -200,7 +201,7 @@
                                     </p>
                                 </div>
                                 <div class="action-btn">
-                                    <button>Stop topology</button>
+                                    <button data-bind="click: stop">Stop topology</button>
                                 </div>
                             </div>
 
@@ -278,6 +279,7 @@
                                     <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                     <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                    <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                                 </div>
                                 <label data-bind="text: uuid()"></label>
