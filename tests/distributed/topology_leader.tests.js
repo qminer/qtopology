@@ -161,7 +161,7 @@ describe('TopologyLeader', function () {
         let getLeadershipStatus_called = 0;
         let announceLeaderCandidacy_name = null;
         let topology_record = {
-            uuid: "uuid1", status: "stopped", worker: null,
+            uuid: "uuid1", status: "unassigned", worker: null,
             weight: 1, affinity: [], enabled: true
         };
         let mock_storage = {
@@ -199,6 +199,8 @@ describe('TopologyLeader', function () {
         target.run();
         setTimeout(() => {
             target.shutdown((err) => {
+                assert.ok(!err);
+console.log(JSON.stringify(topology_record))
                 assert.ok(getLeadershipStatus_called >= 1);
                 assert.equal(announceLeaderCandidacy_name, target_name);
                 assert.equal(topology_record.worker, worker_name);

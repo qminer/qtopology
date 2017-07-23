@@ -317,7 +317,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     deleteWorker(name: string, callback: intf.SimpleCallback) {
-        let hits = this.workers.filter(x => x.name == name);
+        let hits = this.workers.filter(x => x.name == name); 
         if (hits.length > 0) {
             if (hits[0].status == "unloaded") {
                 this.workers = this.workers.filter(x => x.name != name);

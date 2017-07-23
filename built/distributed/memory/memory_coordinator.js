@@ -279,12 +279,12 @@ class MemoryCoordinator {
     deleteWorker(name, callback) {
         let hits = this.workers.filter(x => x.name == name);
         if (hits.length > 0) {
-            if (hits[0].status == "dead") {
+            if (hits[0].status == "unloaded") {
                 this.workers = this.workers.filter(x => x.name != name);
                 callback();
             }
             else {
-                callback(new Error("Specified worker is not dead and cannot be deleted."));
+                callback(new Error("Specified worker is not unloaded and and cannot be deleted."));
             }
         }
         else {

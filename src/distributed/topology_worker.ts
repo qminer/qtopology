@@ -40,7 +40,7 @@ export class TopologyWorker {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
                 log.logger().log("[Worker] Topology is assigned to this worker, but it is not running here: " + msg.uuid);
-                self.coordinator.reportTopology(uuid, "stopped", "", () => { });
+                self.coordinator.reportTopology(uuid, "unassigned", "", () => { });
             }
         });
         self.coordinator.on("stop-topology", (msg) => {
@@ -86,11 +86,7 @@ export class TopologyWorker {
                 let too_often = (score >= 10);
                 if (too_often) {
                     //  report error and remove
-                    if (err) {
-                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
-                    } else {
-                        self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
-                    }
+                    self.coordinator.reportTopology(rec.uuid, "error", "" + err);
                     self.removeTopology(rec.uuid);
                 } else {
                     // not too often, just restart
@@ -195,8 +191,9 @@ export class TopologyWorker {
             if (err) {
                 log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
+                self.coordinator.reportTopology(item.uuid, "error", "" + err, () => { });
             } else {
-                self.coordinator.reportTopology(item.uuid, "stopped", "", () => { });
+                self.coordinator.reportTopology(item.uuid, "unassigned", "", () => { });
             }
         });
     }
