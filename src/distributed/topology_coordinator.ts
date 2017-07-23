@@ -123,8 +123,8 @@ export class TopologyCoordinator extends EventEmitter {
                 msgs,
                 (msg, xcallback) => {
                     if (msg.cmd === "start") {
-                        self.storage.getTopologyDefinition(msg.content.uuid, (err, res) => {
-                            if (self.name == res.current_worker) {
+                        self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
+                            if (self.name == res.worker) {
                                 // topology is still assigned to this worker (message could be old and stale)
                                 self.emit("start", { uuid: msg.content.uuid, config: res.config });
                             }

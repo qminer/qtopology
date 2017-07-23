@@ -9,7 +9,7 @@ export declare class HttpCoordinator implements intf.CoordinationStorage {
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
     getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<any>): void;
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>): void;
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;

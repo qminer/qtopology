@@ -75,8 +75,8 @@ function initHttpServer(storage) {
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);
     });
-    http_server.addHandler('/topology-definition', (data, callback) => {
-        storage.getTopologyDefinition(data.uuid, callback);
+    http_server.addHandler('/topology-info', (data, callback) => {
+        storage.getTopologyInfo(data.uuid, callback);
     });
     http_server.addHandler('/delete-worker', (data, callback) => {
         storage.deleteWorker(data.name, callback);

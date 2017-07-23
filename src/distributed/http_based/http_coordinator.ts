@@ -40,9 +40,8 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
         this.call("worker-topologies", { worker: name }, callback);
     }
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<any>) {
-        //callback(new Error("NOT IMPLEMENTED - getTopologyDefinition"));
-        this.call("topology-definition", { uuid: uuid }, callback);
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>) {
+        this.call("topology-info", { uuid: uuid }, callback);
     }
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
         this.call("leadership-status", {}, callback);

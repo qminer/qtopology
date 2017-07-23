@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const async = require("async");
 //////////////////////////////////////////////////////////////////////
 class MessageRec {
 }
@@ -35,21 +36,49 @@ class MemoryCoordinator {
     getWorkerStatus(callback) {
         this.disableDefunctWorkers();
         let res = this.workers
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+            return {
+                name: x.name,
+                status: x.status,
+                lstatus: x.lstatus,
+                last_ping: x.last_ping,
+                last_ping_d: x.last_ping_d,
+                lstatus_ts: x.lstatus_ts,
+                lstatus_ts_d: x.lstatus_ts_d
+            };
+        });
         callback(null, res);
     }
     getTopologyStatus(callback) {
         this.unassignWaitingTopologies();
         this.disableDefunctWorkers();
         let res = this.topologies
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+            return {
+                uuid: x.uuid,
+                status: x.status,
+                worker: x.worker,
+                weight: x.weight,
+                enabled: x.enabled,
+                worker_affinity: x.worker_affinity
+            };
+        });
         callback(null, res);
     }
     getTopologiesForWorker(worker, callback) {
         this.unassignWaitingTopologies();
         let res = this.topologies
             .filter(x => x.worker == worker)
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+            return {
+                uuid: x.uuid,
+                status: x.status,
+                worker: x.worker,
+                weight: x.weight,
+                enabled: x.enabled,
+                worker_affinity: x.worker_affinity
+            };
+        });
         callback(null, res);
     }
     getMessages(name, callback) {
@@ -63,17 +92,22 @@ class MemoryCoordinator {
         }
         callback(null, res);
     }
-    getTopologyDefinition(uuid, callback) {
+    getTopologyInfo(uuid, callback) {
         let res = this.topologies
             .filter(x => x.uuid == uuid)
             .map(x => {
             return {
-                config: x.config,
-                current_worker: x.worker
+                uuid: x.uuid,
+                status: x.status,
+                worker: x.worker,
+                weight: x.weight,
+                enabled: x.enabled,
+                worker_affinity: x.worker_affinity,
+                config: x.config
             };
         });
         if (res.length == 0) {
-            callback(new Error("Requested topology not found: " + uuid));
+            return callback(new Error("Requested topology not found: " + uuid));
         }
         callback(null, res[0]);
     }
@@ -216,7 +250,14 @@ class MemoryCoordinator {
         let hits = self.topologies
             .filter(x => x.uuid == uuid && x.status == "running");
         if (hits.length > 0) {
-            self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, callback);
+            async.series([
+                (ycallback) => {
+                    self.disableTopology(uuid, ycallback);
+                },
+                (ycallback) => {
+                    self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, ycallback);
+                }
+            ], callback);
         }
         else {
             callback();
@@ -232,7 +273,7 @@ class MemoryCoordinator {
         if (hit.status != "error") {
             return callback(new Error("Specified topology is not marked as error: " + uuid));
         }
-        hit.status = "stopped";
+        hit.status = "unassigned";
         callback();
     }
     deleteWorker(name, callback) {

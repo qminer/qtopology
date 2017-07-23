@@ -57,9 +57,9 @@
                                 </div>
                             </div>
 
-                            <div class="action-panel" data-bind="visible: status() == 'dead'">
+                            <div class="action-panel" data-bind="visible: status() == 'unloaded'">
                                 <div class="action-title">
-                                    Delete dead worker
+                                    Delete worker
                                 </div>
                                 <div class="action-desc">
                                     If this worker record is obsolete, you can delete it from the list of workers.
@@ -136,7 +136,6 @@
                                 <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                 <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
-                                <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                 <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                             </dd>
 
@@ -279,7 +278,6 @@
                                     <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                     <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
-                                    <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
                                 </div>
                                 <label data-bind="text: uuid()"></label>

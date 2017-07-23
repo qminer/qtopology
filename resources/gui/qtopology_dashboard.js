@@ -85,7 +85,7 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
                 enabled: ko.observable(d.enabled),
                 last_ping: ko.observable(new Date(d.last_ping)),
                 status: ko.observable(d.status),
-                config: ko.observable(d.config),
+                config: ko.observable(""),
                 error: ko.observable(d.error || "-"),
                 worker: ko.observable(d.worker || "-"),
                 open: function () { self.showTopologyInfo(uuid); },
@@ -100,7 +100,6 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
             hit.enabled(d.enabled);
             hit.last_ping(new Date(d.last_ping));
             hit.status(d.status || "-");
-            hit.config(d.config);
             hit.error(d.error || "-");
             hit.worker(d.worker || "-");
             obj = hit;
@@ -155,7 +154,6 @@ QTopologyDashboardViewModel.prototype.showBlade = function (name) {
     for (var blade_name of this.blades) {
         $("#" + blade_name).hide();
     }
-    //$("#" + name).show({ duration: 200, easing: "swing" });
     $("#" + name).show();
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
@@ -164,9 +162,13 @@ QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     this.showBlade(this.bladeWorker);
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
-    var topology = this.topologies().filter(function (x) { return x.uuid() == uuid; })[0];
-    this.selected_topology(topology);
-    this.showBlade(this.bladeTopology);
+    let self = this;
+    var topology = self.topologies().filter(function (x) { return x.uuid() == uuid; })[0];
+    self.selected_topology(topology);
+    self.showBlade(self.bladeTopology);
+    self.post("topology-info", { uuid: uuid }, function (data) {
+        topology.config(data.config);
+    });
 }
 
 QTopologyDashboardViewModel.prototype.prepareBlades = function () {

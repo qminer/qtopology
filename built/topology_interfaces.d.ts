@@ -122,9 +122,8 @@ export interface StorageProperty {
     key: string;
     value: string | number | boolean;
 }
-export interface TopologyDefinitionResponse {
+export interface TopologyInfoResponse extends LeadershipResultTopologyStatus {
     config: TopologyDefinition;
-    current_worker: string;
 }
 /**
  * Interface that needs to be implemented by all storage implementations.
@@ -135,7 +134,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
-    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<TopologyDefinitionResponse>): any;
+    getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
     announceLeaderCandidacy(name: string, callback: SimpleCallback): any;
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): any;

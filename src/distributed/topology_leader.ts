@@ -152,7 +152,7 @@ export class TopologyLeader {
                     self.storage.getTopologyStatus((err, topologies) => {
                         if (err) return xcallback(err);
                         // each topology: uuid, status, worker, weight, affinity, enabled
-                        // possible statuses: unassigned, waiting, running, error, stopped
+                        // possible statuses: unassigned, waiting, running, error
                         topologies = topologies.filter(x => x.enabled);
                         topologies.forEach(x => {
                             x.weight = x.weight || 1;
@@ -173,7 +173,7 @@ export class TopologyLeader {
                         });
 
                         let unassigned_topologies = topologies
-                            .filter(x => x.status === "unassigned" || x.status === "stopped");
+                            .filter(x => x.status === "unassigned");
                         if (unassigned_topologies.length > 0) {
                             log.logger().log("[Leader] Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                         }

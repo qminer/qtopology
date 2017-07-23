@@ -1,4 +1,5 @@
 import * as intf from "../../topology_interfaces";
+import * as async from "async";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -56,7 +57,17 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>) {
         this.disableDefunctWorkers();
         let res = this.workers
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    name: x.name,
+                    status: x.status,
+                    lstatus: x.lstatus,
+                    last_ping: x.last_ping,
+                    last_ping_d: x.last_ping_d,
+                    lstatus_ts: x.lstatus_ts,
+                    lstatus_ts_d: x.lstatus_ts_d
+                };
+            });
         callback(null, res);
     }
 
@@ -64,7 +75,16 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         this.unassignWaitingTopologies();
         this.disableDefunctWorkers();
         let res = this.topologies
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity
+                };
+            });
         callback(null, res);
     }
 
@@ -72,7 +92,16 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         this.unassignWaitingTopologies();
         let res = this.topologies
             .filter(x => x.worker == worker)
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity
+                };
+            });
         callback(null, res);
     }
 
@@ -88,17 +117,22 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyDefinitionResponse>) {
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>) {
         let res = this.topologies
             .filter(x => x.uuid == uuid)
             .map(x => {
                 return {
-                    config: x.config,
-                    current_worker: x.worker
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity,
+                    config: x.config
                 };
             });
         if (res.length == 0) {
-            callback(new Error("Requested topology not found: " + uuid));
+            return callback(new Error("Requested topology not found: " + uuid));
         }
         callback(null, res[0]);
     }
@@ -252,7 +286,17 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         let hits = self.topologies
             .filter(x => x.uuid == uuid && x.status == "running");
         if (hits.length > 0) {
-            self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, callback);
+            async.series(
+                [
+                    (ycallback) => {
+                        self.disableTopology(uuid, ycallback);
+                    },
+                    (ycallback) => {
+                        self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, ycallback);
+                    }
+                ],
+                callback
+            );
         } else {
             callback();
         }
@@ -268,18 +312,18 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         if (hit.status != "error") {
             return callback(new Error("Specified topology is not marked as error: " + uuid));
         }
-        hit.status = "stopped";
+        hit.status = "unassigned";
         callback();
     }
 
     deleteWorker(name: string, callback: intf.SimpleCallback) {
         let hits = this.workers.filter(x => x.name == name);
         if (hits.length > 0) {
-            if (hits[0].status == "dead") {
+            if (hits[0].status == "unloaded") {
                 this.workers = this.workers.filter(x => x.name != name);
                 callback();
             } else {
-                callback(new Error("Specified worker is not dead and cannot be deleted."));
+                callback(new Error("Specified worker is not unloaded and and cannot be deleted."));
             }
         } else {
             callback(new Error("Specified worker doesn't exist and thus cannot be deleted."));
