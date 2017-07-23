@@ -29,9 +29,8 @@ class HttpCoordinator {
     getTopologiesForWorker(name, callback) {
         this.call("worker-topologies", { worker: name }, callback);
     }
-    getTopologyDefinition(uuid, callback) {
-        //callback(new Error("NOT IMPLEMENTED - getTopologyDefinition"));
-        this.call("topology-definition", { uuid: uuid }, callback);
+    getTopologyInfo(uuid, callback) {
+        this.call("topology-info", { uuid: uuid }, callback);
     }
     getLeadershipStatus(callback) {
         this.call("leadership-status", {}, callback);
@@ -47,6 +46,9 @@ class HttpCoordinator {
     }
     assignTopology(uuid, name, callback) {
         this.call("assign-topology", { worker: name, uuid: uuid }, callback);
+    }
+    sendMessageToWorker(worker, cmd, content, callback) {
+        this.call("send-message", { worker: worker, cmd: cmd, content: content }, callback);
     }
     setTopologyStatus(uuid, status, error, callback) {
         this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
@@ -65,6 +67,18 @@ class HttpCoordinator {
     }
     deleteTopology(uuid, callback) {
         this.call("delete-topology", { uuid: uuid }, callback);
+    }
+    clearTopologyError(uuid, callback) {
+        this.call("clear-topology-error", { uuid: uuid }, callback);
+    }
+    stopTopology(uuid, callback) {
+        this.call("stop-topology", { uuid: uuid }, callback);
+    }
+    deleteWorker(name, callback) {
+        this.call("delete-worker", { name: name }, callback);
+    }
+    shutDownWorker(name, callback) {
+        this.call("shut-down-worker", { name: name }, callback);
     }
     call(addr, req_data, callback) {
         let self = this;

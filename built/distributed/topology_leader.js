@@ -122,8 +122,8 @@ class TopologyLeader {
                     if (alive_workers.length == 0) {
                         return xcallback();
                     }
-                    async.each(dead_workers, (dead_worker, xxcallback) => {
-                        self.handleDeadWorker(dead_worker, xxcallback);
+                    async.each(dead_workers, (dead_worker, ycallback) => {
+                        self.handleDeadWorker(dead_worker, ycallback);
                     }, xcallback);
                 });
             },
@@ -135,7 +135,7 @@ class TopologyLeader {
                     if (err)
                         return xcallback(err);
                     // each topology: uuid, status, worker, weight, affinity, enabled
-                    // possible statuses: unassigned, waiting, running, error, stopped
+                    // possible statuses: unassigned, waiting, running, error
                     topologies = topologies.filter(x => x.enabled);
                     topologies.forEach(x => {
                         x.weight = x.weight || 1;
@@ -155,7 +155,7 @@ class TopologyLeader {
                         }
                     });
                     let unassigned_topologies = topologies
-                        .filter(x => x.status === "unassigned" || x.status === "stopped");
+                        .filter(x => x.status === "unassigned");
                     if (unassigned_topologies.length > 0) {
                         log.logger().log("[Leader] Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                     }
@@ -163,15 +163,27 @@ class TopologyLeader {
                         return { name: x.name, weight: worker_weights.get(x.name) || 0 };
                     }), 5 // affinity means 5x stronger gravitational pull towards that worker
                     );
-                    async.each(unassigned_topologies, (unassigned_topology, xxcallback) => {
-                        let ut = unassigned_topology;
-                        let target = load_balancer.next(ut.worker_affinity, ut.weight);
-                        log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
-                        self.storage.assignTopology(ut.uuid, target, xxcallback);
+                    async.eachSeries(unassigned_topologies, (item, ycallback) => {
+                        let ut = item;
+                        self.assignUnassignedTopology(ut, load_balancer, ycallback);
                     }, xcallback);
                 });
             }
         ], callback);
+    }
+    /**
+     * This method assigns topology to the worker that is provided by the load-balancer.
+     * @param ut - unassigned toplogy object
+     * @param load_balancer - load balancer object that tells you which worker to send the topology to
+     * @param callback - callback to call when done
+     */
+    assignUnassignedTopology(ut, load_balancer, callback) {
+        let self = this;
+        let target = load_balancer.next(ut.worker_affinity, ut.weight);
+        log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
+        self.storage.assignTopology(ut.uuid, target, (err) => {
+            self.storage.sendMessageToWorker(target, "start", { uuid: ut.uuid }, callback);
+        });
     }
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.

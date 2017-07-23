@@ -9,17 +9,22 @@ export declare class HttpCoordinator implements intf.CoordinationStorage {
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
     getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<any>): void;
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>): void;
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>): void;
     assignTopology(uuid: string, name: string, callback: intf.SimpleCallback): void;
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(name: string, status: string, callback: intf.SimpleCallback): void;
     registerTopology(uuid: string, config: any, callback: intf.SimpleCallback): void;
     disableTopology(uuid: string, callback: intf.SimpleCallback): void;
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
+    stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    deleteWorker(name: string, callback: intf.SimpleCallback): void;
+    shutDownWorker(name: string, callback: intf.SimpleCallback): void;
     private call(addr, req_data, callback);
 }

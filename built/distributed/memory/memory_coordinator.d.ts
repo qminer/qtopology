@@ -10,15 +10,24 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
     getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyDefinitionResponse>): void;
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>): void;
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback): void;
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback): void;
     disableTopology(uuid: string, callback: intf.SimpleCallback): void;
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
+    stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
+    deleteWorker(name: string, callback: intf.SimpleCallback): void;
+    shutDownWorker(name: string, callback: intf.SimpleCallback): void;
+    private pingWorker(name);
+    private unassignWaitingTopologies();
+    private disableDefunctWorkers();
+    private disableDefunctLeaders();
 }

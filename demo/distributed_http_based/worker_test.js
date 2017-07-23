@@ -8,6 +8,8 @@ cmdln
     .define("n", "name", "worker1", "Logical name of the worker");
 let opts = cmdln.process(process.argv);
 
+qtopology.logger().setLevel("debug");
+
 let storage = new qtopology.HttpCoordinator();
 let w = new qtopology.TopologyWorker(opts.name, storage);
 w.run();
@@ -20,6 +22,13 @@ setTimeout(() => {
             console.log("Topology was not registered:", err);
         } else {
             console.log("Topology sucessfully registered.");
+            storage.enableTopology("topology.1", (err) => {
+                if (err) {
+                    console.log("Error while enabling the topology:", err);
+                } else {
+                    console.log("Topology sucessfully enabled.");
+                }
+            });
         }
     });
 }, 5000);

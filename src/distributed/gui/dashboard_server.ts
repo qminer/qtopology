@@ -39,19 +39,28 @@ export class DashboardServer {
             self.storage.getTopologyStatus(callback);
         });
         self.server.addHandler("register-topology", (data, callback) => {
-            self.storage.registerTopology(data.uuid, data.config, (err) => {
-                callback(err, {});
-            });
+            self.storage.registerTopology(data.uuid, data.config, callback);
+        });
+        self.server.addHandler("clear-topology-error", (data, callback) => {
+            self.storage.clearTopologyError(data.uuid, callback);
         });
         self.server.addHandler("disable-topology", (data, callback) => {
-            self.storage.disableTopology(data.uuid, (err) => {
-                callback(err, {});
-            });
+            self.storage.disableTopology(data.uuid, callback);
         });
         self.server.addHandler("enable-topology", (data, callback) => {
-            self.storage.enableTopology(data.uuid, (err) => {
-                callback(err, {});
-            });
+            self.storage.enableTopology(data.uuid, callback);
+        });
+        self.server.addHandler("stop-topology", (data, callback) => {
+            self.storage.stopTopology(data.uuid, callback);
+        });
+        self.server.addHandler("topology-info", (data, callback) => {
+            self.storage.getTopologyInfo(data.uuid, callback);
+        });
+        self.server.addHandler("delete-worker", (data, callback) => {
+            self.storage.deleteWorker(data.name, callback);
+        });
+        self.server.addHandler("shut-down-worker", (data, callback) => {
+            self.storage.shutDownWorker(data.uuid, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {

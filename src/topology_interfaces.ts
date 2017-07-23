@@ -141,7 +141,7 @@ export interface LeadershipResultWorkerStatus {
 }
 export interface LeadershipResultTopologyStatus {
     uuid: string;
-    status: string; // unassigned, stopped, error, waiting, running
+    status: string; // unassigned, error, waiting, running
     worker: string;
     weight: number;
     enabled: boolean;
@@ -155,9 +155,8 @@ export interface StorageProperty {
     key: string;
     value: string | number | boolean;
 }
-export interface TopologyDefinitionResponse {
+export interface TopologyInfoResponse extends LeadershipResultTopologyStatus {
     config: TopologyDefinition;
-    current_worker: string;
 }
 
 /**
@@ -170,7 +169,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
-    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<TopologyDefinitionResponse>);
+    getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>);
 
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
@@ -178,11 +177,17 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: SimpleCallback);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
+    stopTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
-
+    clearTopologyError(uuid: string, callback: SimpleCallback);
+    
+    deleteWorker(name: string, callback: SimpleCallback);
+    shutDownWorker(name: string, callback: SimpleCallback);
+    
     getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }

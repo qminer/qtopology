@@ -1,4 +1,5 @@
 import * as intf from "../../topology_interfaces";
+import * as async from "async";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -15,6 +16,8 @@ class TopologyRec implements intf.LeadershipResultTopologyStatus {
     weight: number;
     enabled: boolean;
     worker_affinity: string[];
+    error: string;
+    last_ping: number;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -36,7 +39,9 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         res.push({ key: "type", value: "MemoryCoordinator" });
         callback(null, res);
     }
+
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
+        this.disableDefunctLeaders();
         let res = "vacant";
         let leaders = this.workers.filter(x => x.lstatus == "leader").length;
         let pending = this.workers.filter(x => x.lstatus == "candidate").length;
@@ -50,59 +55,114 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>) {
+        this.disableDefunctWorkers();
         let res = this.workers
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    name: x.name,
+                    status: x.status,
+                    lstatus: x.lstatus,
+                    last_ping: x.last_ping,
+                    last_ping_d: x.last_ping_d,
+                    lstatus_ts: x.lstatus_ts,
+                    lstatus_ts_d: x.lstatus_ts_d
+                };
+            });
         callback(null, res);
     }
 
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+        this.unassignWaitingTopologies();
+        this.disableDefunctWorkers();
         let res = this.topologies
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity
+                };
+            });
         callback(null, res);
     }
 
     getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+        this.unassignWaitingTopologies();
         let res = this.topologies
             .filter(x => x.worker == worker)
-            .map(x => JSON.parse(JSON.stringify(x)));
+            .map(x => {
+                return {
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity
+                };
+            });
         callback(null, res);
     }
+
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
+        this.pingWorker(name);
         let res = this.messages
             .filter(x => x.name == name)
             .map(x => { return { cmd: x.cmd, content: x.content }; });
-        this.messages = this.messages
-            .filter(x => x.name != name);
+        if (res.length > 0) {
+            this.messages = this.messages
+                .filter(x => x.name != name);
+        }
         callback(null, res);
     }
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyDefinitionResponse>) {
+
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>) {
         let res = this.topologies
             .filter(x => x.uuid == uuid)
             .map(x => {
                 return {
-                    config: x.config,
-                    current_worker: x.worker
+                    uuid: x.uuid,
+                    status: x.status,
+                    worker: x.worker,
+                    weight: x.weight,
+                    enabled: x.enabled,
+                    worker_affinity: x.worker_affinity,
+                    config: x.config
                 };
             });
         if (res.length == 0) {
-            callback(new Error("Requested topology not found: " + uuid));
+            return callback(new Error("Requested topology not found: " + uuid));
         }
         callback(null, res[0]);
     }
 
     registerWorker(name: string, callback: intf.SimpleCallback) {
-        this.workers.push({
-            last_ping: Date.now(),
-            last_ping_d: new Date(),
-            lstatus: "",
-            lstatus_ts: Date.now(),
-            lstatus_ts_d: new Date(),
-            name: name,
-            status: "alive"
-        });
+        let existing = this.workers.filter(x => x.name == name);
+        if (existing.length == 0) {
+            this.workers.push({
+                last_ping: Date.now(),
+                last_ping_d: new Date(),
+                lstatus: "",
+                lstatus_ts: Date.now(),
+                lstatus_ts_d: new Date(),
+                name: name,
+                status: "alive"
+            });
+        } else {
+            let w = existing[0];
+            w.last_ping = Date.now();
+            w.last_ping_d = new Date();
+            w.lstatus = "";
+            w.lstatus_ts = Date.now();
+            w.lstatus_ts_d = new Date();
+            w.status = "alive";
+        }
+        callback();
     }
 
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback) {
+        this.disableDefunctLeaders();
         let leaders = this.workers
             .filter(x => x.name != name && x.status == "leader")
             .length;
@@ -120,6 +180,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>) {
+        this.disableDefunctLeaders();
         let obj = this.workers
             .filter(x => x.name == name);
         if (obj.length == 0) {
@@ -145,20 +206,27 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
 
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback) {
         this.topologies
-            .filter(x => x.uuid == uuid)
-            .forEach(x => { x.worker = worker; });
-        this.messages.push({
-            cmd: "start",
-            name: worker,
-            content: { uuid: uuid }
-        });
+            .forEach(x => {
+                if (x.uuid == uuid) {
+                    x.worker = worker;
+                }
+            });
+        callback();
+    }
+
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback) {
+        this.messages.push({ cmd: cmd, name: worker, content: content });
         callback();
     }
 
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         this.topologies
             .filter(x => x.uuid == uuid)
-            .forEach(x => { x.status = status; });
+            .forEach(x => {
+                x.status = status;
+                x.error = error;
+                x.last_ping = Date.now(); // this field only updates when status changes
+            });
         callback();
     }
 
@@ -170,15 +238,26 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback) {
-        this.topologies.push({
-            enabled: false,
-            config: config,
-            status: "unassigned",
-            uuid: uuid,
-            weight: config.general.weight,
-            worker: null,
-            worker_affinity: config.general.worker_affinity
-        });
+        let existing = this.topologies.filter(x => x.uuid == uuid);
+        if (existing.length == 0) {
+            this.topologies.push({
+                enabled: false,
+                config: config,
+                status: "unassigned",
+                uuid: uuid,
+                weight: config.general.weight,
+                worker: null,
+                error: null,
+                worker_affinity: config.general.worker_affinity,
+                last_ping: Date.now()
+            });
+        } else {
+            let t = existing[0];
+            t.config = config;
+            t.weight = config.general.weight;
+            t.worker_affinity = config.general.worker_affinity;
+            t.last_ping = Date.now();
+        }
         callback();
     }
 
@@ -201,4 +280,111 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             .filter(x => x.uuid != uuid);
         callback();
     }
+
+    stopTopology(uuid: string, callback: intf.SimpleCallback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == "running");
+        if (hits.length > 0) {
+            async.series(
+                [
+                    (ycallback) => {
+                        self.disableTopology(uuid, ycallback);
+                    },
+                    (ycallback) => {
+                        self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, ycallback);
+                    }
+                ],
+                callback
+            );
+        } else {
+            callback();
+        }
+    }
+
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback) {
+        let hits = this.topologies
+            .filter(x => x.uuid == uuid);
+        if (hits.length == 0) {
+            return callback(new Error("Specified topology not found: " + uuid));
+        }
+        let hit = hits[0];
+        if (hit.status != "error") {
+            return callback(new Error("Specified topology is not marked as error: " + uuid));
+        }
+        hit.status = "unassigned";
+        callback();
+    }
+
+    deleteWorker(name: string, callback: intf.SimpleCallback) {
+        let hits = this.workers.filter(x => x.name == name); 
+        if (hits.length > 0) {
+            if (hits[0].status == "unloaded") {
+                this.workers = this.workers.filter(x => x.name != name);
+                callback();
+            } else {
+                callback(new Error("Specified worker is not unloaded and and cannot be deleted."));
+            }
+        } else {
+            callback(new Error("Specified worker doesn't exist and thus cannot be deleted."));
+        }
+    }
+
+    shutDownWorker(name: string, callback: intf.SimpleCallback) {
+        this.sendMessageToWorker(name, "shutdown", {}, callback);
+    }
+
+
+    private pingWorker(name: string) {
+        for (let worker of this.workers) {
+            if (worker.name == name) {
+                worker.last_ping = Date.now();
+                break;
+            }
+        }
+    }
+
+    private unassignWaitingTopologies() {
+        // set topologies to unassigned if they have been waiting too long
+        let d = Date.now() - 30 * 1000;
+        let worker_map: { [email: string]: string } = {};
+        for (let worker of this.workers) {
+            worker_map[worker.name] = worker.status;
+        }
+        for (let topology of this.topologies) {
+            if (topology.status == "waiting" && topology.last_ping < d) {
+                topology.status = "unassigned";
+                topology.worker = null;
+            }
+            if (topology.worker) {
+                if (worker_map[topology.worker] == "dead") {
+                    topology.status = "unassigned";
+                    topology.worker = null;
+                }
+            }
+        }
+    }
+
+    private disableDefunctWorkers() {
+        // disable workers that did not update their status
+        let d = Date.now() - 30 * 1000;
+        for (let worker of this.workers) {
+            if (worker.status == "alive" && worker.last_ping < d) {
+                worker.status = "dead";
+            }
+        }
+    }
+
+    private disableDefunctLeaders() {
+        // disable worker that did not perform their leadership duties
+        let d = Date.now() - 10 * 1000;
+        for (let worker of this.workers) {
+            if (worker.lstatus == "leader" || worker.lstatus == "candidate") {
+                if (worker.last_ping < d) {
+                    worker.lstatus = "";
+                }
+            }
+        }
+    }
+
 }

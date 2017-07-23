@@ -122,9 +122,8 @@ export interface StorageProperty {
     key: string;
     value: string | number | boolean;
 }
-export interface TopologyDefinitionResponse {
+export interface TopologyInfoResponse extends LeadershipResultTopologyStatus {
     config: TopologyDefinition;
-    current_worker: string;
 }
 /**
  * Interface that needs to be implemented by all storage implementations.
@@ -135,16 +134,21 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
-    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<TopologyDefinitionResponse>): any;
+    getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
     announceLeaderCandidacy(name: string, callback: SimpleCallback): any;
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): any;
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: SimpleCallback): any;
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback): any;
     disableTopology(uuid: string, callback: SimpleCallback): any;
     enableTopology(uuid: string, callback: SimpleCallback): any;
+    stopTopology(uuid: string, callback: SimpleCallback): any;
     deleteTopology(uuid: string, callback: SimpleCallback): any;
+    clearTopologyError(uuid: string, callback: SimpleCallback): any;
+    deleteWorker(name: string, callback: SimpleCallback): any;
+    shutDownWorker(name: string, callback: SimpleCallback): any;
     getProperties(callback: SimpleResultCallback<StorageProperty[]>): any;
 }
