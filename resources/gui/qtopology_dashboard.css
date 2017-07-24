@@ -225,7 +225,10 @@ a {
     text-decoration: none;
     cursor: pointer; 
 }
-
+td, th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
 /*---------------------------------------------*/
 button {    
     color: #fff;

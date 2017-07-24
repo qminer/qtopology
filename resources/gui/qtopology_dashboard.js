@@ -32,32 +32,8 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     // TODO make this smarter - it should just update existing object wherever possible
 
     self.post("topology-status", {}, function (data_topologies) {
-        // let existing_topologies = self.topologies.removeAll();
-        // for (let d of data_topologies) {
-        //     d.worker = d.worker || "-";
-        //     d.error = d.error || "-";
-        //     d.open = function () { self.showTopologyInfo(d.uuid); };
-        //     d.set_enabled = function () { self.setTopologyEnabled(d.uuid); };
-        //     d.set_disabled = function () { self.setTopologyDisabled(d.uuid); };
-        //     d.clear_error = function () { self.clearTopologyError(d.uuid); };
-
-        //     self.topologies.push(d);
-        // }
         self.mergeTopologies(data_topologies);
         self.post("worker-status", {}, function (data_workers) {
-            // self.workers.removeAll();
-            // for (let d of data_workers) {
-            //     d.open = function () { self.showWorkerInfo(d.name); };
-            //     d.topologies = ko.observableArray();
-            //     d.lstatus = d.lstatus || "-";
-            //     self.topologies().forEach(function (x) {
-            //         if (x.worker() == d.name) {
-            //             d.topologies.push(x);
-            //         }
-            //     });
-            //     d.topologies_count = ko.observable(d.topologies().length);
-            //     self.workers.push(d);
-            // }
             self.mergeWorkers(data_workers);
             if (callback) {
                 callback();
@@ -159,12 +135,18 @@ QTopologyDashboardViewModel.prototype.showBlade = function (name) {
     $("#" + name).show();
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
+    let self = this;
     var worker = this.workers().filter(function (x) { return x.name() == name; })[0];
     this.selected_worker(worker);
     this.showBlade(this.bladeWorker);
     self.post("worker-history", { name: name }, function (data) {
         worker.history.removeAll();
-        data.forEach(function (x) { worker.history.push(x); });
+        data.forEach(function (x) {
+            let d = new Date(x.ts);
+            x.ts_d = d;
+            x.ts_s = d.toLocaleString();
+            worker.history.push(x);
+        });
     });
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
@@ -178,11 +160,10 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
     self.post("topology-history", { uuid: uuid }, function (data) {
         topology.history.removeAll();
         data.forEach(function (x) {
-            let d = new Date(x.ts);            
+            let d = new Date(x.ts);
             x.ts_d = d;
-            x.ts_s = //d.toLocaleDateString() + " " + d.toLocaleTimeString() + 
-            d.toLocaleString();
-            topology.history.push(x); 
+            x.ts_s = d.toLocaleString();
+            topology.history.push(x);
         });
     });
 }

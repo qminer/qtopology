@@ -113,6 +113,7 @@ export interface TopologyStatus {
     uuid: string;
     status: string;
     worker: string;
+    error: string;
     weight: number;
     enabled: boolean;
     worker_affinity: string[];

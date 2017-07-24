@@ -94,6 +94,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
                     worker: x.worker,
                     weight: x.weight,
                     enabled: x.enabled,
+                    error: x.error,
                     worker_affinity: x.worker_affinity
                 };
             });
@@ -111,6 +112,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
                     worker: x.worker,
                     weight: x.weight,
                     enabled: x.enabled,
+                    error: x.error,
                     worker_affinity: x.worker_affinity
                 };
             });
@@ -139,6 +141,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
                     worker: x.worker,
                     weight: x.weight,
                     enabled: x.enabled,
+                    error: x.error,
                     worker_affinity: x.worker_affinity,
                     config: x.config
                 };
@@ -457,6 +460,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             uuid: top.uuid,
             weight: top.weight,
             worker: top.worker,
+            error: top.error,
             worker_affinity: top.worker_affinity
         });
     }

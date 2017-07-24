@@ -146,6 +146,7 @@ export interface TopologyStatus {
     uuid: string;
     status: string; // unassigned, error, waiting, running
     worker: string;
+    error: string;
     weight: number;
     enabled: boolean;
     worker_affinity: string[];

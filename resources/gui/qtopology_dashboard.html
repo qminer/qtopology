@@ -73,7 +73,6 @@
                     </div>
                 </div>
                 <div class="cell-8">
-
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Topologies</div>
@@ -102,6 +101,37 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">History</div>
+                        </div>
+                        <div class="panel-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>When</th>
+                                        <th>Status</th>
+                                        <th>Leadership</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: history">
+                                    <tr>
+                                        <td data-bind="text: ts_s"></td>
+                                        <td>
+                                            <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
+                                            <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
+                                            <span class="badge" data-bind="visible: lstatus!='leader'">Normal</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -237,6 +267,7 @@
                                     <th>Enabled</th>
                                     <th>Status</th>
                                     <th>Worker</th>
+                                    <th>Error</th>
                                 </tr>
                             </thead>
                             <tbody data-bind="foreach: history">
@@ -253,6 +284,7 @@
                                         <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
                                     </td>
                                     <td data-bind="text: worker"></td>
+                                    <td data-bind="text: error"></td>
                                 </tr>
                             </tbody>
                         </table>
