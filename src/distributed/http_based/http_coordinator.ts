@@ -31,13 +31,13 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
         this.call("get-messages", { worker: name }, callback);
     }
-    getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>) {
+    getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
         this.call("worker-statuses", {}, callback);
     }
-    getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+    getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
         this.call("topology-statuses", {}, callback);
     }
-    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
         this.call("worker-topologies", { worker: name }, callback);
     }
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>) {
@@ -92,6 +92,12 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     }
     shutDownWorker(name: string, callback: intf.SimpleCallback) {
         this.call("shut-down-worker", { name: name }, callback);
+    }
+    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>) {
+        this.call("topology-history", { uuid: uuid }, callback);
+    }
+    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>) {
+        this.call("worker-history", { name: name }, callback);
     }
 
 

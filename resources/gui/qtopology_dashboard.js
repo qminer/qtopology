@@ -88,6 +88,7 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
                 config: ko.observable(""),
                 error: ko.observable(d.error || "-"),
                 worker: ko.observable(d.worker || "-"),
+                history: ko.observableArray(),
                 open: function () { self.showTopologyInfo(uuid); },
                 set_enabled: function () { self.setTopologyEnabled(uuid); },
                 set_disabled: function () { self.setTopologyDisabled(uuid); },
@@ -123,6 +124,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
                 lstatus_ts: ko.observable(new Date(d.lstatus_ts)),
                 topologies_count: ko.observable(0),
                 topologies: ko.observableArray(),
+                history: ko.observableArray(),
                 open: function () { self.showWorkerInfo(name); },
                 shut_down: function () { self.shutDownWorker(name); },
                 remove: function () { self.deleteWorker(name); }
@@ -136,7 +138,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
             hit.lstatus_ts(new Date(d.lstatus_ts));
             obj = hit;
         }
-        // match will topologies
+        // match with topologies
         obj.topologies.removeAll();
         self.topologies().forEach(function (x) {
             if (x.worker() == name) {
@@ -160,6 +162,10 @@ QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     var worker = this.workers().filter(function (x) { return x.name() == name; })[0];
     this.selected_worker(worker);
     this.showBlade(this.bladeWorker);
+    self.post("worker-history", { name: name }, function (data) {
+        worker.history.removeAll();
+        data.forEach(function (x) { worker.history.push(x); });
+    });
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
     let self = this;
@@ -168,6 +174,16 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
     self.showBlade(self.bladeTopology);
     self.post("topology-info", { uuid: uuid }, function (data) {
         topology.config(data.config);
+    });
+    self.post("topology-history", { uuid: uuid }, function (data) {
+        topology.history.removeAll();
+        data.forEach(function (x) {
+            let d = new Date(x.ts);            
+            x.ts_d = d;
+            x.ts_s = //d.toLocaleDateString() + " " + d.toLocaleTimeString() + 
+            d.toLocaleString();
+            topology.history.push(x); 
+        });
     });
 }
 

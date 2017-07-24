@@ -97,7 +97,7 @@ export declare enum ChildMsgCode {
 export interface LeadershipResultStatus {
     leadership: string;
 }
-export interface LeadershipResultWorkerStatus {
+export interface WorkerStatus {
     name: string;
     status: string;
     lstatus: string;
@@ -106,13 +106,19 @@ export interface LeadershipResultWorkerStatus {
     lstatus_ts: number;
     lstatus_ts_d: Date;
 }
-export interface LeadershipResultTopologyStatus {
+export interface WorkerStatusHistory extends WorkerStatus {
+    ts: Date;
+}
+export interface TopologyStatus {
     uuid: string;
     status: string;
     worker: string;
     weight: number;
     enabled: boolean;
     worker_affinity: string[];
+}
+export interface TopologyStatusHistory extends TopologyStatus {
+    ts: Date;
 }
 export interface StorageResultMessage {
     cmd: string;
@@ -122,7 +128,7 @@ export interface StorageProperty {
     key: string;
     value: string | number | boolean;
 }
-export interface TopologyInfoResponse extends LeadershipResultTopologyStatus {
+export interface TopologyInfoResponse extends TopologyStatus {
     config: TopologyDefinition;
 }
 /**
@@ -130,11 +136,13 @@ export interface TopologyInfoResponse extends LeadershipResultTopologyStatus {
  */
 export interface CoordinationStorage {
     getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
-    getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>): any;
-    getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
-    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>): any;
+    getWorkerStatus(callback: SimpleResultCallback<WorkerStatus[]>): any;
+    getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>): any;
+    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>): any;
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>): any;
     getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>): any;
+    getTopologyHistory(uuid: string, callback: SimpleResultCallback<TopologyStatusHistory[]>): any;
+    getWorkerHistory(name: string, callback: SimpleResultCallback<WorkerStatusHistory[]>): any;
     registerWorker(name: string, callback: SimpleCallback): any;
     announceLeaderCandidacy(name: string, callback: SimpleCallback): any;
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): any;

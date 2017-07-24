@@ -84,6 +84,12 @@ function initHttpServer(storage) {
     http_server.addHandler('/shut-down-worker', (data, callback) => {
         storage.shutDownWorker(data.name, callback);
     });
+    http_server.addHandler('/topology-history', (data, callback) => {
+        storage.getTopologyHistory(data.uuid, callback);
+    });
+    http_server.addHandler('/worker-history', (data, callback) => {
+        storage.getWorkerHistory(data.name, callback);
+    });
     return http_server;
 }
 /////////////////////////////////////////////////////////////////////////////

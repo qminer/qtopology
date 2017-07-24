@@ -44,6 +44,12 @@ class DashboardServer {
         self.server.addHandler("topology-info", (data, callback) => {
             self.storage.getTopologyInfo(data.uuid, callback);
         });
+        self.server.addHandler("topology-history", (data, callback) => {
+            self.storage.getTopologyHistory(data.uuid, callback);
+        });
+        self.server.addHandler("worker-history", (data, callback) => {
+            self.storage.getWorkerHistory(data.name, callback);
+        });
         self.server.addHandler("delete-worker", (data, callback) => {
             self.storage.deleteWorker(data.name, callback);
         });

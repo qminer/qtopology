@@ -80,6 +80,12 @@ class HttpCoordinator {
     shutDownWorker(name, callback) {
         this.call("shut-down-worker", { name: name }, callback);
     }
+    getTopologyHistory(uuid, callback) {
+        this.call("topology-history", { uuid: uuid }, callback);
+    }
+    getWorkerHistory(name, callback) {
+        this.call("worker-history", { name: name }, callback);
+    }
     call(addr, req_data, callback) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };

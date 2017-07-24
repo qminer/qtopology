@@ -113,7 +113,7 @@ export class TopologyLeader {
     private performLeaderLoop(callback: intf.SimpleCallback) {
         let self = this;
         let perform_loop = true;
-        let alive_workers: intf.LeadershipResultWorkerStatus[] = null;
+        let alive_workers: intf.WorkerStatus[] = null;
         let worker_weights: Map<string, number> = new Map<string, number>();
         async.series(
             [
@@ -186,7 +186,7 @@ export class TopologyLeader {
                         async.eachSeries(
                             unassigned_topologies,
                             (item, ycallback) => {
-                                let ut = item as intf.LeadershipResultTopologyStatus;
+                                let ut = item as intf.TopologyStatus;
                                 self.assignUnassignedTopology(ut, load_balancer, ycallback);
                             },
                             xcallback
@@ -204,7 +204,7 @@ export class TopologyLeader {
      * @param load_balancer - load balancer object that tells you which worker to send the topology to
      * @param callback - callback to call when done
      */
-    private assignUnassignedTopology(ut: intf.LeadershipResultTopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleCallback) {
+    private assignUnassignedTopology(ut: intf.TopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleCallback) {
         let self = this;
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
         log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
