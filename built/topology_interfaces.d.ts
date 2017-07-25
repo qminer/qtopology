@@ -106,7 +106,10 @@ export interface WorkerStatus {
     lstatus_ts: number;
     lstatus_ts_d: Date;
 }
-export interface WorkerStatusHistory extends WorkerStatus {
+export interface WorkerStatusHistory {
+    name: string;
+    status: string;
+    lstatus: string;
     ts: Date;
 }
 export interface TopologyStatus {

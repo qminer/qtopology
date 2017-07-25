@@ -467,11 +467,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
 
     private notifyWorkerHistory(w: WorkerRec) {
         this.workers_history.push({
-            last_ping: w.last_ping,
-            last_ping_d: w.last_ping_d,
             lstatus: w.lstatus,
-            lstatus_ts: w.lstatus_ts,
-            lstatus_ts_d: w.lstatus_ts_d,
             name: w.name,
             status: w.status,
             ts: new Date()

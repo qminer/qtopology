@@ -139,7 +139,10 @@ export interface WorkerStatus {
     lstatus_ts: number;
     lstatus_ts_d: Date;
 }
-export interface WorkerStatusHistory extends WorkerStatus {
+export interface WorkerStatusHistory {
+    name: string;
+    status: string; // alive, dead, unloaded
+    lstatus: string; // leader, candidate, ""
     ts: Date;
 }
 export interface TopologyStatus {
