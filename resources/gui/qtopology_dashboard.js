@@ -28,9 +28,6 @@ QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
 }
 QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     let self = this;
-
-    // TODO make this smarter - it should just update existing object wherever possible
-
     self.post("topology-status", {}, function (data_topologies) {
         self.mergeTopologies(data_topologies);
         self.post("worker-status", {}, function (data_workers) {
