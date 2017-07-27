@@ -3,12 +3,14 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     private workers;
     private topologies;
     private messages;
+    private workers_history;
+    private topologies_history;
     constructor();
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
-    getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
-    getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
-    getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
+    getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>): void;
+    getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
+    getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
@@ -26,8 +28,12 @@ export declare class MemoryCoordinator implements intf.CoordinationStorage {
     clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
     deleteWorker(name: string, callback: intf.SimpleCallback): void;
     shutDownWorker(name: string, callback: intf.SimpleCallback): void;
+    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>): void;
+    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>): void;
     private pingWorker(name);
     private unassignWaitingTopologies();
     private disableDefunctWorkers();
     private disableDefunctLeaders();
+    private notifyTopologyHistory(top);
+    private notifyWorkerHistory(w);
 }

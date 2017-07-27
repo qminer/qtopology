@@ -6,9 +6,9 @@ export declare class HttpCoordinator implements intf.CoordinationStorage {
     constructor(port?: number);
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
-    getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>): void;
-    getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
-    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>): void;
+    getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>): void;
+    getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
+    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>): void;
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
@@ -26,5 +26,7 @@ export declare class HttpCoordinator implements intf.CoordinationStorage {
     stopTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteWorker(name: string, callback: intf.SimpleCallback): void;
     shutDownWorker(name: string, callback: intf.SimpleCallback): void;
+    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>): void;
+    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>): void;
     private call(addr, req_data, callback);
 }

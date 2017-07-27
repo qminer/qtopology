@@ -15,10 +15,10 @@
         <h1>QTopology dashboard</h1>
     </div>
     <div id="bladeWorker" class="blade">
-        <div class="blade-content">
+        <div class="blade-content" data-bind="with: selected_worker">
             <span class="blade-close">&times;</span>
             <h1>Worker info</h1>
-            <div data-bind="with: selected_worker">
+            <div>
                 <div class="cell-4">
                     <div class="panel">
                         <div class="panel-header">
@@ -73,7 +73,6 @@
                     </div>
                 </div>
                 <div class="cell-8">
-
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Topologies</div>
@@ -104,6 +103,37 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">History</div>
+                        </div>
+                        <div class="panel-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>When</th>
+                                        <th>Status</th>
+                                        <th>Leadership</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: history">
+                                    <tr>
+                                        <td data-bind="text: ts_s"></td>
+                                        <td>
+                                            <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
+                                            <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                            <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
+                                            <span class="badge" data-bind="visible: lstatus!='leader'">Normal</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,7 +141,7 @@
 
 
     <div id="bladeTopology" class="blade">
-        <div class="blade-content">
+        <div class="blade-content" data-bind="with: selected_topology">
             <span class="blade-close">&times;</span>
             <h1>Topology info</h1>
             <div class="cell-3">
@@ -120,7 +150,7 @@
                         <div class="title">Properties</div>
                     </div>
                     <div class="panel-body">
-                        <div data-bind="with: selected_topology" class="props">
+                        <div class="props">
 
                             <dt>UUID</dt>
                             <dd data-bind="text: uuid()"></dd>
@@ -209,7 +239,6 @@
                 </div>
             </div>
             <div class="cell-9">
-
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Run-time info</div>
@@ -221,9 +250,44 @@
                     <div class="panel-header">
                         <div class="title">Configuration</div>
                     </div>
-                    <div class="panel-body" data-bind="with: selected_topology">
+                    <div class="panel-body">
                         <pre data-bind="text: JSON.stringify(config(), null, 4)">
                         </pre>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="title">History</div>
+                    </div>
+                    <div class="panel-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>Enabled</th>
+                                    <th>Status</th>
+                                    <th>Worker</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: history">
+                                <tr>
+                                    <td data-bind="text: ts_s"></td>
+                                    <td>
+                                        <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                        <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                        <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                        <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
+                                        <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                    </td>
+                                    <td data-bind="text: worker"></td>
+                                    <td data-bind="text: error"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
