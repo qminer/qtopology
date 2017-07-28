@@ -14,7 +14,7 @@ interface Handler {
     (req: RequestWithBody, res: http.ServerResponse);
 }
 export interface ProcessingHandlerCallback {
-    (err: Error, data: any);
+    (err: Error, data?: any);
 }
 export interface ProcessingHandler {
     (data: any, callback: ProcessingHandlerCallback);
@@ -47,9 +47,9 @@ export class MinimalHttpServer {
 
     // Utility function for returning response
     private handleResponse(result: any, response: http.ServerResponse) {
-        logger.logger().debug("Sending response " + result);
+        logger.logger().debug("Sending response " + JSON.stringify(result));
         response.writeHead(200, { "Content-Type": "application/json" })
-        response.end(JSON.stringify(result));
+        response.end(JSON.stringify(result || {}));
     }
 
     // Utility function for returning error response

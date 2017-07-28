@@ -24,6 +24,17 @@ class TopologyWorker {
             log.logger().important("[Worker] Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
+        self.coordinator.on("verify-topology", (msg) => {
+            let uuid = msg.uuid;
+            if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
+                log.logger().log("[Worker] Topology is assigned to this worker, but it is not running here: " + msg.uuid);
+                self.coordinator.reportTopology(uuid, "unassigned", "", () => { });
+            }
+        });
+        self.coordinator.on("stop-topology", (msg) => {
+            let uuid = msg.uuid;
+            self.shutDownTopology(uuid, () => { });
+        });
         self.coordinator.on("shutdown", (msg) => {
             log.logger().important("[Worker] Received shutdown instruction from coordinator");
             self.shutdown(() => { });
@@ -61,12 +72,7 @@ class TopologyWorker {
                 let too_often = (score >= 10);
                 if (too_often) {
                     //  report error and remove
-                    if (err) {
-                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
-                    }
-                    else {
-                        self.coordinator.reportTopology(rec.uuid, "stopped", "" + err);
-                    }
+                    self.coordinator.reportTopology(rec.uuid, "error", "" + err);
                     self.removeTopology(rec.uuid);
                 }
                 else {
@@ -97,21 +103,29 @@ class TopologyWorker {
     }
     /** Starts single topology */
     start(uuid, config) {
-        this.injectOverrides(config);
-        let compiler = new comp.TopologyCompiler(config);
-        compiler.compile();
-        config = compiler.getWholeConfig();
         let self = this;
-        if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
-            self.coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
-            return;
+        try {
+            self.injectOverrides(config);
+            let compiler = new comp.TopologyCompiler(config);
+            compiler.compile();
+            config = compiler.getWholeConfig();
+            if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
+                self.coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
+                return;
+            }
+            let rec = new TopologyItem();
+            rec.uuid = uuid;
+            rec.config = config;
+            rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
+            self.createProxy(rec);
+            // only change internal state when all other steps passed
+            self.topologies.push(rec);
         }
-        let rec = new TopologyItem();
-        rec.uuid = uuid;
-        rec.config = config;
-        rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
-        self.topologies.push(rec);
-        self.createProxy(rec);
+        catch (err) {
+            log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
+            log.logger().exception(err);
+            self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
+        }
     }
     /** This method injects override values into variables section of the configuration. */
     injectOverrides(config) {
@@ -131,21 +145,37 @@ class TopologyWorker {
         let self = this;
         async.each(self.topologies, (itemx, xcallback) => {
             let item = itemx;
-            item.proxy.shutdown((err) => {
-                if (err) {
-                    log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
-                    log.logger().exception(err);
-                }
-                else {
-                    self.coordinator.reportTopology(item.uuid, "stopped", "", xcallback);
-                }
-            });
+            self.shutDownTopologyInternal(item, xcallback);
         }, (err) => {
             if (err) {
                 log.logger().error("[Worker] Error while shutting down topologies:");
                 log.logger().exception(err);
             }
             self.coordinator.shutdown(callback);
+        });
+    }
+    shutDownTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies.filter(x => x.uuid == uuid);
+        if (hits.length >= 0) {
+            let hit = hits[0];
+            self.shutDownTopologyInternal(hit, callback);
+        }
+        else {
+            callback();
+        }
+    }
+    shutDownTopologyInternal(item, callback) {
+        let self = this;
+        item.proxy.shutdown((err) => {
+            if (err) {
+                log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
+                log.logger().exception(err);
+                self.coordinator.reportTopology(item.uuid, "error", "" + err, () => { });
+            }
+            else {
+                self.coordinator.reportTopology(item.uuid, "unassigned", "", () => { });
+            }
         });
     }
 }

@@ -15,7 +15,11 @@ body{
     margin: 0px;
     padding: 15px 25px 15px 15px;
 }
-
+.logo {
+    float: left;
+    height: 35px;
+    margin-right: 20px;
+}
 /**************************************************/
 /* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
 .blade {
@@ -35,7 +39,7 @@ body{
     /*margin: 15% auto;*/     /* 15% from the top and centered */
     padding: 20px;
     /*border: 1px solid #555;*/
-    width: 80%; /* Could be more or less, depending on screen size */
+    width: 95%;
 }
 
 /* The Close Button */
@@ -61,6 +65,9 @@ body{
 .blade-content h2 {
     padding: 10px;
     text-align: center;
+}
+.props {
+    background-color: #222;
 }
 /**************************************************/
 .row {
@@ -149,6 +156,22 @@ label {
     padding: 5px 15px 5px 15px;
 }
 
+dt {
+  float: left;
+  clear: left;
+  margin: 0;
+  padding: 5px .5em 5px 0;
+  width: 30%;
+  text-align: right;
+    color: #a87;
+}
+dd {
+    margin: 0;
+  padding: 5px .5em 5px 0;
+    /* background-color: #555; */
+    /* width: 69% */
+}
+
 .badge {
     display: inline-block;
     min-width: 10px;
@@ -175,4 +198,59 @@ label {
 }
 .badge-orange {
     background-color: darkorange;
+}
+.badge-gold {
+    background-color: goldenrod;
+}
+/*---------------------------------------------*/
+.action-panel {
+    margin-top: 20px;
+}
+.action-title {
+    color: goldenrod;
+    padding: 25px 20px;
+    border-bottom: 1px solid goldenrod;
+}
+.action-desc {
+    color: #999;
+    padding: 25px 20px;
+}
+.action-btn {
+    text-align: right;
+    padding: 10px 20px;
+}
+/*---------------------------------------------*/
+a {
+    color: #368BBA;
+    text-decoration: none;
+    cursor: pointer; 
+}
+td, th {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+/*---------------------------------------------*/
+button {    
+    color: #fff;
+    background-color: transparent;
+    border-color: #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
