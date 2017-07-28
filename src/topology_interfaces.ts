@@ -126,33 +126,47 @@ export enum ChildMsgCode {
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites
 
+// possible values: "vacant", "pending", "ok"
 export interface LeadershipResultStatus {
     leadership: string
 }
-export interface LeadershipResultWorkerStatus {
+export interface WorkerStatus {
     name: string;
-    status: string; // dead, unloaded
-    lstatus: string,
-    last_ping_d: number,
-    last_ping: Date,
-    lstatus_ts: number,
-    lstatus_ts_d: Date
+    status: string; // alive, dead, unloaded
+    lstatus: string; // leader, candidate, ""
+    last_ping: number;
+    last_ping_d: Date;
+    lstatus_ts: number;
+    lstatus_ts_d: Date;
 }
-export interface LeadershipResultTopologyStatus {
+export interface WorkerStatusHistory {
+    name: string;
+    status: string; // alive, dead, unloaded
+    lstatus: string; // leader, candidate, ""
+    ts: Date;
+}
+export interface TopologyStatus {
     uuid: string;
-    status: string;
+    status: string; // unassigned, error, waiting, running
     worker: string;
+    error: string;
     weight: number;
     enabled: boolean;
     worker_affinity: string[];
+}
+export interface TopologyStatusHistory extends TopologyStatus {
+    ts: Date;
 }
 export interface StorageResultMessage {
     cmd: string;
     content: any;
 }
-export interface TopologyDefinitionResponse {
+export interface StorageProperty {
+    key: string;
+    value: string | number | boolean;
+}
+export interface TopologyInfoResponse extends TopologyStatus {
     config: TopologyDefinition;
-    current_worker: string;
 }
 
 /**
@@ -161,11 +175,14 @@ export interface TopologyDefinitionResponse {
 export interface CoordinationStorage {
 
     getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
-    getWorkerStatus(callback: SimpleResultCallback<LeadershipResultWorkerStatus[]>);
-    getTopologyStatus(callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
-    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<LeadershipResultTopologyStatus[]>);
+    getWorkerStatus(callback: SimpleResultCallback<WorkerStatus[]>);
+    getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>);
+    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
-    getTopologyDefinition(uuid: string, callback: SimpleResultCallback<TopologyDefinitionResponse>);
+    getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>);
+
+    getTopologyHistory(uuid: string, callback: SimpleResultCallback<TopologyStatusHistory[]>);
+    getWorkerHistory(name: string, callback: SimpleResultCallback<WorkerStatusHistory[]>);
 
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
@@ -173,9 +190,17 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: SimpleCallback);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
+    stopTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
+    clearTopologyError(uuid: string, callback: SimpleCallback);
+    
+    deleteWorker(name: string, callback: SimpleCallback);
+    shutDownWorker(name: string, callback: SimpleCallback);
+    
+    getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }

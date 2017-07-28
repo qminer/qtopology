@@ -12,29 +12,36 @@ export class HttpCoordinator implements intf.CoordinationStorage {
 
     private port: number;
     private client: nrc.Client;
-    private urlPrefix: string;
+    private url_prefix: string;
 
     constructor(port?: number) {
         this.port = port || port_default;
         this.client = new nrc.Client();
-        this.urlPrefix = "http://localhost:" + this.port + "/"
+        this.url_prefix = "http://localhost:" + this.port + "/"
+    }
+
+    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+        let res = [];
+        res.push({ key: "type", value: "HttpCoordinator" });
+        res.push({ key: "port", value: this.port });
+        res.push({ key: "url_prefix", value: this.url_prefix });
+        callback(null, res);
     }
 
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
         this.call("get-messages", { worker: name }, callback);
     }
-    getWorkerStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultWorkerStatus[]>) {
+    getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
         this.call("worker-statuses", {}, callback);
     }
-    getTopologyStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+    getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
         this.call("topology-statuses", {}, callback);
     }
-    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.LeadershipResultTopologyStatus[]>) {
+    getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
         this.call("worker-topologies", { worker: name }, callback);
     }
-    getTopologyDefinition(uuid: string, callback: intf.SimpleResultCallback<any>) {
-        //callback(new Error("NOT IMPLEMENTED - getTopologyDefinition"));
-        this.call("topology-definition", { uuid: uuid }, callback);
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>) {
+        this.call("topology-info", { uuid: uuid }, callback);
     }
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
         this.call("leadership-status", {}, callback);
@@ -51,6 +58,10 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     assignTopology(uuid: string, name: string, callback: intf.SimpleCallback) {
         this.call("assign-topology", { worker: name, uuid: uuid }, callback);
     }
+    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback) {
+        this.call("send-message", { worker: worker, cmd: cmd, content: content }, callback);
+    }
+
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
     }
@@ -70,11 +81,30 @@ export class HttpCoordinator implements intf.CoordinationStorage {
     deleteTopology(uuid: string, callback: intf.SimpleCallback) {
         this.call("delete-topology", { uuid: uuid }, callback);
     }
+    clearTopologyError(uuid: string, callback: intf.SimpleCallback) {
+        this.call("clear-topology-error", { uuid: uuid }, callback);
+    }
+    stopTopology(uuid: string, callback: intf.SimpleCallback) {
+        this.call("stop-topology", { uuid: uuid }, callback);
+    }
+    deleteWorker(name: string, callback: intf.SimpleCallback) {
+        this.call("delete-worker", { name: name }, callback);
+    }
+    shutDownWorker(name: string, callback: intf.SimpleCallback) {
+        this.call("shut-down-worker", { name: name }, callback);
+    }
+    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>) {
+        this.call("topology-history", { uuid: uuid }, callback);
+    }
+    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>) {
+        this.call("worker-history", { name: name }, callback);
+    }
+
 
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         let self = this;
         let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        let req = this.client.post(self.urlPrefix + addr, args, (data, response) => {
+        let req = this.client.post(self.url_prefix + addr, args, (data, response) => {
             callback(null, data);
         });
         req.on('error', (err) => {

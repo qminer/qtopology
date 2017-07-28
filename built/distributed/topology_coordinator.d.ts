@@ -22,4 +22,6 @@ export declare class TopologyCoordinator extends EventEmitter {
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);
+    /** This method checks if all topologies, assigned to this worker, actually run. */
+    private checkAssignedTopologies(callback);
 }
