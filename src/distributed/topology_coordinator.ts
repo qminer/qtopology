@@ -67,11 +67,11 @@ export class TopologyCoordinator extends EventEmitter {
     }
 
     /** Shut down the loop */
-    shutdown(callback: intf.SimpleCallback) {
+    preShutdown(callback: intf.SimpleCallback) {
         let self = this;
-        self.reportWorker(self.name, "dead", "", (err) => {
+        self.reportWorker(self.name, "closing", "", (err: Error) => {
             if (err) {
-                log.logger().error("Error while reporting worker status as 'dead':");
+                log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
             }
             self.leadership.shutdown((err: Error) => {
@@ -79,10 +79,24 @@ export class TopologyCoordinator extends EventEmitter {
                     log.logger().error("Error while shutting down leader:");
                     log.logger().exception(err);
                 }
-                log.logger().log("[Coordinator] Coordinator set for shutdown");
-                self.shutdownCallback = callback;
-                self.isRunning = false;
+                log.logger().log("[Coordinator] Coordinator marked as closing");
+                callback();
             });
+        });
+    }
+
+
+    /** Shut down the loop */
+    shutdown(callback: intf.SimpleCallback) {
+        let self = this;
+        self.reportWorker(self.name, "dead", "", (err) => {
+            if (err) {
+                log.logger().error("Error while reporting worker status as 'dead':");
+                log.logger().exception(err);
+            }
+            log.logger().log("[Coordinator] Coordinator set for shutdown");
+            self.shutdownCallback = callback;
+            self.isRunning = false;
         });
     }
 

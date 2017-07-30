@@ -33,6 +33,7 @@
                             <dd>
                                 <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                 <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                             </dd>
 
@@ -123,6 +124,7 @@
                                         <td>
                                             <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
                                             <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                            <span class="badge badge-orange" data-bind="visible: status=='closing'">Closing</span>
                                             <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
                                         </td>
                                         <td>
@@ -310,6 +312,7 @@
 
                                     <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                     <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                                 </div>
                                 <label data-bind="text: name()"></label>

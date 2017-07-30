@@ -159,19 +159,37 @@ export class TopologyWorker {
     /** Shuts down the worker and all its subprocesses. */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
+        async.series(
+            [
+                (xcallback) => {
+                    self.coordinator.preShutdown(xcallback);
+                },
+                (xcallback) => {
+                    self.shutDownTopologies((err) => {
+                        if (err) {
+                            log.logger().error("[Worker] Error while shutting down topologies:");
+                            log.logger().exception(err);
+                        }
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    self.coordinator.shutdown(xcallback);
+                }
+            ],
+            callback
+        );
+    }
+
+    private shutDownTopologies(callback) {
+        let self = this;
         async.each(
             self.topologies,
             (itemx, xcallback) => {
                 let item = itemx as TopologyItem;
                 self.shutDownTopologyInternal(item, xcallback);
             },
-            (err) => {
-                if (err) {
-                    log.logger().error("[Worker] Error while shutting down topologies:");
-                    log.logger().exception(err);
-                }
-                self.coordinator.shutdown(callback);
-            }
+            callback
         );
     }
 

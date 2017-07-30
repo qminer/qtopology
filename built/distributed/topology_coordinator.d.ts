@@ -15,6 +15,8 @@ export declare class TopologyCoordinator extends EventEmitter {
     /** Runs main loop */
     run(): void;
     /** Shut down the loop */
+    preShutdown(callback: intf.SimpleCallback): void;
+    /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback): void;
     /** Set status on given topology */
     reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback): void;

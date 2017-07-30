@@ -120,7 +120,7 @@ export class TopologyLeader {
                 (xcallback) => {
                     self.storage.getWorkerStatus((err, workers) => {
                         if (err) return xcallback(err);
-                        // possible statuses: alive, dead, unloaded
+                        // possible statuses: alive, closing, dead, unloaded
                         let this_worker_lstatus = workers
                             .filter(x => x.name === self.name)
                             .map(x => x.lstatus)[0];
