@@ -8,6 +8,7 @@ export declare class TopologyWorker {
     private overrides;
     private coordinator;
     private topologies;
+    private waiting_for_shutdown;
     /** Initializes this object */
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object);
     /** Starts this worker */

@@ -23,12 +23,14 @@ export class TopologyWorker {
     private overrides: any;
     private coordinator: coord.TopologyCoordinator;
     private topologies: TopologyItem[];
+    private waiting_for_shutdown: boolean;
 
     /** Initializes this object */
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
         this.name = name;
         this.overrides = overrides || {};
         this.coordinator = new coord.TopologyCoordinator(name, storage);
+        this.waiting_for_shutdown = false;
         this.topologies = [];
 
         let self = this;
@@ -61,11 +63,14 @@ export class TopologyWorker {
             });
         });
         process.on('SIGINT', () => {
-            log.logger().important("[Worker] Received Shutdown signal from system")
-            log.logger().important("[Worker] Starting graceful worker shutdown...");
-            self.shutdown(() => {
-                process.exit(1);
-            });
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                log.logger().important("[Worker] Received Shutdown signal from system")
+                log.logger().important("[Worker] Starting graceful worker shutdown...");
+                self.shutdown(() => {
+                    process.exit(1);
+                });
+            }
         });
     }
 

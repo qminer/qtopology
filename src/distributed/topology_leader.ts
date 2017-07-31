@@ -36,7 +36,7 @@ export class TopologyLeader {
         async.whilst(
             () => { return self.isRunning; },
             (xcallback) => {
-                setTimeout(function () {
+                setTimeout(() => {
                     if (self.isLeader) {
                         self.performLeaderLoop(xcallback);
                     } else {

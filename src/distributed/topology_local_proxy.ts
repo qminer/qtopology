@@ -54,13 +54,11 @@ export class TopologyLocalProxy {
         });
 
         self.child.on("error", (e) => {
-            if (self.was_shut_down) return;
             self.callPendingCallbacks(e);
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            if (self.was_shut_down) return;
             let e = new Error("CLOSE Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -70,7 +68,6 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            if (self.was_shut_down) return;
             let e = new Error("EXIT Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -141,7 +138,7 @@ export class TopologyLocalProxy {
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
         if (this.shutdown_cb) {
-            return callback(new Error("Pending shutdown callback already exists."));
+            return callback();
         }
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});

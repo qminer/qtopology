@@ -42,7 +42,7 @@ export class TopologyCoordinator extends EventEmitter {
                 async.parallel(
                     [
                         (ycallback) => {
-                            setTimeout(function () {
+                            setTimeout(() => {
                                 self.handleIncommingRequests(ycallback);
                             }, self.loopTimeout);
                         },
@@ -58,7 +58,7 @@ export class TopologyCoordinator extends EventEmitter {
                 );
             },
             (err) => {
-                log.logger().important("[Coordinator] Coordinator shutdown finished.");
+                log.logger().important("[Coordinator] Coordinator shut down.");
                 if (self.shutdownCallback) {
                     self.shutdownCallback(err);
                 }
@@ -74,12 +74,13 @@ export class TopologyCoordinator extends EventEmitter {
                 log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
             }
+            log.logger().log("[Coordinator] Worker marked as closing");
             self.leadership.shutdown((err: Error) => {
                 if (err) {
                     log.logger().error("Error while shutting down leader:");
                     log.logger().exception(err);
                 }
-                log.logger().log("[Coordinator] Coordinator marked as closing");
+                log.logger().log("[Coordinator] Leadership object closed");
                 callback();
             });
         });
