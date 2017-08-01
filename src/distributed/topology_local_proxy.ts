@@ -137,9 +137,13 @@ export class TopologyLocalProxy {
 
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
-        if (this.shutdown_cb) {
+        if (this.was_shut_down) { // this proxy was shut down already, completely
             return callback();
         }
+        if (this.shutdown_cb) { // this proxy is in the process of shutdown
+            return callback();
+        }
+        // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
     }

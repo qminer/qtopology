@@ -119,9 +119,13 @@ class TopologyLocalProxy {
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
+        if (this.was_shut_down) {
+            return callback();
+        }
         if (this.shutdown_cb) {
             return callback();
         }
+        // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
     }
