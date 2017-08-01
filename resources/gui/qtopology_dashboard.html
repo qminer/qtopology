@@ -91,6 +91,7 @@
                                             <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                             <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                                             <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
+                                            <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                         </div>
                                         <label data-bind="text: uuid()"></label>
                                         <div>
@@ -284,6 +285,7 @@
                                         <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
                                         <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
                                         <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                        <span class="badge" data-bind="visible: status=='stopped'">Stopped</span>
                                     </td>
                                     <td data-bind="text: worker"></td>
                                     <td data-bind="text: error"></td>
@@ -346,6 +348,7 @@
                                     <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                     <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
+                                    <span class="badge" data-bind="visible: status()=='stopped'">Stopped</span>
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
