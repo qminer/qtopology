@@ -86,7 +86,7 @@ class TopologyLocalWrapper {
                     // stop the process if it was not stopped so far
                     log.logger().important("Stopping the process forcefully, from the child");
                     process.exit(0);
-                }, 1000);
+                }, 500);
             });
         } catch (e) {
             // stop the process if it was not stopped so far

@@ -6,9 +6,10 @@ import * as intf from "../topology_interfaces";
 export declare class TopologyCoordinator extends EventEmitter {
     private storage;
     private name;
-    private isRunning;
-    private shutdownCallback;
-    private loopTimeout;
+    private is_shutting_down;
+    private is_running;
+    private shutdown_callback;
+    private loop_timeout;
     private leadership;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage);

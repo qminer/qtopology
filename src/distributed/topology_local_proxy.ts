@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as cp from "child_process";
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /**
  * This class acts as a proxy for local topology inside parent process.
@@ -48,6 +49,7 @@ export class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }
@@ -102,8 +104,11 @@ export class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     private callPendingCallbacks2(e: Error) {
         if (this.shutdown_cb) {
+            log.logger().debug("[Proxy] calling pending this.shutdown_cb");
             this.shutdown_cb(null);
             this.shutdown_cb = null;
+        } else {
+            log.logger().debug("[Proxy] no pending this.shutdown_cb");
         }
     }
 
@@ -138,9 +143,11 @@ export class TopologyLocalProxy {
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
         if (this.was_shut_down) { // this proxy was shut down already, completely
+            log.logger().warn("[Proxy] this.was_shut_down is true");
             return callback();
         }
         if (this.shutdown_cb) { // this proxy is in the process of shutdown
+            log.logger().warn("[Proxy] this.shutdown_cb is non-empty");
             return callback();
         }
         // ok, start shutdown

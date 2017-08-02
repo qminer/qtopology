@@ -5,6 +5,7 @@ import * as intf from "../topology_interfaces";
 */
 export declare class TopologyWorker {
     private name;
+    private log_prefix;
     private overrides;
     private coordinator;
     private topologies;

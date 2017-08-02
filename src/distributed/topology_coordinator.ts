@@ -10,9 +10,10 @@ export class TopologyCoordinator extends EventEmitter {
 
     private storage: intf.CoordinationStorage;
     private name: string;
-    private isRunning: boolean;
-    private shutdownCallback: intf.SimpleCallback;
-    private loopTimeout: number;
+    private is_shutting_down: boolean;
+    private is_running: boolean;
+    private shutdown_callback: intf.SimpleCallback;
+    private loop_timeout: number;
     private leadership: leader.TopologyLeader;
 
     /** Simple constructor */
@@ -21,22 +22,24 @@ export class TopologyCoordinator extends EventEmitter {
         this.storage = storage;
         this.name = name;
         this.leadership = new leader.TopologyLeader(this.name, this.storage, null);
-        this.isRunning = false;
-        this.shutdownCallback = null;
-        this.loopTimeout = 2 * 1000; // 2 seconds for refresh
+        this.is_running = false;
+        this.is_shutting_down = false;
+        this.shutdown_callback = null;
+        this.loop_timeout = 2 * 1000; // 2 seconds for refresh
     }
 
     /** Runs main loop */
     run() {
         let self = this;
-        self.isRunning = true;
+        self.is_running = true;
         self.storage.registerWorker(self.name, () => { });
         self.leadership.run();
 
         let check_counter = 0;
         async.whilst(
             () => {
-                return self.isRunning;
+                log.logger().debug("[Coordinator] Coordinator condition = " + self.is_running);
+                return self.is_running;
             },
             (xcallback) => {
                 async.parallel(
@@ -44,7 +47,7 @@ export class TopologyCoordinator extends EventEmitter {
                         (ycallback) => {
                             setTimeout(() => {
                                 self.handleIncommingRequests(ycallback);
-                            }, self.loopTimeout);
+                            }, self.loop_timeout);
                         },
                         (ycallback) => {
                             if (++check_counter % 5 == 0) {
@@ -59,8 +62,8 @@ export class TopologyCoordinator extends EventEmitter {
             },
             (err) => {
                 log.logger().important("[Coordinator] Coordinator shut down.");
-                if (self.shutdownCallback) {
-                    self.shutdownCallback(err);
+                if (self.shutdown_callback) {
+                    self.shutdown_callback(err);
                 }
             }
         );
@@ -69,6 +72,7 @@ export class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     preShutdown(callback: intf.SimpleCallback) {
         let self = this;
+        self.is_shutting_down = true;
         self.reportWorker(self.name, "closing", "", (err: Error) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'closing':");
@@ -96,8 +100,8 @@ export class TopologyCoordinator extends EventEmitter {
                 log.logger().exception(err);
             }
             log.logger().log("[Coordinator] Coordinator set for shutdown");
-            self.shutdownCallback = callback;
-            self.isRunning = false;
+            self.shutdown_callback = callback;
+            self.is_running = false;
         });
     }
 
@@ -132,6 +136,9 @@ export class TopologyCoordinator extends EventEmitter {
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
+        if (self.is_shutting_down) {
+            return callback();
+        }
         self.storage.getMessages(self.name, (err, msgs) => {
             if (err) return callback(err);
             async.each(

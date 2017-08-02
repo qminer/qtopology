@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const cp = require("child_process");
 const intf = require("../topology_interfaces");
+const log = require("../util/logger");
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -38,6 +39,7 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }
@@ -88,8 +90,12 @@ class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     callPendingCallbacks2(e) {
         if (this.shutdown_cb) {
+            log.logger().debug("[Proxy] calling pending this.shutdown_cb");
             this.shutdown_cb(null);
             this.shutdown_cb = null;
+        }
+        else {
+            log.logger().debug("[Proxy] no pending this.shutdown_cb");
         }
     }
     /** Sends initialization signal to underlaying process */
@@ -120,9 +126,11 @@ class TopologyLocalProxy {
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
         if (this.was_shut_down) {
+            log.logger().warn("[Proxy] this.was_shut_down is true");
             return callback();
         }
         if (this.shutdown_cb) {
+            log.logger().warn("[Proxy] this.shutdown_cb is non-empty");
             return callback();
         }
         // ok, start shutdown

@@ -11,46 +11,49 @@ export class TopologyLeader {
 
     private storage: intf.CoordinationStorage;
     private name: string;
-    private isRunning: boolean;
-    private isShutDown: boolean;
-    private isLeader: boolean;
-    private shutdownCallback: intf.SimpleCallback;
-    private loopTimeout: number;
+    private is_running: boolean;
+    private is_shut_down: boolean;
+    private is_leader: boolean;
+    private shutdown_callback: intf.SimpleCallback;
+    private loop_timeout: number;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number) {
         this.storage = storage;
         this.name = name;
-        this.isRunning = false;
-        this.shutdownCallback = null;
-        this.isLeader = false;
-        this.isShutDown = false;
-        this.loopTimeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
+        this.is_running = false;
+        this.shutdown_callback = null;
+        this.is_leader = false;
+        this.is_shut_down = false;
+        this.loop_timeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
     }
 
     /** Runs main loop that handles leadership detection */
     run() {
         let self = this;
-        self.isShutDown = false;
-        self.isRunning = true;
+        self.is_shut_down = false;
+        self.is_running = true;
         async.whilst(
-            () => { return self.isRunning; },
+            () => { 
+                log.logger().debug("[Leader] Leader condition = " + self.is_running);
+                return self.is_running; 
+            },
             (xcallback) => {
                 setTimeout(() => {
-                    if (self.isLeader) {
+                    if (self.is_leader) {
                         self.performLeaderLoop(xcallback);
                     } else {
                         self.checkIfLeaderDetermined(xcallback);
                     }
-                }, self.loopTimeout);
+                }, self.loop_timeout);
             },
             (err) => {
                 log.logger().important("[Leader] Leader shutdown finished.");
-                if (self.shutdownCallback) {
-                    self.shutdownCallback(err);
+                self.is_shut_down = true;
+                self.is_running = false;
+                if (self.shutdown_callback) {
+                    self.shutdown_callback(err);
                 }
-                self.isShutDown = true;
-                self.isRunning = false;
             }
         );
     }
@@ -58,11 +61,11 @@ export class TopologyLeader {
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
-        if (self.isShutDown) {
+        if (self.is_shut_down) {
             callback();
         } else {
-            self.shutdownCallback = callback;
-            self.isRunning = false;
+            self.shutdown_callback = callback;
+            self.is_running = false;
         }
     }
 
@@ -92,8 +95,8 @@ export class TopologyLeader {
                     if (!should_announce) return xcallback();
                     self.storage.checkLeaderCandidacy(self.name, (err, is_leader) => {
                         if (err) return xcallback(err);
-                        self.isLeader = is_leader;
-                        if (self.isLeader) {
+                        self.is_leader = is_leader;
+                        if (self.is_leader) {
                             log.logger().important("[Leader] This worker became a leader...");
                             self.performLeaderLoop(xcallback);
                         } else {
