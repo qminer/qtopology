@@ -153,6 +153,7 @@ class TopologyWorker {
                 self.coordinator.preShutdown(xcallback);
             },
             (xcallback) => {
+                log.logger().warn(self.log_prefix + "calling shutDownTopologies");
                 self.shutDownTopologies((err) => {
                     log.logger().debug(self.log_prefix + "shutDownTopologies was called, " + err);
                     if (err) {
@@ -195,6 +196,7 @@ class TopologyWorker {
                 self.coordinator.reportTopology(item.uuid, "error", "" + err, () => { });
             }
             else {
+                log.logger().debug("[Worker] setting topology as unassigned: " + item.uuid);
                 self.coordinator.reportTopology(item.uuid, "unassigned", "", () => { });
             }
         });
