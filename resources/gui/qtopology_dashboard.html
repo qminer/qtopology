@@ -51,7 +51,8 @@
                                     Shut down
                                 </div>
                                 <div class="action-desc">
-                                    Shuts down this worker. You have to have a mechanism to bring it up again, as it cannot be done via this dashboard.
+                                    Shuts down this worker. You have to have a mechanism
+                                    to bring it up again, as it cannot be done via this dashboard.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: shut_down">Shutdown</button>
@@ -63,7 +64,8 @@
                                     Delete worker
                                 </div>
                                 <div class="action-desc">
-                                    If this worker record is obsolete, you can delete it from the list of workers.
+                                    If this worker record is obsolete, you can delete it
+                                    from the list of workers.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: remove">Delete</button>
@@ -182,7 +184,8 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Click the button to mark the topology as disabled. This will prevent it from running again.
+                                        Click the button to mark the topology as disabled.
+                                        This will prevent it from running again.
                                     </p>
                                     <p>
                                         It will not stop it, if it is currently running.
@@ -198,7 +201,8 @@
                                     Enable
                                 </div>
                                 <div class="action-desc">
-                                    Click the button to mark the topology as enabled. This will make it available to workers and one of them pick should it up
+                                    Click the button to mark the topology as enabled.
+                                    This will make it available to workers and one of them pick should it up
                                     very soon, if there is at least one worker running.
                                 </div>
                                 <div class="action-btn">
@@ -211,7 +215,8 @@
                                     Clear the error
                                 </div>
                                 <div class="action-desc">
-                                    This topology was marked with error. Clear the error tag to make it start running again.
+                                    This topology was marked with error.
+                                    Clear the error tag to make it start running again.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: clear_error">Clear error</button>
@@ -224,11 +229,13 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Send STOP signal to the worker that is running this topology. If topology is marked as enabled, it will be assigned again,
-                                        possibly to another worker.
+                                        Send STOP signal to the worker that
+                                        is running this topology.
                                     </p>
                                     <p>
-                                        Mark it as disabled first if you don't want it to run anymore.
+                                        Also, the topology will be 
+                                        marked as disabled, so other workers wont
+                                        pick it up and run it.
                                     </p>
                                 </div>
                                 <div class="action-btn">
