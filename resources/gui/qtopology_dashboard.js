@@ -84,6 +84,9 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
         }
         this.topologies.push(obj);
     }
+    this.topologies.sort(function(a,b){
+        return a.uuid().localeCompare(b.uuid());
+    });
 }
 QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     var self = this;
@@ -128,6 +131,9 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
         obj.topologies_count(obj.topologies().length);
         self.workers.push(obj);
     }
+    self.workers.sort(function(a,b){
+        return a.name().localeCompare(b.name());
+    });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.loadData(callback);
