@@ -68,6 +68,9 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
                 clear_error: function () { self.clearTopologyError(uuid); },
                 stop: function () { self.stopTopology(uuid); }
             };
+            rec.last_ping_s = ko.pureComputed(function () {
+                return rec.last_ping().toISOString();
+            });
             obj = rec;
         } else {
             let hit = hits[0];
@@ -102,6 +105,9 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
                 shut_down: function () { self.shutDownWorker(name); },
                 remove: function () { self.deleteWorker(name); }
             };
+            rec.last_ping_s = ko.pureComputed(function () {
+                return rec.last_ping().toLocaleString();
+            });
             obj = rec;
         } else {
             let hit = hits[0];
