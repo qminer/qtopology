@@ -193,11 +193,11 @@ class TopologyWorker {
             if (err) {
                 log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
-                self.coordinator.reportTopology(item.uuid, "error", "" + err, () => { });
+                self.coordinator.reportTopology(item.uuid, "error", "" + err, callback);
             }
             else {
                 log.logger().debug("[Worker] setting topology as unassigned: " + item.uuid);
-                self.coordinator.reportTopology(item.uuid, "unassigned", "", () => { });
+                self.coordinator.reportTopology(item.uuid, "unassigned", "", callback);
             }
         });
     }
