@@ -84,7 +84,7 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err || msg_data });
                 setTimeout(() => {
                     // stop the process if it was not stopped so far
-                    log.logger().important("Stopping the process forcefully, from the child");
+                    log.logger().important("Stopping the topology process from the child");
                     process.exit(0);
                 }, 500);
             });

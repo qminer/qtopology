@@ -23,7 +23,6 @@ class TopologyLeader {
         self.is_shut_down = false;
         self.is_running = true;
         async.whilst(() => {
-            log.logger().debug("[Leader] Leader condition = " + self.is_running);
             return self.is_running;
         }, (xcallback) => {
             setTimeout(() => {

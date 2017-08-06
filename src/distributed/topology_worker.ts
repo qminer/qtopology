@@ -172,9 +172,7 @@ export class TopologyWorker {
                     self.coordinator.preShutdown(xcallback);
                 },
                 (xcallback) => {
-log.logger().warn(self.log_prefix +"calling shutDownTopologies");
                     self.shutDownTopologies((err) => {
-                        log.logger().debug(self.log_prefix +"shutDownTopologies was called, " + err);
                         if (err) {
                             log.logger().error(this.log_prefix + "Error while shutting down topologies:");
                             log.logger().exception(err);
@@ -183,7 +181,6 @@ log.logger().warn(self.log_prefix +"calling shutDownTopologies");
                     });
                 },
                 (xcallback) => {
-                    log.logger().important(this.log_prefix + "shutting down coordinator:");
                     self.coordinator.shutdown(xcallback);
                 }
             ],

@@ -26,7 +26,6 @@ class TopologyCoordinator extends EventEmitter {
         self.leadership.run();
         let check_counter = 0;
         async.whilst(() => {
-            log.logger().debug("[Coordinator] Coordinator condition = " + self.is_running);
             return self.is_running;
         }, (xcallback) => {
             async.parallel([
@@ -60,13 +59,11 @@ class TopologyCoordinator extends EventEmitter {
                 log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
             }
-            log.logger().log("[Coordinator] Worker marked as closing");
             self.leadership.shutdown((err) => {
                 if (err) {
                     log.logger().error("Error while shutting down leader:");
                     log.logger().exception(err);
                 }
-                log.logger().log("[Coordinator] Leadership object closed");
                 callback();
             });
         });
@@ -79,7 +76,6 @@ class TopologyCoordinator extends EventEmitter {
                 log.logger().error("Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
             }
-            log.logger().log("[Coordinator] Coordinator set for shutdown");
             self.shutdown_callback = callback;
             self.is_running = false;
         });
