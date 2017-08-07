@@ -214,6 +214,8 @@ dd {
 .action-desc {
     color: #999;
     padding: 10px 20px 10px 20px;
+    font-size: 0.85em;
+    text-align: justify;
 }
 .action-btn {
     text-align: right;

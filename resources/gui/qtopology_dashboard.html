@@ -43,7 +43,7 @@
                             <dt>Leadership status</dt>
                             <dd>
                                 <span class="badge badge-gold" data-bind="visible: lstatus() == 'leader'">Leader</span>
-                                <span class="badge" data-bind="visible: lstatus() == '-'">Normal</span>
+                                <span class="badge" data-bind="visible: lstatus() != 'leader'">Normal</span>
                             </dd>
                         </div>
                     </div>
