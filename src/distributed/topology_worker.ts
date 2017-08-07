@@ -20,26 +20,30 @@ class TopologyItem {
 export class TopologyWorker {
 
     private name: string;
+    private log_prefix: string;
     private overrides: any;
     private coordinator: coord.TopologyCoordinator;
     private topologies: TopologyItem[];
+    private waiting_for_shutdown: boolean;
 
     /** Initializes this object */
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
         this.name = name;
+        this.log_prefix = `[Worker ${name}] `;
         this.overrides = overrides || {};
         this.coordinator = new coord.TopologyCoordinator(name, storage);
+        this.waiting_for_shutdown = false;
         this.topologies = [];
 
         let self = this;
         self.coordinator.on("start", (msg) => {
-            log.logger().important("[Worker] Received start instruction from coordinator: " + msg.uuid);
+            log.logger().important(this.log_prefix + "Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
         self.coordinator.on("verify-topology", (msg) => {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
-                log.logger().log("[Worker] Topology is assigned to this worker, but it is not running here: " + msg.uuid);
+                log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + msg.uuid);
                 self.coordinator.reportTopology(uuid, "unassigned", "", () => { });
             }
         });
@@ -48,24 +52,35 @@ export class TopologyWorker {
             self.shutDownTopology(uuid, () => { })
         });
         self.coordinator.on("shutdown", (msg) => {
-            log.logger().important("[Worker] Received shutdown instruction from coordinator");
-            self.shutdown(() => { });
+            log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                self.shutdown(() => {
+                    process.exit(0);
+                });
+            };
         });
 
         process.on('uncaughtException', (err) => {
-            log.logger().error("[Worker] Unhandled exception caught");
+            log.logger().error(this.log_prefix + "Unhandled exception caught");
             log.logger().exception(err);
-            log.logger().warn("[Worker] Worker shutting down gracefully");
-            self.shutdown(() => {
-                process.exit(1);
-            });
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                log.logger().warn(this.log_prefix + "Worker shutting down gracefully");
+                self.shutdown(() => {
+                    process.exit(1);
+                });
+            }
         });
         process.on('SIGINT', () => {
-            log.logger().important("[Worker] Received Shutdown signal from system")
-            log.logger().important("[Worker] Starting graceful worker shutdown...");
-            self.shutdown(() => {
-                process.exit(1);
-            });
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                log.logger().important(this.log_prefix + "Received Shutdown signal from system")
+                log.logger().important(this.log_prefix + "Starting graceful worker shutdown...");
+                self.shutdown(() => {
+                    process.exit(1);
+                });
+            }
         });
     }
 
@@ -135,7 +150,7 @@ export class TopologyWorker {
             // only change internal state when all other steps passed
             self.topologies.push(rec);
         } catch (err) {
-            log.logger().error("[Worker] Error while creating topology proxy for " + uuid);
+            log.logger().error(this.log_prefix + "Error while creating topology proxy for " + uuid);
             log.logger().exception(err);
             self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
         }
@@ -159,19 +174,37 @@ export class TopologyWorker {
     /** Shuts down the worker and all its subprocesses. */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
+        async.series(
+            [
+                (xcallback) => {
+                    self.coordinator.preShutdown(xcallback);
+                },
+                (xcallback) => {
+                    self.shutDownTopologies((err) => {
+                        if (err) {
+                            log.logger().error(this.log_prefix + "Error while shutting down topologies:");
+                            log.logger().exception(err);
+                        }
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    self.coordinator.shutdown(xcallback);
+                }
+            ],
+            callback
+        );
+    }
+
+    private shutDownTopologies(callback) {
+        let self = this;
         async.each(
             self.topologies,
             (itemx, xcallback) => {
                 let item = itemx as TopologyItem;
                 self.shutDownTopologyInternal(item, xcallback);
             },
-            (err) => {
-                if (err) {
-                    log.logger().error("[Worker] Error while shutting down topologies:");
-                    log.logger().exception(err);
-                }
-                self.coordinator.shutdown(callback);
-            }
+            callback
         );
     }
 
@@ -191,9 +224,10 @@ export class TopologyWorker {
             if (err) {
                 log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
-                self.coordinator.reportTopology(item.uuid, "error", "" + err, () => { });
+                self.coordinator.reportTopology(item.uuid, "error", "" + err, callback);
             } else {
-                self.coordinator.reportTopology(item.uuid, "unassigned", "", () => { });
+                log.logger().debug("[Worker] setting topology as unassigned: " + item.uuid);
+                self.coordinator.reportTopology(item.uuid, "unassigned", "", callback);
             }
         });
     }

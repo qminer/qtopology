@@ -5,11 +5,11 @@ import * as intf from "../topology_interfaces";
 export declare class TopologyLeader {
     private storage;
     private name;
-    private isRunning;
-    private isShutDown;
-    private isLeader;
-    private shutdownCallback;
-    private loopTimeout;
+    private is_running;
+    private is_shut_down;
+    private is_leader;
+    private shutdown_callback;
+    private loop_timeout;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number);
     /** Runs main loop that handles leadership detection */

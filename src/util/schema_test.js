@@ -2,12 +2,12 @@
 
 const fs = require("fs");
 const Validator = require("jsonschema").Validator;
-const TopologyCompiler = require("../topology_compiler").TopologyCompiler;
+const TopologyCompiler = require("../../built/topology_compiler").TopologyCompiler;
 
 ////////////////////////////////////////////////////////////////////
 
 let instance = JSON.parse(fs.readFileSync("./topology_config_example.json"));
-let schema = JSON.parse(fs.readFileSync("../topology_config_schema.json"));
+let schema = JSON.parse(fs.readFileSync("../../resources/topology_config_schema.json"));
 
 let v = new Validator();
 let validation_result = v.validate(instance, schema);

@@ -5,9 +5,11 @@ import * as intf from "../topology_interfaces";
 */
 export declare class TopologyWorker {
     private name;
+    private log_prefix;
     private overrides;
     private coordinator;
     private topologies;
+    private waiting_for_shutdown;
     /** Initializes this object */
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object);
     /** Starts this worker */
@@ -22,6 +24,7 @@ export declare class TopologyWorker {
     private removeTopology(uuid);
     /** Shuts down the worker and all its subprocesses. */
     shutdown(callback: intf.SimpleCallback): void;
+    private shutDownTopologies(callback);
     private shutDownTopology(uuid, callback);
     private shutDownTopologyInternal(item, callback);
 }
