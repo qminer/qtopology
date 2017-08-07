@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <link rel="shortcut icon" type="image/png" href="/logo.png"/>
     <link rel="stylesheet" href="qtopology_dashboard.css" />
     <script src="qtopology_dashboard.js"></script>
     <script src="d3.min.js"></script>
@@ -14,9 +15,10 @@
         <img src="logo.png" alt="logo" class="logo" />
         <h1>QTopology dashboard</h1>
     </div>
+    
     <div id="bladeWorker" class="blade">
         <div class="blade-content" data-bind="with: selected_worker">
-            <span class="blade-close">&times;</span>
+            <span class="blade-close close-btn">&times;</span>
             <h1>Worker info</h1>
             <div>
                 <div class="cell-2">
@@ -43,7 +45,7 @@
                             <dt>Leadership status</dt>
                             <dd>
                                 <span class="badge badge-gold" data-bind="visible: lstatus() == 'leader'">Leader</span>
-                                <span class="badge" data-bind="visible: lstatus() == '-'">Normal</span>
+                                <span class="badge" data-bind="visible: lstatus() != 'leader'">Normal</span>
                             </dd>
                         </div>
                     </div>
@@ -122,7 +124,7 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>When</th>
+                                        <th class="td-datetime">When</th>
                                         <th>Status</th>
                                         <th>Leadership</th>
                                     </tr>
@@ -288,7 +290,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>When</th>
+                                    <th class="td-datetime">When</th>
                                     <th>Enabled</th>
                                     <th>Status</th>
                                     <th>Worker</th>

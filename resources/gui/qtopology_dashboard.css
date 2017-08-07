@@ -214,6 +214,8 @@ dd {
 .action-desc {
     color: #999;
     padding: 10px 20px 10px 20px;
+    font-size: 0.85em;
+    text-align: justify;
 }
 .action-btn {
     text-align: right;
@@ -228,6 +230,12 @@ a {
 td, th {
     padding-left: 5px;
     padding-right: 5px;
+}
+tr:hover{
+    background-color: #333;
+}
+.td-datetime {
+    min-width: 170px;
 }
 /*---------------------------------------------*/
 button {
