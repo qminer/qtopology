@@ -132,7 +132,7 @@ export interface LeadershipResultStatus {
 }
 export interface WorkerStatus {
     name: string;
-    status: string; // alive, dead, unloaded
+    status: string; // alive, closing, dead, unloaded
     lstatus: string; // leader, candidate, ""
     last_ping: number;
     last_ping_d: Date;
@@ -141,7 +141,7 @@ export interface WorkerStatus {
 }
 export interface WorkerStatusHistory {
     name: string;
-    status: string; // alive, dead, unloaded
+    status: string; // alive, closing, dead, unloaded
     lstatus: string; // leader, candidate, ""
     ts: Date;
 }

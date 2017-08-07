@@ -19,7 +19,7 @@
             <span class="blade-close">&times;</span>
             <h1>Worker info</h1>
             <div>
-                <div class="cell-4">
+                <div class="cell-2">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Properties</div>
@@ -33,24 +33,32 @@
                             <dd>
                                 <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                 <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                             </dd>
 
                             <dt>Status updated</dt>
-                            <dd data-bind="text: last_ping()"></dd>
+                            <dd data-bind="text: last_ping_s()"></dd>
 
                             <dt>Leadership status</dt>
                             <dd>
-                                <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
-                                <span class="badge" data-bind="visible: lstatus()!='leader'">Normal</span>
+                                <span class="badge badge-gold" data-bind="visible: lstatus() == 'leader'">Leader</span>
+                                <span class="badge" data-bind="visible: lstatus() == '-'">Normal</span>
                             </dd>
-
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Actions</div>
+                        </div>
+                        <div class="panel-body props">
                             <div class="action-panel" data-bind="visible: status() == 'alive'">
                                 <div class="action-title">
                                     Shut down
                                 </div>
                                 <div class="action-desc">
-                                    Shuts down this worker. You have to have a mechanism to bring it up again, as it cannot be done via this dashboard.
+                                    Shuts down this worker. You have to have a mechanism
+                                    to bring it up again, as it cannot be done via this dashboard.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: shut_down">Shutdown</button>
@@ -62,7 +70,8 @@
                                     Delete worker
                                 </div>
                                 <div class="action-desc">
-                                    If this worker record is obsolete, you can delete it from the list of workers.
+                                    If this worker record is obsolete, you can delete it
+                                    from the list of workers.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: remove">Delete</button>
@@ -72,7 +81,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="cell-8">
+                <div class="cell-6">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Topologies</div>
@@ -103,7 +112,8 @@
                             </div>
                         </div>
                     </div>
-
+                </div>
+                <div class="cell-4">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">History</div>
@@ -123,6 +133,7 @@
                                         <td>
                                             <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
                                             <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
+                                            <span class="badge badge-orange" data-bind="visible: status=='closing'">Closing</span>
                                             <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
                                         </td>
                                         <td>
@@ -144,7 +155,7 @@
         <div class="blade-content" data-bind="with: selected_topology">
             <span class="blade-close">&times;</span>
             <h1>Topology info</h1>
-            <div class="cell-3">
+            <div class="cell-2">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Properties</div>
@@ -173,6 +184,13 @@
                             <dd data-bind="text: worker()"></dd>
                             <dt>Error</dt>
                             <dd data-bind="text: error()"></dd>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Actions</div>
+                        </div>
+                        <div class="panel-body props">
 
                             <div class="action-panel" data-bind="visible: enabled() == true">
                                 <div class="action-title">
@@ -180,7 +198,8 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Click the button to mark the topology as disabled. This will prevent it from running again.
+                                        Click the button to mark the topology as disabled.
+                                        This will prevent it from running again.
                                     </p>
                                     <p>
                                         It will not stop it, if it is currently running.
@@ -196,7 +215,8 @@
                                     Enable
                                 </div>
                                 <div class="action-desc">
-                                    Click the button to mark the topology as enabled. This will make it available to workers and one of them pick should it up
+                                    Click the button to mark the topology as enabled.
+                                    This will make it available to workers and one of them pick should it up
                                     very soon, if there is at least one worker running.
                                 </div>
                                 <div class="action-btn">
@@ -209,7 +229,8 @@
                                     Clear the error
                                 </div>
                                 <div class="action-desc">
-                                    This topology was marked with error. Clear the error tag to make it start running again.
+                                    This topology was marked with error.
+                                    Clear the error tag to make it start running again.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: clear_error">Clear error</button>
@@ -222,11 +243,13 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Send STOP signal to the worker that is running this topology. If topology is marked as enabled, it will be assigned again,
-                                        possibly to another worker.
+                                        Send STOP signal to the worker that
+                                        is running this topology.
                                     </p>
                                     <p>
-                                        Mark it as disabled first if you don't want it to run anymore.
+                                        Also, the topology will be
+                                        marked as disabled, so other workers wont
+                                        pick it up and run it.
                                     </p>
                                 </div>
                                 <div class="action-btn">
@@ -238,7 +261,7 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-9">
+            <div class="cell-6">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Run-time info</div>
@@ -255,6 +278,8 @@
                         </pre>
                     </div>
                 </div>
+            </div>
+            <div class="cell-4">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">History</div>
@@ -310,6 +335,7 @@
 
                                     <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                     <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                                 </div>
                                 <label data-bind="text: name()"></label>
@@ -378,7 +404,5 @@
         ko.applyBindings(model);
         model.init();
     });
-
 </script>
-
 </html>

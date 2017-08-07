@@ -4,7 +4,7 @@ const jsch = require("jsonschema");
 /** Utility function for validating given JSON */
 function validate(options) {
     let { config, exitOnError, throwOnError } = options;
-    let schema = require("../src/topology_config_schema.json");
+    let schema = require("../resources/topology_config_schema.json");
     let v = new jsch.Validator();
     let validation_result = v.validate(config, schema);
     if (validation_result.errors.length > 0) {

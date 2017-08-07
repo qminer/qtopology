@@ -157,19 +157,19 @@ label {
 }
 
 dt {
-  float: left;
+  /* float: left; */
   clear: left;
-  margin: 0;
-  padding: 5px .5em 5px 0;
-  width: 30%;
-  text-align: right;
+  margin: 0 10px 0 10px;
+  padding: 5px .5em 1px 0;
+  /* width: 30%; */
+  /* text-align: right; */
     color: #a87;
 }
 dd {
-    margin: 0;
-  padding: 5px .5em 5px 0;
-    /* background-color: #555; */
-    /* width: 69% */
+  margin: 0 10px 10px 10px;
+  padding: 1px .5em 5px 0;
+  /* background-color: #555; */
+  /* width: 69% */
 }
 
 .badge {
@@ -208,29 +208,29 @@ dd {
 }
 .action-title {
     color: goldenrod;
-    padding: 25px 20px;
+    padding: 25px 20px 5px 20px;
     border-bottom: 1px solid goldenrod;
 }
 .action-desc {
     color: #999;
-    padding: 25px 20px;
+    padding: 10px 20px 10px 20px;
 }
 .action-btn {
     text-align: right;
-    padding: 10px 20px;
+    padding: 0px 20px 10px 20px;
 }
 /*---------------------------------------------*/
 a {
     color: #368BBA;
     text-decoration: none;
-    cursor: pointer; 
+    cursor: pointer;
 }
 td, th {
     padding-left: 5px;
     padding-right: 5px;
 }
 /*---------------------------------------------*/
-button {    
+button {
     color: #fff;
     background-color: transparent;
     border-color: #ccc;
