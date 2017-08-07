@@ -92,7 +92,8 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
         // match with topologies
         obj.topologies.removeAll();
         self.topologies().forEach(function (x) {
-            if (x.worker() == name) {
+            console.log(x.worker(), d.name);
+            if (x.worker() == d.name) {
                 obj.topologies.push(x);
             }
         });
