@@ -100,7 +100,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
                 name: ko.observable(name),
                 last_ping: ko.observable(new Date(d.last_ping)),
                 status: ko.observable(d.status),
-                lstatus: ko.observable(d.lstatus || "-"),
+                lstatus: ko.observable(d.lstatus),
                 lstatus_ts: ko.observable(new Date(d.lstatus_ts)),
                 topologies_count: ko.observable(0),
                 topologies: ko.observableArray(),
@@ -117,7 +117,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
             var hit = hits[0];
             hit.last_ping(new Date(d.last_ping));
             hit.status(d.status);
-            hit.lstatus(d.lstatus || "-");
+            hit.lstatus(d.lstatus);
             hit.lstatus_ts(new Date(d.lstatus_ts));
             obj = hit;
         }
@@ -192,7 +192,7 @@ QTopologyDashboardViewModel.prototype.prepareBlades = function () {
         var blade_name = self.blades[i];
         var blade_obj = $("#" + blade_name);
         blade_obj.hide();
-        // prepend close buttons
+        // wire-up close buttons
         blade_obj.find(".blade-close").click(function () {
             blade_obj.hide();
         })

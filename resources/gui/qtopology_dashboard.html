@@ -19,7 +19,7 @@
             <span class="blade-close">&times;</span>
             <h1>Worker info</h1>
             <div>
-                <div class="cell-4">
+                <div class="cell-2">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Properties</div>
@@ -42,10 +42,16 @@
 
                             <dt>Leadership status</dt>
                             <dd>
-                                <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
-                                <span class="badge" data-bind="visible: lstatus()!='leader'">Normal</span>
+                                <span class="badge badge-gold" data-bind="visible: lstatus() == 'leader'">Leader</span>
+                                <span class="badge" data-bind="visible: lstatus() == '-'">Normal</span>
                             </dd>
-
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Actions</div>
+                        </div>
+                        <div class="panel-body props">
                             <div class="action-panel" data-bind="visible: status() == 'alive'">
                                 <div class="action-title">
                                     Shut down
@@ -75,7 +81,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="cell-8">
+                <div class="cell-6">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Topologies</div>
@@ -106,7 +112,8 @@
                             </div>
                         </div>
                     </div>
-
+                </div>
+                <div class="cell-4">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">History</div>
@@ -148,7 +155,7 @@
         <div class="blade-content" data-bind="with: selected_topology">
             <span class="blade-close">&times;</span>
             <h1>Topology info</h1>
-            <div class="cell-3">
+            <div class="cell-2">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Properties</div>
@@ -177,6 +184,13 @@
                             <dd data-bind="text: worker()"></dd>
                             <dt>Error</dt>
                             <dd data-bind="text: error()"></dd>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Actions</div>
+                        </div>
+                        <div class="panel-body props">
 
                             <div class="action-panel" data-bind="visible: enabled() == true">
                                 <div class="action-title">
@@ -233,7 +247,7 @@
                                         is running this topology.
                                     </p>
                                     <p>
-                                        Also, the topology will be 
+                                        Also, the topology will be
                                         marked as disabled, so other workers wont
                                         pick it up and run it.
                                     </p>
@@ -247,7 +261,7 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-9">
+            <div class="cell-6">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Run-time info</div>
@@ -264,6 +278,8 @@
                         </pre>
                     </div>
                 </div>
+            </div>
+            <div class="cell-4">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">History</div>
