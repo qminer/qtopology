@@ -132,7 +132,6 @@ QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     });
 }
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
-    console.log("showTopologyInfo " + uuid);
     var self = this;
     var topology = self.topologies().filter(function (x) { return x.uuid() == uuid; })[0];
     self.selected_topology(topology);
@@ -157,15 +156,11 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
 
 QTopologyDashboardViewModel.prototype.prepareBlades = function () {
     var self = this;
-    for (var ii = 0; ii < self.blades.length; ii++) (function (i) {
-        var blade_name = self.blades[i];
-        var blade_obj = $("#" + blade_name);
-        blade_obj.hide();
-        // wire-up close buttons
-        blade_obj.find(".blade-close").click(function () {
-            blade_obj.hide();
-        })
-    })(ii);
+    $(".blade").hide();
+    // wire-up close buttons
+    $(".blade-close").click(function () {
+        $(".blade").hide();
+    });
     $(document).keyup(function (e) {
         if (e.keyCode === 27) {
             $(".blade").hide();

@@ -20,6 +20,7 @@ class MemoryCoordinator {
     getProperties(callback) {
         let res = [];
         res.push({ key: "type", value: "MemoryCoordinator" });
+        res.push({ key: "pending-messages", value: this.messages.length });
         callback(null, res);
     }
     getLeadershipStatus(callback) {
