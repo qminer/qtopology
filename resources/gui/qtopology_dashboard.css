@@ -231,6 +231,12 @@ td, th {
     padding-left: 5px;
     padding-right: 5px;
 }
+tr:hover{
+    background-color: #333;
+}
+.td-datetime {
+    min-width: 170px;
+}
 /*---------------------------------------------*/
 button {
     color: #fff;

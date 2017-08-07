@@ -39,15 +39,24 @@ class TopologyWorker {
         });
         self.coordinator.on("shutdown", (msg) => {
             log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
-            self.shutdown(() => { });
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                self.shutdown(() => {
+                    process.exit(0);
+                });
+            }
+            ;
         });
         process.on('uncaughtException', (err) => {
             log.logger().error(this.log_prefix + "Unhandled exception caught");
             log.logger().exception(err);
-            log.logger().warn(this.log_prefix + "Worker shutting down gracefully");
-            self.shutdown(() => {
-                process.exit(1);
-            });
+            if (!self.waiting_for_shutdown) {
+                self.waiting_for_shutdown = true;
+                log.logger().warn(this.log_prefix + "Worker shutting down gracefully");
+                self.shutdown(() => {
+                    process.exit(1);
+                });
+            }
         });
         process.on('SIGINT', () => {
             if (!self.waiting_for_shutdown) {
