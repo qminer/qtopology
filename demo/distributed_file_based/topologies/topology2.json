@@ -40,6 +40,20 @@
                 }
             ],
             "init": {}
+        },
+        {
+            "name": "bolt_bomb",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "bomb",
+            "inputs": [
+                {
+                    "source": "pump"
+                }
+            ],
+            "init": {
+                "explode_after": 11000
+            }
         }
     ],
     "variables": {}

@@ -1,0 +1,12 @@
+.vscode
+demo
+docs
+node_modules
+src
+tests
+.gitignore
+.jshintignore
+.jshintrc
+.travis.yml
+tasks.json
+tsconfig.json

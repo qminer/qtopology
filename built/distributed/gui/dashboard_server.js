@@ -54,7 +54,7 @@ class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.shutDownWorker(data.uuid, callback);
+            self.storage.shutDownWorker(data.name, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {

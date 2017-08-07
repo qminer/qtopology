@@ -49,6 +49,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
         let res = [];
         res.push({ key: "type", value: "MemoryCoordinator" });
+        res.push({ key: "pending-messages", value: this.messages.length });
         callback(null, res);
     }
 

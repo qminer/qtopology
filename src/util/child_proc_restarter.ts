@@ -135,6 +135,7 @@ export class ChildProcRestarterSpawn extends ChildProcRestarter {
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
+
         super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
     }
 }

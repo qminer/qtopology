@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as cp from "child_process";
 import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
 
 /**
  * This class acts as a proxy for local topology inside parent process.
@@ -48,19 +49,18 @@ export class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }
         });
 
         self.child.on("error", (e) => {
-            if (self.was_shut_down) return;
             self.callPendingCallbacks(e);
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            if (self.was_shut_down) return;
             let e = new Error("CLOSE Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -70,7 +70,6 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            if (self.was_shut_down) return;
             let e = new Error("EXIT Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -105,8 +104,9 @@ export class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     private callPendingCallbacks2(e: Error) {
         if (this.shutdown_cb) {
-            this.shutdown_cb(null);
+            let cb = this.shutdown_cb;
             this.shutdown_cb = null;
+            cb(null);
         }
     }
 
@@ -140,9 +140,13 @@ export class TopologyLocalProxy {
 
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
-        if (this.shutdown_cb) {
-            return callback(new Error("Pending shutdown callback already exists."));
+        if (this.was_shut_down) { // this proxy was shut down already, completely
+            return callback();
         }
+        if (this.shutdown_cb) { // this proxy is in the process of shutdown
+            return callback();
+        }
+        // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
     }

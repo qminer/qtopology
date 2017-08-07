@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const cp = require("child_process");
 const intf = require("../topology_interfaces");
+const log = require("../util/logger");
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -38,20 +39,17 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }
         });
         self.child.on("error", (e) => {
-            if (self.was_shut_down)
-                return;
             self.callPendingCallbacks(e);
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            if (self.was_shut_down)
-                return;
             let e = new Error("CLOSE Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -61,8 +59,6 @@ class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            if (self.was_shut_down)
-                return;
             let e = new Error("EXIT Child process exited with code " + code);
             self.callPendingCallbacks(e);
             if (code === 0) {
@@ -94,8 +90,9 @@ class TopologyLocalProxy {
     /** Calls pending shutdown callback with given error and clears it. */
     callPendingCallbacks2(e) {
         if (this.shutdown_cb) {
-            this.shutdown_cb(null);
+            let cb = this.shutdown_cb;
             this.shutdown_cb = null;
+            cb(null);
         }
     }
     /** Sends initialization signal to underlaying process */
@@ -125,9 +122,13 @@ class TopologyLocalProxy {
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
-        if (this.shutdown_cb) {
-            return callback(new Error("Pending shutdown callback already exists."));
+        if (this.was_shut_down) {
+            return callback();
         }
+        if (this.shutdown_cb) {
+            return callback();
+        }
+        // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
     }
