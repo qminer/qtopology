@@ -200,7 +200,6 @@ describe('TopologyLeader', function () {
         setTimeout(() => {
             target.shutdown((err) => {
                 assert.ok(!err);
-console.log(JSON.stringify(topology_record))
                 assert.ok(getLeadershipStatus_called >= 1);
                 assert.equal(announceLeaderCandidacy_name, target_name);
                 assert.equal(topology_record.worker, worker_name);
