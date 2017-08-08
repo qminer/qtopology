@@ -49,7 +49,6 @@ export class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }

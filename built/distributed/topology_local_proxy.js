@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const cp = require("child_process");
 const intf = require("../topology_interfaces");
-const log = require("../util/logger");
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -39,7 +38,6 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                log.logger().warn("[Proxy] setting this.was_shut_down to true");
                 self.was_shut_down = true;
                 self.callPendingCallbacks2(null);
             }
