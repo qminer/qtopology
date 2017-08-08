@@ -31,6 +31,7 @@ const INFO = 1;
 const NORMAL = 1;
 const WARN = 2;
 const ERROR = 3;
+const NONE = 4;
 
 const default_length = 1000;
 
@@ -77,6 +78,8 @@ class ConsoleLogger implements Logger {
             return WARN;
         } else if (level == "error") {
             return ERROR;
+        } else if (level == "none") {
+            return NONE;
         }
         return INFO;
     }

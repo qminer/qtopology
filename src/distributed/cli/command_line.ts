@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as intf from "../../topology_interfaces";
 import * as vld from "../../topology_validation";
 import * as log from "../../util/logger";
+import * as cmdline from "../../util/cmdline";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -29,7 +30,7 @@ export class CommandLineHandler {
     /** Simple constructor, requires storage to execute the commands on. */
     constructor(storage: intf.CoordinationStorage, params?: string[]) {
         this.storage = storage;
-        this.params = params || process.argv.slice(2);
+        this.params = cmdline.parseCommandLine(params || process.argv.slice(2))._;
     }
 
     /**

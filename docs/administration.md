@@ -37,7 +37,8 @@ cmd.run(() => {
 `````````
 ## GUI
 
-A web application with 
+A web application that displays all current information about workers and topologies.
+It also provides means to perform some actions like enabling/disabling topologies and shutting down workers.
 
 Web GUI tool has to be attached to specific implementation, like in the following example:
 

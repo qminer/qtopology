@@ -1,0 +1,8 @@
+{
+    "general": {
+        "heartbeat": 3000
+    },
+    "spouts": [],
+    "bolts": [],
+    "variables": {}
+}

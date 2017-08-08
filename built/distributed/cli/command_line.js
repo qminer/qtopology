@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const vld = require("../../topology_validation");
 const log = require("../../util/logger");
+const cmdline = require("../../util/cmdline");
 //////////////////////////////////////////////////////////////////////
 /**
  * This utility method handles/displays captured error
@@ -22,7 +23,7 @@ class CommandLineHandler {
     /** Simple constructor, requires storage to execute the commands on. */
     constructor(storage, params) {
         this.storage = storage;
-        this.params = params || process.argv.slice(2);
+        this.params = cmdline.parseCommandLine(params || process.argv.slice(2))._;
     }
     /**
      * Main method for running command-line tool.
