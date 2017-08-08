@@ -6,7 +6,7 @@ const assert = require("assert");
 const cmdl = require("../../built/distributed/cli/command_line");
 const log = require("../../built/util/logger");
 
-//log.logger().setLevel("none");
+log.logger().setLevel("error");
 
 describe('CommandLineHandler', function () {
     it('constructable 1', function () {
