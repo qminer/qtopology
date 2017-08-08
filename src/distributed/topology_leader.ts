@@ -233,7 +233,7 @@ export class TopologyLeader {
                         log.logger().important("[Leader] Error while handling dead worker " + err);
                         return callback(err);
                     }
-                    log.logger().important("[Leader] Setting dead worker as unloaded" + dead_worker);
+                    log.logger().important("[Leader] Setting dead worker as unloaded: " + dead_worker);
                     self.storage.setWorkerStatus(dead_worker, "unloaded", callback);
                 }
             );

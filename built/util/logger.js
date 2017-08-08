@@ -7,6 +7,7 @@ const INFO = 1;
 const NORMAL = 1;
 const WARN = 2;
 const ERROR = 3;
+const NONE = 4;
 const default_length = 1000;
 function makeErrString(msg, max_len) {
     max_len = max_len || default_length;
@@ -49,6 +50,9 @@ class ConsoleLogger {
         }
         else if (level == "error") {
             return ERROR;
+        }
+        else if (level == "none") {
+            return NONE;
         }
         return INFO;
     }
