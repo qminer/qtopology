@@ -73,7 +73,7 @@ export class CommandLineHandler {
             });
         } else {
             this.showHelp();
-            callback();
+            callback(new Error("Unsupported QTopology CLI command line: " + params.join(" ")));
         }
     }
 
