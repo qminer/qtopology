@@ -31,7 +31,7 @@ List of standard bolts:
 
 `cmd="file_reader"`
 
-This spout reads target file and emits messages that are stored inside. 
+This spout reads target file and emits messages that are stored inside.
 
 ```````````````````````````````json
 {
@@ -48,7 +48,7 @@ This spout reads target file and emits messages that are stored inside.
 
 Messages can be stored in several formats:
 
-- `raw` - reads text as lines and emits medssages with songle field `content` that contains raw text line form the file.
+- `raw` - reads text as lines and emits messages with a single field `content` that contains raw text line form the file.
 - `json` - each non-empty line of the file contains a JSON serialized object.
 - `csv` - the first line contains a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
     - All fields are emited as strings.
@@ -61,7 +61,7 @@ Messages can be stored in several formats:
 
 `cmd="process"`
 
-This spout behaves the `file` spout - the difference is that it executes specified commandline, reads stdout and emits messages. 
+This spout behaves the `file` spout - the difference is that it executes specified commandline, reads stdout and emits messages.
 
 ```````````````````````````````json
 {
@@ -82,8 +82,8 @@ For definition of input parameters and explanation of the output handling, see [
 
 `cmd="date_transform"`
 
-This bolt takes incoming messages and transforms predefined fields into `Date` objects, since 
-this only type is the only one that cannot be properly serialized and deserialized from JSON. 
+This bolt takes incoming messages and transforms predefined fields into `Date` objects, since
+this only type is the only one that cannot be properly serialized and deserialized from JSON.
 
 ```````````````````````````````json
 {
@@ -105,7 +105,7 @@ this only type is the only one that cannot be properly serialized and deserializ
 `cmd="dir"`
 
 This spout emits a message each time a file is created, changed or deleted inside some
-target directory. 
+target directory.
 
 ```````````````````````````````json
 {
@@ -274,8 +274,8 @@ This bolt just logs every incoming message to `stdout` and forwards it on to lis
 
 `cmd="counter"`
 
-This bolt counts incoming messages and output single line of code to 
-log in predefined intervals. The line displays the number of 
+This bolt counts incoming messages and output single line of code to
+log in predefined intervals. The line displays the number of
 received messages since last display.
 
 ```````````````````````````````json
