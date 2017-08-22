@@ -160,6 +160,7 @@ export interface TopologyStatusHistory extends TopologyStatus {
 export interface StorageResultMessage {
     cmd: string;
     content: any;
+    created: Date;
 }
 export interface StorageProperty {
     key: string;
@@ -198,9 +199,9 @@ export interface CoordinationStorage {
     stopTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
     clearTopologyError(uuid: string, callback: SimpleCallback);
-    
+
     deleteWorker(name: string, callback: SimpleCallback);
     shutDownWorker(name: string, callback: SimpleCallback);
-    
+
     getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }
