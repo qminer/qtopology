@@ -60,6 +60,34 @@ export class CommandLineHandler {
             this.storage.disableTopology(params[1], (err) => {
                 handleError(err, callback);
             });
+        } else if (params.length == 1 && params[0] == "list") {
+            this.storage.getTopologyStatus((err, data: intf.TopologyStatus[]) => {
+                if (!err) {
+                    let logger = log.logger();
+                    for (let t of data) {
+                        logger.info(`${t.uuid} (enabled=${t.enabled}) (status=${t.status}) (worker=${t.worker})`);
+                    }
+                }
+                handleError(err, callback);
+            });
+        } else if (params.length == 2 && params[0] == "details") {
+            this.storage.getTopologyInfo(params[1], (err, t: intf.TopologyInfoResponse) => {
+                if (!err) {
+                    let logger = log.logger();
+                    logger.info(`Topology uuid=${t.uuid}`);
+                    logger.info(`Enabled=${t.enabled} Status=${t.status} Worker=${t.worker} Weight=${t.weight}`);
+                    logger.info(`Error=${t.error}`);
+                    logger.info(`Worker affinity=${t.worker_affinity}`);
+                }
+                handleError(err, callback);
+            });
+        } else if (params.length == 3 && params[0] == "export") {
+            this.storage.getTopologyInfo(params[1], (err, t: intf.TopologyInfoResponse) => {
+                if (!err) {
+                    fs.writeFileSync(params[2], JSON.stringify(t.config, null, "    "), { encoding: "utf8" });
+                }
+                handleError(err, callback);
+            });
         } else if (params.length == 2 && params[0] == "stop-topology") {
             this.storage.stopTopology(params[1], (err) => {
                 handleError(err, callback);
@@ -88,5 +116,8 @@ export class CommandLineHandler {
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");
+        logger.info("list - display a list of all registered topologies");
+        logger.info("details <topology_uuid> - display details about given topology");
+        logger.info("export <topology_uuid> <output_file> - export topology definition to file");
     }
 }

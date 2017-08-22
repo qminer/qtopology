@@ -15,6 +15,7 @@ export class TopologyCoordinator extends EventEmitter {
     private shutdown_callback: intf.SimpleCallback;
     private loop_timeout: number;
     private leadership: leader.TopologyLeader;
+    private start_time: Date;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage) {
@@ -26,6 +27,7 @@ export class TopologyCoordinator extends EventEmitter {
         this.is_shutting_down = false;
         this.shutdown_callback = null;
         this.loop_timeout = 2 * 1000; // 2 seconds for refresh
+        this.start_time = new Date();
     }
 
     /** Runs main loop */
@@ -139,16 +141,18 @@ export class TopologyCoordinator extends EventEmitter {
             if (err) return callback(err);
             async.each(
                 msgs,
-                (msg, xcallback) => {
-                    if (msg.cmd === "start") {
+                (msg: intf.StorageResultMessage, xcallback) => {
+                    if (msg.created < self.start_time) {
+                        // just ignore, it was sent before this coordinator was started
+                    } else if (msg.cmd === "start") {
                         self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
                             if (self.name == res.worker) {
-                                // topology is still assigned to this worker (message could be old and stale)
+                                // topology is still assigned to this worker
+                                // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
                                 self.emit("start", { uuid: msg.content.uuid, config: res.config });
                             }
                         })
-                    }
-                    if (msg.cmd === "shutdown") {
+                    } else if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});
                     }
                     xcallback();
