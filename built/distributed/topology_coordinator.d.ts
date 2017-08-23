@@ -11,6 +11,7 @@ export declare class TopologyCoordinator extends EventEmitter {
     private shutdown_callback;
     private loop_timeout;
     private leadership;
+    private start_time;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage);
     /** Runs main loop */

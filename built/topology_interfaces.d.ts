@@ -127,6 +127,7 @@ export interface TopologyStatusHistory extends TopologyStatus {
 export interface StorageResultMessage {
     cmd: string;
     content: any;
+    created: Date;
 }
 export interface StorageProperty {
     key: string;

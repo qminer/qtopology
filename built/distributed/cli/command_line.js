@@ -57,6 +57,51 @@ class CommandLineHandler {
                 handleError(err, callback);
             });
         }
+        else if (params.length == 1 && params[0] == "list") {
+            this.storage.getTopologyStatus((err, data) => {
+                if (!err) {
+                    let logger = log.logger();
+                    for (let t of data) {
+                        logger.info(`${t.uuid} (enabled: ${t.enabled}) (status: ${t.status}) (worker: ${t.worker})`);
+                    }
+                }
+                handleError(err, callback);
+            });
+        }
+        else if (params.length == 1 && params[0] == "workers") {
+            this.storage.getWorkerStatus((err, data) => {
+                if (!err) {
+                    let logger = log.logger();
+                    for (let t of data) {
+                        logger.info(`${t.name} (status: ${t.status}) (leadership: ${t.lstatus}) (last status: ${t.last_ping_d})`);
+                    }
+                }
+                handleError(err, callback);
+            });
+        }
+        else if (params.length == 2 && params[0] == "details") {
+            this.storage.getTopologyInfo(params[1], (err, t) => {
+                if (!err) {
+                    let logger = log.logger();
+                    logger.important(`Topology uuid=${t.uuid}`);
+                    logger.info(`Enabled: ${t.enabled}`);
+                    logger.info(`Status: ${t.status}`);
+                    logger.info(`Worker: ${t.worker}`);
+                    logger.info(`Worker affinity: ${t.worker_affinity}`);
+                    logger.info(`Weight: ${t.weight}`);
+                    logger.info(`Error: ${t.error}`);
+                }
+                handleError(err, callback);
+            });
+        }
+        else if (params.length == 3 && params[0] == "export") {
+            this.storage.getTopologyInfo(params[1], (err, t) => {
+                if (!err) {
+                    fs.writeFileSync(params[2], JSON.stringify(t.config, null, "    "), { encoding: "utf8" });
+                }
+                handleError(err, callback);
+            });
+        }
         else if (params.length == 2 && params[0] == "stop-topology") {
             this.storage.stopTopology(params[1], (err) => {
                 handleError(err, callback);
@@ -87,6 +132,9 @@ class CommandLineHandler {
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");
+        logger.info("list - display a list of all registered topologies");
+        logger.info("details <topology_uuid> - display details about given topology");
+        logger.info("export <topology_uuid> <output_file> - export topology definition to file");
     }
 }
 exports.CommandLineHandler = CommandLineHandler;
