@@ -62,7 +62,18 @@ class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.uuid} (enabled=${t.enabled}) (status=${t.status}) (worker=${t.worker})`);
+                        logger.info(`${t.uuid} (enabled: ${t.enabled}) (status: ${t.status}) (worker: ${t.worker})`);
+                    }
+                }
+                handleError(err, callback);
+            });
+        }
+        else if (params.length == 1 && params[0] == "workers") {
+            this.storage.getWorkerStatus((err, data) => {
+                if (!err) {
+                    let logger = log.logger();
+                    for (let t of data) {
+                        logger.info(`${t.name} (status: ${t.status}) (leadership: ${t.lstatus}) (last status: ${t.last_ping_d})`);
                     }
                 }
                 handleError(err, callback);
@@ -72,10 +83,13 @@ class CommandLineHandler {
             this.storage.getTopologyInfo(params[1], (err, t) => {
                 if (!err) {
                     let logger = log.logger();
-                    logger.info(`Topology uuid=${t.uuid}`);
-                    logger.info(`Enabled=${t.enabled} Status=${t.status} Worker=${t.worker} Weight=${t.weight}`);
-                    logger.info(`Error=${t.error}`);
-                    logger.info(`Worker affinity=${t.worker_affinity}`);
+                    logger.important(`Topology uuid=${t.uuid}`);
+                    logger.info(`Enabled: ${t.enabled}`);
+                    logger.info(`Status: ${t.status}`);
+                    logger.info(`Worker: ${t.worker}`);
+                    logger.info(`Worker affinity: ${t.worker_affinity}`);
+                    logger.info(`Weight: ${t.weight}`);
+                    logger.info(`Error: ${t.error}`);
                 }
                 handleError(err, callback);
             });
