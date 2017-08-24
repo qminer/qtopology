@@ -73,7 +73,7 @@ class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.name} (status: ${t.status}) (leadership: ${t.lstatus}) (last status: ${t.last_ping_d})`);
+                        logger.info(`${t.name} (status: ${t.status}) (leader: ${t.lstatus == "leader" ? "yes" : "no"}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
@@ -132,6 +132,7 @@ class CommandLineHandler {
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");
+        logger.info("workers - display a list of all workers");
         logger.info("list - display a list of all registered topologies");
         logger.info("details <topology_uuid> - display details about given topology");
         logger.info("export <topology_uuid> <output_file> - export topology definition to file");
