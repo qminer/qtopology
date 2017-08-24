@@ -92,7 +92,7 @@ class MemoryCoordinator {
         this.pingWorker(name);
         let res = this.messages
             .filter(x => x.name == name)
-            .map(x => { return { cmd: x.cmd, content: x.content }; });
+            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         if (res.length > 0) {
             this.messages = this.messages
                 .filter(x => x.name != name);
@@ -208,7 +208,7 @@ class MemoryCoordinator {
         callback();
     }
     sendMessageToWorker(worker, cmd, content, callback) {
-        this.messages.push({ cmd: cmd, name: worker, content: content });
+        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date() });
         callback();
     }
     setTopologyStatus(uuid, status, error, callback) {

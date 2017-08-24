@@ -7,6 +7,7 @@ class MessageRec implements intf.StorageResultMessage {
     name: string;
     cmd: string;
     content: any;
+    created: Date;
 }
 class TopologyRec implements intf.TopologyStatus {
     uuid: string;
@@ -124,7 +125,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         this.pingWorker(name);
         let res = this.messages
             .filter(x => x.name == name)
-            .map(x => { return { cmd: x.cmd, content: x.content }; });
+            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         if (res.length > 0) {
             this.messages = this.messages
                 .filter(x => x.name != name);
@@ -246,7 +247,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback) {
-        this.messages.push({ cmd: cmd, name: worker, content: content });
+        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date() });
         callback();
     }
 

@@ -130,6 +130,10 @@ export class TopologyWorker {
 
     /** Starts single topology */
     private start(uuid: string, config: any) {
+        if (this.topologies.filter(x => x.uuid == uuid).length > 0) {
+            log.logger().warn(this.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
+            return;
+        }
         let self = this;
         try {
             self.injectOverrides(config);
