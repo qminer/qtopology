@@ -14,6 +14,10 @@ Both these interfaces are available out-of-the-box, but need specific storage im
 - `node myscript.js stop-topology <topology_uuid>` - stops and disables topology
 - `node myscript.js clear-topology-error <topology_uuid>` - clears error flag for topology
 - `node myscript.js shut-down-worker <worker_name>` - sends shutdown signal to specified worker
+- `node myscript.js list` - display a list of all registered topologies
+- `node myscript.js details <topology_uuid>` - display details about given topology
+- `node myscript.js export <topology_uuid> <output_file>` - export topology definition to destination file
+
 
 CLI tool has to be attached to specific implementation, like in the following example:
 
