@@ -40,7 +40,10 @@ export class CommandLineHandler {
      */
     run(callback: intf.SimpleCallback) {
         let params = this.params;
-        if (params.length == 3 && params[0] == "register") {
+        if (params.length == 1 && params[0] == "help") {
+            CommandLineHandler.showHelp();
+            callback();
+        } else if (params.length == 3 && params[0] == "register") {
             fs.readFile(params[2], "utf8", (err, content) => {
                 if (err) return handleError(err, callback);
                 let config = JSON.parse(content);
@@ -124,13 +127,13 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else {
-            this.showHelp();
+            CommandLineHandler.showHelp();
             callback(new Error("Unsupported QTopology CLI command line: " + params.join(" ")));
         }
     }
 
     /** Utility method that displays usage instructions */
-    private showHelp() {
+    public static showHelp() {
         let logger = log.logger();
         logger.important("QTopology CLI usage");
         logger.info("register <uuid> <file_name> - registers new topology");
@@ -144,4 +147,31 @@ export class CommandLineHandler {
         logger.info("details <topology_uuid> - display details about given topology");
         logger.info("export <topology_uuid> <output_file> - export topology definition to file");
     }
+}
+
+export function runRepl(storage: intf.CoordinationStorage) {
+    let logger = log.logger();
+    logger.important("Welcome to QTopology REPL.");
+    logger.info("* Type 'help' to display the list of commands");
+    const repl = require('repl');
+    repl.start({
+        prompt: colors.bgYellow.black('repl >') + " ",
+        eval: (cmd, context, filename, callback) => {
+            let dd = cmd.trim();
+            if (dd == "exit" || dd == "quit" || dd == "gtfo") {
+                logger.warn("Exiting...");
+                process.exit(0);
+            }
+            if (dd == "wtf") {
+                logger.info("This is QTopology REPL. Thank you. Type 'exit' to exit.");
+                return callback();
+            }
+            if (dd == "") {
+                return callback();
+            }
+
+            let cmdh = new CommandLineHandler(storage, dd.split(" "));
+            cmdh.run(callback);
+        }
+    });
 }
