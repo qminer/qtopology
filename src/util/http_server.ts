@@ -30,10 +30,13 @@ export class MinimalHttpServer {
     private handlers: Map<string, ProcessingHandler>;
     // registered static content
     private routes: Map<string, RouteRec>;
+    // prefix for logging messages
+    private log_prefix: string;
 
-    constructor() {
+    constructor(log_prefix?: string) {
         this.handlers = new Map<string, ProcessingHandler>();
         this.routes = new Map<string, RouteRec>();
+        this.log_prefix = (log_prefix || "[MinimalHttpServer]") + " ";
     }
 
     // Utility function that reads requests body
@@ -47,14 +50,14 @@ export class MinimalHttpServer {
 
     // Utility function for returning response
     private handleResponse(result: any, response: http.ServerResponse) {
-        logger.logger().debug("Sending response " + JSON.stringify(result));
+        logger.logger().debug(this.log_prefix + "Sending response " + JSON.stringify(result));
         response.writeHead(200, { "Content-Type": "application/json" })
         response.end(JSON.stringify(result || {}));
     }
 
     // Utility function for returning error response
     private handleError(error: Error, response: http.ServerResponse) {
-        logger.logger().error("Sending ERROR " + error.message);
+        logger.logger().error(this.log_prefix + "Sending ERROR " + error.message);
         logger.logger().exception(error);
         response.writeHead(500)
         response.end(error.message);
@@ -94,7 +97,7 @@ export class MinimalHttpServer {
             var method = req.method;
             var addr = req.url;
             let data = null;
-            logger.logger().debug(`Handling ${req.method} ${addr}`);
+            logger.logger().debug(this.log_prefix + `Handling ${req.method} ${addr}`);
             if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
                 let stat = fs.statSync(rec.local_path);
@@ -108,7 +111,7 @@ export class MinimalHttpServer {
                     this.handleError(e, resp);
                     return;
                 }
-                logger.logger().debug("Handling " + req.body);
+                logger.logger().debug(this.log_prefix + "Handling " + req.body);
                 try {
                     this.handlers.get(addr)(data, (err, data) => {
                         if (err) return this.handleError(err, resp);
@@ -125,10 +128,10 @@ export class MinimalHttpServer {
 
         server.listen(port, (err: Error) => {
             if (err) {
-                logger.logger().error("Error while starting server on port " + port);
+                logger.logger().error(this.log_prefix + "Error while starting server on port " + port);
                 logger.logger().exception(err);
             } else {
-                logger.logger().important("Server running on port " + port);
+                logger.logger().important(this.log_prefix + "Server running on port " + port);
             }
         });
     }

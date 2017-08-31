@@ -11,7 +11,8 @@ export interface ProcessingHandler {
 export declare class MinimalHttpServer {
     private handlers;
     private routes;
-    constructor();
+    private log_prefix;
+    constructor(log_prefix?: string);
     private withBody(handler);
     private handleResponse(result, response);
     private handleError(error, response);

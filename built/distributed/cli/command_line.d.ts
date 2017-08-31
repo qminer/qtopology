@@ -11,5 +11,6 @@ export declare class CommandLineHandler {
      */
     run(callback: intf.SimpleCallback): void;
     /** Utility method that displays usage instructions */
-    private showHelp();
+    static showHelp(): void;
 }
+export declare function runRepl(storage: intf.CoordinationStorage): void;
