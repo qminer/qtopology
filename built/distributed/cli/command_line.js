@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
+const colors = require("colors");
 const vld = require("../../topology_validation");
 const log = require("../../util/logger");
 const cmdline = require("../../util/cmdline");
@@ -62,7 +63,21 @@ class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.uuid} (enabled: ${t.enabled}) (status: ${t.status}) (worker: ${t.worker})`);
+                        let status = t.status;
+                        switch (status) {
+                            case "running":
+                                status = colors.green(t.status);
+                                break;
+                            case "error":
+                                status = colors.red(t.status);
+                                break;
+                            case "waiting":
+                                status = colors.yellow(t.status);
+                                break;
+                        }
+                        ;
+                        let enabled = (t.enabled ? colors.green("enabled") : "disabled");
+                        logger.info(`${t.uuid} (${enabled}) (status: ${status}) (worker: ${t.worker})`);
                     }
                 }
                 handleError(err, callback);
@@ -73,7 +88,9 @@ class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.name} (status: ${t.status}) (leader: ${t.lstatus == "leader" ? "yes" : "no"}) (last status: ${t.last_ping_d.toLocaleString()})`);
+                        let status = (t.status == "alive" ? colors.green(t.status) : t.status);
+                        let lstatus = (t.lstatus == "leader" ? colors.yellow("yes") : "no");
+                        logger.info(`${t.name} (status: ${t.status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
