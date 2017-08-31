@@ -356,7 +356,7 @@ You can instruct the bolt to prepend timestamp (in local timezone using ISO form
 
 The log file can be huge, so the bolt provides option to split files after each time interval. Just set option `split_over_time` to `true` and `split_period` to number of milliseconds that you want to use (3600000 means one hour). The bolt will create new file for each interval (as long as there is some data to write). The timestamp of the interval will be injected into the name of the file.
 
-For eaxmple, setting options to
+For example, setting options to
 
 ```````````````json
 {
@@ -372,6 +372,19 @@ will write data into files with names like:
 - `log_2017_05_15T13:00:00.txt`
 - `log_2017_05_15T14:00:00.txt`
 - ....
+
+### Delete existing file
+
+You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The new line in the log file will look something like this:
+
+```````````json
+{
+    "file_name_template": "./log.txt",
+    "delete_existing": true
+}
+```````````
+
+> This option only works when `split_over_time` is set to false or skipped.
 
 ## Router bolt
 

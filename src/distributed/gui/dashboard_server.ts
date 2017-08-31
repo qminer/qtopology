@@ -23,7 +23,7 @@ export class DashboardServer {
         let self = this;
         self.port = port;
         self.storage = storage;
-        self.server = new http_server.MinimalHttpServer();
+        self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
 
         // first register static files
         let static_dir = path.join(__dirname, "../../../resources/gui/");

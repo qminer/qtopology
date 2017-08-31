@@ -45,6 +45,11 @@ export class FileAppendBolt implements intf.Bolt {
                 ext;
         } else {
             this.file_name_current = this.file_name_template;
+            if (config.delete_existing) {
+                if (fs.existsSync(this.file_name_current)) {
+                    fs.unlinkSync(this.file_name_current);
+                }
+            }
         }
 
         callback();

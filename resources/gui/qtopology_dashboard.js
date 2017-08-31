@@ -17,7 +17,7 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.prepareBlades();
 }
 QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
-    let dd = new Date(d.getTime());
+    var dd = new Date(d.getTime());
     dd.setMinutes(dd.getMinutes() - dd.getTimezoneOffset());
     return dd.toISOString()
         .replace("T", " ")
@@ -219,7 +219,7 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
 
 
 function QTopologyDashboardViewModelWorker(d, parent) {
-    let self = this;
+    var self = this;
     this.parent = parent;
     this.name = ko.observable(d.name);
     this.last_ping = ko.observable(new Date(d.last_ping));
@@ -238,7 +238,7 @@ function QTopologyDashboardViewModelWorker(d, parent) {
 }
 
 function QTopologyDashboardViewModelTopology(d, parent) {
-    let self = this;
+    var self = this;
     this.parent = parent;
     this.uuid = ko.observable(d.uuid);
     this.enabled = ko.observable(d.enabled);

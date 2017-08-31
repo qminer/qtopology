@@ -8,12 +8,14 @@ Both these interfaces are available out-of-the-box, but need specific storage im
 
  QTopology CLI usage:
 
+- `node myscript.js help` - displays a list of available commands
 - `node myscript.js register <uuid> <file_name>` - registers new topology
 - `node myscript.js enable <topology_uuid>` - enables topology
 - `node myscript.js disable <topology_uuid>` - disables topology
 - `node myscript.js stop-topology <topology_uuid>` - stops and disables topology
 - `node myscript.js clear-topology-error <topology_uuid>` - clears error flag for topology
 - `node myscript.js shut-down-worker <worker_name>` - sends shutdown signal to specified worker
+- `node myscript.js workers` - display a list of all workers
 - `node myscript.js list` - display a list of all registered topologies
 - `node myscript.js details <topology_uuid>` - display details about given topology
 - `node myscript.js export <topology_uuid> <output_file>` - export topology definition to destination file
@@ -39,6 +41,42 @@ cmd.run(() => {
 });
 
 `````````
+
+## REPL
+
+It is also possible to start REPL mode of CLI tool - it accepts exactly the same commands as the CLI-mode above (without the `node myscript.js` prefix):
+
+`````````javascript
+"use strict";
+
+const qtopology = require("qtopology");
+const coor = require("my-custom-storage-implementation");
+
+// instantiate custom storage implementation
+let coordinator = new coor.MyCustomCoordinator();
+
+// run CLI tool on it in REPL mode
+qtopology.runRepl(coordinator);
+`````````
+
+An example that is provided in the demo directory:
+
+````````````
+$ node demo-repl.js
+
+Welcome to QTopology REPL.
+Type 'help' to display the list of commands
+
+repl > list
+topology.test.1 (enabled: enabled) (status: waiting) (worker: worker1)
+topology.test.2 (enabled: enabled) (status: running) (worker: worker2)
+topology.test.x (enabled: disabled) (status: unassigned) (worker: null)
+topology.test.y (enabled: disabled) (status: error) (worker: null)
+topology.test.z (enabled: enabled) (status: running) (worker: worker1)
+
+repl >
+````````````
+
 ## GUI
 
 A web application that displays all current information about workers and topologies.
