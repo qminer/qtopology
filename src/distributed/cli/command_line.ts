@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as colors from "colors";
 import * as intf from "../../topology_interfaces";
 import * as vld from "../../topology_validation";
 import * as log from "../../util/logger";
@@ -39,7 +40,10 @@ export class CommandLineHandler {
      */
     run(callback: intf.SimpleCallback) {
         let params = this.params;
-        if (params.length == 3 && params[0] == "register") {
+        if (params.length == 1 && params[0] == "help") {
+            CommandLineHandler.showHelp();
+            callback();
+        } else if (params.length == 3 && params[0] == "register") {
             fs.readFile(params[2], "utf8", (err, content) => {
                 if (err) return handleError(err, callback);
                 let config = JSON.parse(content);
@@ -65,7 +69,14 @@ export class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.uuid} (enabled: ${t.enabled}) (status: ${t.status}) (worker: ${t.worker})`);
+                        let status = t.status;
+                        switch (status) {
+                            case "running": status = colors.green(t.status); break;
+                            case "error": status = colors.red(t.status); break;
+                            case "waiting": status = colors.yellow(t.status); break;
+                        };
+                        let enabled = (t.enabled ? colors.green("enabled") : "disabled");
+                        logger.info(`${t.uuid} (enabled: ${enabled}) (status: ${status}) (worker: ${t.worker})`);
                     }
                 }
                 handleError(err, callback);
@@ -75,7 +86,9 @@ export class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        logger.info(`${t.name} (status: ${t.status}) (leadership: ${t.lstatus}) (last status: ${t.last_ping_d})`);
+                        let status = (t.status == "alive" ? colors.green(t.status) : t.status);
+                        let lstatus = (t.lstatus == "leader" ? colors.yellow("yes") : "no");
+                        logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
@@ -114,13 +127,13 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else {
-            this.showHelp();
+            CommandLineHandler.showHelp();
             callback(new Error("Unsupported QTopology CLI command line: " + params.join(" ")));
         }
     }
 
     /** Utility method that displays usage instructions */
-    private showHelp() {
+    public static showHelp() {
         let logger = log.logger();
         logger.important("QTopology CLI usage");
         logger.info("register <uuid> <file_name> - registers new topology");
@@ -129,8 +142,38 @@ export class CommandLineHandler {
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");
+        logger.info("workers - display a list of all workers");
         logger.info("list - display a list of all registered topologies");
         logger.info("details <topology_uuid> - display details about given topology");
         logger.info("export <topology_uuid> <output_file> - export topology definition to file");
     }
+}
+
+export function runRepl(storage: intf.CoordinationStorage) {
+    let logger = log.logger();
+    logger.info("");
+    logger.important("Welcome to QTopology REPL.");
+    logger.info("Type 'help' to display the list of commands");
+    logger.info("");
+    const repl = require('repl');
+    repl.start({
+        prompt: colors.bgYellow.black('\nrepl >') + " ",
+        eval: (cmd, context, filename, callback) => {
+            let dd = cmd.trim();
+            if (dd == "exit" || dd == "quit" || dd == "gtfo") {
+                logger.warn("Exiting...");
+                process.exit(0);
+            }
+            if (dd == "wtf") {
+                logger.info("This is QTopology REPL. Thank you. Type 'exit' to exit.");
+                return callback();
+            }
+            if (dd == "") {
+                return callback();
+            }
+
+            let cmdh = new CommandLineHandler(storage, dd.split(" "));
+            cmdh.run(callback);
+        }
+    });
 }
