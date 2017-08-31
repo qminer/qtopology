@@ -77,7 +77,7 @@ class CommandLineHandler {
                         }
                         ;
                         let enabled = (t.enabled ? colors.green("enabled") : "disabled");
-                        logger.info(`${t.uuid} (${enabled}) (status: ${status}) (worker: ${t.worker})`);
+                        logger.info(`${t.uuid} (enabled: ${enabled}) (status: ${status}) (worker: ${t.worker})`);
                     }
                 }
                 handleError(err, callback);
@@ -90,7 +90,7 @@ class CommandLineHandler {
                     for (let t of data) {
                         let status = (t.status == "alive" ? colors.green(t.status) : t.status);
                         let lstatus = (t.lstatus == "leader" ? colors.yellow("yes") : "no");
-                        logger.info(`${t.name} (status: ${t.status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
+                        logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
