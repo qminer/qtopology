@@ -36,7 +36,7 @@ export class TopologyWorker {
         this.topologies = [];
 
         let self = this;
-        self.coordinator.on("start", (msg) => {
+        self.coordinator.on("start-topology", (msg) => {
             log.logger().important(this.log_prefix + "Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });

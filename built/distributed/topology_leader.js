@@ -184,7 +184,7 @@ class TopologyLeader {
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
         log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
         self.storage.assignTopology(ut.uuid, target, (err) => {
-            self.storage.sendMessageToWorker(target, "start", { uuid: ut.uuid }, callback);
+            self.storage.sendMessageToWorker(target, "start-topology", { uuid: ut.uuid }, callback);
         });
     }
     /** Handles situation when there is a dead worker and its

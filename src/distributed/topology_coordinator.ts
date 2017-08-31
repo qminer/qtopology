@@ -144,14 +144,16 @@ export class TopologyCoordinator extends EventEmitter {
                 (msg: intf.StorageResultMessage, xcallback) => {
                     if (msg.created < self.start_time) {
                         // just ignore, it was sent before this coordinator was started
-                    } else if (msg.cmd === "start") {
+                    } else if (msg.cmd === "start-topology") {
                         self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
                             if (self.name == res.worker) {
                                 // topology is still assigned to this worker
                                 // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                                self.emit("start", { uuid: msg.content.uuid, config: res.config });
+                                self.emit("start-topology", { uuid: msg.content.uuid, config: res.config });
                             }
                         })
+                    } else if (msg.cmd === "stop-topology") {
+                        self.emit("stop-topology", { uuid: msg.content.uuid });
                     } else if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});
                     }
