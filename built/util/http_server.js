@@ -8,9 +8,10 @@ const mime_map = require("./http_server_mime_map");
 class RouteRec {
 }
 class MinimalHttpServer {
-    constructor() {
+    constructor(log_prefix) {
         this.handlers = new Map();
         this.routes = new Map();
+        this.log_prefix = (log_prefix || "[MinimalHttpServer]") + " ";
     }
     // Utility function that reads requests body
     withBody(handler) {
@@ -23,13 +24,13 @@ class MinimalHttpServer {
     ;
     // Utility function for returning response
     handleResponse(result, response) {
-        logger.logger().debug("Sending response " + JSON.stringify(result));
+        logger.logger().debug(this.log_prefix + "Sending response " + JSON.stringify(result));
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify(result || {}));
     }
     // Utility function for returning error response
     handleError(error, response) {
-        logger.logger().error("Sending ERROR " + error.message);
+        logger.logger().error(this.log_prefix + "Sending ERROR " + error.message);
         logger.logger().exception(error);
         response.writeHead(500);
         response.end(error.message);
@@ -66,7 +67,7 @@ class MinimalHttpServer {
             var method = req.method;
             var addr = req.url;
             let data = null;
-            logger.logger().debug(`Handling ${req.method} ${addr}`);
+            logger.logger().debug(this.log_prefix + `Handling ${req.method} ${addr}`);
             if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
                 let stat = fs.statSync(rec.local_path);
@@ -82,7 +83,7 @@ class MinimalHttpServer {
                     this.handleError(e, resp);
                     return;
                 }
-                logger.logger().debug("Handling " + req.body);
+                logger.logger().debug(this.log_prefix + "Handling " + req.body);
                 try {
                     this.handlers.get(addr)(data, (err, data) => {
                         if (err)
@@ -101,11 +102,11 @@ class MinimalHttpServer {
         }));
         server.listen(port, (err) => {
             if (err) {
-                logger.logger().error("Error while starting QTopology Dashboard server on port " + port);
+                logger.logger().error(this.log_prefix + "Error while starting server on port " + port);
                 logger.logger().exception(err);
             }
             else {
-                logger.logger().important("QTopology Dashboard Server running on port " + port);
+                logger.logger().important(this.log_prefix + "Server running on port " + port);
             }
         });
     }
