@@ -101,11 +101,11 @@ class MinimalHttpServer {
         }));
         server.listen(port, (err) => {
             if (err) {
-                logger.logger().error("Error while starting server on port " + port);
+                logger.logger().error("Error while starting QTopology Dashboard server on port " + port);
                 logger.logger().exception(err);
             }
             else {
-                logger.logger().important("Server running on port " + port);
+                logger.logger().important("QTopology Dashboard Server running on port " + port);
             }
         });
     }

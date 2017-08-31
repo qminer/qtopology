@@ -151,11 +151,13 @@ export class CommandLineHandler {
 
 export function runRepl(storage: intf.CoordinationStorage) {
     let logger = log.logger();
+    logger.info("");
     logger.important("Welcome to QTopology REPL.");
-    logger.info("* Type 'help' to display the list of commands");
+    logger.info("Type 'help' to display the list of commands");
+    logger.info("");
     const repl = require('repl');
     repl.start({
-        prompt: colors.bgYellow.black('repl >') + " ",
+        prompt: colors.bgYellow.black('\nrepl >') + " ",
         eval: (cmd, context, filename, callback) => {
             let dd = cmd.trim();
             if (dd == "exit" || dd == "quit" || dd == "gtfo") {
