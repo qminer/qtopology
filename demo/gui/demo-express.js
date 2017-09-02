@@ -2,6 +2,7 @@
 
 let qtopology = require("../..");
 let express = require("express");
+let bodyParser = require("body-parser");
 
 let dummy_topology_config = {
     general: { heartbeat: 1000 },
@@ -45,6 +46,8 @@ coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 ////////////////////////////////////////////////////////
 
 let app = express();
+//app.use(bodyParser.json());
+app.use(bodyParser.text({type:"*/*"}));
 
 let server = new qtopology.DashboardServer();
 server.initForExpress(app, "qtopology", coordinator, (err) => {

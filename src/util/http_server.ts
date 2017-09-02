@@ -100,12 +100,11 @@ export class MinimalHttpServer {
             readStream.pipe(resp);
         } else if (this.handlers.has(addr)) {
             let data = null;
-            //body;
             try {
-                if (body instanceof String) {
+                if (typeof body === "string") {
                     data = JSON.parse(body as any);
                 } else {
-                    data = data;
+                    data = body;
                 }
             } catch (e) {
                 this.handleError(e, resp);

@@ -25,7 +25,7 @@ QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
 }
 QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
     $.ajax({
-        url: "/" + cmd,
+        url: cmd, //"/" + cmd,
         type: "POST",
         dataType: "json",
         data: JSON.stringify(data),

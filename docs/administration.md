@@ -137,3 +137,5 @@ server.initForExpress(app, "qtopology", coordinator,  () => {
 ```````````
 
 Open web address `http://localhost:3000/qtopology/` in your browser.
+
+> Express application needs to use JSON body parser.

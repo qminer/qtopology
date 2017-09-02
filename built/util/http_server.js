@@ -72,13 +72,12 @@ class MinimalHttpServer {
         }
         else if (this.handlers.has(addr)) {
             let data = null;
-            //body;
             try {
-                if (body instanceof String) {
+                if (typeof body === "string") {
                     data = JSON.parse(body);
                 }
                 else {
-                    data = data;
+                    data = body;
                 }
             }
             catch (e) {
