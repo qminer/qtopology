@@ -9,9 +9,8 @@ class DashboardServer {
         this.port = null;
         this.server = null;
     }
-    init(port, storage, callback) {
+    initCommon(storage, callback) {
         let self = this;
-        self.port = port;
         self.storage = storage;
         self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
         // first register static files
@@ -63,8 +62,32 @@ class DashboardServer {
         });
         callback();
     }
+    init(port, storage, callback) {
+        this.port = port;
+        this.initCommon(storage, callback);
+    }
+    initForExpress(app, prefix, storage, callback) {
+        let self = this;
+        self.initCommon(storage, (err) => {
+            if (err)
+                return callback(err);
+            let prepareAddr = (url) => {
+                return url.replace(`/${prefix}`, "");
+            };
+            app.get(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            app.post(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            callback();
+        });
+    }
     run() {
         this.server.run(this.port);
+    }
+    handle(method, addr, body, resp) {
+        this.server.handle(method, addr, body, resp);
     }
 }
 exports.DashboardServer = DashboardServer;

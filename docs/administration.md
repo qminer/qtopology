@@ -82,21 +82,58 @@ repl >
 A web application that displays all current information about workers and topologies.
 It also provides means to perform some actions like enabling/disabling topologies and shutting down workers.
 
+### Stand-alone web server
+
 Web GUI tool has to be attached to specific implementation, like in the following example:
 
 ```````````javascript
 "use strict";
 
-let qtopology = require("qtopology");
+const qtopology = require("qtopology");
 const coor = require("my-custom-storage-implementation");
 
 // instantiate custom storage implementation
 let coordinator = new coor.MyCustomCoordinator();
 
-// run CLI tool on it
+// start web server
 let server = new qtopology.DashboardServer();
-server.init(3000, coordinator, function () {
+server.init(3000, coordinator,  () => {
     server.run();
 });
 
 ```````````
+
+### Attaching to an Express server
+
+The same web pages can be served inside existing Express web application,
+under some predefined sub-path, e.g. `/qtopology/`.
+
+```````````javascript
+"use strict";
+
+const qtopology = require("qtopology");
+const express = require("express");
+const coor = require("my-custom-storage-implementation");
+
+// instantiate custom storage implementation
+let coordinator = new coor.MyCustomCoordinator();
+
+// start Express web server
+let app = express();
+// start dashboard server with express server
+let server = new qtopology.DashboardServer();
+server.initForExpress(app, "qtopology", coordinator,  () => {
+    if (err) {
+        console.log(err);
+        process.exit(1);
+    }
+    // ok, paths injected into Express application
+    // start serving requests
+    app.listen(3000, () => {
+        console.log("Express server running...");
+    })
+});
+
+```````````
+
+Open web address `http://localhost:3000/qtopology/` in your browser.

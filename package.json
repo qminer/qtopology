@@ -28,6 +28,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "colors": "^1.1.0",
+    "express": "^4.15.4",
     "jsonschema": "^1.1.1",
     "node-rest-client": "^3.0.7"
   }

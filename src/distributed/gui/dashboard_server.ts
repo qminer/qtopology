@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as http from "http";
 
 import * as intf from "../../topology_interfaces";
 import * as log from "../../util/logger";
@@ -19,9 +20,8 @@ export class DashboardServer {
         this.server = null;
     }
 
-    init(port: number, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+    private initCommon(storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
         let self = this;
-        self.port = port;
         self.storage = storage;
         self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
 
@@ -76,7 +76,35 @@ export class DashboardServer {
         callback();
     }
 
+    init(port: number, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+        this.port = port;
+        this.initCommon(storage, callback);
+    }
+
+    initForExpress(app: any, prefix: string, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+        let self = this;
+        self.initCommon(storage, (err) => {
+            if (err) return callback(err);
+
+            let prepareAddr = (url) => {
+                return url.replace(`/${prefix}`, "");
+            };
+
+            app.get(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            app.post(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            callback();
+        });
+    }
+
     run() {
         this.server.run(this.port);
+    }
+
+    handle(method: string, addr: string, body: any, resp: http.ServerResponse) {
+        this.server.handle(method, addr, body, resp);
     }
 }

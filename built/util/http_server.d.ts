@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as http from "http";
 export interface RequestWithBody extends http.IncomingMessage {
     body: string;
@@ -22,6 +23,8 @@ export declare class MinimalHttpServer {
     addRoute(addr: string, local_path: string): void;
     /** For registering all files from certain directory as simple static paths */
     addDirectory(dir: string): void;
+    /** For handling requests that have been received by another HTTP server object. */
+    handle(method: string, addr: string, body: any, resp: http.ServerResponse): void;
     /** For running the server */
     run(port: number): void;
 }
