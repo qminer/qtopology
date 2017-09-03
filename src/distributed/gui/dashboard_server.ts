@@ -90,6 +90,9 @@ export class DashboardServer {
                 return url.replace(`/${prefix}`, "");
             };
 
+            app.get(`/${prefix}`, (req, res) => {
+                res.redirect(`/${prefix}/qtopology_dashboard.html`);
+            });
             app.get(`/${prefix}/*`, (req, res) => {
                 self.handle(req.method, prepareAddr(req.url), req.body, res);
             });
