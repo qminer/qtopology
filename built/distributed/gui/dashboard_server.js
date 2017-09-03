@@ -81,7 +81,6 @@ class DashboardServer {
                 self.handle(req.method, prepareAddr(req.url), req.body, res);
             });
             app.post(`/${prefix}/*`, (req, res) => {
-                console.log("body", req.body);
                 self.handle(req.method, prepareAddr(req.url), req.body, res);
             });
             callback();
