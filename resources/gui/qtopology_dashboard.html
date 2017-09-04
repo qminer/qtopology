@@ -15,10 +15,10 @@
         <img src="logo.png" alt="logo" class="logo" />
         <h1>QTopology dashboard</h1>
     </div>
-    
+
     <div id="bladeWorker" class="blade">
         <div class="blade-content" data-bind="with: selected_worker">
-            <span class="blade-close close-btn">&times;</span>
+            <div class="blade-close close-btn" data-bind="click: $parent.closeBlade">&times;</div>
             <h1>Worker info</h1>
             <div>
                 <div class="cell-2">
@@ -155,7 +155,7 @@
 
     <div id="bladeTopology" class="blade">
         <div class="blade-content" data-bind="with: selected_topology">
-            <span class="blade-close">&times;</span>
+            <div class="blade-close close-btn" data-bind="click: $parent.closeBlade">&times;</div>
             <h1>Topology info</h1>
             <div class="cell-2">
                 <div class="panel">

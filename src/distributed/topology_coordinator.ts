@@ -74,7 +74,7 @@ export class TopologyCoordinator extends EventEmitter {
     preShutdown(callback: intf.SimpleCallback) {
         let self = this;
         self.is_shutting_down = true;
-        self.reportWorker(self.name, "closing", "", (err: Error) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err: Error) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
@@ -93,7 +93,7 @@ export class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
-        self.reportWorker(self.name, "dead", "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
@@ -144,14 +144,16 @@ export class TopologyCoordinator extends EventEmitter {
                 (msg: intf.StorageResultMessage, xcallback) => {
                     if (msg.created < self.start_time) {
                         // just ignore, it was sent before this coordinator was started
-                    } else if (msg.cmd === "start") {
+                    } else if (msg.cmd === "start-topology") {
                         self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
                             if (self.name == res.worker) {
                                 // topology is still assigned to this worker
                                 // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                                self.emit("start", { uuid: msg.content.uuid, config: res.config });
+                                self.emit("start-topology", { uuid: msg.content.uuid, config: res.config });
                             }
                         })
+                    } else if (msg.cmd === "stop-topology") {
+                        self.emit("stop-topology", { uuid: msg.content.uuid });
                     } else if (msg.cmd === "shutdown") {
                         self.emit("shutdown", {});
                     }
@@ -168,7 +170,7 @@ export class TopologyCoordinator extends EventEmitter {
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err) return callback(err);
             for (let top of topologies) {
-                if (top.status == "running") {
+                if (top.status == intf.Consts.TopologyStatus.running) {
                     self.emit("verify-topology", { uuid: top.uuid });
                 }
             }
