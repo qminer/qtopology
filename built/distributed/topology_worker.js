@@ -4,6 +4,7 @@ const async = require("async");
 const tlp = require("./topology_local_proxy");
 const coord = require("./topology_coordinator");
 const comp = require("../topology_compiler");
+const intf = require("../topology_interfaces");
 const log = require("../util/logger");
 const fe = require("../util/freq_estimator");
 class TopologyItem {
@@ -30,7 +31,7 @@ class TopologyWorker {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
                 log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + msg.uuid);
-                self.coordinator.reportTopology(uuid, "unassigned", "", () => { });
+                self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", () => { });
             }
         });
         self.coordinator.on("stop-topology", (msg) => {
@@ -86,7 +87,7 @@ class TopologyWorker {
                 let too_often = (score >= 10);
                 if (too_often) {
                     //  report error and remove
-                    self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                    self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
                     self.removeTopology(rec.uuid);
                 }
                 else {
@@ -100,16 +101,16 @@ class TopologyWorker {
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 self.removeTopology(rec.uuid);
-                self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
             }
             else {
                 rec.proxy.run((err) => {
                     if (err) {
                         self.removeTopology(rec.uuid);
-                        self.coordinator.reportTopology(rec.uuid, "error", "" + err);
+                        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
                     }
                     else {
-                        self.coordinator.reportTopology(rec.uuid, "running", "");
+                        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
                     }
                 });
             }
@@ -128,7 +129,7 @@ class TopologyWorker {
             compiler.compile();
             config = compiler.getWholeConfig();
             if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
-                self.coordinator.reportTopology(uuid, "error", "Topology with this UUID already exists: " + uuid);
+                self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.error, "Topology with this UUID already exists: " + uuid);
                 return;
             }
             let rec = new TopologyItem();
@@ -142,7 +143,7 @@ class TopologyWorker {
         catch (err) {
             log.logger().error(this.log_prefix + "Error while creating topology proxy for " + uuid);
             log.logger().exception(err);
-            self.coordinator.reportTopology(uuid, "error", "" + err, () => { });
+            self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.error, "" + err, () => { });
         }
     }
     /** This method injects override values into variables section of the configuration. */
@@ -203,11 +204,11 @@ class TopologyWorker {
             if (err) {
                 log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
-                self.coordinator.reportTopology(item.uuid, "error", "" + err, callback);
+                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
             }
             else {
                 log.logger().debug("[Worker] setting topology as unassigned: " + item.uuid);
-                self.coordinator.reportTopology(item.uuid, "unassigned", "", callback);
+                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
             }
         });
     }

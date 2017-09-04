@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const lb = require("../util/load_balance");
+const intf = require("../topology_interfaces");
 const log = require("../util/logger");
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
@@ -108,19 +109,18 @@ class TopologyLeader {
                 self.storage.getWorkerStatus((err, workers) => {
                     if (err)
                         return xcallback(err);
-                    // possible statuses: alive, closing, dead, unloaded
                     let this_worker_lstatus = workers
                         .filter(x => x.name === self.name)
                         .map(x => x.lstatus)[0];
-                    if (this_worker_lstatus != "leader") {
+                    if (this_worker_lstatus != intf.Consts.WorkerLStatus.leader) {
                         perform_loop = false;
                         return xcallback();
                     }
                     let dead_workers = workers
-                        .filter(x => x.status === "dead")
+                        .filter(x => x.status === intf.Consts.WorkerStatus.dead)
                         .map(x => x.name);
                     alive_workers = workers
-                        .filter(x => x.status === "alive");
+                        .filter(x => x.status === intf.Consts.WorkerStatus.alive);
                     if (alive_workers.length == 0) {
                         return xcallback();
                     }
@@ -136,13 +136,11 @@ class TopologyLeader {
                 self.storage.getTopologyStatus((err, topologies) => {
                     if (err)
                         return xcallback(err);
-                    // each topology: uuid, status, worker, weight, affinity, enabled
-                    // possible statuses: unassigned, waiting, running, error
                     topologies = topologies.filter(x => x.enabled);
                     topologies.forEach(x => {
                         x.weight = x.weight || 1;
                         x.worker_affinity = x.worker_affinity || [];
-                        if (x.status == "") {
+                        if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
                             for (let worker of alive_workers) {
                                 let name = worker.name;
                                 if (name == x.worker) {
@@ -157,7 +155,7 @@ class TopologyLeader {
                         }
                     });
                     let unassigned_topologies = topologies
-                        .filter(x => x.status === "unassigned");
+                        .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
                     if (unassigned_topologies.length > 0) {
                         log.logger().log("[Leader] Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                     }

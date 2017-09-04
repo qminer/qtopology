@@ -74,7 +74,7 @@ export class TopologyCoordinator extends EventEmitter {
     preShutdown(callback: intf.SimpleCallback) {
         let self = this;
         self.is_shutting_down = true;
-        self.reportWorker(self.name, "closing", "", (err: Error) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err: Error) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
@@ -93,7 +93,7 @@ export class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
-        self.reportWorker(self.name, "dead", "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
@@ -170,7 +170,7 @@ export class TopologyCoordinator extends EventEmitter {
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err) return callback(err);
             for (let top of topologies) {
-                if (top.status == "running") {
+                if (top.status == intf.Consts.TopologyStatus.running) {
                     self.emit("verify-topology", { uuid: top.uuid });
                 }
             }

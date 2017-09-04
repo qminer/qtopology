@@ -71,9 +71,9 @@ export class CommandLineHandler {
                     for (let t of data) {
                         let status = t.status;
                         switch (status) {
-                            case "running": status = colors.green(t.status); break;
-                            case "error": status = colors.red(t.status); break;
-                            case "waiting": status = colors.yellow(t.status); break;
+                            case intf.Consts.TopologyStatus.running: status = colors.green(t.status); break;
+                            case intf.Consts.TopologyStatus.error: status = colors.red(t.status); break;
+                            case intf.Consts.TopologyStatus.waiting: status = colors.yellow(t.status); break;
                         };
                         let enabled = (t.enabled ? colors.green("enabled") : "disabled");
                         logger.info(`${t.uuid} (enabled: ${enabled}) (status: ${status}) (worker: ${t.worker})`);
@@ -86,8 +86,8 @@ export class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        let status = (t.status == "alive" ? colors.green(t.status) : t.status);
-                        let lstatus = (t.lstatus == "leader" ? colors.yellow("yes") : "no");
+                        let status = (t.status == intf.Consts.WorkerStatus.alive ? colors.green(t.status) : t.status);
+                        let lstatus = (t.lstatus ==intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
                         logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }

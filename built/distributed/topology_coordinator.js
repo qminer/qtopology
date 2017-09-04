@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const leader = require("./topology_leader");
 const EventEmitter = require("events");
+const intf = require("../topology_interfaces");
 const log = require("../util/logger");
 /** This class handles communication with topology coordination storage.
  */
@@ -55,7 +56,7 @@ class TopologyCoordinator extends EventEmitter {
     preShutdown(callback) {
         let self = this;
         self.is_shutting_down = true;
-        self.reportWorker(self.name, "closing", "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
@@ -72,7 +73,7 @@ class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     shutdown(callback) {
         let self = this;
-        self.reportWorker(self.name, "dead", "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error("Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
@@ -146,7 +147,7 @@ class TopologyCoordinator extends EventEmitter {
             if (err)
                 return callback(err);
             for (let top of topologies) {
-                if (top.status == "running") {
+                if (top.status == intf.Consts.TopologyStatus.running) {
                     self.emit("verify-topology", { uuid: top.uuid });
                 }
             }
