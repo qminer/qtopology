@@ -56,15 +56,15 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
 
     getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
         this.disableDefunctLeaders();
-        let res = "vacant";
-        let leaders = this.workers.filter(x => x.lstatus == "leader").length;
-        let pending = this.workers.filter(x => x.lstatus == "candidate").length;
+        let res = intf.Consts.LeadershipStatus.vacant;
+        let leaders = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader).length;
+        let pending = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.candidate).length;
         if (leaders > 0) {
-            callback(null, { leadership: "ok" });
+            callback(null, { leadership: intf.Consts.LeadershipStatus.ok });
         } else if (pending > 0) {
-            callback(null, { leadership: "pending" });
+            callback(null, { leadership: intf.Consts.LeadershipStatus.pending });
         } else {
-            callback(null, { leadership: "vacant" });
+            callback(null, { leadership: intf.Consts.LeadershipStatus.vacant });
         }
     }
 
@@ -161,21 +161,21 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             w = {
                 last_ping: Date.now(),
                 last_ping_d: new Date(),
-                lstatus: "",
+                lstatus: intf.Consts.WorkerLStatus.normal,
                 lstatus_ts: Date.now(),
                 lstatus_ts_d: new Date(),
                 name: name,
-                status: "alive"
+                status: intf.Consts.WorkerStatus.alive
             };
             this.workers.push(w);
         } else {
             w = existing[0];
             w.last_ping = Date.now();
             w.last_ping_d = new Date();
-            w.lstatus = "";
+            w.lstatus = intf.Consts.WorkerLStatus.normal;
             w.lstatus_ts = Date.now();
             w.lstatus_ts_d = new Date();
-            w.status = "alive";
+            w.status = intf.Consts.WorkerStatus.alive;
         }
         this.notifyWorkerHistory(w);
         callback();
@@ -185,18 +185,18 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         let self = this;
         this.disableDefunctLeaders();
         let leaders = this.workers
-            .filter(x => x.name != name && x.status == "leader")
+            .filter(x => x.name != name && x.lstatus == intf.Consts.WorkerLStatus.leader)
             .length;
 
         let candidates = this.workers
-            .filter(x => x.name <= name && x.status == "candidate")
+            .filter(x => x.name <= name && x.lstatus == intf.Consts.WorkerLStatus.candidate)
             .length;
 
         if (leaders == 0 && candidates == 0) {
             this.workers
                 .filter(x => x.name == name)
                 .forEach(x => {
-                    x.lstatus = "candidate";
+                    x.lstatus = intf.Consts.WorkerLStatus.candidate;
                     self.notifyWorkerHistory(x);
                 });
         }
@@ -212,23 +212,23 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             return callback(new Error("Specified worker not found: " + name));
         }
         let leaders = this.workers
-            .filter(x => x.name != name && x.status == "leader")
+            .filter(x => x.name != name && x.lstatus == intf.Consts.WorkerLStatus.leader)
             .length;
 
-        if (leaders == 0 && obj[0].lstatus == "candidate") {
+        if (leaders == 0 && obj[0].lstatus == intf.Consts.WorkerLStatus.candidate) {
             this.workers
-                .filter(x => x.name != name && x.lstatus != "candidate")
+                .filter(x => x.name != name && x.lstatus != intf.Consts.WorkerLStatus.candidate)
                 .forEach(x => {
-                    x.lstatus = "";
+                    x.lstatus = intf.Consts.WorkerLStatus.normal;
                     self.notifyWorkerHistory(x);
                 });
-            obj[0].lstatus = "leader";
+            obj[0].lstatus = intf.Consts.WorkerLStatus.leader;
             this.notifyWorkerHistory(obj[0]);
             callback(null, true);
-        } else if (obj[0].lstatus == "leader") {
+        } else if (obj[0].lstatus == intf.Consts.WorkerLStatus.leader) {
             callback(null, true);
         } else {
-            obj[0].lstatus = "";
+            obj[0].lstatus = intf.Consts.WorkerLStatus.normal;
             this.notifyWorkerHistory(obj[0]);
             callback(null, false);
         }
@@ -282,7 +282,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             t = {
                 enabled: false,
                 config: config,
-                status: "unassigned",
+                status: intf.Consts.TopologyStatus.unassigned,
                 uuid: uuid,
                 weight: config.general.weight,
                 worker: null,
@@ -333,7 +333,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     stopTopology(uuid: string, callback: intf.SimpleCallback) {
         let self = this;
         let hits = self.topologies
-            .filter(x => x.uuid == uuid && x.status == "running");
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
         if (hits.length > 0) {
             async.series(
                 [
@@ -358,10 +358,10 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
             return callback(new Error("Specified topology not found: " + uuid));
         }
         let hit = hits[0];
-        if (hit.status != "error") {
+        if (hit.status != intf.Consts.TopologyStatus.error) {
             return callback(new Error("Specified topology is not marked as error: " + uuid));
         }
-        hit.status = "unassigned";
+        hit.status = intf.Consts.TopologyStatus.unassigned;
         this.notifyTopologyHistory(hit);
         callback();
     }
@@ -369,7 +369,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     deleteWorker(name: string, callback: intf.SimpleCallback) {
         let hits = this.workers.filter(x => x.name == name);
         if (hits.length > 0) {
-            if (hits[0].status == "unloaded") {
+            if (hits[0].status == intf.Consts.WorkerStatus.unloaded) {
                 this.workers = this.workers.filter(x => x.name != name);
                 callback();
             } else {
@@ -412,14 +412,14 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         }
         for (let topology of this.topologies) {
             let change = false;
-            if (topology.status == "waiting" && topology.last_ping < d) {
-                topology.status = "unassigned";
+            if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < d) {
+                topology.status = intf.Consts.TopologyStatus.unassigned;
                 topology.worker = null;
                 change = true;
             }
             if (topology.worker) {
-                if (worker_map[topology.worker] == "dead") {
-                    topology.status = "unassigned";
+                if (worker_map[topology.worker] == intf.Consts.WorkerStatus.dead) {
+                    topology.status = intf.Consts.TopologyStatus.unassigned;
                     topology.worker = null;
                     change = true;
                 }
@@ -434,8 +434,8 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         // disable workers that did not update their status
         let d = Date.now() - 30 * 1000;
         for (let worker of this.workers) {
-            if (worker.status == "alive" && worker.last_ping < d) {
-                worker.status = "dead";
+            if (worker.status == intf.Consts.WorkerStatus.alive && worker.last_ping < d) {
+                worker.status = intf.Consts.WorkerStatus.dead;
                 this.notifyWorkerHistory(worker);
             }
         }
@@ -445,9 +445,9 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
         // disable worker that did not perform their leadership duties
         let d = Date.now() - 10 * 1000;
         for (let worker of this.workers) {
-            if (worker.lstatus == "leader" || worker.lstatus == "candidate") {
+            if (worker.lstatus == intf.Consts.WorkerLStatus.leader || worker.lstatus == intf.Consts.WorkerLStatus.candidate) {
                 if (worker.last_ping < d) {
-                    worker.lstatus = "";
+                    worker.lstatus = intf.Consts.WorkerLStatus.normal;
                     this.notifyWorkerHistory(worker);
                 }
             }

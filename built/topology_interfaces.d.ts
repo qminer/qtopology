@@ -94,6 +94,33 @@ export declare enum ChildMsgCode {
     response_pause = 2,
     response_shutdown = 3,
 }
+/**
+ * Constants for using distributed functionality.
+ */
+export declare var Consts: {
+    LeadershipStatus: {
+        vacant: string;
+        pending: string;
+        ok: string;
+    };
+    WorkerStatus: {
+        alive: string;
+        closing: string;
+        dead: string;
+        unloaded: string;
+    };
+    WorkerLStatus: {
+        leader: string;
+        candidate: string;
+        normal: string;
+    };
+    TopologyStatus: {
+        running: string;
+        waiting: string;
+        error: string;
+        unassigned: string;
+    };
+};
 export interface LeadershipResultStatus {
     leadership: string;
 }

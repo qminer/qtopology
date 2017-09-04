@@ -25,7 +25,7 @@ QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
 }
 QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
     $.ajax({
-        url: "/" + cmd,
+        url: cmd, //"/" + cmd,
         type: "POST",
         dataType: "json",
         data: JSON.stringify(data),
@@ -154,16 +154,21 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
     });
 }
 
+QTopologyDashboardViewModel.prototype.closeBlade = function () {
+    $(".blade").hide();
+}
+
 QTopologyDashboardViewModel.prototype.prepareBlades = function () {
     var self = this;
-    $(".blade").hide();
     // wire-up close buttons
-    $(".blade-close").click(function () {
-        $(".blade").hide();
+    //$(".blade-close").click(function () {
+    $(".close-btn").click(function () {
+        self.closeBlade();
     });
+    $(".blade").hide();
     $(document).keyup(function (e) {
         if (e.keyCode === 27) {
-            $(".blade").hide();
+            self.closeBlade();
         }
     });
 }
