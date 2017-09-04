@@ -89,6 +89,41 @@ export class MinimalHttpServer {
         });
     }
 
+    /** For handling requests that have been received by another HTTP server object. */
+    handle(method: string, addr: string, body: any, resp: http.ServerResponse) {
+        logger.logger().debug(this.log_prefix + `Handling ${method} ${addr}`);
+        if (this.routes.has(addr)) {
+            let rec = this.routes.get(addr);
+            let stat = fs.statSync(rec.local_path);
+            resp.writeHead(200, { 'Content-Type': rec.mime, 'Content-Length': stat.size });
+            let readStream = fs.createReadStream(rec.local_path);
+            readStream.pipe(resp);
+        } else if (this.handlers.has(addr)) {
+            let data = null;
+            try {
+                if (typeof body === "string") {
+                    data = JSON.parse(body as any);
+                } else {
+                    data = body;
+                }
+            } catch (e) {
+                this.handleError(e, resp);
+                return;
+            }
+            logger.logger().debug(this.log_prefix + "Handling " + body);
+            try {
+                this.handlers.get(addr)(data, (err, data) => {
+                    if (err) return this.handleError(err, resp);
+                    this.handleResponse(data, resp);
+                });
+            } catch (e) {
+                this.handleError(e, resp);
+                return;
+            }
+        } else {
+            this.handleError(new Error(`Unknown request: "${addr}"`), resp);
+        }
+    }
     /** For running the server */
     run(port: number) {
         var server = http.createServer(this.withBody((req, resp) => {
@@ -96,7 +131,7 @@ export class MinimalHttpServer {
             // get the HTTP method, path and body of the request
             var method = req.method;
             var addr = req.url;
-            let data = null;
+
             logger.logger().debug(this.log_prefix + `Handling ${req.method} ${addr}`);
             if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
@@ -105,6 +140,7 @@ export class MinimalHttpServer {
                 let readStream = fs.createReadStream(rec.local_path);
                 readStream.pipe(resp);
             } else if (this.handlers.has(addr)) {
+                let data = null;
                 try {
                     data = JSON.parse(req.body);
                 } catch (e) {

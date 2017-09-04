@@ -126,14 +126,41 @@ export enum ChildMsgCode {
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites
 
-// possible values: "vacant", "pending", "ok"
+/**
+ * Constants for using distributed functionality.
+ */
+export var Consts = {
+    LeadershipStatus: {
+        vacant: "vacant",
+        pending: "pending",
+        ok: "ok"
+    },
+    WorkerStatus: {
+        alive: "alive",
+        closing: "closing",
+        dead: "dead",
+        unloaded: "unloaded"
+    },
+    WorkerLStatus: {
+        leader: "leader",
+        candidate: "candidate",
+        normal: "normal"
+    },
+    TopologyStatus: {
+        running: "running",
+        waiting: "waiting",
+        error: "error",
+        unassigned: "unassigned"
+    }
+}
+
 export interface LeadershipResultStatus {
     leadership: string
 }
 export interface WorkerStatus {
     name: string;
-    status: string; // alive, closing, dead, unloaded
-    lstatus: string; // leader, candidate, ""
+    status: string;
+    lstatus: string;
     last_ping: number;
     last_ping_d: Date;
     lstatus_ts: number;
@@ -141,13 +168,13 @@ export interface WorkerStatus {
 }
 export interface WorkerStatusHistory {
     name: string;
-    status: string; // alive, closing, dead, unloaded
-    lstatus: string; // leader, candidate, ""
+    status: string;
+    lstatus: string;
     ts: Date;
 }
 export interface TopologyStatus {
     uuid: string;
-    status: string; // unassigned, error, waiting, running
+    status: string;
     worker: string;
     error: string;
     weight: number;

@@ -1,6 +1,6 @@
 {
   "name": "qtopology",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",
@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "async": "^1.5.2",
+    "body-parser": "^1.17.2",
     "colors": "^1.1.0",
+    "express": "^4.15.4",
     "jsonschema": "^1.1.1",
     "node-rest-client": "^3.0.7"
   }

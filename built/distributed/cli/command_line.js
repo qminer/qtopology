@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const colors = require("colors");
+const intf = require("../../topology_interfaces");
 const vld = require("../../topology_validation");
 const log = require("../../util/logger");
 const cmdline = require("../../util/cmdline");
@@ -69,13 +70,13 @@ class CommandLineHandler {
                     for (let t of data) {
                         let status = t.status;
                         switch (status) {
-                            case "running":
+                            case intf.Consts.TopologyStatus.running:
                                 status = colors.green(t.status);
                                 break;
-                            case "error":
+                            case intf.Consts.TopologyStatus.error:
                                 status = colors.red(t.status);
                                 break;
-                            case "waiting":
+                            case intf.Consts.TopologyStatus.waiting:
                                 status = colors.yellow(t.status);
                                 break;
                         }
@@ -92,8 +93,8 @@ class CommandLineHandler {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        let status = (t.status == "alive" ? colors.green(t.status) : t.status);
-                        let lstatus = (t.lstatus == "leader" ? colors.yellow("yes") : "no");
+                        let status = (t.status == intf.Consts.WorkerStatus.alive ? colors.green(t.status) : t.status);
+                        let lstatus = (t.lstatus == intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
                         logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
