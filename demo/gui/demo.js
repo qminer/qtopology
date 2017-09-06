@@ -43,6 +43,14 @@ coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 
 let server = new qtopology.DashboardServer();
 
-server.init(3000, coordinator, function () {
-    server.run();
-});
+server.initComplex(
+    {
+        port: 3000,
+        back_title: "Back to main page",
+        back_url: "/abc",
+        storage: coordinator,
+        title: "Custom dashboard title"
+    }, 
+    function () {
+        server.run();
+    });

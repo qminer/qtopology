@@ -12,8 +12,14 @@
 
 <body>
     <div class="header">
-        <img src="logo.png" alt="logo" class="logo" />
-        <h1>QTopology dashboard</h1>
+        <div style="float: left; padding-right: 40px; padding-top: 10px;" data-bind="visible: show_back_link">
+            <a data-bind="attr: { href: back_url, title: back_title }">
+                &laquo;
+                <span data-bind="text: back_title"> Back </span>
+            </a> 
+        </div>
+            <img src="logo.png" alt="logo" class="logo" />
+        <h1 data-bind="text: title"></h1>
     </div>
 
     <div id="bladeWorker" class="blade">

@@ -54,12 +54,21 @@ app.get('/a', function (req, res) {
 })
 
 let server = new qtopology.DashboardServer();
-server.initForExpress(app, "qtopology", coordinator, (err) => {
+//server.initForExpress(app, "qtopology", coordinator, (err) => {
+server.initComplex(
+    {
+        app: app,
+        prefix: "qtopology",
+        back_title: "Back to main page",
+        back_url: "/abc",
+        storage: coordinator,
+        title: "Custom dashboard title"
+    }, (err) => {    
     if (err) {
         console.log(err);
         process.exit(1);
     }
     app.listen(3000, () => {
-        console.log("Express running...");
+        console.log("Express running on port " + 3000);
     });
 });
