@@ -10,6 +10,11 @@ function QTopologyDashboardViewModel(divIdTarget) {
     // blade topology
     this.selected_topology = ko.observable();
 
+    this.title = ko.observable("QTopology dashboard");
+    this.show_back_link = ko.observable(false);
+    this.back_url = ko.observable("#");
+    this.back_title = ko.observable("Back");
+
     this.bladeWorker = "bladeWorker";
     this.bladeTopology = "bladeTopology";
 
@@ -25,7 +30,7 @@ QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
 }
 QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
     $.ajax({
-        url: cmd, //"/" + cmd,
+        url: cmd,
         type: "POST",
         dataType: "json",
         data: JSON.stringify(data),
@@ -104,7 +109,19 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
+    this.loadDisplayData();
     this.loadData(callback);
+}
+QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
+    let self = this;
+    self.post("display-data", { name: name }, function (data) {
+        self.show_back_link(data.back_url != null);
+        self.back_url(data.back_url);
+        self.back_title(data.back_title);
+        if (data.title) {
+            self.title(data.title);
+        }
+    });
 }
 QTopologyDashboardViewModel.prototype.showBlade = function (name) {
     for (var blade_name of this.blades) {

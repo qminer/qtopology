@@ -2,13 +2,21 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const http_server = require("../../util/http_server");
-//////////////////////////////////////////////////////////////////////
+/**
+ * Class for handling QTopology dashboard, either as stand-alone web server or
+ * via injection into Express application.
+ */
 class DashboardServer {
+    /** Simple constructor */
     constructor() {
         this.storage = null;
         this.port = null;
         this.server = null;
+        this.back_title = null;
+        this.back_url = null;
+        this.title = null;
     }
+    /** Internal initialization step */
     initCommon(storage, callback) {
         let self = this;
         self.storage = storage;
@@ -60,15 +68,67 @@ class DashboardServer {
                 callback(err, { data: props });
             });
         });
+        self.server.addHandler("display-data", (data, callback) => {
+            callback(null, {
+                back_url: this.back_url,
+                back_title: this.back_title,
+                title: this.title
+            });
+        });
         callback();
     }
-    init(port, storage, callback) {
-        this.port = port;
-        this.initCommon(storage, callback);
+    /**
+     * The most flexible initialization method
+     * @param options - object containing options for dashboard
+     * @param callback - standard callback
+     */
+    initComplex(options, callback) {
+        let self = this;
+        self.port = options.port;
+        self.back_title = options.back_title;
+        self.back_url = options.back_url;
+        self.title = options.title;
+        self.initCommon(options.storage, (err) => {
+            if (err)
+                return callback(err);
+            if (options.app) {
+                let app = options.app;
+                let prefix = options.prefix;
+                let prepareAddr = (url) => {
+                    return url.replace(`/${prefix}`, "");
+                };
+                app.get(`/${prefix}`, (req, res) => {
+                    res.redirect(`/${prefix}/qtopology_dashboard.html`);
+                });
+                app.get(`/${prefix}/*`, (req, res) => {
+                    self.handle(req.method, prepareAddr(req.url), req.body, res);
+                });
+                app.post(`/${prefix}/*`, (req, res) => {
+                    self.handle(req.method, prepareAddr(req.url), req.body, res);
+                });
+            }
+            callback();
+        });
     }
+    /**
+     * Simple method for initialization as stand-alone server
+     * @param port - Port where stand-alone table should run
+     * @param storage - Storage object
+     * @param callback - Standard callback
+     */
+    init(port, storage, callback) {
+        this.initComplex({ port: port, storage: storage }, callback);
+    }
+    /**
+     * Simple method for injection into Express application
+     * @param app - Express application where routes should be injected
+     * @param prefix - Injection prefix
+     * @param storage - Storage object
+     * @param callback - Standard callback
+     */
     initForExpress(app, prefix, storage, callback) {
         let self = this;
-        self.initCommon(storage, (err) => {
+        self.initComplex({ app: app, prefix: prefix, storage: storage }, (err) => {
             if (err)
                 return callback(err);
             let prepareAddr = (url) => {
@@ -86,9 +146,11 @@ class DashboardServer {
             callback();
         });
     }
+    /** Runs the stand-alone server */
     run() {
         this.server.run(this.port);
     }
+    /** Handles requests */
     handle(method, addr, body, resp) {
         this.server.handle(method, addr, body, resp);
     }

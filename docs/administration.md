@@ -120,6 +120,8 @@ let coordinator = new coor.MyCustomCoordinator();
 
 // start Express web server
 let app = express();
+app.use(bodyParser.text({ type: "*/*" }));
+
 // start dashboard server with express server
 let server = new qtopology.DashboardServer();
 server.initForExpress(app, "qtopology", coordinator,  () => {
@@ -138,4 +140,4 @@ server.initForExpress(app, "qtopology", coordinator,  () => {
 
 Open web address `http://localhost:3000/qtopology/` in your browser.
 
-> Express application needs to use JSON body parser.
+> Express application needs to use text or JSON body-parser. See code above.

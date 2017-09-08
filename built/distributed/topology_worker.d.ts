@@ -27,4 +27,5 @@ export declare class TopologyWorker {
     private shutDownTopologies(callback);
     private shutDownTopology(uuid, callback);
     private shutDownTopologyInternal(item, callback);
+    private removeAndReportError(rec, err);
 }
