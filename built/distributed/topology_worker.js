@@ -86,9 +86,7 @@ class TopologyWorker {
                 let score = rec.error_frequency_score.add(new Date());
                 let too_often = (score >= 10);
                 if (too_often) {
-                    //  report error and remove
-                    self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
-                    self.removeTopology(rec.uuid);
+                    self.removeAndReportError(rec, err);
                 }
                 else {
                     // not too often, just restart
@@ -100,17 +98,15 @@ class TopologyWorker {
         });
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
-                self.removeTopology(rec.uuid);
-                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
+                self.removeAndReportError(rec, err);
             }
             else {
+                // report topology as running, then try to start it.
+                // since we don't know how long this initialization will take, we could run into trouble with leader.
+                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
                 rec.proxy.run((err) => {
                     if (err) {
-                        self.removeTopology(rec.uuid);
-                        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
-                    }
-                    else {
-                        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
+                        self.removeAndReportError(rec, err);
                     }
                 });
             }
@@ -211,6 +207,10 @@ class TopologyWorker {
                 self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
             }
         });
+    }
+    removeAndReportError(rec, err) {
+        this.removeTopology(rec.uuid);
+        this.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
     }
 }
 exports.TopologyWorker = TopologyWorker;
