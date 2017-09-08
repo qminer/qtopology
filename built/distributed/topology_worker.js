@@ -104,13 +104,13 @@ class TopologyWorker {
                 self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
             }
             else {
+                // report topology as running, then try to start it.
+                // since we don't know how long this initialization will take, we could run into trouble with leader.
+                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
                 rec.proxy.run((err) => {
                     if (err) {
                         self.removeTopology(rec.uuid);
                         self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
-                    }
-                    else {
-                        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
                     }
                 });
             }

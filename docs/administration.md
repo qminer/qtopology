@@ -120,7 +120,7 @@ let coordinator = new coor.MyCustomCoordinator();
 
 // start Express web server
 let app = express();
-app.use(bodyParser.text({type:"*/*"}));
+app.use(bodyParser.text({ type: "*/*" }));
 
 // start dashboard server with express server
 let server = new qtopology.DashboardServer();
