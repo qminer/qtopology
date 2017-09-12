@@ -144,18 +144,18 @@ export class TopologyCoordinator extends EventEmitter {
                 (msg: intf.StorageResultMessage, xcallback) => {
                     if (msg.created < self.start_time) {
                         // just ignore, it was sent before this coordinator was started
-                    } else if (msg.cmd === "start-topology") {
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
                         self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
                             if (self.name == res.worker) {
                                 // topology is still assigned to this worker
                                 // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                                self.emit("start-topology", { uuid: msg.content.uuid, config: res.config });
+                                self.emit(intf.Consts.CoordinatorMesagges.start_topology, { uuid: msg.content.uuid, config: res.config });
                             }
                         })
-                    } else if (msg.cmd === "stop-topology") {
-                        self.emit("stop-topology", { uuid: msg.content.uuid });
-                    } else if (msg.cmd === "shutdown") {
-                        self.emit("shutdown", {});
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
+                        self.emit(intf.Consts.CoordinatorMesagges.stop_topology, { uuid: msg.content.uuid });
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
+                        self.emit(intf.Consts.CoordinatorMesagges.shutdown, {});
                     }
                     xcallback();
                 },
@@ -171,7 +171,7 @@ export class TopologyCoordinator extends EventEmitter {
             if (err) return callback(err);
             for (let top of topologies) {
                 if (top.status == intf.Consts.TopologyStatus.running) {
-                    self.emit("verify-topology", { uuid: top.uuid });
+                    self.emit(intf.Consts.CoordinatorMesagges.verify_topology, { uuid: top.uuid });
                 }
             }
             callback();

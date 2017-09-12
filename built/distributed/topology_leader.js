@@ -65,8 +65,7 @@ class TopologyLeader {
                 self.storage.getLeadershipStatus((err, res) => {
                     if (err)
                         return callback(err);
-                    //if (res.leadership == "ok" || res.leadership == "pending") {
-                    if (res.leadership == "ok") {
+                    if (res.leadership == intf.Consts.LeadershipStatus.ok) {
                         should_announce = false;
                     }
                     xcallback();
@@ -182,7 +181,7 @@ class TopologyLeader {
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
         log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
         self.storage.assignTopology(ut.uuid, target, (err) => {
-            self.storage.sendMessageToWorker(target, "start-topology", { uuid: ut.uuid }, callback);
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: ut.uuid }, callback);
         });
     }
     /** Handles situation when there is a dead worker and its
@@ -194,14 +193,14 @@ class TopologyLeader {
         self.storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
             async.each(topologies, (topology, xcallback) => {
                 log.logger().important("[Leader] Unassigning topology " + topology.uuid);
-                self.storage.setTopologyStatus(topology.uuid, "unassigned", null, xcallback);
+                self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
             }, (err) => {
                 if (err) {
                     log.logger().important("[Leader] Error while handling dead worker " + err);
                     return callback(err);
                 }
                 log.logger().important("[Leader] Setting dead worker as unloaded: " + dead_worker);
-                self.storage.setWorkerStatus(dead_worker, "unloaded", callback);
+                self.storage.setWorkerStatus(dead_worker, intf.Consts.WorkerStatus.unloaded, callback);
             });
         });
     }

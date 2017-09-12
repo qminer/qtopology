@@ -22,8 +22,8 @@ class TopologyRec implements intf.TopologyStatus {
 }
 class WorkerRec implements intf.WorkerStatus {
     name: string;
-    status: string; // alive, dead, unloaded
-    lstatus: string; // leader, candidate, ""
+    status: string;
+    lstatus: string;
     last_ping: number;
     last_ping_d: Date;
     lstatus_ts: number;
@@ -341,7 +341,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, ycallback);
+                        self.sendMessageToWorker(hits[0].worker,intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
                     }
                 ],
                 callback
@@ -381,7 +381,7 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
     }
 
     shutDownWorker(name: string, callback: intf.SimpleCallback) {
-        this.sendMessageToWorker(name, "shutdown", {}, callback);
+        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, callback);
     }
 
     getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>) {

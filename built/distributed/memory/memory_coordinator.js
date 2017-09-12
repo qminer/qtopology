@@ -296,7 +296,7 @@ class MemoryCoordinator {
                     self.disableTopology(uuid, ycallback);
                 },
                 (ycallback) => {
-                    self.sendMessageToWorker(hits[0].worker, "stop-topology", { uuid: uuid }, ycallback);
+                    self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
                 }
             ], callback);
         }
@@ -334,7 +334,7 @@ class MemoryCoordinator {
         }
     }
     shutDownWorker(name, callback) {
-        this.sendMessageToWorker(name, "shutdown", {}, callback);
+        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, callback);
     }
     getTopologyHistory(uuid, callback) {
         let data = this.topologies_history.filter(x => x.uuid == uuid);
