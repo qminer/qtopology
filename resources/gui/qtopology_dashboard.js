@@ -32,6 +32,7 @@ QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
     $.ajax({
         url: cmd,
         type: "POST",
+        contentType: "application/json; charset=utf-8",
         dataType: "json",
         data: JSON.stringify(data),
         success: callback
