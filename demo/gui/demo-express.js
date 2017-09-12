@@ -48,6 +48,7 @@ coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 let app = express();
 //app.use(bodyParser.json());
 app.use(bodyParser.text({ type: "*/*" }));
+app.use(bodyParser.urlencoded({ extended: true  }));
 
 app.get('/a', function (req, res) {
     res.send('Hello World!')
