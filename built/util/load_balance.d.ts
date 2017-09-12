@@ -16,6 +16,10 @@ export declare class RebalanceChange {
     worker_old: string;
     worker_new: string;
 }
+export declare class RebalanceResult {
+    score: number;
+    changes: RebalanceChange[];
+}
 /** This simple class calculates load-balancing across workers.
  * Given list of workers and their current load, it returns a sequence of
  * worker names in which new load should be assigned.
@@ -35,6 +39,7 @@ export declare class LoadBalancer {
  * Given list of workers and their current load, it returns a new worker
  * to assign the load to. The twist is that it also accepts worker affinity
  * and load weight.
+ * It also conatins method that calculates re-assignments in case of severely uneven loads.
 */
 export declare class LoadBalancerEx {
     private workers;
@@ -43,10 +48,16 @@ export declare class LoadBalancerEx {
      * contains a name and a weight (current load).
      */
     constructor(wrkrs: Worker[], affinity_factor: number);
+    /** Gets a copy of internal state */
+    getCurrentStats(): Worker[];
     /** Returns next worker to receive new load */
-    next(affinity: string[], new_load?: number): string;
-    /** This method calculates optiomal load and if current composition
+    next(affinity: string[], new_weight?: number): string;
+    /** This method calculates near-optimal load and if current composition
      * is too different, it creates rebalancing instructions.
      */
-    rebalance(workers: string[], topologies: Topology[]): RebalanceChange[];
+    rebalance(topologies: Topology[]): RebalanceResult;
+    /** Calculates deviation score - how bad is the current load
+     * in comparison to the near-optimal one.
+    */
+    private compareScore(near_optimal, current);
 }
