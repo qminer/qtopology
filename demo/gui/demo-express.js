@@ -47,15 +47,12 @@ coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 
 let app = express();
 app.use(bodyParser.json());
-// app.use(bodyParser.text({ type: "*/*" }));
-// app.use(bodyParser.urlencoded({ extended: true  }));
 
 app.get('/a', function (req, res) {
     res.send('Hello World!')
 })
 
 let server = new qtopology.DashboardServer();
-//server.initForExpress(app, "qtopology", coordinator, (err) => {
 server.initComplex(
     {
         app: app,
