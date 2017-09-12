@@ -32,7 +32,7 @@ export class LoadBalancer {
     }
 
     /** Internal utility method */
-    sort() {
+    private sort() {
         this.workers.sort((a, b) => {
             if (a.weight === b.weight) return a.name.localeCompare(b.name);
             return a.weight - b.weight;
