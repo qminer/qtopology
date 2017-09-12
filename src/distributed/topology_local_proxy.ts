@@ -11,6 +11,7 @@ export class TopologyLocalProxy {
     private init_cb: intf.SimpleCallback;
     private run_cb: intf.SimpleCallback;
     private pause_cb: intf.SimpleCallback;
+    private resume_cb: intf.SimpleCallback;
     private shutdown_cb: intf.SimpleCallback;
     private was_shut_down: boolean;
     private child_exit_callback: intf.SimpleCallback;
@@ -32,20 +33,30 @@ export class TopologyLocalProxy {
             let msg = msgx as intf.ChildMsg;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
                 if (self.init_cb) {
-                    self.init_cb(msg.data.err);
+                    let tmp_cb = self.init_cb;
                     self.init_cb = null;
+                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
                 if (self.run_cb) {
-                    self.run_cb(msg.data.err);
+                    let tmp_cb = self.run_cb;
                     self.run_cb = null;
+                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
                 if (self.pause_cb) {
-                    self.pause_cb(msg.data.err);
+                    let tmp_cb = self.pause_cb;
                     self.pause_cb = null;
+                    tmp_cb(msg.data.err);
+                }
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_resume) {
+                if (self.resume_cb) {
+                    let tmp_cb = self.resume_cb;
+                    self.resume_cb = null;
+                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
@@ -135,6 +146,15 @@ export class TopologyLocalProxy {
         }
         this.pause_cb = callback;
         this.send(intf.ParentMsgCode.pause, {});
+    }
+
+    /** Sends resume signal to underlaying process */
+    resume(callback: intf.SimpleCallback) {
+        if (this.resume_cb) {
+            return callback(new Error("Pending resume callback already exists."));
+        }
+        this.resume_cb = callback;
+        this.send(intf.ParentMsgCode.resume, {});
     }
 
     /** Sends shutdown signal to underlaying process */

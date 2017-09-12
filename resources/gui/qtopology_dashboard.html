@@ -104,6 +104,7 @@
                                             <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                                             <!--Status badge-->
                                             <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                            <span class="badge badge-orange" data-bind="visible: status()=='paused'">Paused</span>
                                             <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                             <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                                             <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
@@ -183,6 +184,7 @@
                             <dt>Status</dt>
                             <dd>
                                 <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                <span class="badge badge-orange" data-bind="visible: status()=='paused'">Paused</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                 <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
                                 <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
@@ -242,6 +244,34 @@
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: clear_error">Clear error</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: status() == 'running'">
+                                <div class="action-title">
+                                    Pause this topology
+                                </div>
+                                <div class="action-desc">
+                                    <p>
+                                        Send pause signal to the worker that is running this topology.
+                                    </p>
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: pause">Pause topology</button>
+                                </div>
+                            </div>
+
+                            <div class="action-panel" data-bind="visible: status() == 'paused'">
+                                <div class="action-title">
+                                    Resume this topology
+                                </div>
+                                <div class="action-desc">
+                                    <p>
+                                        Send resume signal to the worker that is running this topology.
+                                    </p>
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: resume">Resume topology</button>
                                 </div>
                             </div>
 
@@ -312,6 +342,7 @@
                                     </td>
                                     <td>
                                         <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                        <span class="badge badge-orange" data-bind="visible: status=='paused'">Paused</span>
                                         <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
                                         <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
                                         <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
@@ -374,6 +405,7 @@
                                     <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                                     <!--Status badge-->
                                     <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='paused'">Paused</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                     <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>

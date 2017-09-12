@@ -27,6 +27,14 @@ class TopologyWorker {
             log.logger().important(this.log_prefix + "Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.pause_topology, (msg) => {
+            log.logger().important(this.log_prefix + "Received pause instruction from coordinator: " + msg.uuid);
+            self.pauseTopology(msg.uuid, () => { });
+        });
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.resume_topology, (msg) => {
+            log.logger().important(this.log_prefix + "Received resume instruction from coordinator: " + msg.uuid);
+            self.resumeTopology(msg.uuid, () => { });
+        });
         self.coordinator.on(intf.Consts.CoordinatorMesagges.verify_topology, (msg) => {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
@@ -182,6 +190,42 @@ class TopologyWorker {
             let item = itemx;
             self.shutDownTopologyInternal(item, xcallback);
         }, callback);
+    }
+    pauseTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies.filter(x => x.uuid == uuid);
+        if (hits.length >= 0) {
+            let hit = hits[0];
+            hit.proxy.pause((err) => {
+                if (err) {
+                    log.logger().error("[Worker] Error while pausing topology " + hit.uuid);
+                    log.logger().exception(err);
+                    return callback(err);
+                }
+                self.coordinator.reportTopology(hit.uuid, intf.Consts.TopologyStatus.paused, "", callback);
+            });
+        }
+        else {
+            callback();
+        }
+    }
+    resumeTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies.filter(x => x.uuid == uuid);
+        if (hits.length >= 0) {
+            let hit = hits[0];
+            hit.proxy.resume((err) => {
+                if (err) {
+                    log.logger().error("[Worker] Error while resuming topology " + hit.uuid);
+                    log.logger().exception(err);
+                    return callback(err);
+                }
+                self.coordinator.reportTopology(hit.uuid, intf.Consts.TopologyStatus.running, "", callback);
+            });
+        }
+        else {
+            callback();
+        }
     }
     shutDownTopology(uuid, callback) {
         let self = this;
