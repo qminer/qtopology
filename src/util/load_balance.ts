@@ -1,7 +1,22 @@
-
+/** Simple worker description */
 export interface Worker {
     name: string;
     weight: number;
+}
+
+/** Simple topology description */
+export interface Topology {
+    uuid: string;
+    worker: string;
+    weight: number;
+    affinity: string[];
+}
+
+/** This class represents needed change for rebalancing */
+export class RebalanceChange {
+    uuid: string;
+    worker_old: string;
+    worker_new: string;
 }
 
 /** This simple class calculates load-balancing across workers.
@@ -85,5 +100,12 @@ export class LoadBalancerEx {
 
         res.weight += new_load;
         return res.name;
+    }
+
+    /** This method calculates optiomal load and if current composition
+     * is too different, it creates rebalancing instructions.
+     */
+    rebalance(workers: string[], topologies: Topology[]): RebalanceChange[] {
+        return [];
     }
 }

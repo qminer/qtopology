@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/** This class represents needed change for rebalancing */
+class RebalanceChange {
+}
+exports.RebalanceChange = RebalanceChange;
 /** This simple class calculates load-balancing across workers.
  * Given list of workers and their current load, it returns a sequence of
  * worker names in which new load should be assigned.
@@ -68,6 +72,12 @@ class LoadBalancerEx {
         }
         res.weight += new_load;
         return res.name;
+    }
+    /** This method calculates optiomal load and if current composition
+     * is too different, it creates rebalancing instructions.
+     */
+    rebalance(workers, topologies) {
+        return [];
     }
 }
 exports.LoadBalancerEx = LoadBalancerEx;
