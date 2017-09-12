@@ -304,6 +304,28 @@ class MemoryCoordinator {
             callback();
         }
     }
+    pauseTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+        if (hits.length > 0) {
+            self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.pause_topology, { uuid: uuid }, callback);
+        }
+        else {
+            callback();
+        }
+    }
+    resumeTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+        if (hits.length > 0) {
+            self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.resume_topology, { uuid: uuid }, callback);
+        }
+        else {
+            callback();
+        }
+    }
     clearTopologyError(uuid, callback) {
         let hits = this.topologies
             .filter(x => x.uuid == uuid);

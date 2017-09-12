@@ -153,10 +153,26 @@ export class TopologyLocal {
         if (!this.isInitialized) {
             throw new Error(this.logging_prefix + "Topology not initialized and cannot be paused.");
         }
+        log.logger().log(this.logging_prefix + "Pausing topology");
         for (let spout of this.spouts) {
             spout.pause();
         }
+        log.logger().log(this.logging_prefix + "Topology paused");
         this.isRunning = false;
+        callback();
+    }
+
+    /** Sends resume signal to all spouts */
+    resume(callback: intf.SimpleCallback) {
+        if (!this.isInitialized) {
+            throw new Error(this.logging_prefix + "Topology not initialized and cannot be resumed.");
+        }
+        log.logger().log(this.logging_prefix + "Resuming topology");
+        for (let spout of this.spouts) {
+            spout.run();
+        }
+        log.logger().log(this.logging_prefix + "Topology resumed");
+        this.isRunning = true;
         callback();
     }
 

@@ -12,6 +12,8 @@ Both these interfaces are available out-of-the-box, but need specific storage im
 - `node myscript.js register <uuid> <file_name>` - registers new topology
 - `node myscript.js enable <topology_uuid>` - enables topology
 - `node myscript.js disable <topology_uuid>` - disables topology
+- `node myscript.js pause <topology_uuid>` - pauses topology
+- `node myscript.js resume <topology_uuid>` - resumes topology
 - `node myscript.js stop-topology <topology_uuid>` - stops and disables topology
 - `node myscript.js clear-topology-error <topology_uuid>` - clears error flag for topology
 - `node myscript.js shut-down-worker <worker_name>` - sends shutdown signal to specified worker

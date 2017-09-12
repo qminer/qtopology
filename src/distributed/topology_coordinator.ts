@@ -154,6 +154,10 @@ export class TopologyCoordinator extends EventEmitter {
                         })
                     } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                         self.emit(intf.Consts.CoordinatorMesagges.stop_topology, { uuid: msg.content.uuid });
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.resume_topology) {
+                        self.emit(intf.Consts.CoordinatorMesagges.resume_topology, { uuid: msg.content.uuid });
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.pause_topology) {
+                        self.emit(intf.Consts.CoordinatorMesagges.pause_topology, { uuid: msg.content.uuid });
                     } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                         self.emit(intf.Consts.CoordinatorMesagges.shutdown, {});
                     }

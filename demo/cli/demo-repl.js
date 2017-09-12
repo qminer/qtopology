@@ -39,7 +39,7 @@ coordinator.setTopologyStatus("topology.test.1", "waiting", "", () => { });
 coordinator.setTopologyStatus("topology.test.2", "running", "", () => { });
 coordinator.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
 coordinator.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
-coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
+coordinator.setTopologyStatus("topology.test.z", "paused", "", () => { });
 
 // run CLI tool on it
 qtopology.runRepl(coordinator);

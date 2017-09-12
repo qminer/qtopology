@@ -6,6 +6,7 @@ export declare class TopologyLocalProxy {
     private init_cb;
     private run_cb;
     private pause_cb;
+    private resume_cb;
     private shutdown_cb;
     private was_shut_down;
     private child_exit_callback;
@@ -24,6 +25,8 @@ export declare class TopologyLocalProxy {
     run(callback: intf.SimpleCallback): void;
     /** Sends pause signal to underlaying process */
     pause(callback: intf.SimpleCallback): void;
+    /** Sends resume signal to underlaying process */
+    resume(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback): void;
     /** Internal method for sending messages to child process */

@@ -82,7 +82,8 @@ export declare enum ParentMsgCode {
     init = 0,
     run = 1,
     pause = 2,
-    shutdown = 3,
+    resume = 3,
+    shutdown = 4,
 }
 export interface ChildMsg {
     cmd: ChildMsgCode;
@@ -92,7 +93,8 @@ export declare enum ChildMsgCode {
     response_init = 0,
     response_run = 1,
     response_pause = 2,
-    response_shutdown = 3,
+    response_resume = 3,
+    response_shutdown = 4,
 }
 /**
  * Constants for using distributed functionality.
@@ -125,11 +127,15 @@ export declare var Consts: {
         start_topology: string;
         verify_topology: string;
         stop_topology: string;
+        pause_topology: string;
+        resume_topology: string;
         shutdown: string;
     };
     LeaderMessages: {
         start_topology: string;
         stop_topology: string;
+        pause_topology: string;
+        resume_topology: string;
         shutdown: string;
     };
 };
@@ -198,6 +204,8 @@ export interface CoordinationStorage {
     disableTopology(uuid: string, callback: SimpleCallback): any;
     enableTopology(uuid: string, callback: SimpleCallback): any;
     stopTopology(uuid: string, callback: SimpleCallback): any;
+    pauseTopology(uuid: string, callback: SimpleCallback): any;
+    resumeTopology(uuid: string, callback: SimpleCallback): any;
     deleteTopology(uuid: string, callback: SimpleCallback): any;
     clearTopologyError(uuid: string, callback: SimpleCallback): any;
     deleteWorker(name: string, callback: SimpleCallback): any;
