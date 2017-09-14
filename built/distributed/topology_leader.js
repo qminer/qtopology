@@ -4,6 +4,7 @@ const async = require("async");
 const lb = require("../util/load_balance");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
+const affinity_factor = 5;
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
  */
@@ -17,6 +18,7 @@ class TopologyLeader {
         this.is_leader = false;
         this.is_shut_down = false;
         this.loop_timeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
+        this.next_rebalance = Date.now() + 60 * 60 * 1000;
     }
     /** Runs main loop that handles leadership detection */
     run() {
@@ -104,6 +106,7 @@ class TopologyLeader {
         let perform_loop = true;
         let alive_workers = null;
         let worker_weights = new Map();
+        let topologies_for_rebalance = [];
         async.series([
             (xcallback) => {
                 self.storage.getWorkerStatus((err, workers) => {
@@ -153,6 +156,12 @@ class TopologyLeader {
                                 }
                             }
                         }
+                        topologies_for_rebalance.push({
+                            uuid: x.uuid,
+                            weight: x.weight,
+                            worker: x.worker,
+                            affinity: x.worker_affinity
+                        });
                     });
                     let unassigned_topologies = topologies
                         .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
@@ -161,15 +170,32 @@ class TopologyLeader {
                     }
                     let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
                         return { name: x.name, weight: worker_weights.get(x.name) || 0 };
-                    }), 5 // affinity means 5x stronger gravitational pull towards that worker
+                    }), affinity_factor // affinity means 5x stronger gravitational pull towards that worker
                     );
                     async.eachSeries(unassigned_topologies, (item, ycallback) => {
                         let ut = item;
                         self.assignUnassignedTopology(ut, load_balancer, ycallback);
                     }, xcallback);
                 });
+            },
+            (xcallback) => {
+                self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
             }
         ], callback);
+    }
+    /** This method will perform rebalance of topologies on workers if needed.
+     */
+    performRebalanceIfNeeded(workers, topologies, callback) {
+        let self = this;
+        if (self.next_rebalance > Date.now()) {
+            return callback();
+        }
+        let load_balancer = new lb.LoadBalancerEx(workers.map(x => {
+            return { name: x.name, weight: 0 };
+        }), affinity_factor);
+        let steps = load_balancer.rebalance(topologies);
+        // TODO send rebalance signals
+        callback();
     }
     /**
      * This method assigns topology to the worker that is provided by the load-balancer.
@@ -182,6 +208,7 @@ class TopologyLeader {
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
         log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
         self.storage.assignTopology(ut.uuid, target, (err) => {
+            ut.worker = target;
             self.storage.sendMessageToWorker(target, "start-topology", { uuid: ut.uuid }, callback);
         });
     }

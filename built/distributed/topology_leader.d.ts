@@ -10,6 +10,7 @@ export declare class TopologyLeader {
     private is_leader;
     private shutdown_callback;
     private loop_timeout;
+    private next_rebalance;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number);
     /** Runs main loop that handles leadership detection */
@@ -25,6 +26,9 @@ export declare class TopologyLeader {
      * to alive workers.
      */
     private performLeaderLoop(callback);
+    /** This method will perform rebalance of topologies on workers if needed.
+     */
+    private performRebalanceIfNeeded(workers, topologies, callback);
     /**
      * This method assigns topology to the worker that is provided by the load-balancer.
      * @param ut - unassigned toplogy object
