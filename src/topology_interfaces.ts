@@ -105,7 +105,6 @@ export enum ParentMsgCode {
     init,
     run,
     pause,
-    resume,
     shutdown
 }
 
@@ -121,7 +120,6 @@ export enum ChildMsgCode {
     response_init,
     response_run,
     response_pause,
-    response_resume,
     response_shutdown
 }
 
@@ -159,15 +157,11 @@ export var Consts = {
         start_topology: "start_topology",
         verify_topology: "verify_topology",
         stop_topology: "stop_topology",
-        pause_topology: "pause_topology",
-        resume_topology: "resume_topology",
         shutdown: "shutdown"
     },
     LeaderMessages: {
         start_topology: "start_topology",
         stop_topology: "stop_topology",
-        pause_topology: "pause_topology",
-        resume_topology: "resume_topology",
         shutdown: "shutdown"
     }
 }
@@ -242,8 +236,6 @@ export interface CoordinationStorage {
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
     stopTopology(uuid: string, callback: SimpleCallback);
-    pauseTopology(uuid: string, callback: SimpleCallback);
-    resumeTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
     clearTopologyError(uuid: string, callback: SimpleCallback);
 

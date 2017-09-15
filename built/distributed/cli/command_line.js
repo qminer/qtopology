@@ -63,16 +63,6 @@ class CommandLineHandler {
                 handleError(err, callback);
             });
         }
-        else if (params.length == 2 && params[0] == "pause") {
-            this.storage.pauseTopology(params[1], (err) => {
-                handleError(err, callback);
-            });
-        }
-        else if (params.length == 2 && params[0] == "resume") {
-            this.storage.resumeTopology(params[1], (err) => {
-                handleError(err, callback);
-            });
-        }
         else if (params.length == 1 && params[0] == "list") {
             this.storage.getTopologyStatus((err, data) => {
                 if (!err) {
@@ -82,9 +72,6 @@ class CommandLineHandler {
                         switch (status) {
                             case intf.Consts.TopologyStatus.running:
                                 status = colors.green(t.status);
-                                break;
-                            case intf.Consts.TopologyStatus.paused:
-                                status = colors.yellow(t.status);
                                 break;
                             case intf.Consts.TopologyStatus.error:
                                 status = colors.red(t.status);
@@ -164,8 +151,6 @@ class CommandLineHandler {
         logger.info("register <uuid> <file_name> - registers new topology");
         logger.info("enable <topology_uuid> - enables topology");
         logger.info("disable <topology_uuid> - disables topology");
-        logger.info("pause <topology_uuid> - pauses topology");
-        logger.info("resume <topology_uuid> - resumes topology");
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");

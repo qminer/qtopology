@@ -21,30 +21,20 @@ class TopologyLocalProxy {
             let msg = msgx;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
                 if (self.init_cb) {
-                    let tmp_cb = self.init_cb;
+                    self.init_cb(msg.data.err);
                     self.init_cb = null;
-                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
                 if (self.run_cb) {
-                    let tmp_cb = self.run_cb;
+                    self.run_cb(msg.data.err);
                     self.run_cb = null;
-                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
                 if (self.pause_cb) {
-                    let tmp_cb = self.pause_cb;
+                    self.pause_cb(msg.data.err);
                     self.pause_cb = null;
-                    tmp_cb(msg.data.err);
-                }
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_resume) {
-                if (self.resume_cb) {
-                    let tmp_cb = self.resume_cb;
-                    self.resume_cb = null;
-                    tmp_cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
@@ -127,14 +117,6 @@ class TopologyLocalProxy {
         }
         this.pause_cb = callback;
         this.send(intf.ParentMsgCode.pause, {});
-    }
-    /** Sends resume signal to underlaying process */
-    resume(callback) {
-        if (this.resume_cb) {
-            return callback(new Error("Pending resume callback already exists."));
-        }
-        this.resume_cb = callback;
-        this.send(intf.ParentMsgCode.resume, {});
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {

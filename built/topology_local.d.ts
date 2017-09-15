@@ -41,8 +41,6 @@ export declare class TopologyLocal {
     run(): void;
     /** Sends pause signal to all spouts */
     pause(callback: intf.SimpleCallback): void;
-    /** Sends resume signal to all spouts */
-    resume(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback): void;
     /** Runs heartbeat pump until this object shuts down */

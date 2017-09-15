@@ -64,14 +64,6 @@ export class CommandLineHandler {
             this.storage.disableTopology(params[1], (err) => {
                 handleError(err, callback);
             });
-        } else if (params.length == 2 && params[0] == "pause") {
-            this.storage.pauseTopology(params[1], (err) => {
-                handleError(err, callback);
-            });
-        } else if (params.length == 2 && params[0] == "resume") {
-            this.storage.resumeTopology(params[1], (err) => {
-                handleError(err, callback);
-            });
         } else if (params.length == 1 && params[0] == "list") {
             this.storage.getTopologyStatus((err, data: intf.TopologyStatus[]) => {
                 if (!err) {
@@ -80,7 +72,6 @@ export class CommandLineHandler {
                         let status = t.status;
                         switch (status) {
                             case intf.Consts.TopologyStatus.running: status = colors.green(t.status); break;
-                            case intf.Consts.TopologyStatus.paused: status = colors.yellow(t.status); break;
                             case intf.Consts.TopologyStatus.error: status = colors.red(t.status); break;
                             case intf.Consts.TopologyStatus.waiting: status = colors.yellow(t.status); break;
                         };
@@ -96,7 +87,7 @@ export class CommandLineHandler {
                     let logger = log.logger();
                     for (let t of data) {
                         let status = (t.status == intf.Consts.WorkerStatus.alive ? colors.green(t.status) : t.status);
-                        let lstatus = (t.lstatus == intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
+                        let lstatus = (t.lstatus ==intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
                         logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
@@ -148,8 +139,6 @@ export class CommandLineHandler {
         logger.info("register <uuid> <file_name> - registers new topology");
         logger.info("enable <topology_uuid> - enables topology");
         logger.info("disable <topology_uuid> - disables topology");
-        logger.info("pause <topology_uuid> - pauses topology");
-        logger.info("resume <topology_uuid> - resumes topology");
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");

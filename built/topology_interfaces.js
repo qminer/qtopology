@@ -7,16 +7,14 @@ var ParentMsgCode;
     ParentMsgCode[ParentMsgCode["init"] = 0] = "init";
     ParentMsgCode[ParentMsgCode["run"] = 1] = "run";
     ParentMsgCode[ParentMsgCode["pause"] = 2] = "pause";
-    ParentMsgCode[ParentMsgCode["resume"] = 3] = "resume";
-    ParentMsgCode[ParentMsgCode["shutdown"] = 4] = "shutdown";
+    ParentMsgCode[ParentMsgCode["shutdown"] = 3] = "shutdown";
 })(ParentMsgCode = exports.ParentMsgCode || (exports.ParentMsgCode = {}));
 var ChildMsgCode;
 (function (ChildMsgCode) {
     ChildMsgCode[ChildMsgCode["response_init"] = 0] = "response_init";
     ChildMsgCode[ChildMsgCode["response_run"] = 1] = "response_run";
     ChildMsgCode[ChildMsgCode["response_pause"] = 2] = "response_pause";
-    ChildMsgCode[ChildMsgCode["response_resume"] = 3] = "response_resume";
-    ChildMsgCode[ChildMsgCode["response_shutdown"] = 4] = "response_shutdown";
+    ChildMsgCode[ChildMsgCode["response_shutdown"] = 3] = "response_shutdown";
 })(ChildMsgCode = exports.ChildMsgCode || (exports.ChildMsgCode = {}));
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites
@@ -51,15 +49,11 @@ exports.Consts = {
         start_topology: "start_topology",
         verify_topology: "verify_topology",
         stop_topology: "stop_topology",
-        pause_topology: "pause_topology",
-        resume_topology: "resume_topology",
         shutdown: "shutdown"
     },
     LeaderMessages: {
         start_topology: "start_topology",
         stop_topology: "stop_topology",
-        pause_topology: "pause_topology",
-        resume_topology: "resume_topology",
         shutdown: "shutdown"
     }
 };

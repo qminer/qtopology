@@ -29,7 +29,7 @@ export interface DashboardServerOptions {
 }
 
 /**
- * Class for handling QTopology dashboard, either as stand-alone web server or
+ * Class for handling QTopology dashboard, either as stand-alone web server or 
  * via injection into Express application.
  */
 export class DashboardServer {
@@ -84,12 +84,6 @@ export class DashboardServer {
         });
         self.server.addHandler("disable-topology", (data, callback) => {
             self.storage.disableTopology(data.uuid, callback);
-        });
-        self.server.addHandler("pause-topology", (data, callback) => {
-            self.storage.pauseTopology(data.uuid, callback);
-        });
-        self.server.addHandler("resume-topology", (data, callback) => {
-            self.storage.resumeTopology(data.uuid, callback);
         });
         self.server.addHandler("enable-topology", (data, callback) => {
             self.storage.enableTopology(data.uuid, callback);

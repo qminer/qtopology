@@ -74,12 +74,6 @@ class HttpCoordinator {
     stopTopology(uuid, callback) {
         this.call("stop-topology", { uuid: uuid }, callback);
     }
-    pauseTopology(uuid, callback) {
-        this.call("pause-topology", { uuid: uuid }, callback);
-    }
-    resumeTopology(uuid, callback) {
-        this.call("resume-topology", { uuid: uuid }, callback);
-    }
     deleteWorker(name, callback) {
         this.call("delete-worker", { name: name }, callback);
     }

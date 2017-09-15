@@ -39,7 +39,7 @@ coordinator.setTopologyStatus("topology.test.1", "waiting", "", () => { });
 coordinator.setTopologyStatus("topology.test.2", "running", "", () => { });
 coordinator.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
 coordinator.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
-coordinator.setTopologyStatus("topology.test.z", "paused", "", () => { });
+coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
 
 let server = new qtopology.DashboardServer();
 
@@ -50,7 +50,7 @@ server.initComplex(
         back_url: "/abc",
         storage: coordinator,
         title: "Custom dashboard title"
-    },
+    }, 
     function () {
         server.run();
     });

@@ -223,22 +223,6 @@ QTopologyDashboardViewModel.prototype.stopTopology = function (uuid) {
         });
     });
 }
-QTopologyDashboardViewModel.prototype.resumeTopology = function (uuid) {
-    var self = this;
-    self.post("resume-topology", { uuid: uuid }, function () {
-        self.loadData(function () {
-            self.showTopologyInfo(uuid);
-        });
-    });
-}
-QTopologyDashboardViewModel.prototype.pauseTopology = function (uuid) {
-    var self = this;
-    self.post("pause-topology", { uuid: uuid }, function () {
-        self.loadData(function () {
-            self.showTopologyInfo(uuid);
-        });
-    });
-}
 QTopologyDashboardViewModel.prototype.deleteWorker = function (name) {
     var self = this;
     self.post("delete-worker", { name: name }, function () {
@@ -291,6 +275,4 @@ function QTopologyDashboardViewModelTopology(d, parent) {
     this.set_disabled = function () { self.parent.setTopologyDisabled(self.uuid()); };
     this.clear_error = function () { self.parent.clearTopologyError(self.uuid()); };
     this.stop = function () { self.parent.stopTopology(self.uuid()); };
-    this.resume = function () { self.parent.resumeTopology(self.uuid()); };
-    this.pause = function () { self.parent.pauseTopology(self.uuid()); };
 }

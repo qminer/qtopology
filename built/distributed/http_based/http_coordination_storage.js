@@ -75,12 +75,6 @@ function initHttpServer(storage) {
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);
     });
-    http_server.addHandler('/pause-topology', (data, callback) => {
-        storage.pauseTopology(data.uuid, callback);
-    });
-    http_server.addHandler('/resume-topology', (data, callback) => {
-        storage.resumeTopology(data.uuid, callback);
-    });
     http_server.addHandler('/topology-info', (data, callback) => {
         storage.getTopologyInfo(data.uuid, callback);
     });

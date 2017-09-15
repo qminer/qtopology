@@ -56,11 +56,6 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
             });
         }
-        if (msg.cmd === intf.ParentMsgCode.resume) {
-            self.topology_local.resume((err) => {
-                self.sendToParent(intf.ChildMsgCode.response_resume, { err: err });
-            });
-        }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
             self.shutdown();
         }

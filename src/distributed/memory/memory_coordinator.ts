@@ -341,31 +341,11 @@ export class MemoryCoordinator implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
+                        self.sendMessageToWorker(hits[0].worker,intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
                     }
                 ],
                 callback
             );
-        } else {
-            callback();
-        }
-    }
-    pauseTopology(uuid: string, callback: intf.SimpleCallback) {
-        let self = this;
-        let hits = self.topologies
-            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
-        if (hits.length > 0) {
-            self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.pause_topology, { uuid: uuid }, callback);
-        } else {
-            callback();
-        }
-    }
-    resumeTopology(uuid: string, callback: intf.SimpleCallback) {
-        let self = this;
-        let hits = self.topologies
-            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
-        if (hits.length > 0) {
-            self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.resume_topology, { uuid: uuid }, callback);
         } else {
             callback();
         }
