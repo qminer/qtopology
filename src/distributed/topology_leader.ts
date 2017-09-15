@@ -222,7 +222,12 @@ export class TopologyLeader {
                 topologies,
                 (topology, xcallback) => {
                     log.logger().important("[Leader] Unassigning topology " + topology.uuid);
-                    self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                    if (topology.status == intf.Consts.TopologyStatus.error) {
+                        // this status must stay as it is
+                        xcallback();
+                    } else {
+                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                    }
                 },
                 (err) => {
                     if (err) {
