@@ -14,6 +14,7 @@ Both these interfaces are available out-of-the-box, but need specific storage im
 - `node myscript.js disable <topology_uuid>` - disables topology
 - `node myscript.js stop-topology <topology_uuid>` - stops and disables topology
 - `node myscript.js clear-topology-error <topology_uuid>` - clears error flag for topology
+- `node myscript.js set-topology-error <topology_uuid> <error_text>` - sets error flag for topology with given error
 - `node myscript.js shut-down-worker <worker_name>` - sends shutdown signal to specified worker
 - `node myscript.js workers` - display a list of all workers
 - `node myscript.js list` - display a list of all registered topologies
@@ -120,7 +121,7 @@ let coordinator = new coor.MyCustomCoordinator();
 
 // start Express web server
 let app = express();
-app.use(bodyParser.text({ type: "*/*" }));
+app.use(bodyParser.json());
 
 // start dashboard server with express server
 let server = new qtopology.DashboardServer();
@@ -140,4 +141,4 @@ server.initForExpress(app, "qtopology", coordinator,  () => {
 
 Open web address `http://localhost:3000/qtopology/` in your browser.
 
-> Express application needs to use text or JSON body-parser. See code above.
+> Express application needs to use JSON body-parser. See code above.

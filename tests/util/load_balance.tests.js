@@ -489,4 +489,67 @@ describe('LoadBalancerEx', function () {
             });
         });
     });
+    describe('Rebalancing', function () {
+        describe('2 workers', function () {
+            it('same initial load, no weights, no affinity', function () {
+                let data = [
+                    { name: "wrkr1", weight: 1 },
+                    { name: "wrkr2", weight: 1 }
+                ];
+                let topologies = [
+                    { uuid: "a", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "b", worker: "wrkr2", weight: 1, affinity: [] }
+                ];
+                let target = new lb.LoadBalancerEx(data);
+                let res = target.rebalance(topologies);
+                assert.equal(res.score, 0);
+                assert.equal(res.changes.length, 0);
+            });
+            it('different initial load, no weights, no affinity', function () {
+                let data = [
+                    { name: "wrkr1", weight: 2 },
+                    { name: "wrkr2", weight: 0 }
+                ];
+                let topologies = [
+                    { uuid: "a", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "b", worker: "wrkr1", weight: 1, affinity: [] }
+                ];
+                let target = new lb.LoadBalancerEx(data);
+                let res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 1);
+                assert.deepEqual(res.changes[0], { uuid: "b", worker_old: "wrkr1", worker_new: "wrkr2" });
+                assert.equal(res.score, 51);
+            });
+            it('different initial load, with weights, no affinity', function () {
+                let data = [
+                    { name: "wrkr1", weight: 7 },
+                    { name: "wrkr2", weight: 0 }
+                ];
+                let topologies = [
+                    { uuid: "a", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "b", worker: "wrkr1", weight: 6, affinity: [] }
+                ];
+                let target = new lb.LoadBalancerEx(data);
+                let res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 1);
+                assert.deepEqual(res.changes[0], { uuid: "a", worker_old: "wrkr1", worker_new: "wrkr2" });
+                assert.equal(res.score, (101 + 1 / 6) / 2);
+            });
+            it('different initial load, no weights, with affinity', function () {
+                let data = [
+                    { name: "wrkr1", weight: 2 },
+                    { name: "wrkr2", weight: 0 }
+                ];
+                let topologies = [
+                    { uuid: "a", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "b", worker: "wrkr1", weight: 1, affinity: ["wrkr1"] }
+                ];
+                let target = new lb.LoadBalancerEx(data);
+                let res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 1);
+                assert.deepEqual(res.changes[0], { uuid: "a", worker_old: "wrkr1", worker_new: "wrkr2" });
+                assert.equal(res.score, 51);
+            });
+        });
+    });
 });

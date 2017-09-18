@@ -16,13 +16,13 @@
             <a data-bind="attr: { href: back_url, title: back_title }">
                 &laquo;
                 <span data-bind="text: back_title"> Back </span>
-            </a> 
+            </a>
         </div>
             <img src="logo.png" alt="logo" class="logo" />
         <h1 data-bind="text: title"></h1>
     </div>
 
-    <div id="bladeWorker" class="blade">
+    <div id="bladeWorker" class="blade" style="display: none">
         <div class="blade-content" data-bind="with: selected_worker">
             <div class="blade-close close-btn" data-bind="click: $parent.closeBlade">&times;</div>
             <h1>Worker info</h1>
@@ -159,7 +159,7 @@
     </div>
 
 
-    <div id="bladeTopology" class="blade">
+    <div id="bladeTopology" class="blade" style="display: none">
         <div class="blade-content" data-bind="with: selected_topology">
             <div class="blade-close close-btn" data-bind="click: $parent.closeBlade">&times;</div>
             <h1>Topology info</h1>
@@ -317,7 +317,18 @@
                                         <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
                                     </td>
                                     <td data-bind="text: worker"></td>
-                                    <td data-bind="text: error"></td>
+                                    <td>
+                                        <div data-bind="visible: error != null && error.length > 0">
+                                            <a href="#" data-bind="click: click">Show &raquo;</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td colspan="4" data-bind="visible: expanded" class="td-error">
+                                        <h3>Error message</h3>
+                                        <span data-bind="text: error"></span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

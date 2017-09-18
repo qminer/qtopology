@@ -134,6 +134,11 @@ class CommandLineHandler {
                 handleError(err, callback);
             });
         }
+        else if (params.length == 3 && params[0] == "set-topology-error") {
+            this.storage.setTopologyStatus(params[1], intf.Consts.TopologyStatus.error, params[2], (err) => {
+                handleError(err, callback);
+            });
+        }
         else if (params.length == 2 && params[0] == "shut-down-worker") {
             this.storage.shutDownWorker(params[1], (err) => {
                 handleError(err, callback);
@@ -153,6 +158,7 @@ class CommandLineHandler {
         logger.info("disable <topology_uuid> - disables topology");
         logger.info("stop-topology <topology_uuid> - stops and disables topology");
         logger.info("clear-topology-error <topology_uuid> - clears error flag for topology");
+        logger.info("set-topology-error <topology_uuid> <error_text> - sets error flag for topology with given error");
         logger.info("shut-down-worker <worker_name> - sends shutdown signal to specified worker");
         logger.info("workers - display a list of all workers");
         logger.info("list - display a list of all registered topologies");
@@ -169,7 +175,7 @@ function runRepl(storage) {
     logger.info("");
     const repl = require('repl');
     repl.start({
-        prompt: colors.bgYellow.black('\nrepl >') + " ",
+        prompt: colors.yellow('\nrepl >') + " ",
         eval: (cmd, context, filename, callback) => {
             let dd = cmd.trim();
             if (dd == "exit" || dd == "quit" || dd == "gtfo") {
