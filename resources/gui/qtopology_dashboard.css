@@ -236,6 +236,10 @@ tr:hover{
 .td-datetime {
     min-width: 170px;
 }
+.td-error {
+    font-size: small;
+    padding: 1em;
+}
 /*---------------------------------------------*/
 button {
     color: #fff;
