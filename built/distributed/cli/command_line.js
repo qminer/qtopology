@@ -175,7 +175,7 @@ function runRepl(storage) {
     logger.info("");
     const repl = require('repl');
     repl.start({
-        prompt: colors.bgYellow.black('\nrepl >') + " ",
+        prompt: colors.yellow('\nrepl >') + " ",
         eval: (cmd, context, filename, callback) => {
             let dd = cmd.trim();
             if (dd == "exit" || dd == "quit" || dd == "gtfo") {
