@@ -32,6 +32,7 @@ QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
     $.ajax({
         url: cmd,
         type: "POST",
+        contentType: "application/json; charset=utf-8",
         dataType: "json",
         data: JSON.stringify(data),
         success: callback
@@ -162,6 +163,8 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
             var d = new Date(x.ts);
             x.ts_d = d;
             x.ts_s = self.formatDateGui(d);
+            x.expanded = ko.observable(false);
+            x.click = function () { x.expanded(!x.expanded()); };
             topology.history.push(x);
         });
         // sort descending in time

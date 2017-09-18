@@ -116,9 +116,21 @@ export declare var Consts: {
     };
     TopologyStatus: {
         running: string;
+        paused: string;
         waiting: string;
         error: string;
         unassigned: string;
+    };
+    CoordinatorMesagges: {
+        start_topology: string;
+        verify_topology: string;
+        stop_topology: string;
+        shutdown: string;
+    };
+    LeaderMessages: {
+        start_topology: string;
+        stop_topology: string;
+        shutdown: string;
     };
 };
 export interface LeadershipResultStatus {

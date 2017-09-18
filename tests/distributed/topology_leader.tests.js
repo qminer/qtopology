@@ -190,7 +190,7 @@ describe('TopologyLeader', function () {
             },
             sendMessageToWorker: (wrkr, cmd, content, cb) => {
                 assert.equal(wrkr, worker_name);
-                assert.equal(cmd, "start-topology");
+                assert.equal(cmd, "start_topology");
                 assert.deepEqual(content, {uuid: topology_record.uuid});
                 cb();
             }
