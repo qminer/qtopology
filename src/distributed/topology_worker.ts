@@ -93,7 +93,7 @@ export class TopologyWorker {
     private createProxy(rec: TopologyItem): void {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (rec.proxy.wasShutDown()) {
+            if (self.waiting_for_shutdown || rec.proxy.wasShutDown()) {
                 self.removeTopology(rec.uuid);
             } else {
                 // check if topology restarted a lot recently
@@ -183,7 +183,7 @@ export class TopologyWorker {
                 (xcallback) => {
                     self.shutDownTopologies((err) => {
                         if (err) {
-                            log.logger().error(this.log_prefix + "Error while shutting down topologies:");
+                            log.logger().error(self.log_prefix + "Error while shutting down topologies:");
                             log.logger().exception(err);
                         }
                         xcallback();
@@ -223,11 +223,11 @@ export class TopologyWorker {
         let self = this;
         item.proxy.shutdown((err) => {
             if (err) {
-                log.logger().error("[Worker] Error while shutting down topology " + item.uuid);
+                log.logger().error(self.log_prefix + "Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
                 self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
             } else {
-                log.logger().debug("[Worker] setting topology as unassigned: " + item.uuid);
+                log.logger().debug(self.log_prefix + "setting topology as unassigned: " + item.uuid);
                 self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
             }
         });
