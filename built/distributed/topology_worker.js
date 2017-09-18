@@ -23,22 +23,22 @@ class TopologyWorker {
         this.waiting_for_shutdown = false;
         this.topologies = [];
         let self = this;
-        self.coordinator.on("start-topology", (msg) => {
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.start_topology, (msg) => {
             log.logger().important(this.log_prefix + "Received start instruction from coordinator: " + msg.uuid);
             self.start(msg.uuid, msg.config);
         });
-        self.coordinator.on("verify-topology", (msg) => {
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.verify_topology, (msg) => {
             let uuid = msg.uuid;
             if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
                 log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + msg.uuid);
                 self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", () => { });
             }
         });
-        self.coordinator.on("stop-topology", (msg) => {
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.stop_topology, (msg) => {
             let uuid = msg.uuid;
             self.shutDownTopology(uuid, () => { });
         });
-        self.coordinator.on("shutdown", (msg) => {
+        self.coordinator.on(intf.Consts.CoordinatorMesagges.shutdown, (msg) => {
             log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
             if (!self.waiting_for_shutdown) {
                 self.waiting_for_shutdown = true;
