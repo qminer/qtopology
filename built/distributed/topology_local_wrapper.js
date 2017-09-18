@@ -14,6 +14,7 @@ class TopologyLocalWrapper {
         let self = this;
         this.topology_local = new tl.TopologyLocal();
         this.waiting_for_shutdown = false;
+        this.log_prefix = "[Wrapper] ";
         process.on("message", (msg) => {
             self.handle(msg);
         });
@@ -24,7 +25,7 @@ class TopologyLocalWrapper {
             });
         });
         process.on('SIGINT', () => {
-            log.logger().warn("[Wrapper] Received SIGINT");
+            log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + process.pid);
             self.shutdown();
         });
     }
@@ -36,8 +37,9 @@ class TopologyLocalWrapper {
     handle(msg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
-            log.logger().important("[Local wrapper] Initializing topology " + msg.data.general.uuid);
+            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
+            self.log_prefix = `[Wrapper ${self.uuid}] `;
             delete msg.data.general.uuid;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
@@ -68,7 +70,7 @@ class TopologyLocalWrapper {
                 return;
             }
             self.waiting_for_shutdown = true;
-            log.logger().important("[Local wrapper] Shutting down topology " + self.uuid);
+            log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${process.pid}`);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
                 // we have the original error from the data field of the message
@@ -76,14 +78,14 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err || msg_data });
                 setTimeout(() => {
                     // stop the process if it was not stopped so far
-                    log.logger().important("Stopping the topology process from the child");
+                    log.logger().important(self.log_prefix + "Stopping the topology process from the child");
                     process.exit(0);
                 }, 500);
             });
         }
         catch (e) {
             // stop the process if it was not stopped so far
-            log.logger().error("Error while shutting down topology");
+            log.logger().error(this.log_prefix + `Error while shutting down topology, process id = ${process.pid}`);
             log.logger().exception(e);
             process.exit(1);
         }
@@ -98,7 +100,7 @@ class TopologyLocalWrapper {
         }
         else {
             // we're running in dev/test mode as a standalone process
-            console.log("[Local wrapper] Sending command", { cmd: cmd, data: data });
+            console.log(this.log_prefix + "Sending command", { cmd: cmd, data: data });
         }
     }
 }

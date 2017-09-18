@@ -60,7 +60,7 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            let e = new Error("CLOSE Child process exited with code " + code);
+            let e = new Error(`CLOSE Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -69,7 +69,7 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            let e = new Error("EXIT Child process exited with code " + code);
+            let e = new Error(`EXIT Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;

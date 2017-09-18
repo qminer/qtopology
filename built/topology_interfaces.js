@@ -40,9 +40,21 @@ exports.Consts = {
     },
     TopologyStatus: {
         running: "running",
+        paused: "paused",
         waiting: "waiting",
         error: "error",
         unassigned: "unassigned"
+    },
+    CoordinatorMesagges: {
+        start_topology: "start_topology",
+        verify_topology: "verify_topology",
+        stop_topology: "stop_topology",
+        shutdown: "shutdown"
+    },
+    LeaderMessages: {
+        start_topology: "start_topology",
+        stop_topology: "stop_topology",
+        shutdown: "shutdown"
     }
 };
 //# sourceMappingURL=topology_interfaces.js.map
