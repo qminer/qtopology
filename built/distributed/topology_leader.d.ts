@@ -11,6 +11,7 @@ export declare class TopologyLeader {
     private shutdown_callback;
     private loop_timeout;
     private next_rebalance;
+    private log_prefix;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number);
     /** Runs main loop that handles leadership detection */

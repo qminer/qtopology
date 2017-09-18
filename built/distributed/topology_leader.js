@@ -19,6 +19,7 @@ class TopologyLeader {
         this.is_shut_down = false;
         this.loop_timeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
         this.next_rebalance = Date.now() + 60 * 60 * 1000;
+        this.log_prefix = "[Leader] ";
     }
     /** Runs main loop that handles leadership detection */
     run() {
@@ -37,7 +38,7 @@ class TopologyLeader {
                 }
             }, self.loop_timeout);
         }, (err) => {
-            log.logger().important("[Leader] Leader shutdown finished.");
+            log.logger().important(self.log_prefix + "Leader shutdown finished.");
             self.is_shut_down = true;
             self.is_running = false;
             if (self.shutdown_callback) {
@@ -87,7 +88,7 @@ class TopologyLeader {
                         return xcallback(err);
                     self.is_leader = is_leader;
                     if (self.is_leader) {
-                        log.logger().important("[Leader] This worker became a leader...");
+                        log.logger().important(self.log_prefix + "This worker became a leader...");
                         self.performLeaderLoop(xcallback);
                     }
                     else {
@@ -166,7 +167,7 @@ class TopologyLeader {
                     let unassigned_topologies = topologies
                         .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
                     if (unassigned_topologies.length > 0) {
-                        log.logger().log("[Leader] Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
+                        log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                     }
                     let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
                         return { name: x.name, weight: worker_weights.get(x.name) || 0 };
@@ -186,15 +187,18 @@ class TopologyLeader {
     /** This method will perform rebalance of topologies on workers if needed.
      */
     performRebalanceIfNeeded(workers, topologies, callback) {
-        let self = this;
-        if (self.next_rebalance > Date.now()) {
-            return callback();
-        }
-        let load_balancer = new lb.LoadBalancerEx(workers.map(x => {
-            return { name: x.name, weight: 0 };
-        }), affinity_factor);
-        let steps = load_balancer.rebalance(topologies);
-        // TODO send rebalance signals
+        // let self = this;
+        // if (self.next_rebalance > Date.now()) {
+        //     return callback();
+        // }
+        // let load_balancer = new lb.LoadBalancerEx(
+        //     workers.map(x => {
+        //         return { name: x.name, weight: 0 };
+        //     }),
+        //     affinity_factor
+        // );
+        // let steps = load_balancer.rebalance(topologies);
+        // // TODO send rebalance signals
         callback();
     }
     /**
@@ -206,7 +210,7 @@ class TopologyLeader {
     assignUnassignedTopology(ut, load_balancer, callback) {
         let self = this;
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
-        log.logger().log(`[Leader] Assigning topology ${ut.uuid} to worker ${target}`);
+        log.logger().log(self.log_prefix + `Assigning topology ${ut.uuid} to worker ${target}`);
         self.storage.assignTopology(ut.uuid, target, (err) => {
             ut.worker = target;
             self.storage.sendMessageToWorker(target, "start-topology", { uuid: ut.uuid }, callback);
@@ -216,18 +220,18 @@ class TopologyLeader {
      * topologies need to be re-assigned to other servers.
      */
     handleDeadWorker(dead_worker, callback) {
-        log.logger().important("[Leader] Handling dead worker " + dead_worker);
         let self = this;
+        log.logger().important(self.log_prefix + "Handling dead worker " + dead_worker);
         self.storage.getTopologiesForWorker(dead_worker, (err, topologies) => {
             async.each(topologies, (topology, xcallback) => {
-                log.logger().important("[Leader] Unassigning topology " + topology.uuid);
+                log.logger().important(self.log_prefix + "Unassigning topology " + topology.uuid);
                 self.storage.setTopologyStatus(topology.uuid, "unassigned", null, xcallback);
             }, (err) => {
                 if (err) {
-                    log.logger().important("[Leader] Error while handling dead worker " + err);
+                    log.logger().important(self.log_prefix + "Error while handling dead worker " + err);
                     return callback(err);
                 }
-                log.logger().important("[Leader] Setting dead worker as unloaded: " + dead_worker);
+                log.logger().important(self.log_prefix + "Setting dead worker as unloaded: " + dead_worker);
                 self.storage.setWorkerStatus(dead_worker, "unloaded", callback);
             });
         });

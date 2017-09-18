@@ -16,6 +16,7 @@ export class TopologyCoordinator extends EventEmitter {
     private loop_timeout: number;
     private leadership: leader.TopologyLeader;
     private start_time: Date;
+    private log_prefix: string;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage) {
@@ -28,6 +29,7 @@ export class TopologyCoordinator extends EventEmitter {
         this.shutdown_callback = null;
         this.loop_timeout = 2 * 1000; // 2 seconds for refresh
         this.start_time = new Date();
+        this.log_prefix = "[Coordinator] ";
     }
 
     /** Runs main loop */
@@ -62,7 +64,7 @@ export class TopologyCoordinator extends EventEmitter {
                 );
             },
             (err) => {
-                log.logger().important("[Coordinator] Coordinator shut down.");
+                log.logger().important(self.log_prefix + "Coordinator shut down.");
                 if (self.shutdown_callback) {
                     self.shutdown_callback(err);
                 }
@@ -76,12 +78,12 @@ export class TopologyCoordinator extends EventEmitter {
         self.is_shutting_down = true;
         self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err: Error) => {
             if (err) {
-                log.logger().error("Error while reporting worker status as 'closing':");
+                log.logger().error(self.log_prefix + "Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
             }
             self.leadership.shutdown((err: Error) => {
                 if (err) {
-                    log.logger().error("Error while shutting down leader:");
+                    log.logger().error(self.log_prefix + "Error while shutting down leader:");
                     log.logger().exception(err);
                 }
                 callback();
@@ -95,7 +97,7 @@ export class TopologyCoordinator extends EventEmitter {
         let self = this;
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
-                log.logger().error("Error while reporting worker status as 'dead':");
+                log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
             }
             self.shutdown_callback = callback;
@@ -105,10 +107,11 @@ export class TopologyCoordinator extends EventEmitter {
 
     /** Set status on given topology */
     reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback) {
+        let self = this;
         this.storage.setTopologyStatus(uuid, status, error, (err) => {
             if (err) {
-                log.logger().error("[Coordinator] Couldn't report topology status");
-                log.logger().error(`Topology: ${uuid}, status=${status}, error=${error}`);
+                log.logger().error(self.log_prefix + "Couldn't report topology status");
+                log.logger().error(self.log_prefix + `Topology: ${uuid}, status=${status}, error=${error}`);
                 log.logger().exception(err);
             }
             if (callback) {
@@ -119,10 +122,11 @@ export class TopologyCoordinator extends EventEmitter {
 
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback) {
+        let self = this;
         this.storage.setWorkerStatus(name, status, (err) => {
             if (err) {
-                log.logger().error("[Coordinator] Couldn't report worker status");
-                log.logger().error(`Worker: name=${name}, status=${status}`);
+                log.logger().error(self.log_prefix + "Couldn't report worker status");
+                log.logger().error(self.log_prefix + `Worker: name=${name}, status=${status}`);
                 log.logger().exception(err);
             }
             if (callback) {

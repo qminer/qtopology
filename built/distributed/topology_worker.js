@@ -62,7 +62,7 @@ class TopologyWorker {
         process.on('SIGINT', () => {
             if (!self.waiting_for_shutdown) {
                 self.waiting_for_shutdown = true;
-                log.logger().important(this.log_prefix + "Received Shutdown signal from system");
+                log.logger().important(this.log_prefix + "Received Shutdown signal from system, this process id = " + process.pid);
                 log.logger().important(this.log_prefix + "Starting graceful worker shutdown...");
                 self.shutdown(() => {
                     process.exit(1);
