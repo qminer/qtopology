@@ -2,7 +2,11 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.target_div = divIdTarget;
 
     this.workers = ko.observableArray();
+    this.workers_alive = ko.observableArray();
+    this.workers_not_alive = ko.observableArray();
     this.topologies = ko.observableArray();
+    this.topologies_enabled = ko.observableArray();
+    this.topologies_not_enabled = ko.observableArray();
     this.storage_props = ko.observableArray();
 
     // blade worker
@@ -78,6 +82,16 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
     this.topologies.sort(function (a, b) {
         return a.uuid().localeCompare(b.uuid());
     });
+    self.topologies_enabled.removeAll();
+    self.topologies_not_enabled.removeAll();
+    self.topologies().forEach(function (x) {
+        if (x.enabled()) {
+            self.topologies_enabled.push(x);
+        } else {
+            self.topologies_not_enabled.push(x);
+        }
+    });
+
 }
 QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     var self = this;
@@ -107,6 +121,15 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     }
     self.workers.sort(function (a, b) {
         return a.name().localeCompare(b.name());
+    });
+    self.workers_alive.removeAll();
+    self.workers_not_alive.removeAll();
+    self.workers().forEach(function (x) {
+        if (x.status() == "alive") {
+            self.workers_alive.push(x);
+        } else {
+            self.workers_not_alive.push(x);
+        }
     });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {

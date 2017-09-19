@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <link rel="shortcut icon" type="image/png" href="/logo.png"/>
+    <link rel="shortcut icon" type="image/png" href="/logo.png" />
     <link rel="stylesheet" href="qtopology_dashboard.css" />
     <script src="qtopology_dashboard.js"></script>
     <script src="d3.min.js"></script>
@@ -18,7 +18,7 @@
                 <span data-bind="text: back_title"> Back </span>
             </a>
         </div>
-            <img src="logo.png" alt="logo" class="logo" />
+        <img src="logo.png" alt="logo" class="logo" />
         <h1 data-bind="text: title"></h1>
     </div>
 
@@ -65,8 +65,7 @@
                                     Shut down
                                 </div>
                                 <div class="action-desc">
-                                    Shuts down this worker. You have to have a mechanism
-                                    to bring it up again, as it cannot be done via this dashboard.
+                                    Shuts down this worker. You have to have a mechanism to bring it up again, as it cannot be done via this dashboard.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: shut_down">Shutdown</button>
@@ -78,8 +77,7 @@
                                     Delete worker
                                 </div>
                                 <div class="action-desc">
-                                    If this worker record is obsolete, you can delete it
-                                    from the list of workers.
+                                    If this worker record is obsolete, you can delete it from the list of workers.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: remove">Delete</button>
@@ -137,7 +135,7 @@
                                 </thead>
                                 <tbody data-bind="foreach: history">
                                     <tr>
-                                        <td data-bind="text: ts_s"></td>
+                                        <td class="td-datetime" data-bind="text: ts_s"></td>
                                         <td>
                                             <span class="badge badge-green" data-bind="visible: status=='alive'">Alive</span>
                                             <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
@@ -206,8 +204,7 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Click the button to mark the topology as disabled.
-                                        This will prevent it from running again.
+                                        Click the button to mark the topology as disabled. This will prevent it from running again.
                                     </p>
                                     <p>
                                         It will not stop it, if it is currently running.
@@ -223,8 +220,7 @@
                                     Enable
                                 </div>
                                 <div class="action-desc">
-                                    Click the button to mark the topology as enabled.
-                                    This will make it available to workers and one of them pick should it up
+                                    Click the button to mark the topology as enabled. This will make it available to workers and one of them pick should it up
                                     very soon, if there is at least one worker running.
                                 </div>
                                 <div class="action-btn">
@@ -237,8 +233,7 @@
                                     Clear the error
                                 </div>
                                 <div class="action-desc">
-                                    This topology was marked with error.
-                                    Clear the error tag to make it start running again.
+                                    This topology was marked with error. Clear the error tag to make it start running again.
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: clear_error">Clear error</button>
@@ -251,13 +246,10 @@
                                 </div>
                                 <div class="action-desc">
                                     <p>
-                                        Send STOP signal to the worker that
-                                        is running this topology.
+                                        Send STOP signal to the worker that is running this topology.
                                     </p>
                                     <p>
-                                        Also, the topology will be
-                                        marked as disabled, so other workers wont
-                                        pick it up and run it.
+                                        Also, the topology will be marked as disabled, so other workers wont pick it up and run it.
                                     </p>
                                 </div>
                                 <div class="action-btn">
@@ -305,7 +297,7 @@
                             </thead>
                             <tbody data-bind="foreach: history">
                                 <tr>
-                                    <td data-bind="text: ts_s"></td>
+                                    <td class="td-datetime" data-bind="text: ts_s"></td>
                                     <td>
                                         <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
                                         <span class="badge " data-bind="visible: enabled==false">Disabled</span>
@@ -341,6 +333,7 @@
 
     <div class="content">
         <div class="cell-4">
+            <!--
             <div class="panel">
                 <div class="panel-header">
                     <div class="title">Workers</div>
@@ -369,8 +362,66 @@
                     </div>
                 </div>
             </div>
+            -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Alive Workers</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: workers_alive">
+                        <div class="ticket">
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
+
+                                    <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
+                                    <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                                </div>
+                                <label data-bind="text: name()"></label>
+                                <div>
+                                    topologies: <span data-bind="text: topologies_count()"></span>
+                                </div>
+                                <div class="right">
+                                    <a data-bind="click: open">More &raquo;</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Dead Workers</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: workers_not_alive">
+                        <div class="ticket">
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
+
+                                    <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
+                                    <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                                </div>
+                                <label data-bind="text: name()"></label>
+                                <div>
+                                    topologies: <span data-bind="text: topologies_count()"></span>
+                                </div>
+                                <div class="right">
+                                    <a data-bind="click: open">More &raquo;</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="cell-5">
+            <!--
             <div class="panel">
                 <div class="panel-header">
                     <div class="title">Topologies</div>
@@ -380,10 +431,65 @@
                         <div class="ticket">
                             <div class="ticket-inner">
                                 <div class="pull-right">
-                                    <!-- Enabled/disabled badge -->
                                     <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
                                     <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
-                                    <!--Status badge-->
+                                    <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                                    <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
+                                </div>
+                                <label data-bind="text: uuid()"></label>
+                                <div>
+                                    worker: <span data-bind="text: worker()"></span>
+                                </div>
+                                <div class="right">
+                                    <a data-bind="click: open">More &raquo;</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Enabled Topologies</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: topologies_enabled">
+                        <div class="ticket">
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                                    <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
+                                    <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
+                                    <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
+                                    <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
+                                    <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
+                                </div>
+                                <label data-bind="text: uuid()"></label>
+                                <div>
+                                    worker: <span data-bind="text: worker()"></span>
+                                </div>
+                                <div class="right">
+                                    <a data-bind="click: open">More &raquo;</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Disabled Topologies</div>
+                </div>
+                <div class="panel-body">
+                    <div data-bind="foreach: topologies_not_enabled">
+                        <div class="ticket">
+                            <div class="ticket-inner">
+                                <div class="pull-right">
+                                    <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
+                                    <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
                                     <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
                                     <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
                                     <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
@@ -423,5 +529,7 @@
         ko.applyBindings(model);
         model.init();
     });
+
 </script>
+
 </html>
