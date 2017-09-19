@@ -145,6 +145,15 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
 QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.loadDisplayData();
     this.loadData(callback);
+    this.periodicRefresh();
+}
+QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
+    let self = this;
+    setInterval(function () {
+        self.loadData(function () {});
+        self.periodicRefresh();
+    }, 15000);
+
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
     let self = this;
