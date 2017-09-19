@@ -365,7 +365,7 @@
             -->
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Alive Workers</div>
+                    <div class="title">Alive Workers (<span data-bind="text: workers_alive().length"></span>)</div>
                 </div>
                 <div class="panel-body">
                     <div data-bind="foreach: workers_alive">
@@ -393,9 +393,11 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Dead Workers</div>
+                    <a class="float-right" href="#" data-bind="click: toggle_workers_not_alive, visible: workers_not_alive_expanded">&#9650;</a>
+                    <a class="float-right" href="#" data-bind="click: toggle_workers_not_alive, visible: !workers_not_alive_expanded()">&#9660;</a>
+                    <div class="title">Dead Workers (<span data-bind="text: workers_not_alive().length"></span>) </div>
                 </div>
-                <div class="panel-body">
+                <div class="panel-body" data-bind="visible: workers_not_alive_expanded">
                     <div data-bind="foreach: workers_not_alive">
                         <div class="ticket">
                             <div class="ticket-inner">
@@ -453,7 +455,7 @@
             -->
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Enabled Topologies</div>
+                    <div class="title">Enabled Topologies (<span data-bind="text: topologies_enabled().length"></span>)</div>
                 </div>
                 <div class="panel-body">
                     <div data-bind="foreach: topologies_enabled">
@@ -481,9 +483,11 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Disabled Topologies</div>
+                    <a class="float-right" href="#" data-bind="click: toggle_topologies_not_enabled, visible: topologies_not_enabled_expanded">&#9650;</a>
+                    <a class="float-right" href="#" data-bind="click: toggle_topologies_not_enabled, visible: !topologies_not_enabled_expanded()">&#9660;</a>
+                    <div class="title">Disabled Topologies (<span data-bind="text: topologies_not_enabled().length"></span>)</div>
                 </div>
-                <div class="panel-body">
+                <div class="panel-body" data-bind="visible: topologies_not_enabled_expanded">
                     <div data-bind="foreach: topologies_not_enabled">
                         <div class="ticket">
                             <div class="ticket-inner">

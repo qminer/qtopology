@@ -4,10 +4,20 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.workers = ko.observableArray();
     this.workers_alive = ko.observableArray();
     this.workers_not_alive = ko.observableArray();
+    this.workers_not_alive_expanded = ko.observable(false);
     this.topologies = ko.observableArray();
     this.topologies_enabled = ko.observableArray();
     this.topologies_not_enabled = ko.observableArray();
+    this.topologies_not_enabled_expanded = ko.observable(false);
     this.storage_props = ko.observableArray();
+
+    var self = this;
+    self.toggle_workers_not_alive = function (item) {
+        self.workers_not_alive_expanded(!self.workers_not_alive_expanded());
+    };
+    self.toggle_topologies_not_enabled = function (item) {
+        self.topologies_not_enabled_expanded(!self.topologies_not_enabled_expanded());
+    };
 
     // blade worker
     this.selected_worker = ko.observable();
