@@ -20,6 +20,9 @@ body{
     height: 35px;
     margin-right: 20px;
 }
+.float-right {
+    float: right;
+}
 /**************************************************/
 /* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
 .blade {
@@ -175,7 +178,7 @@ dd {
     display: inline-block;
     min-width: 10px;
     padding: 3px 7px;
-    font-size: 1em;
+    font-size: 0.8em;
     font-weight: 700;
     line-height: 1;
     color: #fff;
@@ -234,7 +237,8 @@ tr:hover{
     background-color: #333;
 }
 .td-datetime {
-    min-width: 170px;
+    min-width: 150px;
+    font-size: small;
 }
 .td-error {
     font-size: small;

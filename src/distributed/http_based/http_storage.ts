@@ -8,7 +8,7 @@ import * as intf from "../../topology_interfaces";
 //////////////////////////////////////////////////////////////////////
 // Storage-coordination implementation
 
-export class HttpCoordinator implements intf.CoordinationStorage {
+export class HttpStorage implements intf.CoordinationStorage {
 
     private port: number;
     private client: nrc.Client;

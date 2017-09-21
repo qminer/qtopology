@@ -2,8 +2,22 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.target_div = divIdTarget;
 
     this.workers = ko.observableArray();
+    this.workers_alive = ko.observableArray();
+    this.workers_not_alive = ko.observableArray();
+    this.workers_not_alive_expanded = ko.observable(false);
     this.topologies = ko.observableArray();
+    this.topologies_enabled = ko.observableArray();
+    this.topologies_not_enabled = ko.observableArray();
+    this.topologies_not_enabled_expanded = ko.observable(false);
     this.storage_props = ko.observableArray();
+
+    var self = this;
+    self.toggle_workers_not_alive = function (item) {
+        self.workers_not_alive_expanded(!self.workers_not_alive_expanded());
+    };
+    self.toggle_topologies_not_enabled = function (item) {
+        self.topologies_not_enabled_expanded(!self.topologies_not_enabled_expanded());
+    };
 
     // blade worker
     this.selected_worker = ko.observable();
@@ -78,6 +92,16 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
     this.topologies.sort(function (a, b) {
         return a.uuid().localeCompare(b.uuid());
     });
+    self.topologies_enabled.removeAll();
+    self.topologies_not_enabled.removeAll();
+    self.topologies().forEach(function (x) {
+        if (x.enabled()) {
+            self.topologies_enabled.push(x);
+        } else {
+            self.topologies_not_enabled.push(x);
+        }
+    });
+
 }
 QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     var self = this;
@@ -108,10 +132,28 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     self.workers.sort(function (a, b) {
         return a.name().localeCompare(b.name());
     });
+    self.workers_alive.removeAll();
+    self.workers_not_alive.removeAll();
+    self.workers().forEach(function (x) {
+        if (x.status() == "alive") {
+            self.workers_alive.push(x);
+        } else {
+            self.workers_not_alive.push(x);
+        }
+    });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.loadDisplayData();
     this.loadData(callback);
+    this.periodicRefresh();
+}
+QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
+    let self = this;
+    setInterval(function () {
+        self.loadData(function () {});
+        self.periodicRefresh();
+    }, 15000);
+
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
     let self = this;

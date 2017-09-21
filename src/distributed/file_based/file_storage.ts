@@ -3,11 +3,11 @@ import * as path from "path";
 import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
 import * as log from "../../util/logger";
-import * as mem from "../memory/memory_coordinator";
+import * as mem from "../memory/memory_storage";
 
 //////////////////////////////////////////////////////////////////////
 
-export class FileCoordinator extends mem.MemoryCoordinator {
+export class FileStorage extends mem.MemoryStorage {
 
     private dir_name: string;
     private file_patterns: string[];
