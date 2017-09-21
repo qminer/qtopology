@@ -10,7 +10,7 @@ let opts = cmdln.process(process.argv);
 
 qtopology.logger().setLevel("debug");
 
-let storage = new qtopology.HttpCoordinator();
+let storage = new qtopology.HttpStorage();
 let w = new qtopology.TopologyWorker(opts.name, storage);
 w.run();
 

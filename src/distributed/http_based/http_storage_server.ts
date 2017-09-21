@@ -1,10 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const hs = require("../../util/http_server");
-const mem = require("../memory/memory_storage");
+import * as hs from "../../util/http_server";
+import * as intf from "../../topology_interfaces";
+import * as mem from "../memory/memory_storage";
+
 ////////////////////////////////////////////////////////////////////
 // Initialize simple REST server
-function initHttpServer(storage) {
+
+function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer {
     let http_server = new hs.MinimalHttpServer();
     http_server.addHandler('/worker-statuses', (data, callback) => {
         storage.getWorkerStatus(callback);
@@ -54,9 +55,10 @@ function initHttpServer(storage) {
     http_server.addHandler('/send-message', (data, callback) => {
         let worker = data.worker;
         let cmd = data.cmd;
-        let content = data.content;
+        let content = data.content
         storage.sendMessageToWorker(worker, cmd, content, callback);
     });
+
     http_server.addHandler('/register-topology', (data, callback) => {
         let result = storage.registerTopology(data.uuid, data.config, callback);
     });
@@ -92,11 +94,11 @@ function initHttpServer(storage) {
     });
     return http_server;
 }
+
 /////////////////////////////////////////////////////////////////////////////
-function runHttpServer(options) {
+
+export function runHttpServer(options: any) {
     let storage = new mem.MemoryStorage();
     let http_server = initHttpServer(storage);
     http_server.run(options);
 }
-exports.runHttpServer = runHttpServer;
-//# sourceMappingURL=http_coordination_storage.js.map

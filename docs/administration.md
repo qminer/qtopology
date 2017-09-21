@@ -31,12 +31,12 @@ const qtopology = require("qtopology");
 const coor = require("my-custom-storage-implementation");
 
 // instantiate custom storage implementation
-let coordinator = new coor.MyCustomCoordinator();
+let storage = new coor.MyCustomStorage();
 
 // run CLI tool on it
-let cmd = new qtopology.CommandLineHandler(coordinator);
+let cmd = new qtopology.CommandLineHandler(storage);
 cmd.run(() => {
-    coordinator.close(() => {
+    storage.close(() => {
         qtopology.logger().log("Done.");
      })
 });
@@ -54,10 +54,10 @@ const qtopology = require("qtopology");
 const coor = require("my-custom-storage-implementation");
 
 // instantiate custom storage implementation
-let coordinator = new coor.MyCustomCoordinator();
+let storage = new coor.MyCustomStorage();
 
 // run CLI tool on it in REPL mode
-qtopology.runRepl(coordinator);
+qtopology.runRepl(storage);
 `````````
 
 An example that is provided in the demo directory:
@@ -94,11 +94,11 @@ const qtopology = require("qtopology");
 const coor = require("my-custom-storage-implementation");
 
 // instantiate custom storage implementation
-let coordinator = new coor.MyCustomCoordinator();
+let storage = new coor.MyCustomStorage();
 
 // start web server
 let server = new qtopology.DashboardServer();
-server.init(3000, coordinator,  () => {
+server.init(3000, storage,  () => {
     server.run();
 });
 
@@ -117,7 +117,7 @@ const express = require("express");
 const coor = require("my-custom-storage-implementation");
 
 // instantiate custom storage implementation
-let coordinator = new coor.MyCustomCoordinator();
+let storage = new coor.MyCustomStorage();
 
 // start Express web server
 let app = express();
@@ -125,7 +125,7 @@ app.use(bodyParser.json());
 
 // start dashboard server with express server
 let server = new qtopology.DashboardServer();
-server.initForExpress(app, "qtopology", coordinator,  () => {
+server.initForExpress(app, "qtopology", storage,  () => {
     if (err) {
         console.log(err);
         process.exit(1);

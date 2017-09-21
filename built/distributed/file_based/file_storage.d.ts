@@ -1,6 +1,6 @@
 import * as intf from "../../topology_interfaces";
-import * as mem from "../memory/memory_coordinator";
-export declare class FileCoordinator extends mem.MemoryStorage {
+import * as mem from "../memory/memory_storage";
+export declare class FileStorage extends mem.MemoryStorage {
     private dir_name;
     private file_patterns;
     private file_patterns_regex;
