@@ -9,7 +9,7 @@ cmdln
 let opts = cmdln.process(process.argv);
 
 qtopology.logger().setLevel("debug");
-let storage = new qtopology.FileCoordinator("./topologies", "*.json");
+let storage = new qtopology.FileStorage("./topologies", "*.json");
 
 let w = new qtopology.TopologyWorker(opts.name, storage);
 w.run();

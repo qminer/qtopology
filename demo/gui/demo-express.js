@@ -11,37 +11,37 @@ let dummy_topology_config = {
     variables: {}
 };
 
-let coordinator = new qtopology.MemoryCoordinator();
+let storage = new qtopology.MemoryStorage();
 
-coordinator.registerWorker("worker1", () => { });
-coordinator.registerWorker("worker2", () => { });
-coordinator.registerWorker("worker3", () => { });
-coordinator.registerWorker("worker4", () => { });
+storage.registerWorker("worker1", () => { });
+storage.registerWorker("worker2", () => { });
+storage.registerWorker("worker3", () => { });
+storage.registerWorker("worker4", () => { });
 
-coordinator.setWorkerStatus("worker3", "dead", () => { });
-coordinator.setWorkerStatus("worker4", "unloaded", () => { });
+storage.setWorkerStatus("worker3", "dead", () => { });
+storage.setWorkerStatus("worker4", "unloaded", () => { });
 
-coordinator.registerTopology("topology.test.1", dummy_topology_config, () => { });
-coordinator.registerTopology("topology.test.2", dummy_topology_config, () => { });
-coordinator.registerTopology("topology.test.x", dummy_topology_config, () => { });
-coordinator.registerTopology("topology.test.y", dummy_topology_config, () => { });
-coordinator.registerTopology("topology.test.z", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.1", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.2", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.x", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.y", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.z", dummy_topology_config, () => { });
 
-coordinator.enableTopology("topology.test.1", () => { });
-coordinator.enableTopology("topology.test.2", () => { });
-coordinator.disableTopology("topology.test.x", () => { });
-coordinator.disableTopology("topology.test.y", () => { });
-coordinator.enableTopology("topology.test.z", () => { });
+storage.enableTopology("topology.test.1", () => { });
+storage.enableTopology("topology.test.2", () => { });
+storage.disableTopology("topology.test.x", () => { });
+storage.disableTopology("topology.test.y", () => { });
+storage.enableTopology("topology.test.z", () => { });
 
-coordinator.assignTopology("topology.test.1", "worker1", () => { });
-coordinator.assignTopology("topology.test.2", "worker2", () => { });
-coordinator.assignTopology("topology.test.z", "worker1", () => { });
+storage.assignTopology("topology.test.1", "worker1", () => { });
+storage.assignTopology("topology.test.2", "worker2", () => { });
+storage.assignTopology("topology.test.z", "worker1", () => { });
 
-coordinator.setTopologyStatus("topology.test.1", "waiting", "", () => { });
-coordinator.setTopologyStatus("topology.test.2", "running", "", () => { });
-coordinator.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
-coordinator.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
-coordinator.setTopologyStatus("topology.test.z", "running", "", () => { });
+storage.setTopologyStatus("topology.test.1", "waiting", "", () => { });
+storage.setTopologyStatus("topology.test.2", "running", "", () => { });
+storage.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
+storage.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
+storage.setTopologyStatus("topology.test.z", "running", "", () => { });
 
 ////////////////////////////////////////////////////////
 
@@ -59,7 +59,7 @@ server.initComplex(
         prefix: "qtopology",
         back_title: "Back to main page",
         back_url: "/abc",
-        storage: coordinator,
+        storage: storage,
         title: "Custom dashboard title"
     }, (err) => {    
     if (err) {

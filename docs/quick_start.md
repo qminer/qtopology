@@ -196,7 +196,7 @@ To explore the capabilities further, one can:
 
 ## Advanced usage - distributed mode
 
-To set up distributed scenario, one needs to use some implementation coordination storage. QTopology by itself provides HTTP and file-based coordination, a separate project provides [MySQL-based storage](https://github.com/qminer/qtopology-mysql) and developers can create their own.
+To set up distributed scenario, one needs to use some implementation of the coordination storage. QTopology by itself provides HTTP and file-based coordination, a separate project provides [MySQL-based storage](https://github.com/qminer/qtopology-mysql) and developers can create their own.
 
 In this section we will use MySQL-based storage as an example, but changes to use other implementations are minimal (i.e. changing the names of the classes).
 
@@ -204,9 +204,9 @@ In this section we will use MySQL-based storage as an example, but changes to us
 
 Normally, there would be one worker instance per server. The steps to create a worker are:
 
-- create an instance of your coordinator
-- initialize the coordinator
-- create an instance of worker object, passing coordinator to it
+- create an instance of your storage
+- initialize the storage
+- create an instance of worker object, passing storage to it
 - take care of shutdown event for a gracefull  
 
 `````````````````````````````````javascript
@@ -215,7 +215,7 @@ Normally, there would be one worker instance per server. The steps to create a w
 const qtopology = require("qtopology");
 const coor = require("qtopology-mysql");
 
-let coordinator = new coor.MySqlCoordinator({
+let storage = new coor.MySqlStorage({
     host: "localhost",
     database: "xtest",
     user: "dummy",
@@ -229,12 +229,12 @@ cmdln.define('n', 'name', 'worker1', 'Logical name of the worker');
 let opts = cmdln.process(process.argv);
 let w = null;
 
-coordinator.init((err) => {
+storage.init((err) => {
     if (err) {
         console.log(err);
         return;
     }
-    let w = new qtopology.TopologyWorker(opts.name, coordinator);
+    let w = new qtopology.TopologyWorker(opts.name, storage);
     w.run();
     // for demo purposes, we shut this worker down after 20 seconds
     setTimeout(() => { shutdown(); }, 200000);
@@ -263,7 +263,7 @@ const coor = require("qtopology-mysql");
 
 qtopology.logger().setLevel("normal");
 
-let coordinator = new coor.MySqlCoordinator({
+let storage = new coor.MySqlStorage({
     host: "localhost",
     database: "xtest",
     user: "dummy",
@@ -271,9 +271,9 @@ let coordinator = new coor.MySqlCoordinator({
     port: 3306
 });
 
-let cmd = new qtopology.CommandLineHandler(coordinator);
+let cmd = new qtopology.CommandLineHandler(storage);
 cmd.run(() => {
-    coordinator.close(() => {
+    storage.close(() => {
         qtopology.logger().log("Done.");
      })
 });

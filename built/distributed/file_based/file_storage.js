@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
 const log = require("../../util/logger");
-const mem = require("../memory/memory_coordinator");
+const mem = require("../memory/memory_storage");
 //////////////////////////////////////////////////////////////////////
-class FileCoordinator extends mem.MemoryStorage {
+class FileStorage extends mem.MemoryStorage {
     constructor(dir_name, file_pattern) {
         super();
         this.dir_name = dir_name;
@@ -50,5 +50,5 @@ class FileCoordinator extends mem.MemoryStorage {
         return new RegExp("^" + str + "$", "gi");
     }
 }
-exports.FileCoordinator = FileCoordinator;
-//# sourceMappingURL=file_coordinator.js.map
+exports.FileStorage = FileStorage;
+//# sourceMappingURL=file_storage.js.map
