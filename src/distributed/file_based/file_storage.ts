@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
 import * as log from "../../util/logger";
 import * as mem from "../memory/memory_storage";
