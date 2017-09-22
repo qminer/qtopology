@@ -121,13 +121,8 @@ export declare var Consts: {
         error: string;
         unassigned: string;
     };
-    CoordinatorMesagges: {
-        start_topology: string;
-        verify_topology: string;
-        stop_topology: string;
-        shutdown: string;
-    };
     LeaderMessages: {
+        rebalance: string;
         start_topology: string;
         stop_topology: string;
         shutdown: string;

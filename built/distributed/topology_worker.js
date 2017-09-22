@@ -19,34 +19,37 @@ class TopologyWorker {
         this.name = name;
         this.log_prefix = `[Worker ${name}] `;
         this.overrides = overrides || {};
-        this.coordinator = new coord.TopologyCoordinator(name, storage);
         this.waiting_for_shutdown = false;
         this.topologies = [];
         let self = this;
-        self.coordinator.on(intf.Consts.CoordinatorMesagges.start_topology, (msg) => {
-            log.logger().important(this.log_prefix + "Received start instruction from coordinator: " + msg.uuid);
-            self.start(msg.uuid, msg.config);
-        });
-        self.coordinator.on(intf.Consts.CoordinatorMesagges.verify_topology, (msg) => {
-            let uuid = msg.uuid;
-            if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
-                log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + msg.uuid);
-                self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", () => { });
+        this.coordinator = new coord.TopologyCoordinator(name, storage, {
+            startTopology: (uuid, config, callback) => {
+                log.logger().important(self.log_prefix + "Received start instruction from coordinator: " + uuid);
+                self.start(uuid, config);
+                callback();
+            },
+            verifyTopology: (uuid, callback) => {
+                if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
+                    log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + uuid);
+                    self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
+                }
+                else {
+                    callback();
+                }
+            },
+            stopTopology: (uuid, callback) => {
+                self.shutDownTopology(uuid, callback);
+            },
+            shutdown: () => {
+                log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
+                if (!self.waiting_for_shutdown) {
+                    self.waiting_for_shutdown = true;
+                    self.shutdown(() => {
+                        process.exit(0);
+                    });
+                }
+                ;
             }
-        });
-        self.coordinator.on(intf.Consts.CoordinatorMesagges.stop_topology, (msg) => {
-            let uuid = msg.uuid;
-            self.shutDownTopology(uuid, () => { });
-        });
-        self.coordinator.on(intf.Consts.CoordinatorMesagges.shutdown, (msg) => {
-            log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
-            if (!self.waiting_for_shutdown) {
-                self.waiting_for_shutdown = true;
-                self.shutdown(() => {
-                    process.exit(0);
-                });
-            }
-            ;
         });
         process.on('uncaughtException', (err) => {
             log.logger().error(this.log_prefix + "Unhandled exception caught");

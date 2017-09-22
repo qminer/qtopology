@@ -106,6 +106,9 @@ export class DashboardServer {
         self.server.addHandler("shut-down-worker", (data, callback) => {
             self.storage.shutDownWorker(data.name, callback);
         });
+        self.server.addHandler("rebalance-leader", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, callback);
+        });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
                 callback(err, { data: props });

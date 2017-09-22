@@ -18,6 +18,10 @@ export declare class TopologyLeader {
     run(): void;
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback): void;
+    /** Forces this leader to perform a rebalance the next time it runs its loop. */
+    forceRebalance(): void;
+    /** Sometimes outside code gets instruction to assign topology to specific worker. */
+    assignTopologyToWorker(target: string, uuid: string, callback: intf.SimpleCallback): void;
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/

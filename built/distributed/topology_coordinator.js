@@ -9,9 +9,10 @@ const log = require("../util/logger");
  */
 class TopologyCoordinator extends EventEmitter {
     /** Simple constructor */
-    constructor(name, storage) {
+    constructor(name, storage, client) {
         super();
         this.storage = storage;
+        this.client = client;
         this.name = name;
         this.leadership = new leader.TopologyLeader(this.name, this.storage, null);
         this.is_running = false;
@@ -129,17 +130,35 @@ class TopologyCoordinator extends EventEmitter {
                         if (self.name == res.worker) {
                             // topology is still assigned to this worker
                             // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                            self.emit(intf.Consts.CoordinatorMesagges.start_topology, { uuid: msg.content.uuid, config: res.config });
+                            self.client.startTopology(msg.content.uuid, res.config, xcallback);
                         }
                     });
                 }
                 else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                    self.emit(intf.Consts.CoordinatorMesagges.stop_topology, { uuid: msg.content.uuid });
+                    self.client.stopTopology(msg.content.uuid, (err) => {
+                        if (err)
+                            return xcallback(err);
+                        if (msg.content.new_worker) {
+                            // topology has been "re-assigned" - nwe worker should pick it up
+                            self.storage.sendMessageToWorker(msg.content.new_worker, intf.Consts.LeaderMessages.start_topology, {}, xcallback);
+                        }
+                        else {
+                            xcallback();
+                        }
+                    });
                 }
                 else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
-                    self.emit(intf.Consts.CoordinatorMesagges.shutdown, {});
+                    self.client.shutdown();
+                    xcallback();
                 }
-                xcallback();
+                else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
+                    self.leadership.forceRebalance();
+                    xcallback();
+                }
+                else {
+                    // unknown message
+                    xcallback();
+                }
             }, callback);
         });
     }
@@ -149,12 +168,14 @@ class TopologyCoordinator extends EventEmitter {
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err)
                 return callback(err);
-            for (let top of topologies) {
+            async.each(topologies, (top, xcallback) => {
                 if (top.status == intf.Consts.TopologyStatus.running) {
-                    self.emit(intf.Consts.CoordinatorMesagges.verify_topology, { uuid: top.uuid });
+                    self.client.verifyTopology(top.uuid, xcallback);
                 }
-            }
-            callback();
+                else {
+                    xcallback();
+                }
+            }, callback);
         });
     }
 }

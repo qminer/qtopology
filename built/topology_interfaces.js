@@ -45,13 +45,8 @@ exports.Consts = {
         error: "error",
         unassigned: "unassigned"
     },
-    CoordinatorMesagges: {
-        start_topology: "start_topology",
-        verify_topology: "verify_topology",
-        stop_topology: "stop_topology",
-        shutdown: "shutdown"
-    },
     LeaderMessages: {
+        rebalance: "rebalance",
         start_topology: "start_topology",
         stop_topology: "stop_topology",
         shutdown: "shutdown"
