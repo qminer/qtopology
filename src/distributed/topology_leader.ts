@@ -250,7 +250,7 @@ export class TopologyLeader {
                     change.worker_old,
                     intf.Consts.LeaderMessages.stop_topology,
                     { uuid: change.uuid, new_worker: change.worker_new }, // assignment to new_worker is not guaranteed
-                    callback);
+                    xcallback);
             },
             callback
         );
