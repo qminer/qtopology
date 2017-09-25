@@ -255,7 +255,7 @@ export class TopologyLeader {
                 self.storage.sendMessageToWorker(
                     change.worker_old,
                     intf.Consts.LeaderMessages.stop_topology,
-                    { uuid: change.uuid, new_worker: change.worker_new }, // assignment to new_worker is not guaranteed
+                    { uuid: change.uuid, new_worker: change.worker_new },
                     xcallback);
             },
             callback
