@@ -22,6 +22,70 @@
         <h1 data-bind="text: title"></h1>
     </div>
 
+    <div id="bladeMsgQueue" class="blade" style="display: none">
+        <div class="blade-content">
+            <div class="blade-close close-btn" data-bind="click: closeBlade">&times;</div>
+            <h1>Message queue</h1>
+            <div>
+                <div class="cell-6">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">Current queue</div>
+                        </div>
+                        <div class="panel-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="td-datetime">When</th>
+                                        <th>Worker</th>
+                                        <th>Cmd</th>
+                                        <th>Content</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: msg_queue_current">
+                                    <tr>
+                                        <td class="td-datetime" data-bind="text: ts_s"></td>
+                                        <td data-bind="text: worker"></td>
+                                        <td data-bind="text: cmd"></td>
+                                        <td data-bind="text: content"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell-6">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="title">History</div>
+                        </div>
+                        <div class="panel-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="td-datetime">When</th>
+                                        <th>Worker</th>
+                                        <th>Cmd</th>
+                                        <th>Content</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: msg_queue_history">
+                                    <tr>
+                                        <td class="td-datetime" data-bind="text: ts_s"></td>
+                                        <td data-bind="text: worker"></td>
+                                        <td data-bind="text: cmd"></td>
+                                        <td data-bind="text: content_s"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div id="bladeWorker" class="blade" style="display: none">
         <div class="blade-content" data-bind="with: selected_worker">
             <div class="blade-close close-btn" data-bind="click: $parent.closeBlade">&times;</div>
@@ -60,6 +124,17 @@
                             <div class="title">Actions</div>
                         </div>
                         <div class="panel-body props">
+                            <div class="action-panel" data-bind="visible: status() == 'alive' && lstatus() == 'leader'">
+                                <div class="action-title">
+                                    Rebalance
+                                </div>
+                                <div class="action-desc">
+                                    Sends a message to this worker (it must be marked as leader) to performa rebalance of topologies.
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: rebalance">Rebalance</button>
+                                </div>
+                            </div>
                             <div class="action-panel" data-bind="visible: status() == 'alive'">
                                 <div class="action-title">
                                     Shut down
@@ -333,36 +408,6 @@
 
     <div class="content">
         <div class="cell-4">
-            <!--
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="title">Workers</div>
-                </div>
-                <div class="panel-body">
-                    <div data-bind="foreach: workers">
-                        <div class="ticket">
-                            <div class="ticket-inner">
-                                <div class="pull-right">
-                                    <span class="badge badge-gold" data-bind="visible: lstatus()=='leader'">Leader</span>
-
-                                    <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
-                                    <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
-                                    <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
-                                    <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
-                                </div>
-                                <label data-bind="text: name()"></label>
-                                <div>
-                                    topologies: <span data-bind="text: topologies_count()"></span>
-                                </div>
-                                <div class="right">
-                                    <a data-bind="click: open">More &raquo;</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="title">Alive Workers (<span data-bind="text: workers_alive().length"></span>)</div>
@@ -423,36 +468,6 @@
             </div>
         </div>
         <div class="cell-5">
-            <!--
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="title">Topologies</div>
-                </div>
-                <div class="panel-body">
-                    <div data-bind="foreach: topologies">
-                        <div class="ticket">
-                            <div class="ticket-inner">
-                                <div class="pull-right">
-                                    <span class="badge badge-green" data-bind="visible: enabled()==true">Enabled</span>
-                                    <span class="badge " data-bind="visible: enabled()==false">Disabled</span>
-                                    <span class="badge badge-green" data-bind="visible: status()=='running'">Running</span>
-                                    <span class="badge badge-red" data-bind="visible: status()=='error'">Error</span>
-                                    <span class="badge" data-bind="visible: status()=='unassigned'">Unassigned</span>
-                                    <span class="badge badge-orange" data-bind="visible: status()=='waiting'">Waiting</span>
-                                </div>
-                                <label data-bind="text: uuid()"></label>
-                                <div>
-                                    worker: <span data-bind="text: worker()"></span>
-                                </div>
-                                <div class="right">
-                                    <a data-bind="click: open">More &raquo;</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="title">Enabled Topologies (<span data-bind="text: topologies_enabled().length"></span>)</div>
@@ -521,6 +536,28 @@
                     <div data-bind="foreach: storage_props">
                         <dt data-bind="text: key"></dt>
                         <dd data-bind="text: value"></dd>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="title">Message queue</div>
+                </div>
+                <div class="panel-body">
+                    <div>                        
+                        <div class="action-panel">
+                            <div class="action-title">
+                                Inspect
+                            </div>
+                            <div class="action-desc">
+                                <p>
+                                    Show messages of the message queue.
+                                </p>
+                            </div>
+                            <div class="action-btn">
+                                <button data-bind="click: showMsgQueue">Show message queue</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
