@@ -171,7 +171,15 @@ export class TopologyCoordinator extends EventEmitter {
                             }
                         })
                     } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                        self.client.stopTopology(msg.content.uuid, xcallback);
+                        self.client.stopTopology(msg.content.uuid, (err) => {
+                            if (err) return callback(err);
+                            if (msg.content.new_worker) {
+                                // ok, we got an instruction to explicitely re-assign topology to new worker
+                                self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, xcallback);
+                            } else {
+                                xcallback();
+                            }
+                        });
                     } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                         self.client.shutdown();
                         xcallback();
