@@ -14,7 +14,7 @@ class FileStorage extends mem.MemoryStorage {
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
         let items = fs.readdirSync(this.dir_name);
-        log.logger().log("[FileCoordinator] Starting file-based coordination, from directory " + this.dir_name);
+        log.logger().log("[FileStorage] Starting file-based coordination, from directory " + this.dir_name);
         for (let item of items) {
             let is_ok = false;
             for (let pattern of this.file_patterns_regex) {
@@ -27,7 +27,7 @@ class FileStorage extends mem.MemoryStorage {
                 continue;
             }
             let topology_uuid = item.slice(0, -path.extname(item).length); // file name without extension
-            log.logger().log("[FileCoordinator] Found topology file " + item);
+            log.logger().log("[FileStorage] Found topology file " + item);
             let config = require(path.join(this.dir_name, item));
             this.registerTopology(topology_uuid, config, (err) => { });
             this.enableTopology(topology_uuid, (err) => { });
@@ -35,7 +35,7 @@ class FileStorage extends mem.MemoryStorage {
     }
     getProperties(callback) {
         let res = [];
-        res.push({ key: "type", value: "FileCoordinator" });
+        res.push({ key: "type", value: "FileStorage" });
         res.push({ key: "directory", value: this.dir_name });
         res.push({ key: "file_patterns", value: this.file_patterns });
         res.push({ key: "file_patterns_regex", value: this.file_patterns_regex });

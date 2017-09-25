@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
+const intf = require("../../topology_interfaces");
 const http_server = require("../../util/http_server");
 /**
  * Class for handling QTopology dashboard, either as stand-alone web server or
@@ -62,6 +63,9 @@ class DashboardServer {
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
             self.storage.shutDownWorker(data.name, callback);
+        });
+        self.server.addHandler("rebalance-leader", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {

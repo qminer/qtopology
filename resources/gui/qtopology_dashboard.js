@@ -10,6 +10,8 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.topologies_not_enabled = ko.observableArray();
     this.topologies_not_enabled_expanded = ko.observable(false);
     this.storage_props = ko.observableArray();
+    this.msg_queue_current = ko.observableArray();
+    this.msg_queue_history = ko.observableArray();
 
     var self = this;
     self.toggle_workers_not_alive = function (item) {
@@ -29,6 +31,7 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.back_url = ko.observable("#");
     this.back_title = ko.observable("Back");
 
+    this.bladeMsgQueue = "bladeMsgQueue";
     this.bladeWorker = "bladeWorker";
     this.bladeTopology = "bladeTopology";
 
@@ -150,7 +153,7 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
 QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
     let self = this;
     setInterval(function () {
-        self.loadData(function () {});
+        self.loadData(function () { });
         self.periodicRefresh();
     }, 15000);
 
@@ -171,6 +174,28 @@ QTopologyDashboardViewModel.prototype.showBlade = function (name) {
         $("#" + blade_name).hide();
     }
     $("#" + name).show();
+}
+QTopologyDashboardViewModel.prototype.showMsgQueue = function () {
+    var self = this;
+    this.msg_queue_current.removeAll();
+    this.msg_queue_history.removeAll();
+    this.showBlade(this.bladeMsgQueue);
+    //self.post("msg-queue-content", {}, function (data) {
+
+    var data = [
+        { ts: Date.now(), cmd: "start_topology", worker: "w1", content: { a: true } },
+        { ts: Date.now(), cmd: "start_topology", worker: "w2", content: { uuid: "nji" } }
+    ];
+
+    data.forEach(function (x) {
+        var d = new Date(x.ts);
+        x.ts_d = d;
+        x.ts_s = self.formatDateGui(d);
+        x.content_s = JSON.stringify(x.content);
+        self.msg_queue_current.push(x);
+    });
+
+    //});
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     var self = this;
@@ -283,6 +308,14 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
         });
     });
 }
+QTopologyDashboardViewModel.prototype.rebalanceLeader = function (name) {
+    var self = this;
+    self.post("rebalance-leader", { name: name }, function () {
+        self.loadData(function () {
+            self.showWorkerInfo(name);
+        });
+    });
+}
 
 
 function QTopologyDashboardViewModelWorker(d, parent) {
@@ -298,6 +331,7 @@ function QTopologyDashboardViewModelWorker(d, parent) {
     this.history = ko.observableArray();
     this.open = function () { self.parent.showWorkerInfo(self.name()); };
     this.shut_down = function () { self.parent.shutDownWorker(self.name()); };
+    this.rebalance = function () { self.parent.rebalanceLeader(self.name()); };
     this.remove = function () { self.parent.deleteWorker(self.name()); };
     this.last_ping_s = ko.computed(function () {
         return self.parent.formatDateGui(self.last_ping());
