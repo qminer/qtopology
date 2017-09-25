@@ -189,7 +189,7 @@ class TopologyWorker {
     shutDownTopology(uuid, callback) {
         let self = this;
         let hits = self.topologies.filter(x => x.uuid == uuid);
-        if (hits.length >= 0) {
+        if (hits.length > 0) {
             let hit = hits[0];
             self.shutDownTopologyInternal(hit, callback);
         }
