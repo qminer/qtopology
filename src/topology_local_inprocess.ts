@@ -3,7 +3,6 @@ import * as intf from "./topology_interfaces";
 import * as async from "async";
 import * as path from "path";
 import * as cp from "child_process";
-import * as EventEmitter from "events";
 
 import * as fb from "./std_nodes/filter_bolt";
 import * as pb from "./std_nodes/post_bolt";

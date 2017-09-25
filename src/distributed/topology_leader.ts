@@ -76,6 +76,20 @@ export class TopologyLeader {
         }
     }
 
+    /** Forces this leader to perform a rebalance the next time it runs its loop. */
+    forceRebalance() {
+        this.next_rebalance = 0;
+    }
+
+    /** Sometimes outside code gets instruction to assign topology to specific worker. */
+    assignTopologyToWorker(target: string, uuid: string, callback: intf.SimpleCallback) {
+        let self = this;
+        log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
+        self.storage.assignTopology(uuid, target, (err) => {
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, callback);
+        });
+    }
+
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
@@ -217,19 +231,35 @@ export class TopologyLeader {
     /** This method will perform rebalance of topologies on workers if needed.
      */
     private performRebalanceIfNeeded(workers: intf.WorkerStatus[], topologies: lb.Topology[], callback) {
-        // let self = this;
-        // if (self.next_rebalance > Date.now()) {
-        //     return callback();
-        // }
-        // let load_balancer = new lb.LoadBalancerEx(
-        //     workers.map(x => {
-        //         return { name: x.name, weight: 0 };
-        //     }),
-        //     affinity_factor
-        // );
-        // let steps = load_balancer.rebalance(topologies);
-        // // TODO send rebalance signals
-        callback();
+        let self = this;
+        if (self.next_rebalance > Date.now()) {
+            return callback();
+        }
+        if (!workers || workers.length == 0) {
+            return callback();
+        }
+        if (!topologies || topologies.length == 0) {
+            return callback();
+        }
+        let load_balancer = new lb.LoadBalancerEx(
+            workers.map(x => {
+                return { name: x.name, weight: 0 };
+            }),
+            affinity_factor
+        );
+        let steps = load_balancer.rebalance(topologies);
+        async.each(
+            steps.changes,
+            (change: lb.RebalanceChange, xcallback: intf.SimpleCallback) => {
+                log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
+                self.storage.sendMessageToWorker(
+                    change.worker_old,
+                    intf.Consts.LeaderMessages.stop_topology,
+                    { uuid: change.uuid, new_worker: change.worker_new },
+                    xcallback);
+            },
+            callback
+        );
     }
 
     /**
@@ -241,11 +271,7 @@ export class TopologyLeader {
     private assignUnassignedTopology(ut: intf.TopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleCallback) {
         let self = this;
         let target = load_balancer.next(ut.worker_affinity, ut.weight);
-        log.logger().log(self.log_prefix + `Assigning topology ${ut.uuid} to worker ${target}`);
-        self.storage.assignTopology(ut.uuid, target, (err) => {
-            ut.worker = target;
-            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: ut.uuid }, callback);
-        });
+        self.assignTopologyToWorker(target, ut.uuid, callback);
     }
 
     /** Handles situation when there is a dead worker and its

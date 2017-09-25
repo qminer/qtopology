@@ -2,7 +2,6 @@
 const port_default = 3000;
 
 import * as nrc from 'node-rest-client';
-import * as EventEmitter from 'events';
 import * as intf from "../../topology_interfaces";
 
 //////////////////////////////////////////////////////////////////////

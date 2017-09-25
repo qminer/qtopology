@@ -4,11 +4,24 @@ import * as EventEmitter from "events";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
+/** Interface for objects that coordinator needs to communicate with. */
+export interface TopologyCoordinatorClient {
+    /** Obejct needs to start given topology */
+    startTopology(uuid: string, config: any, callback: intf.SimpleCallback);
+    /** Object needs to stop given topology */
+    stopTopology(uuid: string, callback: intf.SimpleCallback);
+    /** Object should verify that the given topology is running. */
+    verifyTopology(uuid: string, callback: intf.SimpleCallback);
+    /** Object should shut down */
+    shutdown();
+}
+
 /** This class handles communication with topology coordination storage.
  */
 export class TopologyCoordinator extends EventEmitter {
 
     private storage: intf.CoordinationStorage;
+    private client: TopologyCoordinatorClient;
     private name: string;
     private is_shutting_down: boolean;
     private is_running: boolean;
@@ -19,9 +32,10 @@ export class TopologyCoordinator extends EventEmitter {
     private log_prefix: string;
 
     /** Simple constructor */
-    constructor(name: string, storage: intf.CoordinationStorage) {
+    constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient) {
         super();
         this.storage = storage;
+        this.client = client;
         this.name = name;
         this.leadership = new leader.TopologyLeader(this.name, this.storage, null);
         this.is_running = false;
@@ -153,15 +167,29 @@ export class TopologyCoordinator extends EventEmitter {
                             if (self.name == res.worker) {
                                 // topology is still assigned to this worker
                                 // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                                self.emit(intf.Consts.CoordinatorMesagges.start_topology, { uuid: msg.content.uuid, config: res.config });
+                                self.client.startTopology(msg.content.uuid, res.config, xcallback);
                             }
                         })
                     } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                        self.emit(intf.Consts.CoordinatorMesagges.stop_topology, { uuid: msg.content.uuid });
+                        self.client.stopTopology(msg.content.uuid, (err) => {
+                            if (err) return callback(err);
+                            if (msg.content.new_worker) {
+                                // ok, we got an instruction to explicitely re-assign topology to new worker
+                                self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, xcallback);
+                            } else {
+                                xcallback();
+                            }
+                        });
                     } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
-                        self.emit(intf.Consts.CoordinatorMesagges.shutdown, {});
+                        self.client.shutdown();
+                        xcallback();
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
+                        self.leadership.forceRebalance();
+                        xcallback();
+                    } else {
+                        // unknown message
+                        xcallback();
                     }
-                    xcallback();
                 },
                 callback
             );
@@ -173,12 +201,16 @@ export class TopologyCoordinator extends EventEmitter {
         let self = this;
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err) return callback(err);
-            for (let top of topologies) {
-                if (top.status == intf.Consts.TopologyStatus.running) {
-                    self.emit(intf.Consts.CoordinatorMesagges.verify_topology, { uuid: top.uuid });
-                }
-            }
-            callback();
+            async.each(
+                topologies,
+                (top, xcallback) => {
+                    if (top.status == intf.Consts.TopologyStatus.running) {
+                        self.client.verifyTopology(top.uuid, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                },
+                callback);
         });
     }
 }
