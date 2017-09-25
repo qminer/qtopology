@@ -208,7 +208,8 @@ class TopologyLeader {
         let steps = load_balancer.rebalance(topologies);
         async.each(steps.changes, (change, xcallback) => {
             log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
-            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, callback);
+            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, // assignment to new_worker is not guaranteed
+            callback);
         }, callback);
     }
     /**
