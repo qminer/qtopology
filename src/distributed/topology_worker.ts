@@ -74,7 +74,7 @@ export class TopologyWorker {
                 });
             }
         });
-        process.on('SIGINT', () => {
+        let common_shutdown = () => {
             if (!self.waiting_for_shutdown) {
                 self.waiting_for_shutdown = true;
                 log.logger().important(this.log_prefix + "Received Shutdown signal from system, this process id = " + process.pid);
@@ -83,7 +83,9 @@ export class TopologyWorker {
                     process.exit(1);
                 });
             }
-        });
+        };
+        process.on('SIGINT', common_shutdown);
+        process.on('SIGTERM', common_shutdown);
     }
 
     /** Starts this worker */

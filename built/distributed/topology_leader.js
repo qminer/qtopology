@@ -202,6 +202,12 @@ class TopologyLeader {
         if (self.next_rebalance > Date.now()) {
             return callback();
         }
+        if (!workers || workers.length == 0) {
+            return callback();
+        }
+        if (!topologies || topologies.length == 0) {
+            return callback();
+        }
         let load_balancer = new lb.LoadBalancerEx(workers.map(x => {
             return { name: x.name, weight: 0 };
         }), affinity_factor);

@@ -34,6 +34,10 @@ class TopologyLocalWrapper {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + process.pid);
             self.shutdown();
         });
+        process.on('SIGTERM', () => {
+            log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + process.pid);
+            self.shutdown();
+        });
     }
 
     /** Starts infinite loop by reading messages from parent or console */
