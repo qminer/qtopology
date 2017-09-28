@@ -24,11 +24,8 @@ class TopologyLocalWrapper {
         process.on("message", (msg) => {
             self.handle(msg);
         });
-        process.on("unhandeledException", (e) => {
-            self.handle({
-                cmd: intf.ParentMsgCode.shutdown,
-                data: e
-            });
+        process.on("uncaughtException", (e) => {
+            self.handle({ cmd: intf.ParentMsgCode.shutdown, data: e });
         });
         process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + process.pid);
@@ -88,7 +85,17 @@ class TopologyLocalWrapper {
                 // if we are shutting down due to unhandeled exception,
                 // we have the original error from the data field of the message
                 let msg_data = (msg ? msg.data : null);
-                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err || msg_data });
+                let err_out = err || msg_data;
+                if (err_out) {
+                    log.logger().error(self.log_prefix + "Error in shutdown");
+                    if (err) {
+                        log.logger().exception(err);
+                    } else {
+                        log.logger().error(msg_data);
+                    }
+                }
+                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err_out });
+
                 setTimeout(() => {
                     // stop the process if it was not stopped so far
                     log.logger().important(self.log_prefix + "Stopping the topology process from the child");
