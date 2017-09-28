@@ -4,9 +4,9 @@ import * as lb from "../util/load_balance";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger"
 
-
-const affinity_factor: number = 5;
-
+const AFFINITY_FACTOR: number = 5;
+const REBALANCE_INTERVAL: number = 60 * 60 * 1000;
+const DEFAULT_LEADER_LOOP_INTERVAL: number = 3 * 1000;
 
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
@@ -31,8 +31,8 @@ export class TopologyLeader {
         this.shutdown_callback = null;
         this.is_leader = false;
         this.is_shut_down = false;
-        this.loop_timeout = loop_timeout || 3 * 1000; // 3 seconds for refresh
-        this.next_rebalance = Date.now() + 60 * 60 * 1000;
+        this.loop_timeout = loop_timeout || DEFAULT_LEADER_LOOP_INTERVAL;
+        this.next_rebalance = Date.now() + REBALANCE_INTERVAL;
         this.log_prefix = "[Leader] ";
     }
 
@@ -208,7 +208,7 @@ export class TopologyLeader {
                             alive_workers.map(x => {
                                 return { name: x.name, weight: worker_weights.get(x.name) || 0 };
                             }),
-                            affinity_factor // affinity means 5x stronger gravitational pull towards that worker
+                            AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
                         );
                         async.eachSeries(
                             unassigned_topologies,
@@ -235,6 +235,7 @@ export class TopologyLeader {
         if (self.next_rebalance > Date.now()) {
             return callback();
         }
+        self.next_rebalance = Date.now() + REBALANCE_INTERVAL;
         if (!workers || workers.length == 0) {
             return callback();
         }
@@ -245,7 +246,7 @@ export class TopologyLeader {
             workers.map(x => {
                 return { name: x.name, weight: 0 };
             }),
-            affinity_factor
+            AFFINITY_FACTOR
         );
         let steps = load_balancer.rebalance(topologies);
         async.each(

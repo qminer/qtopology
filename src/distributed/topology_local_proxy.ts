@@ -32,25 +32,28 @@ export class TopologyLocalProxy {
             let msg = msgx as intf.ChildMsg;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
                 if (self.init_cb) {
-                    self.init_cb(msg.data.err);
+                    let cb = self.init_cb;
                     self.init_cb = null;
+                    cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
                 if (self.run_cb) {
-                    self.run_cb(msg.data.err);
+                    let cb = self.run_cb;
                     self.run_cb = null;
+                    cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
                 if (self.pause_cb) {
-                    self.pause_cb(msg.data.err);
+                    let cb = self.pause_cb;
                     self.pause_cb = null;
+                    cb(msg.data.err);
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
                 self.was_shut_down = true;
-                self.callPendingCallbacks2(null);
+                self.callPendingCallbacks2(msg.data.err);
             }
         });
 
