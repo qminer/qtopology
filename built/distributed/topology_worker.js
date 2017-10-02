@@ -185,10 +185,17 @@ class TopologyWorker {
     }
     shutDownTopologies(callback) {
         let self = this;
-        async.each(self.topologies, (itemx, xcallback) => {
-            let item = itemx;
-            self.shutDownTopologyInternal(item, xcallback);
-        }, callback);
+        let first_err = null;
+        async.each(self.topologies, (item, xcallback) => {
+            self.shutDownTopologyInternal(item, (err) => {
+                log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
+                log.logger().exception(err);
+                first_err = first_err || err;
+                xcallback(null);
+            });
+        }, () => {
+            callback(first_err);
+        });
     }
     shutDownTopology(uuid, callback) {
         let self = this;
