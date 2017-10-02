@@ -86,7 +86,7 @@ export class TopologyLeader {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
-            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, callback);
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, 30 * 1000, callback);
         });
     }
 
@@ -257,6 +257,7 @@ export class TopologyLeader {
                     change.worker_old,
                     intf.Consts.LeaderMessages.stop_topology,
                     { uuid: change.uuid, new_worker: change.worker_new },
+                    30 * 1000,
                     xcallback);
             },
             callback

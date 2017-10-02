@@ -8,6 +8,7 @@ class MessageRec implements intf.StorageResultMessage {
     cmd: string;
     content: any;
     created: Date;
+    valid_until: number;
 }
 class TopologyRec implements intf.TopologyStatus {
     uuid: string;
@@ -129,14 +130,17 @@ export class MemoryStorage implements intf.CoordinationStorage {
 
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
         this.pingWorker(name);
-        let res = this.messages
-            .filter(x => x.name == name)
-            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
-        if (res.length > 0) {
+        let res1 = this.messages
+            .filter(x => x.name == name);
+        if (res1.length > 0) {
             this.messages = this.messages
                 .filter(x => x.name != name);
         }
-        callback(null, res);
+        let now = Date.now();
+        let res = res1
+            .filter(x => x.valid_until < now)
+            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
+        callback(null, res.filter(x => x));
     }
 
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>) {
@@ -254,8 +258,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
-    sendMessageToWorker(worker: string, cmd: string, content: any, callback: intf.SimpleCallback) {
-        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date() });
+    sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback) {
+        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date(), valid_until: Date.now() + valid_msec });
         callback();
     }
 
@@ -350,7 +354,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
+                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback
@@ -390,7 +394,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
     }
 
     shutDownWorker(name: string, callback: intf.SimpleCallback) {
-        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, callback);
+        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, callback);
     }
 
     getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>) {

@@ -95,14 +95,17 @@ class MemoryStorage {
     }
     getMessages(name, callback) {
         this.pingWorker(name);
-        let res = this.messages
-            .filter(x => x.name == name)
-            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
-        if (res.length > 0) {
+        let res1 = this.messages
+            .filter(x => x.name == name);
+        if (res1.length > 0) {
             this.messages = this.messages
                 .filter(x => x.name != name);
         }
-        callback(null, res);
+        let now = Date.now();
+        let res = res1
+            .filter(x => x.valid_until < now)
+            .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
+        callback(null, res.filter(x => x));
     }
     getTopologyInfo(uuid, callback) {
         let res = this.topologies
@@ -214,8 +217,8 @@ class MemoryStorage {
         });
         callback();
     }
-    sendMessageToWorker(worker, cmd, content, callback) {
-        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date() });
+    sendMessageToWorker(worker, cmd, content, valid_msec, callback) {
+        this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date(), valid_until: Date.now() + valid_msec });
         callback();
     }
     setTopologyStatus(uuid, status, error, callback) {
@@ -303,7 +306,7 @@ class MemoryStorage {
                     self.disableTopology(uuid, ycallback);
                 },
                 (ycallback) => {
-                    self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
+                    self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
                 }
             ], callback);
         }
@@ -341,7 +344,7 @@ class MemoryStorage {
         }
     }
     shutDownWorker(name, callback) {
-        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, callback);
+        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, callback);
     }
     getTopologyHistory(uuid, callback) {
         let data = this.topologies_history.filter(x => x.uuid == uuid);
