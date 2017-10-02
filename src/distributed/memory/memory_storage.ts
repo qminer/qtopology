@@ -19,6 +19,7 @@ class TopologyRec implements intf.TopologyStatus {
     worker_affinity: string[];
     error: string;
     last_ping: number;
+    last_ping_d: Date;
 }
 class WorkerRec implements intf.WorkerStatus {
     name: string;
@@ -98,6 +99,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     weight: x.weight,
                     enabled: x.enabled,
                     error: x.error,
+                    last_ping: x.last_ping,
+                    last_ping_d: x.last_ping_d,
                     worker_affinity: x.worker_affinity
                 };
             });
@@ -116,6 +119,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     weight: x.weight,
                     enabled: x.enabled,
                     error: x.error,
+                    last_ping: x.last_ping,
+                    last_ping_d: x.last_ping_d,
                     worker_affinity: x.worker_affinity
                 };
             });
@@ -145,6 +150,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     weight: x.weight,
                     enabled: x.enabled,
                     error: x.error,
+                    last_ping: x.last_ping,
+                    last_ping_d: x.last_ping_d,
                     worker_affinity: x.worker_affinity,
                     config: x.config
                 };
@@ -259,7 +266,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .forEach(x => {
                 x.status = status;
                 x.error = error;
-                x.last_ping = Date.now(); // this field only updates when status changes
+                x.last_ping_d = new Date(); // this field only updates when status changes
+                x.last_ping = x.last_ping_d.getTime(); // this field only updates when status changes
                 self.notifyTopologyHistory(x);
             });
         callback();
@@ -342,7 +350,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker,intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
+                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, ycallback);
                     }
                 ],
                 callback
@@ -464,6 +472,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
             weight: top.weight,
             worker: top.worker,
             error: top.error,
+            last_ping: top.last_ping,
+            last_ping_d: top.last_ping_d,
             worker_affinity: top.worker_affinity
         });
     }

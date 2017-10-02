@@ -184,6 +184,8 @@ export interface TopologyStatus {
     error: string;
     weight: number;
     enabled: boolean;
+    last_ping: number;
+    last_ping_d: Date;
     worker_affinity: string[];
 }
 export interface TopologyStatusHistory extends TopologyStatus {
