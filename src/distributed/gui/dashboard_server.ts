@@ -29,7 +29,7 @@ export interface DashboardServerOptions {
 }
 
 /**
- * Class for handling QTopology dashboard, either as stand-alone web server or 
+ * Class for handling QTopology dashboard, either as stand-alone web server or
  * via injection into Express application.
  */
 export class DashboardServer {
@@ -107,7 +107,7 @@ export class DashboardServer {
             self.storage.shutDownWorker(data.name, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, callback);
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {

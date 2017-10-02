@@ -68,7 +68,7 @@ class TopologyLeader {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
-            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, callback);
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, 30 * 1000, callback);
         });
     }
     /** Single step in checking if current node should be
@@ -217,7 +217,7 @@ class TopologyLeader {
         let steps = load_balancer.rebalance(topologies);
         async.each(steps.changes, (change, xcallback) => {
             log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
-            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, xcallback);
+            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, 30 * 1000, xcallback);
         }, callback);
     }
     /**
