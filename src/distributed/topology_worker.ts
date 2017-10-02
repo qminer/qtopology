@@ -6,6 +6,9 @@ import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 import * as fe from "../util/freq_estimator";
 
+const RESTART_SCORE_LIMIT = 10;
+
+/** Utility class for holding data about single topology */
 class TopologyItem {
     uuid: string;
     config: any;
@@ -102,7 +105,7 @@ export class TopologyWorker {
             } else {
                 // check if topology restarted a lot recently
                 let score = rec.error_frequency_score.add(new Date());
-                let too_often = (score >= 10);
+                let too_often = (score >= RESTART_SCORE_LIMIT);
                 if (too_often) {
                     self.removeAndReportError(rec, err);
                 } else {
@@ -118,7 +121,7 @@ export class TopologyWorker {
                 self.removeAndReportError(rec, err);
             } else {
                 // report topology as running, then try to start it.
-                // since we don't know how long this initialization will take, we could run into trouble with leader.
+                // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
                 self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
                 rec.proxy.run((err) => {
                     if (err) {
@@ -203,13 +206,20 @@ export class TopologyWorker {
 
     private shutDownTopologies(callback) {
         let self = this;
+        let first_err: Error = null;
         async.each(
             self.topologies,
-            (itemx, xcallback) => {
-                let item = itemx as TopologyItem;
-                self.shutDownTopologyInternal(item, xcallback);
+            (item: TopologyItem, xcallback) => {
+                self.shutDownTopologyInternal(item, (err) => {
+                    log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
+                    log.logger().exception(err);
+                    first_err = first_err || err;
+                    xcallback(null);
+                });
             },
-            callback
+            () => {
+                callback(first_err);
+            }
         );
     }
 
