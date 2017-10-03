@@ -178,22 +178,21 @@ QTopologyDashboardViewModel.prototype.showMsgQueue = function () {
     this.msg_queue_current.removeAll();
     this.msg_queue_history.removeAll();
     this.showBlade(this.bladeMsgQueue);
-    //self.post("msg-queue-content", {}, function (data) {
+    self.post("msg-queue-content", {}, function (res) {
 
-    var data = [
-        { ts: Date.now(), cmd: "start_topology", worker: "w1", content: { a: true } },
-        { ts: Date.now(), cmd: "start_topology", worker: "w2", content: { uuid: "nji" } }
-    ];
+        res.data.forEach(function (x) {
+            var d1 = new Date(x.ts);
+            x.ts_d = d1;
+            x.ts_s = self.formatDateGui(d1);
+            var d2 = new Date(x.valid_until);
+            x.valid_until_d = d2;
+            x.valid_until_s = self.formatDateGui(d2);
+            x.content_s = JSON.stringify(x.content);
 
-    data.forEach(function (x) {
-        var d = new Date(x.ts);
-        x.ts_d = d;
-        x.ts_s = self.formatDateGui(d);
-        x.content_s = JSON.stringify(x.content);
-        self.msg_queue_current.push(x);
+            self.msg_queue_current.push(x);
+        });
+
     });
-
-    //});
 }
 QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
     var self = this;
