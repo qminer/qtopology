@@ -47,8 +47,8 @@ class HttpStorage {
     assignTopology(uuid, name, callback) {
         this.call("assign-topology", { worker: name, uuid: uuid }, callback);
     }
-    sendMessageToWorker(worker, cmd, content, callback) {
-        this.call("send-message", { worker: worker, cmd: cmd, content: content }, callback);
+    sendMessageToWorker(worker, cmd, content, valid_msec, callback) {
+        this.call("send-message", { worker: worker, cmd: cmd, content: content, valid_msec: valid_msec }, callback);
     }
     setTopologyStatus(uuid, status, error, callback) {
         this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);

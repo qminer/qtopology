@@ -65,7 +65,7 @@ class DashboardServer {
             self.storage.shutDownWorker(data.name, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, callback);
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {

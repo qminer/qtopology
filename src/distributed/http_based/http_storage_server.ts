@@ -55,8 +55,9 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
     http_server.addHandler('/send-message', (data, callback) => {
         let worker = data.worker;
         let cmd = data.cmd;
-        let content = data.content
-        storage.sendMessageToWorker(worker, cmd, content, callback);
+        let content = data.content;
+        let valid_msec: number = data.valid_msec || Date.now() + 60 * 1000;
+        storage.sendMessageToWorker(worker, cmd, content, valid_msec, callback);
     });
 
     http_server.addHandler('/register-topology', (data, callback) => {
