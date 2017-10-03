@@ -154,9 +154,7 @@ QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
     let self = this;
     setInterval(function () {
         self.loadData(function () { });
-        self.periodicRefresh();
     }, 15000);
-
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
     let self = this;
