@@ -11,30 +11,31 @@ describe('TopologyLeader', function () {
         let target = new tl.TopologyLeader("name1", {});
     });
     it('run - leader established', function (done) {
-        let getLeadershipStatus_called = false;
+        let setWorkerLStatus_called = false;
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called = true;
-                cb(null, { leadership: "ok" });
+            getWorkerStatus: (cb) => {
+                cb(null, [{ name: "name1", status: "alive", lstatus: "leader", last_ping: Date.now() }]);
+            },
+            getTopologyStatus: (cb) => {
+                cb(null, []);
             }
         };
         let target = new tl.TopologyLeader("name1", mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
-                assert.ok(getLeadershipStatus_called);
-                done();
-            });
-        }, 1000);
+        target.singleLoopStep((err) => {
+            assert.ok(!err);
+            assert.equal(setWorkerLStatus_called, false);
+            done();
+        });
     });
     it('run - leader pending', function (done) {
         let target_name = "name1";
-        let getLeadershipStatus_called = false;
         let announceLeaderCandidacy_name = null;
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called = true;
-                cb(null, { leadership: "pending" });
+            getWorkerStatus: (cb) => {
+                cb(null, [{ name: target_name, status: "alive", lstatus: "pending", last_ping: Date.now() }]);
+            },
+            getTopologyStatus: (cb) => {
+                cb(null, []);
             },
             announceLeaderCandidacy: (name, cb) => {
                 announceLeaderCandidacy_name = name;
@@ -48,23 +49,21 @@ describe('TopologyLeader', function () {
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
-                assert.ok(getLeadershipStatus_called);
-                assert.equal(announceLeaderCandidacy_name, target_name);
-                done();
-            });
-        }, 1000);
+        target.singleLoopStep((err) => {
+            assert.equal(announceLeaderCandidacy_name, target_name);
+            done();
+        });
     });
     it('run - no leader', function (done) {
         let target_name = "name1";
-        let getLeadershipStatus_called = 0;
+        let counter = 0;
         let announceLeaderCandidacy_name = null;
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called++;
-                cb(null, { leadership: (getLeadershipStatus_called <= 1 ? "ok" : "vacant") });
+            getWorkerStatus: (cb) => {
+                cb(null, [{ name: target_name, status: "alive", lstatus: (counter++ == 0 ? "leader" : "normal"), last_ping: Date.now() }]);
+            },
+            getTopologyStatus: (cb) => {
+                cb(null, []);
             },
             announceLeaderCandidacy: (name, cb) => {
                 announceLeaderCandidacy_name = name;
@@ -72,29 +71,27 @@ describe('TopologyLeader', function () {
             },
             checkLeaderCandidacy: (name, cb) => {
                 cb(null, { isLeader: true });
-            },
-            getWorkerStatus: (cb) => {
-                cb(null, []);
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
-                assert.ok(getLeadershipStatus_called >= 1);
+        target.singleLoopStep((err) => {
+            assert.ok(!err);
+            target.singleLoopStep((err) => {
+                assert.ok(!err);
+                assert.ok(counter >= 2);
                 assert.equal(announceLeaderCandidacy_name, target_name);
                 done();
             });
-        }, 1000);
+        });
     });
     it('run - no leader, 1 worker, 0 topologies', function (done) {
         let target_name = "name1";
-        let getLeadershipStatus_called = 0;
+        let counter = 0;
         let announceLeaderCandidacy_name = null;
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called++;
-                cb(null, { leadership: (getLeadershipStatus_called <= 1 ? "ok" : "vacant") });
+            getWorkerStatus: (cb) => {
+                counter++;
+                cb(null, [{ name: target_name, status: "alive", lstatus: (announceLeaderCandidacy_name ? "leader" : "normal"), last_ping: Date.now() }]);
             },
             announceLeaderCandidacy: (name, cb) => {
                 announceLeaderCandidacy_name = name;
@@ -102,32 +99,26 @@ describe('TopologyLeader', function () {
             },
             checkLeaderCandidacy: (name, cb) => {
                 cb(null, { isLeader: true });
-            },
-            getWorkerStatus: (cb) => {
-                cb(null, [{ name: "w1", status: "alive" }]);
             },
             getTopologyStatus: (cb) => {
                 cb(null, []);
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
-                assert.ok(getLeadershipStatus_called >= 1);
-                assert.equal(announceLeaderCandidacy_name, target_name);
-                done();
-            });
-        }, 1000);
+        target.singleLoopStep((err) => {
+            assert.ok(counter >= 1);
+            assert.equal(announceLeaderCandidacy_name, target_name);
+            done();
+        });
     });
     it('run - no leader, 1 worker, 1 disabled topology', function (done) {
         let target_name = "name1";
-        let getLeadershipStatus_called = 0;
+        let counter = 0;
         let announceLeaderCandidacy_name = null;
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called++;
-                cb(null, { leadership: (getLeadershipStatus_called <= 1 ? "ok" : "vacant") });
+            getWorkerStatus: (cb) => {
+                counter++;
+                cb(null, [{ name: target_name, status: "alive", lstatus: (announceLeaderCandidacy_name ? "leader" : "normal"), last_ping: Date.now() }]);
             },
             announceLeaderCandidacy: (name, cb) => {
                 announceLeaderCandidacy_name = name;
@@ -135,9 +126,6 @@ describe('TopologyLeader', function () {
             },
             checkLeaderCandidacy: (name, cb) => {
                 cb(null, { isLeader: true });
-            },
-            getWorkerStatus: (cb) => {
-                cb(null, [{ name: "w1", status: "alive" }]);
             },
             getTopologyStatus: (cb) => {
                 cb(null, [
@@ -146,28 +134,25 @@ describe('TopologyLeader', function () {
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
-                assert.ok(getLeadershipStatus_called >= 1);
-                assert.equal(announceLeaderCandidacy_name, target_name);
-                done();
-            });
-        }, 1000);
+        target.singleLoopStep((err) => {
+            assert.ok(counter >= 1);
+            assert.equal(announceLeaderCandidacy_name, target_name);
+            done();
+        });
     });
     it('run - no leader, 1 worker, 1 enabled topology', function (done) {
         let target_name = "name1";
-        let worker_name = target_name; //"wrkr1";
-        let getLeadershipStatus_called = 0;
+        let worker_name = target_name;
+        let counter = 0;
         let announceLeaderCandidacy_name = null;
         let topology_record = {
             uuid: "uuid1", status: "unassigned", worker: null,
             weight: 1, affinity: [], enabled: true
         };
         let mock_storage = {
-            getLeadershipStatus: (cb) => {
-                getLeadershipStatus_called++;
-                cb(null, { leadership: (getLeadershipStatus_called <= 1 ? "ok" : "vacant") });
+            getWorkerStatus: (cb) => {
+                counter++;
+                cb(null, [{ name: target_name, status: "alive", lstatus: (announceLeaderCandidacy_name ? "leader" : "normal"), last_ping: Date.now() }]);
             },
             announceLeaderCandidacy: (name, cb) => {
                 announceLeaderCandidacy_name = name;
@@ -175,9 +160,6 @@ describe('TopologyLeader', function () {
             },
             checkLeaderCandidacy: (name, cb) => {
                 cb(null, { isLeader: true });
-            },
-            getWorkerStatus: (cb) => {
-                cb(null, [{ name: worker_name, status: "alive", lstatus: "leader" }]);
             },
             getTopologyStatus: (cb) => {
                 cb(null, [topology_record]);
@@ -191,20 +173,20 @@ describe('TopologyLeader', function () {
             sendMessageToWorker: (wrkr, cmd, content, valid_msec, cb) => {
                 assert.equal(wrkr, worker_name);
                 assert.equal(cmd, "start_topology");
-                assert.deepEqual(content, {uuid: topology_record.uuid});
+                assert.deepEqual(content, { uuid: topology_record.uuid });
                 cb();
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
-        target.run();
-        setTimeout(() => {
-            target.shutdown((err) => {
+        target.singleLoopStep((err) => {
+            assert.ok(!err);
+            target.singleLoopStep((err) => {
                 assert.ok(!err);
-                assert.ok(getLeadershipStatus_called >= 1);
+                assert.ok(counter >= 1);
                 assert.equal(announceLeaderCandidacy_name, target_name);
                 assert.equal(topology_record.worker, worker_name);
                 done();
             });
-        }, 1000);
+        });
     });
 });
