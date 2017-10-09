@@ -151,13 +151,13 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.periodicRefresh();
 }
 QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
-    let self = this;
+    var self = this;
     setInterval(function () {
         self.loadData(function () { });
     }, 15000);
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
-    let self = this;
+    var self = this;
     self.post("display-data", { name: name }, function (data) {
         self.show_back_link(data.back_url != null);
         self.back_url(data.back_url);
