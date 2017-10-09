@@ -4,11 +4,11 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.workers = ko.observableArray();
     this.workers_alive = ko.observableArray();
     this.workers_not_alive = ko.observableArray();
-    this.workers_not_alive_expanded = ko.observable(false);
+    this.workers_not_alive_expanded = ko.observable(true);
     this.topologies = ko.observableArray();
     this.topologies_enabled = ko.observableArray();
     this.topologies_not_enabled = ko.observableArray();
-    this.topologies_not_enabled_expanded = ko.observable(false);
+    this.topologies_not_enabled_expanded = ko.observable(true);
     this.storage_props = ko.observableArray();
     this.msg_queue_current = ko.observableArray();
     this.msg_queue_history = ko.observableArray();

@@ -45,4 +45,8 @@ export declare class TopologyLeader {
      * topologies need to be re-assigned to other servers.
      */
     private handleDeadWorker(dead_worker, callback);
+    private disableDefunctWorkerSingle(worker, callback);
+    private disableDefunctWorkers(data_workers, callback);
+    private unassignWaitingTopologies(data_workers, callback);
+    private refreshStatuses(callback);
 }

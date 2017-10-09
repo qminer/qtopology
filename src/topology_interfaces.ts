@@ -209,7 +209,6 @@ export interface TopologyInfoResponse extends TopologyStatus {
  */
 export interface CoordinationStorage {
 
-    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>);
     getWorkerStatus(callback: SimpleResultCallback<WorkerStatus[]>);
     getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>);
@@ -222,9 +221,11 @@ export interface CoordinationStorage {
     registerWorker(name: string, callback: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>);
+
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
+    setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);

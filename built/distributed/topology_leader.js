@@ -6,7 +6,7 @@ const intf = require("../topology_interfaces");
 const log = require("../util/logger");
 const AFFINITY_FACTOR = 5;
 const REBALANCE_INTERVAL = 60 * 60 * 1000;
-const DEFAULT_LEADER_LOOP_INTERVAL = 3 * 1000;
+const DEFAULT_LEADER_LOOP_INTERVAL = 10 * 1000;
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
  */
@@ -79,12 +79,10 @@ class TopologyLeader {
         let should_announce = true;
         async.series([
             (xcallback) => {
-                self.storage.getLeadershipStatus((err, res) => {
+                self.refreshStatuses((err, data) => {
                     if (err)
-                        return callback(err);
-                    if (res.leadership == intf.Consts.LeadershipStatus.ok) {
-                        should_announce = false;
-                    }
+                        return xcallback(err);
+                    should_announce = (data.leadership_status != intf.Consts.LeadershipStatus.ok);
                     xcallback();
                 });
             },
@@ -123,6 +121,7 @@ class TopologyLeader {
         let topologies_for_rebalance = [];
         async.series([
             (xcallback) => {
+                console.log("$$$$");
                 self.storage.getWorkerStatus((err, workers) => {
                     if (err)
                         return xcallback(err);
@@ -130,7 +129,9 @@ class TopologyLeader {
                         .filter(x => x.name === self.name)
                         .map(x => x.lstatus)[0];
                     if (this_worker_lstatus != intf.Consts.WorkerLStatus.leader) {
+                        // this worker is not marked as leader, abort leadership
                         perform_loop = false;
+                        self.is_leader = false;
                         return xcallback();
                     }
                     let dead_workers = workers
@@ -193,7 +194,12 @@ class TopologyLeader {
                 });
             },
             (xcallback) => {
-                self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
+                if (self.is_leader) {
+                    self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
+                }
+                else {
+                    xcallback();
+                }
             }
         ], callback);
     }
@@ -255,6 +261,100 @@ class TopologyLeader {
                 log.logger().important(self.log_prefix + "Setting dead worker as unloaded: " + dead_worker);
                 self.storage.setWorkerStatus(dead_worker, intf.Consts.WorkerStatus.unloaded, callback);
             });
+        });
+    }
+    disableDefunctWorkerSingle(worker, callback) {
+        let self = this;
+        let limit1 = Date.now() - 30 * 1000;
+        let limit2 = Date.now() - 10 * 1000;
+        console.log(`worker ${worker.name} - ${worker.status} - ${worker.lstatus}`);
+        async.series([
+            (xcallback) => {
+                // handle status
+                if (worker.status != intf.Consts.WorkerStatus.alive)
+                    return xcallback();
+                if (worker.last_ping >= limit1)
+                    return xcallback();
+                worker.status = intf.Consts.WorkerStatus.dead;
+                self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
+            },
+            (xcallback) => {
+                // handle lstatus                    
+                if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.status != intf.Consts.WorkerStatus.alive) {
+                    worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                    self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
+                }
+                else if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.last_ping < limit2) {
+                    worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                    self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
+                }
+                else {
+                    xcallback();
+                }
+            }
+        ], callback);
+    }
+    disableDefunctWorkers(data_workers, callback) {
+        let self = this;
+        let limit = Date.now() - 30 * 1000;
+        async.each(data_workers, (worker, xcallback) => {
+            self.disableDefunctWorkerSingle(worker, xcallback);
+        }, callback);
+    }
+    unassignWaitingTopologies(data_workers, callback) {
+        let self = this;
+        let dead_workers = data_workers
+            .filter(x => x.status == intf.Consts.WorkerStatus.dead || x.status == intf.Consts.WorkerStatus.unloaded)
+            .map(x => x.name);
+        self.storage.getTopologyStatus((err, data) => {
+            if (err)
+                return callback(err);
+            let limit = Date.now() - 30 * 1000;
+            async.each(data, (topology, xcallback) => {
+                if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < limit) {
+                    self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                }
+                else if (topology.status == intf.Consts.TopologyStatus.running && dead_workers.indexOf(topology.worker) >= 0) {
+                    self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                }
+                else {
+                    xcallback();
+                }
+            }, callback);
+        });
+    }
+    refreshStatuses(callback) {
+        let self = this;
+        let workers = null;
+        let res = {
+            leadership_status: intf.Consts.LeadershipStatus.vacant
+        };
+        async.series([
+            (xcallback) => {
+                console.log("#### get worker status");
+                self.storage.getWorkerStatus((err, data) => {
+                    if (err)
+                        return xcallback(err);
+                    workers = data;
+                    xcallback();
+                });
+            },
+            (xcallback) => { self.disableDefunctWorkers(workers, xcallback); },
+            (xcallback) => { self.unassignWaitingTopologies(workers, xcallback); },
+            (xcallback) => {
+                var leader_cnt = workers
+                    .filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader)
+                    .length;
+                if (leader_cnt > 0) {
+                    res.leadership_status = intf.Consts.LeadershipStatus.ok;
+                }
+                console.log(JSON.stringify(res));
+                xcallback();
+            }
+        ], (err) => {
+            if (err)
+                return callback(err);
+            callback(null, res);
         });
     }
 }
