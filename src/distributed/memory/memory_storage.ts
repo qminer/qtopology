@@ -57,20 +57,6 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
-        this.disableDefunctLeaders();
-        let res = intf.Consts.LeadershipStatus.vacant;
-        let leaders = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader).length;
-        let pending = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.candidate).length;
-        if (leaders > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.ok });
-        } else if (pending > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.pending });
-        } else {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.vacant });
-        }
-    }
-
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
         this.disableDefunctWorkers();
         let res = this.workers
@@ -283,6 +269,17 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .filter(x => x.name == worker)
             .forEach(x => {
                 x.status = status;
+                self.notifyWorkerHistory(x);
+            });
+        callback();
+    }
+
+    setWorkerLStatus(worker: string, lstatus: string, callback: intf.SimpleCallback) {
+        let self = this;
+        this.workers
+            .filter(x => x.name == worker)
+            .forEach(x => {
+                x.lstatus = lstatus;
                 self.notifyWorkerHistory(x);
             });
         callback();

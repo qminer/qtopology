@@ -6,7 +6,14 @@ import * as log from "../util/logger"
 
 const AFFINITY_FACTOR: number = 5;
 const REBALANCE_INTERVAL: number = 60 * 60 * 1000;
-const DEFAULT_LEADER_LOOP_INTERVAL: number = 3 * 1000;
+const DEFAULT_LEADER_LOOP_INTERVAL: number = 5 * 1000;
+const MESSAGE_INTERVAL: number = 20 * 1000;
+const WORKER_IDLE_INTERVAL: number = 30 * 1000;
+const LEADER_IDLE_INTERVAL: number = 3 * DEFAULT_LEADER_LOOP_INTERVAL;
+
+interface RefreshStatusesResult {
+    leadership_status: string;
+}
 
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
@@ -47,11 +54,7 @@ export class TopologyLeader {
             },
             (xcallback) => {
                 setTimeout(() => {
-                    if (self.is_leader) {
-                        self.performLeaderLoop(xcallback);
-                    } else {
-                        self.checkIfLeaderDetermined(xcallback);
-                    }
+                    self.singleLoopStep(xcallback);
                 }, self.loop_timeout);
             },
             (err) => {
@@ -63,6 +66,16 @@ export class TopologyLeader {
                 }
             }
         );
+    }
+
+    /** Single step for loop - can be called form outside, for testing. */
+    singleLoopStep(callback: intf.SimpleCallback) {
+        let self = this;
+        if (self.is_leader) {
+            self.performLeaderLoop(callback);
+        } else {
+            self.checkIfLeaderDetermined(callback);
+        }
     }
 
     /** Shut down the loop */
@@ -86,7 +99,7 @@ export class TopologyLeader {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
-            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, 30 * 1000, callback);
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, MESSAGE_INTERVAL, callback);
         });
     }
 
@@ -99,11 +112,9 @@ export class TopologyLeader {
         async.series(
             [
                 (xcallback) => {
-                    self.storage.getLeadershipStatus((err, res) => {
-                        if (err) return callback(err);
-                        if (res.leadership == intf.Consts.LeadershipStatus.ok) {
-                            should_announce = false;
-                        }
+                    self.refreshStatuses((err, data) => {
+                        if (err) return xcallback(err);
+                        should_announce = (data.leadership_status != intf.Consts.LeadershipStatus.ok);
                         xcallback();
                     });
                 },
@@ -125,7 +136,7 @@ export class TopologyLeader {
                     });
                 }
             ],
-            callback()
+            callback
         );
     }
 
@@ -148,7 +159,9 @@ export class TopologyLeader {
                             .filter(x => x.name === self.name)
                             .map(x => x.lstatus)[0];
                         if (this_worker_lstatus != intf.Consts.WorkerLStatus.leader) {
+                            // this worker is not marked as leader, abort leadership
                             perform_loop = false;
+                            self.is_leader = false;
                             return xcallback();
                         }
                         let dead_workers = workers
@@ -221,7 +234,11 @@ export class TopologyLeader {
                     });
                 },
                 (xcallback) => {
-                    self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
+                    if (self.is_leader) {
+                        self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
+                    } else {
+                        xcallback();
+                    }
                 }
             ],
             callback
@@ -257,7 +274,7 @@ export class TopologyLeader {
                     change.worker_old,
                     intf.Consts.LeaderMessages.stop_topology,
                     { uuid: change.uuid, new_worker: change.worker_new },
-                    30 * 1000,
+                    MESSAGE_INTERVAL,
                     xcallback);
             },
             callback
@@ -305,4 +322,114 @@ export class TopologyLeader {
             );
         });
     }
+
+    /** Checks single worker record and de-activates it if needed. */
+    private disableDefunctWorkerSingle(worker: intf.WorkerStatus, callback: intf.SimpleCallback) {
+        let self = this;
+        let limit1 = Date.now() - WORKER_IDLE_INTERVAL;
+        let limit2 = Date.now() - LEADER_IDLE_INTERVAL;
+
+        async.series(
+            [
+                (xcallback) => {
+                    // handle status
+                    if (worker.status != intf.Consts.WorkerStatus.alive) return xcallback();
+                    if (worker.last_ping >= limit1) return xcallback();
+                    worker.status = intf.Consts.WorkerStatus.dead;
+                    self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
+                },
+                (xcallback) => {
+                    // handle lstatus
+                    if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.status != intf.Consts.WorkerStatus.alive) {
+                        worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                        self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
+                    } else if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.last_ping < limit2) {
+                        worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                        self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                }
+            ],
+            callback
+        );
+    }
+
+    /** checks all worker records if any of them is not active anymore. */
+    private disableDefunctWorkers(data_workers: intf.WorkerStatus[], callback: intf.SimpleCallback) {
+        let self = this;
+        let limit = Date.now() - WORKER_IDLE_INTERVAL;
+        async.each(
+            data_workers,
+            (worker: intf.WorkerStatus, xcallback) => {
+                self.disableDefunctWorkerSingle(worker, xcallback);
+            },
+            callback
+        );
+    }
+
+    /** Detaches toplogies from inactive workers */
+    private unassignWaitingTopologies(data_workers: intf.WorkerStatus[], callback: intf.SimpleCallback) {
+        let self = this;
+        let dead_workers = data_workers
+            .filter(x => x.status == intf.Consts.WorkerStatus.dead || x.status == intf.Consts.WorkerStatus.unloaded)
+            .map(x => x.name);
+        self.storage.getTopologyStatus((err, data) => {
+            if (err) return callback(err);
+            let limit = Date.now() - WORKER_IDLE_INTERVAL;
+            async.each(
+                data,
+                (topology: intf.TopologyStatus, xcallback) => {
+                    if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < limit) {
+                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                    } else if (topology.status == intf.Consts.TopologyStatus.running && dead_workers.indexOf(topology.worker) >= 0) {
+                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                },
+                callback
+            );
+        });
+    }
+
+    /** Gets and refreshes worker statuses */
+    private refreshStatuses(callback: intf.SimpleResultCallback<RefreshStatusesResult>) {
+        let self = this;
+        let workers: intf.WorkerStatus[] = null;
+        let res: RefreshStatusesResult = {
+            leadership_status: intf.Consts.LeadershipStatus.vacant
+        };
+        async.series(
+            [
+                (xcallback) => {
+                    self.storage.getWorkerStatus((err, data) => {
+                        if (err) return xcallback(err);
+                        workers = data;
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    self.disableDefunctWorkers(workers, xcallback);
+                },
+                (xcallback) => {
+                    self.unassignWaitingTopologies(workers, xcallback);
+                },
+                (xcallback) => {
+                    var leader_cnt = workers
+                        .filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader)
+                        .length;
+                    if (leader_cnt > 0) {
+                        res.leadership_status = intf.Consts.LeadershipStatus.ok;
+                    }
+                    xcallback();
+                }
+            ],
+            (err) => {
+                if (err) return callback(err);
+                callback(null, res);
+            }
+        );
+    }
+
 }

@@ -13,9 +13,6 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
     http_server.addHandler('/topology-statuses', (data, callback) => {
         storage.getTopologyStatus(callback);
     });
-    http_server.addHandler('/leadership-status', (data, callback) => {
-        storage.getLeadershipStatus(callback);
-    });
     http_server.addHandler('/worker-topologies', (data, callback) => {
         let worker = data.worker;
         storage.getTopologiesForWorker(worker, callback);
@@ -51,6 +48,11 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         let name = data.name;
         let status = data.status;
         storage.setWorkerStatus(name, status, callback);
+    });
+    http_server.addHandler('/set-worker-lstatus', (data, callback) => {
+        let name = data.name;
+        let lstatus = data.lstatus;
+        storage.setWorkerLStatus(name, lstatus, callback);
     });
     http_server.addHandler('/send-message', (data, callback) => {
         let worker = data.worker;
