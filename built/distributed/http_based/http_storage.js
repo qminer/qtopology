@@ -32,9 +32,6 @@ class HttpStorage {
     getTopologyInfo(uuid, callback) {
         this.call("topology-info", { uuid: uuid }, callback);
     }
-    getLeadershipStatus(callback) {
-        this.call("leadership-status", {}, callback);
-    }
     registerWorker(name, callback) {
         this.call("register-worker", { worker: name }, callback);
     }
@@ -55,6 +52,9 @@ class HttpStorage {
     }
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
+    }
+    setWorkerLStatus(name, lstatus, callback) {
+        this.call("set-worker-lstatus", { name: name, lstatus: lstatus }, callback);
     }
     registerTopology(uuid, config, callback) {
         this.call("register-topology", { uuid: uuid, config: config }, callback);

@@ -121,6 +121,14 @@ export class DashboardServer {
                 title: this.title
             });
         });
+        self.server.addHandler("msg-queue-content", (data, callback) => {
+            let now = Date.now();
+            var res = [
+                { ts: now, cmd: "start_topology", worker: "w1", content: { a: true }, valid_until: now + 30 * 60 * 1000 },
+                { ts: now, cmd: "start_topology", worker: "w2", content: { uuid: "nji" }, valid_until: now + 8 * 1000 }
+            ];
+            callback(null, { data: res });
+        });
         callback();
     }
 

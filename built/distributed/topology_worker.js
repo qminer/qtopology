@@ -188,8 +188,10 @@ class TopologyWorker {
         let first_err = null;
         async.each(self.topologies, (item, xcallback) => {
             self.shutDownTopologyInternal(item, (err) => {
-                log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
-                log.logger().exception(err);
+                if (err) {
+                    log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
+                    log.logger().exception(err);
+                }
                 first_err = first_err || err;
                 xcallback(null);
             });

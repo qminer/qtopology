@@ -174,7 +174,6 @@ export interface TopologyInfoResponse extends TopologyStatus {
  * Interface that needs to be implemented by all storage implementations.
  */
 export interface CoordinationStorage {
-    getLeadershipStatus(callback: SimpleResultCallback<LeadershipResultStatus>): any;
     getWorkerStatus(callback: SimpleResultCallback<WorkerStatus[]>): any;
     getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>): any;
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>): any;
@@ -188,6 +187,7 @@ export interface CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
+    setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback): any;
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback): any;
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback): any;
     disableTopology(uuid: string, callback: SimpleCallback): any;
