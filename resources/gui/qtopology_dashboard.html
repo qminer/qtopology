@@ -27,7 +27,7 @@
             <div class="blade-close close-btn" data-bind="click: closeBlade">&times;</div>
             <h1>Message queue</h1>
             <div>
-                <div class="cell-6">
+                <div class="cell-12">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="title">Current queue</div>
@@ -37,6 +37,7 @@
                                 <thead>
                                     <tr>
                                         <th class="td-datetime">When</th>
+                                        <th class="td-datetime">Valid until</th>
                                         <th>Worker</th>
                                         <th>Cmd</th>
                                         <th>Content</th>
@@ -45,33 +46,7 @@
                                 <tbody data-bind="foreach: msg_queue_current">
                                     <tr>
                                         <td class="td-datetime" data-bind="text: ts_s"></td>
-                                        <td data-bind="text: worker"></td>
-                                        <td data-bind="text: cmd"></td>
-                                        <td data-bind="text: content"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="cell-6">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="title">History</div>
-                        </div>
-                        <div class="panel-body">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th class="td-datetime">When</th>
-                                        <th>Worker</th>
-                                        <th>Cmd</th>
-                                        <th>Content</th>
-                                    </tr>
-                                </thead>
-                                <tbody data-bind="foreach: msg_queue_history">
-                                    <tr>
-                                        <td class="td-datetime" data-bind="text: ts_s"></td>
+                                        <td class="td-datetime" data-bind="text: valid_until_s"></td>
                                         <td data-bind="text: worker"></td>
                                         <td data-bind="text: cmd"></td>
                                         <td data-bind="text: content_s"></td>
@@ -544,7 +519,7 @@
                     <div class="title">Message queue</div>
                 </div>
                 <div class="panel-body">
-                    <div>                        
+                    <div>
                         <div class="action-panel">
                             <div class="action-title">
                                 Inspect
