@@ -14,12 +14,15 @@ class TopologyLocalWrapper {
     private topology_local: tl.TopologyLocal;
     private waiting_for_shutdown: boolean;
     private log_prefix: string;
+    private lastPing: number;
+    private pingIntervalId: NodeJS.Timer;
 
     /** Constructor that sets up call routing */
     constructor() {
         let self = this;
         this.topology_local = new tl.TopologyLocal();
         this.waiting_for_shutdown = false;
+        this.lastPing = Date.now();
         this.log_prefix = "[Wrapper] ";
         process.on("message", (msg) => {
             self.handle(msg);
@@ -35,6 +38,23 @@ class TopologyLocalWrapper {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + process.pid);
             self.shutdown();
         });
+
+        this.pingIntervalId = setInterval(
+            () => {
+                if (!process.connected) {
+                    log.logger().error(`${self.log_prefix}Connected property in child process (pid=${process.pid}) is false, shutting down topology.`);
+                    self.shutdown();
+                    return;
+                }
+
+                let now = Date.now();
+                if (now - this.lastPing > 20 * 1000) {
+                    log.logger().error(`${self.log_prefix}Ping inside child process (pid=${process.pid}) was not received from parent in predefined interval, shutting down topology.`);
+                    self.shutdown();
+                }
+            },
+            3000
+        );
     }
 
     /** Starts infinite loop by reading messages from parent or console */
@@ -58,6 +78,10 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
             });
         }
+        if (msg.cmd === intf.ParentMsgCode.ping) {
+            this.lastPing = Date.now();
+            self.sendToParent(intf.ChildMsgCode.response_ping, {});
+        }
         if (msg.cmd === intf.ParentMsgCode.run) {
             self.topology_local.run();
             self.sendToParent(intf.ChildMsgCode.response_run, {});
@@ -79,6 +103,11 @@ class TopologyLocalWrapper {
             if (self.waiting_for_shutdown) {
                 return;
             }
+            if (this.pingIntervalId) {
+                clearInterval(this.pingIntervalId);
+                this.pingIntervalId = null;
+            }
+
             self.waiting_for_shutdown = true;
             log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${process.pid}`);
             self.topology_local.shutdown((err) => {

@@ -80,6 +80,9 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);
     });
+    http_server.addHandler('/kill-topology', (data, callback) => {
+        storage.killTopology(data.uuid, callback);
+    });
     http_server.addHandler('/topology-info', (data, callback) => {
         storage.getTopologyInfo(data.uuid, callback);
     });

@@ -74,6 +74,9 @@ class HttpStorage {
     stopTopology(uuid, callback) {
         this.call("stop-topology", { uuid: uuid }, callback);
     }
+    killTopology(uuid, callback) {
+        this.call("kill-topology", { uuid: uuid }, callback);
+    }
     deleteWorker(name, callback) {
         this.call("delete-worker", { name: name }, callback);
     }

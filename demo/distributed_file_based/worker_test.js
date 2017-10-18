@@ -9,7 +9,7 @@ cmdln
 let opts = cmdln.process(process.argv);
 
 qtopology.logger().setLevel("debug");
-let storage = new qtopology.FileStorage("./topologies", "*.json");
+let storage = new qtopology.FileStorage("./topologies", "*2.json");
 
 let w = new qtopology.TopologyWorker(opts.name, storage);
 w.run();
@@ -27,4 +27,4 @@ function shutdown() {
     }
 }
 
-setTimeout(() => { shutdown(); }, 20000);
+setTimeout(() => { shutdown(); }, 200000);
