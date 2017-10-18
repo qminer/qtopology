@@ -57,20 +57,6 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>) {
-        this.disableDefunctLeaders();
-        let res = intf.Consts.LeadershipStatus.vacant;
-        let leaders = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader).length;
-        let pending = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.candidate).length;
-        if (leaders > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.ok });
-        } else if (pending > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.pending });
-        } else {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.vacant });
-        }
-    }
-
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
         this.disableDefunctWorkers();
         let res = this.workers
@@ -138,7 +124,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         }
         let now = Date.now();
         let res = res1
-            .filter(x => x.valid_until < now)
+            .filter(x => x.valid_until > now)
             .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         callback(null, res.filter(x => x));
     }
@@ -288,6 +274,17 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
+    setWorkerLStatus(worker: string, lstatus: string, callback: intf.SimpleCallback) {
+        let self = this;
+        this.workers
+            .filter(x => x.name == worker)
+            .forEach(x => {
+                x.lstatus = lstatus;
+                self.notifyWorkerHistory(x);
+            });
+        callback();
+    }
+
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback) {
         let existing = this.topologies.filter(x => x.uuid == uuid);
         let t = null;
@@ -355,6 +352,27 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     },
                     (ycallback) => {
                         self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
+                    }
+                ],
+                callback
+            );
+        } else {
+            callback();
+        }
+    }
+
+    killTopology(uuid: string, callback: intf.SimpleCallback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+        if (hits.length > 0) {
+            async.series(
+                [
+                    (ycallback) => {
+                        self.disableTopology(uuid, ycallback);
+                    },
+                    (ycallback) => {
+                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.kill_topology, { uuid: uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback

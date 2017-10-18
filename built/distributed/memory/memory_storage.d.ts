@@ -7,7 +7,6 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     private topologies_history;
     constructor();
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
-    getLeadershipStatus(callback: intf.SimpleResultCallback<intf.LeadershipResultStatus>): void;
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
@@ -20,11 +19,13 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
+    setWorkerLStatus(worker: string, lstatus: string, callback: intf.SimpleCallback): void;
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback): void;
     disableTopology(uuid: string, callback: intf.SimpleCallback): void;
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
     stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    killTopology(uuid: string, callback: intf.SimpleCallback): void;
     clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
     deleteWorker(name: string, callback: intf.SimpleCallback): void;
     shutDownWorker(name: string, callback: intf.SimpleCallback): void;

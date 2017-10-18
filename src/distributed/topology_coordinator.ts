@@ -10,6 +10,8 @@ export interface TopologyCoordinatorClient {
     startTopology(uuid: string, config: any, callback: intf.SimpleCallback);
     /** Object needs to stop given topology */
     stopTopology(uuid: string, callback: intf.SimpleCallback);
+    /** Object needs to kill given topology */
+    killTopology(uuid: string, callback: intf.SimpleCallback);
     /** Object should verify that the given topology is running. */
     verifyTopology(uuid: string, callback: intf.SimpleCallback);
     /** Object should shut down */
@@ -180,6 +182,8 @@ export class TopologyCoordinator extends EventEmitter {
                                 xcallback();
                             }
                         });
+                    } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
+                        self.client.killTopology(msg.content.uuid, xcallback);
                     } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                         self.client.shutdown();
                         xcallback();

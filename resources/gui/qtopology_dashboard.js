@@ -4,11 +4,11 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.workers = ko.observableArray();
     this.workers_alive = ko.observableArray();
     this.workers_not_alive = ko.observableArray();
-    this.workers_not_alive_expanded = ko.observable(false);
+    this.workers_not_alive_expanded = ko.observable(true);
     this.topologies = ko.observableArray();
     this.topologies_enabled = ko.observableArray();
     this.topologies_not_enabled = ko.observableArray();
-    this.topologies_not_enabled_expanded = ko.observable(false);
+    this.topologies_not_enabled_expanded = ko.observable(true);
     this.storage_props = ko.observableArray();
     this.msg_queue_current = ko.observableArray();
     this.msg_queue_history = ko.observableArray();
@@ -151,13 +151,13 @@ QTopologyDashboardViewModel.prototype.init = function (callback) {
     this.periodicRefresh();
 }
 QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
-    let self = this;
+    var self = this;
     setInterval(function () {
         self.loadData(function () { });
     }, 15000);
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
-    let self = this;
+    var self = this;
     self.post("display-data", { name: name }, function (data) {
         self.show_back_link(data.back_url != null);
         self.back_url(data.back_url);
@@ -289,6 +289,14 @@ QTopologyDashboardViewModel.prototype.stopTopology = function (uuid) {
         });
     });
 }
+QTopologyDashboardViewModel.prototype.killTopology = function (uuid) {
+    var self = this;
+    self.post("kill-topology", { uuid: uuid }, function () {
+        self.loadData(function () {
+            self.showTopologyInfo(uuid);
+        });
+    });
+}
 QTopologyDashboardViewModel.prototype.deleteWorker = function (name) {
     var self = this;
     self.post("delete-worker", { name: name }, function () {
@@ -350,4 +358,5 @@ function QTopologyDashboardViewModelTopology(d, parent) {
     this.set_disabled = function () { self.parent.setTopologyDisabled(self.uuid()); };
     this.clear_error = function () { self.parent.clearTopologyError(self.uuid()); };
     this.stop = function () { self.parent.stopTopology(self.uuid()); };
+    this.kill = function () { self.parent.killTopology(self.uuid()); };
 }

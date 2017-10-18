@@ -25,7 +25,7 @@ export declare class TopologyWorker {
     /** Shuts down the worker and all its subprocesses. */
     shutdown(callback: intf.SimpleCallback): void;
     private shutDownTopologies(callback);
-    private shutDownTopology(uuid, callback);
-    private shutDownTopologyInternal(item, callback);
+    private shutDownTopology(uuid, do_kill, callback);
+    private shutDownTopologyInternal(item, do_kill, callback);
     private removeAndReportError(rec, err);
 }

@@ -16,6 +16,8 @@ export declare class TopologyLeader {
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number);
     /** Runs main loop that handles leadership detection */
     run(): void;
+    /** Single step for loop - can be called form outside, for testing. */
+    singleLoopStep(callback: intf.SimpleCallback): void;
     /** Shut down the loop */
     shutdown(callback: intf.SimpleCallback): void;
     /** Forces this leader to perform a rebalance the next time it runs its loop. */
@@ -45,4 +47,12 @@ export declare class TopologyLeader {
      * topologies need to be re-assigned to other servers.
      */
     private handleDeadWorker(dead_worker, callback);
+    /** Checks single worker record and de-activates it if needed. */
+    private disableDefunctWorkerSingle(worker, callback);
+    /** checks all worker records if any of them is not active anymore. */
+    private disableDefunctWorkers(data_workers, callback);
+    /** Detaches toplogies from inactive workers */
+    private unassignWaitingTopologies(data_workers, callback);
+    /** Gets and refreshes worker statuses */
+    private refreshStatuses(callback);
 }

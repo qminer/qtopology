@@ -24,21 +24,6 @@ class MemoryStorage {
         res.push({ key: "pending-messages", value: this.messages.length });
         callback(null, res);
     }
-    getLeadershipStatus(callback) {
-        this.disableDefunctLeaders();
-        let res = intf.Consts.LeadershipStatus.vacant;
-        let leaders = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.leader).length;
-        let pending = this.workers.filter(x => x.lstatus == intf.Consts.WorkerLStatus.candidate).length;
-        if (leaders > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.ok });
-        }
-        else if (pending > 0) {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.pending });
-        }
-        else {
-            callback(null, { leadership: intf.Consts.LeadershipStatus.vacant });
-        }
-    }
     getWorkerStatus(callback) {
         this.disableDefunctWorkers();
         let res = this.workers
@@ -103,7 +88,7 @@ class MemoryStorage {
         }
         let now = Date.now();
         let res = res1
-            .filter(x => x.valid_until < now)
+            .filter(x => x.valid_until > now)
             .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         callback(null, res.filter(x => x));
     }
@@ -244,6 +229,16 @@ class MemoryStorage {
         });
         callback();
     }
+    setWorkerLStatus(worker, lstatus, callback) {
+        let self = this;
+        this.workers
+            .filter(x => x.name == worker)
+            .forEach(x => {
+            x.lstatus = lstatus;
+            self.notifyWorkerHistory(x);
+        });
+        callback();
+    }
     registerTopology(uuid, config, callback) {
         let existing = this.topologies.filter(x => x.uuid == uuid);
         let t = null;
@@ -307,6 +302,24 @@ class MemoryStorage {
                 },
                 (ycallback) => {
                     self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
+                }
+            ], callback);
+        }
+        else {
+            callback();
+        }
+    }
+    killTopology(uuid, callback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+        if (hits.length > 0) {
+            async.series([
+                (ycallback) => {
+                    self.disableTopology(uuid, ycallback);
+                },
+                (ycallback) => {
+                    self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.kill_topology, { uuid: uuid }, 30 * 1000, ycallback);
                 }
             ], callback);
         }
