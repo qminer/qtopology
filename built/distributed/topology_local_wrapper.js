@@ -20,7 +20,9 @@ class TopologyLocalWrapper {
             self.handle(msg);
         });
         process.on("uncaughtException", (e) => {
-            self.handle({ cmd: intf.ParentMsgCode.shutdown, data: e });
+            log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
+            log.logger().exception(e);
+            self.shutdown();
         });
         process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + process.pid);
@@ -81,7 +83,7 @@ class TopologyLocalWrapper {
         }
     }
     /** This method shuts down the local topology */
-    shutdown(msg) {
+    shutdown() {
         try {
             let self = this;
             if (self.waiting_for_shutdown) {
@@ -95,19 +97,12 @@ class TopologyLocalWrapper {
             log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${process.pid}`);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
-                // we have the original error from the data field of the message
-                let msg_data = (msg ? msg.data : null);
-                let err_out = err || msg_data;
-                if (err_out) {
+                // we have the original error from the data field of the message                
+                if (err) {
                     log.logger().error(self.log_prefix + "Error in shutdown");
-                    if (err) {
-                        log.logger().exception(err);
-                    }
-                    else {
-                        log.logger().error(msg_data);
-                    }
+                    log.logger().exception(err);
                 }
-                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err_out });
+                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err });
                 setTimeout(() => {
                     // stop the process if it was not stopped so far
                     log.logger().important(self.log_prefix + "Stopping the topology process from the child");
