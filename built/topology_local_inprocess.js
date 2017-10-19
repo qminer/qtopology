@@ -296,7 +296,7 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
                     if (self.pendingSendRequests.length > 0) {
                         let d = self.pendingSendRequests[0];
                         self.pendingSendRequests = self.pendingSendRequests.slice(1);
-                        self.receive(d.data, stream_id, d.callback);
+                        self.receive(d.data, d.stream_id, d.callback);
                     }
                     else if (self.pendingShutdownCallback) {
                         self.shutdown(self.pendingShutdownCallback);
