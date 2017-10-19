@@ -46,6 +46,7 @@
             "working_dir": ".",
             "type": "sys",
             "cmd": "bomb",
+            "disabled": true,
             "inputs": [
                 {
                     "source": "pump"

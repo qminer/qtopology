@@ -158,7 +158,8 @@
                                         </div>
                                         <label data-bind="text: uuid()"></label>
                                         <div>
-                                            worker: <span data-bind="text: worker()"></span>
+                                            worker:
+                                            <span data-bind="text: worker()"></span>
                                         </div>
                                         <div class="right">
                                             <a data-bind="click: open">More &raquo;</a>
@@ -307,6 +308,26 @@
                                 </div>
                             </div>
 
+                            <div class="action-panel" data-bind="visible: status() == 'running'">
+                                <div class="action-title">
+                                    Kill this topology
+                                </div>
+                                <div class="action-desc">
+                                    <h2>USE WITH CAUTION</h2>
+                                    <p>
+                                        Instruct worker to send KILL signal to the topology.
+                                        This will abruptly stop the topology and might <b>cause
+                                        corrupt state</b>.
+                                    </p>
+                                    <p>
+                                        Also, the topology will be marked as disabled, so other workers wont pick it up and run it.
+                                    </p>
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: kill">Kill topology</button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -385,7 +406,8 @@
         <div class="cell-4">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Alive Workers (<span data-bind="text: workers_alive().length"></span>)</div>
+                    <div class="title">Alive Workers (
+                        <span data-bind="text: workers_alive().length"></span>)</div>
                 </div>
                 <div class="panel-body">
                     <div data-bind="foreach: workers_alive">
@@ -401,7 +423,8 @@
                                 </div>
                                 <label data-bind="text: name()"></label>
                                 <div>
-                                    topologies: <span data-bind="text: topologies_count()"></span>
+                                    topologies:
+                                    <span data-bind="text: topologies_count()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>
@@ -415,7 +438,8 @@
                 <div class="panel-header">
                     <a class="float-right" href="#" data-bind="click: toggle_workers_not_alive, visible: workers_not_alive_expanded">&#9650;</a>
                     <a class="float-right" href="#" data-bind="click: toggle_workers_not_alive, visible: !workers_not_alive_expanded()">&#9660;</a>
-                    <div class="title">Dead Workers (<span data-bind="text: workers_not_alive().length"></span>) </div>
+                    <div class="title">Dead Workers (
+                        <span data-bind="text: workers_not_alive().length"></span>) </div>
                 </div>
                 <div class="panel-body" data-bind="visible: workers_not_alive_expanded">
                     <div data-bind="foreach: workers_not_alive">
@@ -431,7 +455,8 @@
                                 </div>
                                 <label data-bind="text: name()"></label>
                                 <div>
-                                    topologies: <span data-bind="text: topologies_count()"></span>
+                                    topologies:
+                                    <span data-bind="text: topologies_count()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>
@@ -445,7 +470,8 @@
         <div class="cell-5">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="title">Enabled Topologies (<span data-bind="text: topologies_enabled().length"></span>)</div>
+                    <div class="title">Enabled Topologies (
+                        <span data-bind="text: topologies_enabled().length"></span>)</div>
                 </div>
                 <div class="panel-body">
                     <div data-bind="foreach: topologies_enabled">
@@ -461,7 +487,8 @@
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker: <span data-bind="text: worker()"></span>
+                                    worker:
+                                    <span data-bind="text: worker()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>
@@ -475,7 +502,8 @@
                 <div class="panel-header">
                     <a class="float-right" href="#" data-bind="click: toggle_topologies_not_enabled, visible: topologies_not_enabled_expanded">&#9650;</a>
                     <a class="float-right" href="#" data-bind="click: toggle_topologies_not_enabled, visible: !topologies_not_enabled_expanded()">&#9660;</a>
-                    <div class="title">Disabled Topologies (<span data-bind="text: topologies_not_enabled().length"></span>)</div>
+                    <div class="title">Disabled Topologies (
+                        <span data-bind="text: topologies_not_enabled().length"></span>)</div>
                 </div>
                 <div class="panel-body" data-bind="visible: topologies_not_enabled_expanded">
                     <div data-bind="foreach: topologies_not_enabled">
@@ -491,7 +519,8 @@
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker: <span data-bind="text: worker()"></span>
+                                    worker:
+                                    <span data-bind="text: worker()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>

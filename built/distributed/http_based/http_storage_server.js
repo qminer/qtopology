@@ -60,6 +60,9 @@ function initHttpServer(storage) {
         let valid_msec = data.valid_msec || Date.now() + 60 * 1000;
         storage.sendMessageToWorker(worker, cmd, content, valid_msec, callback);
     });
+    http_server.addHandler('/get-msg-queue-content', (data, callback) => {
+        storage.getMsgQueueContent(callback);
+    });
     http_server.addHandler('/register-topology', (data, callback) => {
         let result = storage.registerTopology(data.uuid, data.config, callback);
     });
@@ -77,6 +80,9 @@ function initHttpServer(storage) {
     });
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);
+    });
+    http_server.addHandler('/kill-topology', (data, callback) => {
+        storage.killTopology(data.uuid, callback);
     });
     http_server.addHandler('/topology-info', (data, callback) => {
         storage.getTopologyInfo(data.uuid, callback);

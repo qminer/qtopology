@@ -40,7 +40,10 @@ class TopologyWorker {
                 }
             },
             stopTopology: (uuid, callback) => {
-                self.shutDownTopology(uuid, callback);
+                self.shutDownTopology(uuid, false, callback);
+            },
+            killTopology: (uuid, callback) => {
+                self.shutDownTopology(uuid, true, callback);
             },
             shutdown: () => {
                 log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
@@ -187,7 +190,7 @@ class TopologyWorker {
         let self = this;
         let first_err = null;
         async.each(self.topologies, (item, xcallback) => {
-            self.shutDownTopologyInternal(item, (err) => {
+            self.shutDownTopologyInternal(item, false, (err) => {
                 if (err) {
                     log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
                     log.logger().exception(err);
@@ -199,20 +202,29 @@ class TopologyWorker {
             callback(first_err);
         });
     }
-    shutDownTopology(uuid, callback) {
+    shutDownTopology(uuid, do_kill, callback) {
         let self = this;
         let hits = self.topologies.filter(x => x.uuid == uuid);
         if (hits.length > 0) {
             let hit = hits[0];
-            self.shutDownTopologyInternal(hit, callback);
+            self.shutDownTopologyInternal(hit, do_kill, callback);
         }
         else {
             callback();
         }
     }
-    shutDownTopologyInternal(item, callback) {
+    shutDownTopologyInternal(item, do_kill, callback) {
         let self = this;
-        item.proxy.shutdown((err) => {
+        async.series([
+            (xcallback) => {
+                if (do_kill) {
+                    item.proxy.kill(xcallback);
+                }
+                else {
+                    item.proxy.shutdown(xcallback);
+                }
+            }
+        ], (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);

@@ -10,6 +10,9 @@ export declare class TopologyLocalProxy {
     private was_shut_down;
     private child_exit_callback;
     private child;
+    private pingIntervalId;
+    private pendingPings;
+    private log_prefix;
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback);
     /** Check if this object has been shut down already */
@@ -26,6 +29,8 @@ export declare class TopologyLocalProxy {
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback): void;
+    /** Sends kill signal to underlaying process */
+    kill(callback: intf.SimpleCallback): void;
     /** Internal method for sending messages to child process */
     private send(code, data);
 }
