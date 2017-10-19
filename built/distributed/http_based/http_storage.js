@@ -50,6 +50,9 @@ class HttpStorage {
     setTopologyStatus(uuid, status, error, callback) {
         this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
     }
+    getMsgQueueContent(callback) {
+        this.call("get-msg-queue-content", {}, callback);
+    }
     setWorkerStatus(name, status, callback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }

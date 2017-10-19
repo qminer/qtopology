@@ -61,6 +61,9 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         let valid_msec: number = data.valid_msec || Date.now() + 60 * 1000;
         storage.sendMessageToWorker(worker, cmd, content, valid_msec, callback);
     });
+    http_server.addHandler('/get-msg-queue-content', (data, callback) => {
+        storage.getMsgQueueContent(callback);
+    });
 
     http_server.addHandler('/register-topology', (data, callback) => {
         let result = storage.registerTopology(data.uuid, data.config, callback);

@@ -83,12 +83,25 @@ class DashboardServer {
             });
         });
         self.server.addHandler("msg-queue-content", (data, callback) => {
-            let now = Date.now();
-            var res = [
-                { ts: now, cmd: "start_topology", worker: "w1", content: { a: true }, valid_until: now + 30 * 60 * 1000 },
-                { ts: now, cmd: "start_topology", worker: "w2", content: { uuid: "nji" }, valid_until: now + 8 * 1000 }
-            ];
-            callback(null, { data: res });
+            self.storage.getMsgQueueContent((err, data) => {
+                if (err)
+                    return callback(err);
+                let res = data.map(x => {
+                    return {
+                        ts: x.created.getTime(),
+                        cmd: x.cmd,
+                        worker: x.name,
+                        content: x.data,
+                        valid_until: x.valid_until.getTime()
+                    };
+                });
+                // let now = Date.now();
+                // let res = [
+                //     { ts: now, cmd: "start_topology", worker: "w1", content: { a: true }, valid_until: now + 30 * 60 * 1000 },
+                //     { ts: now, cmd: "start_topology", worker: "w2", content: { uuid: "nji" }, valid_until: now + 8 * 1000 }
+                // ];
+                callback(null, { data: res });
+            });
         });
         callback();
     }

@@ -206,6 +206,13 @@ export interface StorageProperty {
 export interface TopologyInfoResponse extends TopologyStatus {
     config: TopologyDefinition;
 }
+export interface MsgQueueItem {
+    name: string;
+    cmd: string;
+    data: any;
+    created: Date;
+    valid_until: Date;
+}
 
 /**
  * Interface that needs to be implemented by all storage implementations.
@@ -229,7 +236,9 @@ export interface CoordinationStorage {
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
+    
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback);
+    getMsgQueueContent(callback: SimpleResultCallback<MsgQueueItem[]>);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);

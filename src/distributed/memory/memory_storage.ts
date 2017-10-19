@@ -249,6 +249,20 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
+    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>) {
+        let res = this.messages
+            .map(x => {
+                return {
+                    name: x.name,
+                    cmd: x.cmd,
+                    data: x.content,
+                    created: x.created,
+                    valid_until: new Date(x.valid_until)
+                };
+            });
+        callback(null, res);
+    }
+
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         let self = this;
         this.topologies

@@ -206,6 +206,19 @@ class MemoryStorage {
         this.messages.push({ cmd: cmd, name: worker, content: content, created: new Date(), valid_until: Date.now() + valid_msec });
         callback();
     }
+    getMsgQueueContent(callback) {
+        let res = this.messages
+            .map(x => {
+            return {
+                name: x.name,
+                cmd: x.cmd,
+                data: x.content,
+                created: x.created,
+                valid_until: new Date(x.valid_until)
+            };
+        });
+        callback(null, res);
+    }
     setTopologyStatus(uuid, status, error, callback) {
         let self = this;
         this.topologies
