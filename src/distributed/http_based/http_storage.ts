@@ -61,6 +61,9 @@ export class HttpStorage implements intf.CoordinationStorage {
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
     }
+    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>) {
+        this.call("get-msg-queue-content", {}, callback);
+    }
     setWorkerStatus(name: string, status: string, callback: intf.SimpleCallback) {
         this.call("set-worker-status", { name: name, status: status }, callback);
     }
@@ -85,6 +88,9 @@ export class HttpStorage implements intf.CoordinationStorage {
     }
     stopTopology(uuid: string, callback: intf.SimpleCallback) {
         this.call("stop-topology", { uuid: uuid }, callback);
+    }
+    killTopology(uuid: string, callback: intf.SimpleCallback) {
+        this.call("kill-topology", { uuid: uuid }, callback);
     }
     deleteWorker(name: string, callback: intf.SimpleCallback) {
         this.call("delete-worker", { name: name }, callback);

@@ -105,6 +105,7 @@ export enum ParentMsgCode {
     init,
     run,
     pause,
+    ping,
     shutdown
 }
 
@@ -120,6 +121,7 @@ export enum ChildMsgCode {
     response_init,
     response_run,
     response_pause,
+    response_ping,
     response_shutdown
 }
 
@@ -157,6 +159,7 @@ export var Consts = {
         rebalance: "rebalance",
         start_topology: "start_topology",
         stop_topology: "stop_topology",
+        kill_topology: "kill_topology",
         shutdown: "shutdown"
     }
 }
@@ -203,6 +206,13 @@ export interface StorageProperty {
 export interface TopologyInfoResponse extends TopologyStatus {
     config: TopologyDefinition;
 }
+export interface MsgQueueItem {
+    name: string;
+    cmd: string;
+    data: any;
+    created: Date;
+    valid_until: Date;
+}
 
 /**
  * Interface that needs to be implemented by all storage implementations.
@@ -226,12 +236,15 @@ export interface CoordinationStorage {
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
+    
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback);
+    getMsgQueueContent(callback: SimpleResultCallback<MsgQueueItem[]>);
 
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
     disableTopology(uuid: string, callback: SimpleCallback);
     enableTopology(uuid: string, callback: SimpleCallback);
     stopTopology(uuid: string, callback: SimpleCallback);
+    killTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
     clearTopologyError(uuid: string, callback: SimpleCallback);
 

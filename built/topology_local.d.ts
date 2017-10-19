@@ -30,7 +30,6 @@ export declare class TopologyLocal {
     private isRunning;
     private isShuttingDown;
     private heartbeatTimer;
-    private heartbeatCallback;
     /** Constructor prepares the object before any information is received. */
     constructor();
     /** Initialization that sets up internal structure and

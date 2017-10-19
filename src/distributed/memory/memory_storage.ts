@@ -124,7 +124,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         }
         let now = Date.now();
         let res = res1
-            .filter(x => x.valid_until < now)
+            .filter(x => x.valid_until > now)
             .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         callback(null, res.filter(x => x));
     }
@@ -249,6 +249,20 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
+    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>) {
+        let res = this.messages
+            .map(x => {
+                return {
+                    name: x.name,
+                    cmd: x.cmd,
+                    data: x.content,
+                    created: x.created,
+                    valid_until: new Date(x.valid_until)
+                };
+            });
+        callback(null, res);
+    }
+
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
         let self = this;
         this.topologies
@@ -352,6 +366,27 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     },
                     (ycallback) => {
                         self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
+                    }
+                ],
+                callback
+            );
+        } else {
+            callback();
+        }
+    }
+
+    killTopology(uuid: string, callback: intf.SimpleCallback) {
+        let self = this;
+        let hits = self.topologies
+            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+        if (hits.length > 0) {
+            async.series(
+                [
+                    (ycallback) => {
+                        self.disableTopology(uuid, ycallback);
+                    },
+                    (ycallback) => {
+                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.kill_topology, { uuid: uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback

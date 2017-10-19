@@ -15,16 +15,21 @@ export class TopologyLocalProxy {
     private was_shut_down: boolean;
     private child_exit_callback: intf.SimpleCallback;
     private child: cp.ChildProcess;
+    private pingIntervalId: NodeJS.Timer;
+    private pendingPings: number;
+    private log_prefix: string;
 
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback) {
         let self = this;
 
+        this.log_prefix = "[Proxy] ";
         this.init_cb = null;
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
         this.was_shut_down = false;
+        this.pendingPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
         this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
 
@@ -50,6 +55,9 @@ export class TopologyLocalProxy {
                     self.pause_cb = null;
                     cb(msg.data.err);
                 }
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_ping) {
+                self.pendingPings--;
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
                 self.was_shut_down = true;
@@ -80,6 +88,19 @@ export class TopologyLocalProxy {
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
+
+        // send ping to child every 3 seconds
+        this.pingIntervalId = setInterval(
+            () => {
+                if (self.pendingPings < 10) {
+                    self.pendingPings++;
+                    self.send(intf.ParentMsgCode.ping, {});
+                } else {
+                    log.logger().error(this.log_prefix + "Too many un-answered pings, sending kill to child process...");
+                    self.kill(() => { });
+                }
+            },
+            3000);
     }
 
     /** Check if this object has been shut down already */
@@ -89,6 +110,12 @@ export class TopologyLocalProxy {
 
     /** Calls all pending callbacks with given error and clears them. */
     private callPendingCallbacks(e: Error) {
+
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+            this.pingIntervalId = null;
+        }
+
         if (this.init_cb) {
             this.init_cb(e);
             this.init_cb = null;
@@ -117,6 +144,8 @@ export class TopologyLocalProxy {
         if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
+
+        this.log_prefix = `[Proxy ${uuid}] `;
         this.init_cb = callback;
         config.general.uuid = uuid;
         this.send(intf.ParentMsgCode.init, config);
@@ -151,6 +180,15 @@ export class TopologyLocalProxy {
         // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
+    }
+
+    /** Sends kill signal to underlaying process */
+    kill(callback: intf.SimpleCallback) {
+        if (this.was_shut_down) { // this proxy was shut down already, completely
+            return callback();
+        }
+        process.kill(this.child.pid, "SIGKILL");
+        callback();
     }
 
     /** Internal method for sending messages to child process */

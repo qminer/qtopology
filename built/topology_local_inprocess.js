@@ -149,29 +149,39 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         else {
             let ts_start = Date.now();
             setImmediate(() => {
-                this.child.next((err, data, stream_id, xcallback) => {
-                    self.telemetryAdd(Date.now() - ts_start);
-                    if (err) {
-                        log.logger().exception(err);
-                        callback();
-                        return;
-                    }
-                    if (!data) {
-                        self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
-                        callback();
-                    }
-                    else {
-                        self.emitCallback(data, stream_id, (err) => {
-                            // in case child object expects confirmation call for this tuple
-                            if (xcallback) {
-                                xcallback(err, callback);
+                try {
+                    this.child.next((err, data, stream_id, xcallback) => {
+                        self.telemetryAdd(Date.now() - ts_start);
+                        if (err) {
+                            log.logger().exception(err);
+                            callback();
+                            return;
+                        }
+                        if (!data) {
+                            self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
+                            callback();
+                        }
+                        else {
+                            try {
+                                self.emitCallback(data, stream_id, (err) => {
+                                    // in case child object expects confirmation call for this tuple
+                                    if (xcallback) {
+                                        xcallback(err, callback);
+                                    }
+                                    else {
+                                        callback();
+                                    }
+                                });
                             }
-                            else {
-                                callback();
+                            catch (e) {
+                                callback(e);
                             }
-                        });
-                    }
-                });
+                        }
+                    });
+                }
+                catch (e) {
+                    callback(e);
+                }
             });
         }
     }
@@ -263,17 +273,27 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
     }
     /** Shuts down the child */
     shutdown(callback) {
-        this.isShuttingDown = true;
-        if (this.inSend === 0) {
-            return this.child.shutdown(callback);
+        try {
+            this.isShuttingDown = true;
+            if (this.inSend === 0) {
+                return this.child.shutdown(callback);
+            }
+            else {
+                this.pendingShutdownCallback = callback;
+            }
         }
-        else {
-            this.pendingShutdownCallback = callback;
+        catch (e) {
+            callback(e);
         }
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, this.context, callback);
+        try {
+            this.child.init(this.name, this.init_params, this.context, callback);
+        }
+        catch (e) {
+            callback(e);
+        }
     }
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
@@ -288,22 +308,27 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         }
         else {
             self.inSend++;
-            self.child.receive(data, stream_id, (err) => {
-                self.telemetryAdd(Date.now() - ts_start);
-                callback(err);
-                self.inSend--;
-                if (self.inSend === 0) {
-                    if (self.pendingSendRequests.length > 0) {
-                        let d = self.pendingSendRequests[0];
-                        self.pendingSendRequests = self.pendingSendRequests.slice(1);
-                        self.receive(d.data, stream_id, d.callback);
+            try {
+                self.child.receive(data, stream_id, (err) => {
+                    self.telemetryAdd(Date.now() - ts_start);
+                    callback(err);
+                    self.inSend--;
+                    if (self.inSend === 0) {
+                        if (self.pendingSendRequests.length > 0) {
+                            let d = self.pendingSendRequests[0];
+                            self.pendingSendRequests = self.pendingSendRequests.slice(1);
+                            self.receive(d.data, d.stream_id, d.callback);
+                        }
+                        else if (self.pendingShutdownCallback) {
+                            self.shutdown(self.pendingShutdownCallback);
+                            self.pendingShutdownCallback = null;
+                        }
                     }
-                    else if (self.pendingShutdownCallback) {
-                        self.shutdown(self.pendingShutdownCallback);
-                        self.pendingShutdownCallback = null;
-                    }
-                }
-            });
+                });
+            }
+            catch (e) {
+                callback(e);
+            }
         }
     }
     /** Factory method for sys bolts */
