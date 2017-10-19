@@ -7,6 +7,8 @@ export interface TopologyCoordinatorClient {
     startTopology(uuid: string, config: any, callback: intf.SimpleCallback): any;
     /** Object needs to stop given topology */
     stopTopology(uuid: string, callback: intf.SimpleCallback): any;
+    /** Object needs to kill given topology */
+    killTopology(uuid: string, callback: intf.SimpleCallback): any;
     /** Object should verify that the given topology is running. */
     verifyTopology(uuid: string, callback: intf.SimpleCallback): any;
     /** Object should shut down */

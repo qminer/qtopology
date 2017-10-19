@@ -147,6 +147,9 @@ class TopologyCoordinator extends EventEmitter {
                         }
                     });
                 }
+                else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
+                    self.client.killTopology(msg.content.uuid, xcallback);
+                }
                 else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                     self.client.shutdown();
                     xcallback();

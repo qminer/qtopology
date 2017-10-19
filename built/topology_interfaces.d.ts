@@ -82,7 +82,8 @@ export declare enum ParentMsgCode {
     init = 0,
     run = 1,
     pause = 2,
-    shutdown = 3,
+    ping = 3,
+    shutdown = 4,
 }
 export interface ChildMsg {
     cmd: ChildMsgCode;
@@ -92,7 +93,8 @@ export declare enum ChildMsgCode {
     response_init = 0,
     response_run = 1,
     response_pause = 2,
-    response_shutdown = 3,
+    response_ping = 3,
+    response_shutdown = 4,
 }
 /**
  * Constants for using distributed functionality.
@@ -125,6 +127,7 @@ export declare var Consts: {
         rebalance: string;
         start_topology: string;
         stop_topology: string;
+        kill_topology: string;
         shutdown: string;
     };
 };
@@ -170,6 +173,13 @@ export interface StorageProperty {
 export interface TopologyInfoResponse extends TopologyStatus {
     config: TopologyDefinition;
 }
+export interface MsgQueueItem {
+    name: string;
+    cmd: string;
+    data: any;
+    created: Date;
+    valid_until: Date;
+}
 /**
  * Interface that needs to be implemented by all storage implementations.
  */
@@ -189,10 +199,12 @@ export interface CoordinationStorage {
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback): any;
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback): any;
+    getMsgQueueContent(callback: SimpleResultCallback<MsgQueueItem[]>): any;
     registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback): any;
     disableTopology(uuid: string, callback: SimpleCallback): any;
     enableTopology(uuid: string, callback: SimpleCallback): any;
     stopTopology(uuid: string, callback: SimpleCallback): any;
+    killTopology(uuid: string, callback: SimpleCallback): any;
     deleteTopology(uuid: string, callback: SimpleCallback): any;
     clearTopologyError(uuid: string, callback: SimpleCallback): any;
     deleteWorker(name: string, callback: SimpleCallback): any;

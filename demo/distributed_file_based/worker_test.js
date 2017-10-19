@@ -27,4 +27,4 @@ function shutdown() {
     }
 }
 
-setTimeout(() => { shutdown(); }, 20000);
+setTimeout(() => { shutdown(); }, 200000);

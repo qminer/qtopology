@@ -17,6 +17,7 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>): void;
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback): void;
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback): void;
+    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>): void;
     setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
     setWorkerLStatus(worker: string, lstatus: string, callback: intf.SimpleCallback): void;
@@ -25,6 +26,7 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     enableTopology(uuid: string, callback: intf.SimpleCallback): void;
     deleteTopology(uuid: string, callback: intf.SimpleCallback): void;
     stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    killTopology(uuid: string, callback: intf.SimpleCallback): void;
     clearTopologyError(uuid: string, callback: intf.SimpleCallback): void;
     deleteWorker(name: string, callback: intf.SimpleCallback): void;
     shutDownWorker(name: string, callback: intf.SimpleCallback): void;

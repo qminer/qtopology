@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const cp = require("child_process");
 const intf = require("../topology_interfaces");
+const log = require("../util/logger");
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -10,11 +11,13 @@ class TopologyLocalProxy {
     /** Constructor that sets up call routing */
     constructor(child_exit_callback) {
         let self = this;
+        this.log_prefix = "[Proxy] ";
         this.init_cb = null;
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
         this.was_shut_down = false;
+        this.pendingPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
         this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
         self.child.on("message", (msgx) => {
@@ -39,6 +42,9 @@ class TopologyLocalProxy {
                     self.pause_cb = null;
                     cb(msg.data.err);
                 }
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_ping) {
+                self.pendingPings--;
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
                 self.was_shut_down = true;
@@ -68,6 +74,17 @@ class TopologyLocalProxy {
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
+        // send ping to child every 3 seconds
+        this.pingIntervalId = setInterval(() => {
+            if (self.pendingPings < 10) {
+                self.pendingPings++;
+                self.send(intf.ParentMsgCode.ping, {});
+            }
+            else {
+                log.logger().error(this.log_prefix + "Too many un-answered pings, sending kill to child process...");
+                self.kill(() => { });
+            }
+        }, 3000);
     }
     /** Check if this object has been shut down already */
     wasShutDown() {
@@ -75,6 +92,10 @@ class TopologyLocalProxy {
     }
     /** Calls all pending callbacks with given error and clears them. */
     callPendingCallbacks(e) {
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+            this.pingIntervalId = null;
+        }
         if (this.init_cb) {
             this.init_cb(e);
             this.init_cb = null;
@@ -101,6 +122,7 @@ class TopologyLocalProxy {
         if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
+        this.log_prefix = `[Proxy ${uuid}] `;
         this.init_cb = callback;
         config.general.uuid = uuid;
         this.send(intf.ParentMsgCode.init, config);
@@ -132,6 +154,14 @@ class TopologyLocalProxy {
         // ok, start shutdown
         this.shutdown_cb = callback;
         this.send(intf.ParentMsgCode.shutdown, {});
+    }
+    /** Sends kill signal to underlaying process */
+    kill(callback) {
+        if (this.was_shut_down) {
+            return callback();
+        }
+        process.kill(this.child.pid, "SIGKILL");
+        callback();
     }
     /** Internal method for sending messages to child process */
     send(code, data) {
