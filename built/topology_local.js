@@ -215,8 +215,7 @@ class TopologyLocal {
                 spout.heartbeat();
             }
             catch (e) {
-                if (e)
-                    log.logger().exception(e);
+                log.logger().exception(e);
             }
         }
         for (let bolt of this.bolts) {
@@ -224,8 +223,7 @@ class TopologyLocal {
                 bolt.heartbeat();
             }
             catch (e) {
-                if (e)
-                    log.logger().exception(e);
+                log.logger().exception(e);
             }
         }
     }
