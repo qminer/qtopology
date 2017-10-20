@@ -198,7 +198,7 @@ describe('TopologyBoltInproc', function () {
         });
 
 
-        it.only('Concurrent receive - different stream_ids', function (done) {
+        it('Concurrent receive - different stream_ids', function (done) {
             this.timeout(5000);
             let emits = [];
             let config = {
