@@ -19,7 +19,14 @@ class TopologyLocalProxy {
         this.was_shut_down = false;
         this.pendingPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
+        this.child = null;
+    }
+    /** Starts child process and sets up all event handlers */
+    setUpChildProcess(uuid) {
+        let self = this;
+        // send uuid in command-line parameters so that it is visible in process list
+        // wont be used for anything
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
             let msg = msgx;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
@@ -122,6 +129,7 @@ class TopologyLocalProxy {
         if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
+        this.setUpChildProcess(uuid);
         this.log_prefix = `[Proxy ${uuid}] `;
         this.init_cb = callback;
         config.general.uuid = uuid;

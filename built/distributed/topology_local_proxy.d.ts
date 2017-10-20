@@ -15,6 +15,8 @@ export declare class TopologyLocalProxy {
     private log_prefix;
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback);
+    /** Starts child process and sets up all event handlers */
+    private setUpChildProcess(uuid);
     /** Check if this object has been shut down already */
     wasShutDown(): boolean;
     /** Calls all pending callbacks with given error and clears them. */

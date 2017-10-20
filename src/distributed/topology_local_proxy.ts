@@ -31,8 +31,15 @@ export class TopologyLocalProxy {
         this.was_shut_down = false;
         this.pendingPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), [], { silent: false });
+        this.child = null;
+    }
 
+    /** Starts child process and sets up all event handlers */
+    private setUpChildProcess(uuid: string) {
+        let self = this;
+        // send uuid in command-line parameters so that it is visible in process list
+        // wont be used for anything
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
             let msg = msgx as intf.ChildMsg;
             if (msg.cmd == intf.ChildMsgCode.response_init) {
@@ -64,7 +71,6 @@ export class TopologyLocalProxy {
                 self.callPendingCallbacks2(msg.data.err);
             }
         });
-
         self.child.on("error", (e) => {
             self.callPendingCallbacks(e);
             self.child_exit_callback(e);
@@ -88,7 +94,6 @@ export class TopologyLocalProxy {
             self.child_exit_callback(e);
             self.callPendingCallbacks2(e);
         });
-
         // send ping to child every 3 seconds
         this.pingIntervalId = setInterval(
             () => {
@@ -144,6 +149,7 @@ export class TopologyLocalProxy {
         if (this.init_cb) {
             return callback(new Error("Pending init callback already exists."));
         }
+        this.setUpChildProcess(uuid);
 
         this.log_prefix = `[Proxy ${uuid}] `;
         this.init_cb = callback;
