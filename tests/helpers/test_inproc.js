@@ -51,6 +51,25 @@ class InprocHelper {
     }
 }
 
-exports.create = function () {
+
+class InprocHelper2 extends InprocHelper {
+    constructor() {
+        super();
+    }
+
+    receive(data, stream_id, callback) {
+        super.receive(data, stream_id, (err) => {
+            // confirm after 1.5 sec
+            setTimeout(() => {
+                callback(err);
+            }, 1500);
+        });
+    }
+}
+
+exports.create = function (subtype) {
+    if (subtype == "derived") {
+        return new InprocHelper2();
+    }
     return new InprocHelper();
 };
