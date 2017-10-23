@@ -70,6 +70,9 @@ export class HttpStorage implements intf.CoordinationStorage {
     setWorkerLStatus(name: string, lstatus: string, callback: intf.SimpleCallback) {
         this.call("set-worker-lstatus", { name: name, lstatus: lstatus }, callback);
     }
+    setTopologyPid(uuid: string, pid: number, callback: intf.SimpleCallback) {
+        this.call("set-topology-pid", { uuid: uuid, pid: pid }, callback);
+    }
 
     registerTopology(uuid: string, config: any, callback: intf.SimpleCallback) {
         this.call("register-topology", { uuid: uuid, config: config }, callback);

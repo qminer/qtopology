@@ -88,6 +88,7 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
             hit.status(d.status || "-");
             hit.error(d.error || "-");
             hit.worker(d.worker || "-");
+            hit.pid(d.pid || "-");
             obj = hit;
         }
         this.topologies.push(obj);
@@ -226,6 +227,7 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
         data.forEach(function (x) {
             var d = new Date(x.ts);
             x.ts_d = d;
+            x.pid = x.pid || "-";
             x.ts_s = self.formatDateGui(d);
             x.expanded = ko.observable(false);
             x.click = function () { x.expanded(!x.expanded()); };
@@ -244,8 +246,6 @@ QTopologyDashboardViewModel.prototype.closeBlade = function () {
 
 QTopologyDashboardViewModel.prototype.prepareBlades = function () {
     var self = this;
-    // wire-up close buttons
-    //$(".blade-close").click(function () {
     $(".close-btn").click(function () {
         self.closeBlade();
     });
@@ -349,6 +349,7 @@ function QTopologyDashboardViewModelTopology(d, parent) {
     this.uuid = ko.observable(d.uuid);
     this.enabled = ko.observable(d.enabled);
     this.status = ko.observable(d.status);
+    this.pid = ko.observable(d.pid || "-");
     this.config = ko.observable("");
     this.error = ko.observable(d.error || "-");
     this.worker = ko.observable(d.worker || "-");

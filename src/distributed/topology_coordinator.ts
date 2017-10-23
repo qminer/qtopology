@@ -135,6 +135,20 @@ export class TopologyCoordinator extends EventEmitter {
             }
         });
     }
+    /** Set pid on given topology */
+    reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback) {
+        let self = this;
+        this.storage.setTopologyPid(uuid, pid, (err) => {
+            if (err) {
+                log.logger().error(self.log_prefix + "Couldn't report topology pid");
+                log.logger().error(self.log_prefix + `Topology: ${uuid}, pid=${pid}`);
+                log.logger().exception(err);
+            }
+            if (callback) {
+                callback(err);
+            }
+        });
+    }
 
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback) {

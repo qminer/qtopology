@@ -35,7 +35,8 @@ class MemoryStorage {
                 last_ping: x.last_ping,
                 last_ping_d: x.last_ping_d,
                 lstatus_ts: x.lstatus_ts,
-                lstatus_ts_d: x.lstatus_ts_d
+                lstatus_ts_d: x.lstatus_ts_d,
+                pid: x.pid
             };
         });
         callback(null, res);
@@ -54,7 +55,8 @@ class MemoryStorage {
                 error: x.error,
                 last_ping: x.last_ping,
                 last_ping_d: x.last_ping_d,
-                worker_affinity: x.worker_affinity
+                worker_affinity: x.worker_affinity,
+                pid: x.pid
             };
         });
         callback(null, res);
@@ -73,7 +75,8 @@ class MemoryStorage {
                 error: x.error,
                 last_ping: x.last_ping,
                 last_ping_d: x.last_ping_d,
-                worker_affinity: x.worker_affinity
+                worker_affinity: x.worker_affinity,
+                pid: x.pid
             };
         });
         callback(null, res);
@@ -106,7 +109,8 @@ class MemoryStorage {
                 last_ping: x.last_ping,
                 last_ping_d: x.last_ping_d,
                 worker_affinity: x.worker_affinity,
-                config: x.config
+                config: x.config,
+                pid: x.pid
             };
         });
         if (res.length == 0) {
@@ -380,6 +384,14 @@ class MemoryStorage {
         let data = this.workers_history.filter(x => x.name == name);
         callback(null, JSON.parse(JSON.stringify(data)));
     }
+    setTopologyPid(uuid, pid, callback) {
+        let data = this.topologies.filter(x => x.uuid == uuid);
+        if (data.length > 0) {
+            data[0].pid = pid;
+            this.notifyTopologyHistory(data[0]);
+        }
+        callback(null);
+    }
     pingWorker(name) {
         for (let worker of this.workers) {
             if (worker.name == name) {
@@ -447,7 +459,8 @@ class MemoryStorage {
             error: top.error,
             last_ping: top.last_ping,
             last_ping_d: top.last_ping_d,
-            worker_affinity: top.worker_affinity
+            worker_affinity: top.worker_affinity,
+            pid: top.pid
         });
     }
     notifyWorkerHistory(w) {
@@ -455,6 +468,7 @@ class MemoryStorage {
             lstatus: w.lstatus,
             name: w.name,
             status: w.status,
+            pid: w.pid,
             ts: new Date()
         });
     }

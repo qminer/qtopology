@@ -59,6 +59,9 @@ class HttpStorage {
     setWorkerLStatus(name, lstatus, callback) {
         this.call("set-worker-lstatus", { name: name, lstatus: lstatus }, callback);
     }
+    setTopologyPid(uuid, pid, callback) {
+        this.call("set-topology-pid", { uuid: uuid, pid: pid }, callback);
+    }
     registerTopology(uuid, config, callback) {
         this.call("register-topology", { uuid: uuid, config: config }, callback);
     }

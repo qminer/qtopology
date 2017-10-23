@@ -16,6 +16,7 @@ class TopologyRec implements intf.TopologyStatus {
     status: string;
     worker: string;
     weight: number;
+    pid: number;
     enabled: boolean;
     worker_affinity: string[];
     error: string;
@@ -25,6 +26,7 @@ class TopologyRec implements intf.TopologyStatus {
 class WorkerRec implements intf.WorkerStatus {
     name: string;
     status: string;
+    pid: number;
     lstatus: string;
     last_ping: number;
     last_ping_d: Date;
@@ -68,7 +70,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
                     lstatus_ts: x.lstatus_ts,
-                    lstatus_ts_d: x.lstatus_ts_d
+                    lstatus_ts_d: x.lstatus_ts_d,
+                    pid: x.pid
                 };
             });
         callback(null, res);
@@ -88,7 +91,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     error: x.error,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
-                    worker_affinity: x.worker_affinity
+                    worker_affinity: x.worker_affinity,
+                    pid: x.pid
                 };
             });
         callback(null, res);
@@ -108,7 +112,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     error: x.error,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
-                    worker_affinity: x.worker_affinity
+                    worker_affinity: x.worker_affinity,
+                    pid: x.pid
                 };
             });
         callback(null, res);
@@ -143,7 +148,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
                     worker_affinity: x.worker_affinity,
-                    config: x.config
+                    config: x.config,
+                    pid: x.pid
                 };
             });
         if (res.length == 0) {
@@ -439,6 +445,15 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, JSON.parse(JSON.stringify(data)));
     }
 
+    setTopologyPid(uuid: string, pid: number, callback: intf.SimpleCallback) {
+        let data = this.topologies.filter(x => x.uuid == uuid);
+        if (data.length > 0) {
+            data[0].pid = pid;
+            this.notifyTopologyHistory(data[0]);
+        }
+        callback(null);
+    }
+
     private pingWorker(name: string) {
         for (let worker of this.workers) {
             if (worker.name == name) {
@@ -510,7 +525,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
             error: top.error,
             last_ping: top.last_ping,
             last_ping_d: top.last_ping_d,
-            worker_affinity: top.worker_affinity
+            worker_affinity: top.worker_affinity,
+            pid: top.pid
         });
     }
 
@@ -519,6 +535,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
             lstatus: w.lstatus,
             name: w.name,
             status: w.status,
+            pid: w.pid,
             ts: new Date()
         });
     }
