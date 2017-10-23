@@ -14,6 +14,11 @@ export declare class TopologyLeader {
     private log_prefix;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, loop_timeout: number);
+    /** Gets an indication if this instance is running. */
+    isRunning(): boolean;
+    /** Gets current value of indicator that this instance
+     * has been elected a leader */
+    isLeader(): boolean;
     /** Runs main loop that handles leadership detection */
     run(): void;
     /** Single step for loop - can be called form outside, for testing. */
