@@ -26,6 +26,15 @@ class TopologyLeader {
         this.next_rebalance = Date.now() + REBALANCE_INTERVAL;
         this.log_prefix = "[Leader] ";
     }
+    /** Gets an indication if this instance is running. */
+    isRunning() {
+        return this.is_running;
+    }
+    /** Gets current value of indicator that this instance
+     * has been elected a leader */
+    isLeader() {
+        return this.is_leader;
+    }
     /** Runs main loop that handles leadership detection */
     run() {
         let self = this;
@@ -43,6 +52,14 @@ class TopologyLeader {
             self.is_running = false;
             if (self.shutdown_callback) {
                 self.shutdown_callback(err);
+            }
+            else {
+                // if the parent didn't trigger the shutdown,
+                // he will have to query isRunning() method and act appropriatelly.
+                if (err) {
+                    log.logger().error("Error in leadership");
+                    log.logger().exception(err);
+                }
             }
         });
     }
