@@ -37,6 +37,8 @@ export declare class TopologyCoordinator extends EventEmitter {
     shutdown(callback: intf.SimpleCallback): void;
     /** Set status on given topology */
     reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback): void;
+    /** Set pid on given topology */
+    reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback): void;
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
     /** This method checks for new messages from coordination storage. */

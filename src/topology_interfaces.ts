@@ -173,18 +173,21 @@ export interface WorkerStatus {
     lstatus: string;
     last_ping: number;
     last_ping_d: Date;
+    pid: number;
 }
 export interface WorkerStatusHistory {
     name: string;
     status: string;
     lstatus: string;
     ts: Date;
+    pid: number;
 }
 export interface TopologyStatus {
     uuid: string;
     status: string;
     worker: string;
     error: string;
+    pid: number;
     weight: number;
     enabled: boolean;
     last_ping: number;
@@ -234,6 +237,7 @@ export interface CoordinationStorage {
 
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
     setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
+    setTopologyPid(uuid: string, pid: number, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
     

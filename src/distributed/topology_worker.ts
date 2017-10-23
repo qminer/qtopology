@@ -126,6 +126,7 @@ export class TopologyWorker {
                 // report topology as running, then try to start it.
                 // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
                 self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
+                self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
                 rec.proxy.run((err) => {
                     if (err) {
                         self.removeAndReportError(rec, err);
