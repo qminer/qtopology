@@ -109,8 +109,14 @@ export class TopologyLocalProxy {
     }
 
     /** Check if this object has been shut down already */
-    wasShutDown() {
+    wasShutDown(): boolean {
         return this.was_shut_down;
+    }
+
+    /** Returns process PID */
+    getPid(): number {
+        if (!this.child) return null;
+        return this.child.pid;
     }
 
     /** Calls all pending callbacks with given error and clears them. */

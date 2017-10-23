@@ -97,6 +97,12 @@ class TopologyLocalProxy {
     wasShutDown() {
         return this.was_shut_down;
     }
+    /** Returns process PID */
+    getPid() {
+        if (!this.child)
+            return null;
+        return this.child.pid;
+    }
     /** Calls all pending callbacks with given error and clears them. */
     callPendingCallbacks(e) {
         if (this.pingIntervalId) {

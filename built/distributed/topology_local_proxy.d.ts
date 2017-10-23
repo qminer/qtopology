@@ -19,6 +19,8 @@ export declare class TopologyLocalProxy {
     private setUpChildProcess(uuid);
     /** Check if this object has been shut down already */
     wasShutDown(): boolean;
+    /** Returns process PID */
+    getPid(): number;
     /** Calls all pending callbacks with given error and clears them. */
     private callPendingCallbacks(e);
     /** Calls pending shutdown callback with given error and clears it. */

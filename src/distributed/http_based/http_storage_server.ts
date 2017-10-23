@@ -44,6 +44,11 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         let error = data.error;
         storage.setTopologyStatus(uuid, status, error, callback);
     });
+    http_server.addHandler('/set-topology-pid', (data, callback) => {
+        let uuid = data.uuid;
+        let pid = data.pid;
+        storage.setTopologyPid(uuid, pid, callback);
+    });
     http_server.addHandler('/set-worker-status', (data, callback) => {
         let name = data.name;
         let status = data.status;

@@ -158,8 +158,9 @@
                                         </div>
                                         <label data-bind="text: uuid()"></label>
                                         <div>
-                                            worker:
-                                            <span data-bind="text: worker()"></span>
+                                            worker: <span data-bind="text: worker()"></span>
+                                            &bull;
+                                            pid: <span data-bind="text: pid()"></span>
                                         </div>
                                         <div class="right">
                                             <a data-bind="click: open">More &raquo;</a>
@@ -239,6 +240,8 @@
 
                             <dt>Worker</dt>
                             <dd data-bind="text: worker()"></dd>
+                            <dt>PID</dt>
+                            <dd data-bind="text: pid()"></dd>
                             <dt>Error</dt>
                             <dd data-bind="text: error()"></dd>
                         </div>
@@ -332,7 +335,7 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-6">
+            <div class="cell-4">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Run-time info</div>
@@ -350,7 +353,7 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-4">
+            <div class="cell-6">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">History</div>
@@ -363,6 +366,7 @@
                                     <th>Enabled</th>
                                     <th>Status</th>
                                     <th>Worker</th>
+                                    <th>Pid</th>
                                     <th>Error</th>
                                 </tr>
                             </thead>
@@ -380,6 +384,7 @@
                                         <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
                                     </td>
                                     <td data-bind="text: worker"></td>
+                                    <td data-bind="text: pid"></td>
                                     <td>
                                         <div data-bind="visible: error != null && error.length > 0">
                                             <a href="#" data-bind="click: click">Show &raquo;</a>
@@ -487,8 +492,9 @@
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker:
-                                    <span data-bind="text: worker()"></span>
+                                    worker: <span data-bind="text: worker()"></span>                                    
+                                    &bull;
+                                    pid: <span data-bind="text: pid()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>
@@ -519,8 +525,8 @@
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker:
-                                    <span data-bind="text: worker()"></span>
+                                    <!-- worker:
+                                    <span data-bind="text: worker()"></span>-->
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>
