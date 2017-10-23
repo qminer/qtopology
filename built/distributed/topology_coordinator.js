@@ -34,6 +34,15 @@ class TopologyCoordinator extends EventEmitter {
         }, (xcallback) => {
             async.parallel([
                 (ycallback) => {
+                    if (self.leadership.isRunning()) {
+                        ycallback();
+                    }
+                    else {
+                        self.is_running = false;
+                        ycallback(new Error("Leadership object was stopped"));
+                    }
+                },
+                (ycallback) => {
                     setTimeout(() => {
                         self.handleIncommingRequests(ycallback);
                     }, self.loop_timeout);
@@ -48,9 +57,14 @@ class TopologyCoordinator extends EventEmitter {
                 }
             ], xcallback);
         }, (err) => {
-            log.logger().important(self.log_prefix + "Coordinator shut down.");
+            log.logger().important(self.log_prefix + "Coordinator stopped.");
             if (self.shutdown_callback) {
                 self.shutdown_callback(err);
+            }
+            else {
+                // This exit was not triggered from outside,
+                // so notify the parent.
+                self.client.shutdown();
             }
         });
     }
@@ -75,13 +89,19 @@ class TopologyCoordinator extends EventEmitter {
     /** Shut down the loop */
     shutdown(callback) {
         let self = this;
+        log.logger().important(self.log_prefix + "Shutting down coordinator");
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
             }
-            self.shutdown_callback = callback;
-            self.is_running = false;
+            if (self.is_running) {
+                self.shutdown_callback = callback;
+                self.is_running = false;
+            }
+            else {
+                callback();
+            }
         });
     }
     /** Set status on given topology */
