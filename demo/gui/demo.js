@@ -40,9 +40,11 @@ storage.assignTopology("topology.test.z", "worker1", () => { });
 
 storage.setTopologyStatus("topology.test.1", "waiting", "", () => { });
 storage.setTopologyStatus("topology.test.2", "running", "", () => { });
+storage.setTopologyPid("topology.test.2", 3212, () => { });
 storage.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
 storage.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
 storage.setTopologyStatus("topology.test.z", "running", "", () => { });
+storage.setTopologyPid("topology.test.z", 16343, () => { });
 
 let server = new qtopology.DashboardServer();
 
