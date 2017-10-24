@@ -105,7 +105,13 @@ class TopologyLocal {
                     tasks.push((xcallback) => { spout.init(xcallback); });
                 });
                 self.runHeartbeat();
-                async.series(tasks, callback);
+                async.series(tasks, (err) => {
+                    if (err) {
+                        log.logger().error(self.logging_prefix + "Error while initializing topology");
+                        log.logger().exception(err);
+                    }
+                    callback(err);
+                });
             });
         }
         catch (e) {

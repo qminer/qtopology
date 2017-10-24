@@ -232,6 +232,10 @@ class MemoryStorage {
             x.error = error;
             x.last_ping_d = new Date(); // this field only updates when status changes
             x.last_ping = x.last_ping_d.getTime(); // this field only updates when status changes
+            if (status == intf.Consts.TopologyStatus.error || status != intf.Consts.TopologyStatus.unassigned) {
+                x.worker = null;
+                x.pid = null;
+            }
             self.notifyTopologyHistory(x);
         });
         callback();
