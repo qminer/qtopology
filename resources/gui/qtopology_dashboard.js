@@ -99,13 +99,13 @@ QTopologyDashboardViewModel.prototype.mergeTopologies = function (new_data) {
     self.topologies_enabled.removeAll();
     self.topologies_not_enabled.removeAll();
     self.topologies().forEach(function (x) {
-        if (x.enabled()) {
+        if (x.enabled() || x.status() == "paused" || x.status() == "running" || x.status() == "waiting") {
             self.topologies_enabled.push(x);
         } else {
             self.topologies_not_enabled.push(x);
+            x.worker("-");
         }
     });
-
 }
 QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     var self = this;
@@ -155,7 +155,7 @@ QTopologyDashboardViewModel.prototype.periodicRefresh = function () {
     var self = this;
     setInterval(function () {
         self.loadData(function () { });
-    }, 15000);
+    }, 15 * 1000);
 }
 QTopologyDashboardViewModel.prototype.loadDisplayData = function () {
     var self = this;
