@@ -144,6 +144,8 @@ class TopologyLeader {
         let alive_workers = null;
         let worker_weights = new Map();
         let topologies_for_rebalance = [];
+        let topologies_disabled = [];
+        let topologies_enabled = [];
         async.series([
             (xcallback) => {
                 self.storage.getWorkerStatus((err, workers) => {
@@ -175,47 +177,67 @@ class TopologyLeader {
                 if (!perform_loop || alive_workers.length == 0) {
                     return xcallback();
                 }
-                self.storage.getTopologyStatus((err, topologies) => {
+                self.storage.getTopologyStatus((err, topologies_all) => {
                     if (err)
                         return xcallback(err);
-                    topologies = topologies.filter(x => x.enabled);
-                    topologies.forEach(x => {
-                        x.weight = x.weight || 1;
-                        x.worker_affinity = x.worker_affinity || [];
-                        if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
-                            for (let worker of alive_workers) {
-                                let name = worker.name;
-                                if (name == x.worker) {
-                                    let old_weight = 0;
-                                    if (worker_weights.has(name)) {
-                                        old_weight = worker_weights.get(name);
-                                    }
-                                    worker_weights.set(name, old_weight + x.weight);
-                                    break;
+                    topologies_disabled = topologies_all.filter(x => !x.enabled);
+                    topologies_enabled = topologies_all.filter(x => x.enabled);
+                    xcallback();
+                });
+            },
+            (xcallback) => {
+                if (!perform_loop || alive_workers.length == 0) {
+                    return xcallback();
+                }
+                let targets = topologies_enabled
+                    .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
+                async.each(targets, (item, xxcallback) => {
+                    // strange, topology marked as enabled and running, but no worker specified
+                    // mark it as unassinged.                        
+                    log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
+                    self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, xxcallback);
+                }, xcallback);
+            },
+            (xcallback) => {
+                if (!perform_loop || alive_workers.length == 0) {
+                    return xcallback();
+                }
+                topologies_enabled.forEach(x => {
+                    x.weight = x.weight || 1;
+                    x.worker_affinity = x.worker_affinity || [];
+                    if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
+                        for (let worker of alive_workers) {
+                            let name = worker.name;
+                            if (name == x.worker) {
+                                let old_weight = 0;
+                                if (worker_weights.has(name)) {
+                                    old_weight = worker_weights.get(name);
                                 }
+                                worker_weights.set(name, old_weight + x.weight);
+                                break;
                             }
                         }
-                        topologies_for_rebalance.push({
-                            uuid: x.uuid,
-                            weight: x.weight,
-                            worker: x.worker,
-                            affinity: x.worker_affinity
-                        });
-                    });
-                    let unassigned_topologies = topologies
-                        .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
-                    if (unassigned_topologies.length > 0) {
-                        log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
                     }
-                    let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
-                        return { name: x.name, weight: worker_weights.get(x.name) || 0 };
-                    }), AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
-                    );
-                    async.eachSeries(unassigned_topologies, (item, ycallback) => {
-                        let ut = item;
-                        self.assignUnassignedTopology(ut, load_balancer, ycallback);
-                    }, xcallback);
+                    topologies_for_rebalance.push({
+                        uuid: x.uuid,
+                        weight: x.weight,
+                        worker: x.worker,
+                        affinity: x.worker_affinity
+                    });
                 });
+                let unassigned_topologies = topologies_enabled
+                    .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
+                if (unassigned_topologies.length > 0) {
+                    log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
+                }
+                let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
+                    return { name: x.name, weight: worker_weights.get(x.name) || 0 };
+                }), AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
+                );
+                async.eachSeries(unassigned_topologies, (item, ycallback) => {
+                    let ut = item;
+                    self.assignUnassignedTopology(ut, load_balancer, ycallback);
+                }, xcallback);
             },
             (xcallback) => {
                 if (self.is_leader) {

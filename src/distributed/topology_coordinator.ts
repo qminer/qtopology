@@ -12,8 +12,8 @@ export interface TopologyCoordinatorClient {
     stopTopology(uuid: string, callback: intf.SimpleCallback);
     /** Object needs to kill given topology */
     killTopology(uuid: string, callback: intf.SimpleCallback);
-    /** Object should verify that the given topology is running. */
-    verifyTopology(uuid: string, callback: intf.SimpleCallback);
+    /** Object should verify that the list fo running topologies matches the given list. */
+    verifyTopologies(uuids: string[], callback: intf.SimpleCallback);
     /** Object should shut down */
     shutdown();
 }
@@ -236,16 +236,11 @@ export class TopologyCoordinator extends EventEmitter {
         let self = this;
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err) return callback(err);
-            async.each(
-                topologies,
-                (top, xcallback) => {
-                    if (top.status == intf.Consts.TopologyStatus.running) {
-                        self.client.verifyTopology(top.uuid, xcallback);
-                    } else {
-                        xcallback();
-                    }
-                },
-                callback);
+            let topologies_running = topologies
+                .filter(x => x.status == intf.Consts.TopologyStatus.running)
+                .map(x => x.uuid);
+
+            self.client.verifyTopologies(topologies_running, callback);
         });
     }
 }

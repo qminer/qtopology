@@ -30,14 +30,8 @@ class TopologyWorker {
                 self.start(uuid, config);
                 callback();
             },
-            verifyTopology: (uuid, callback) => {
-                if (self.topologies.filter(x => x.uuid == uuid).length == 0) {
-                    log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + uuid);
-                    self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
-                }
-                else {
-                    callback();
-                }
+            verifyTopologies: (uuids, callback) => {
+                self.verifyTopologies(uuids, callback);
             },
             stopTopology: (uuid, callback) => {
                 self.shutDownTopology(uuid, false, callback);
@@ -83,6 +77,36 @@ class TopologyWorker {
     /** Starts this worker */
     run() {
         this.coordinator.run();
+    }
+    /** Thi smethod verifies tha t all topologies are running and properly registered */
+    verifyTopologies(uuids, callback) {
+        let self = this;
+        async.series([
+            (xcallback) => {
+                // topologies that are running,
+                // but are NOT included in the external list,
+                // must be reported as unassigned
+                let to_stop = self.topologies.filter(y => {
+                    return (uuids.indexOf(y.uuid) < 0);
+                });
+                async.each(to_stop, (uuid, xxcallback) => {
+                    log.logger().log(this.log_prefix + "Topology is running but it NOT assigned to this worker,will be stopped: " + uuid);
+                    self.shutDownTopology(uuid, false, xxcallback);
+                }, xcallback);
+            },
+            (xcallback) => {
+                // topologies that are NOT running,
+                // but are included in the external list,
+                // must be reported as unassigned
+                let to_unassign = uuids.filter(y => {
+                    return (self.topologies.filter(x => x.uuid == y).length == 0);
+                });
+                async.each(to_unassign, (uuid, xxcallback) => {
+                    log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + uuid);
+                    self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", xxcallback);
+                }, xcallback);
+            }
+        ], callback);
     }
     /** Internal method that creates proxy for given topology item */
     createProxy(rec) {
