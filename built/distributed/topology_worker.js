@@ -30,8 +30,8 @@ class TopologyWorker {
                 self.start(uuid, config);
                 callback();
             },
-            verifyTopologies: (uuids, callback) => {
-                self.verifyTopologies(uuids, callback);
+            resolveTopologyMismatches: (uuids, callback) => {
+                self.resolveTopologyMismatches(uuids, callback);
             },
             stopTopology: (uuid, callback) => {
                 self.shutDownTopology(uuid, false, callback);
@@ -78,8 +78,8 @@ class TopologyWorker {
     run() {
         this.coordinator.run();
     }
-    /** Thi smethod verifies tha t all topologies are running and properly registered */
-    verifyTopologies(uuids, callback) {
+    /** This method verifies that all topologies are running and properly registered */
+    resolveTopologyMismatches(uuids, callback) {
         let self = this;
         async.series([
             (xcallback) => {

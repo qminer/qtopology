@@ -208,7 +208,7 @@ class TopologyCoordinator extends EventEmitter {
             let topologies_running = topologies
                 .filter(x => x.status == intf.Consts.TopologyStatus.running)
                 .map(x => x.uuid);
-            self.client.verifyTopologies(topologies_running, callback);
+            self.client.resolveTopologyMismatches(topologies_running, callback);
         });
     }
 }
