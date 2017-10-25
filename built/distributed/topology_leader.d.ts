@@ -38,6 +38,10 @@ export declare class TopologyLeader {
      * to alive workers.
      */
     private performLeaderLoop(callback);
+    /** go through all enabled topologies and calculate current loads for workers.
+     * Then assign unassigned topologies to appropiate workers.
+     */
+    private assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, xcallback);
     /** This method will perform rebalance of topologies on workers if needed.
      */
     private performRebalanceIfNeeded(workers, topologies, callback);

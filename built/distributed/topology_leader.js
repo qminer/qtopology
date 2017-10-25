@@ -141,7 +141,7 @@ class TopologyLeader {
     performLeaderLoop(callback) {
         let self = this;
         let perform_loop = true;
-        let alive_workers = null;
+        let alive_workers = [];
         let worker_weights = new Map();
         let topologies_for_rebalance = [];
         let topologies_disabled = [];
@@ -160,23 +160,21 @@ class TopologyLeader {
                         self.is_leader = false;
                         return xcallback();
                     }
+                    alive_workers = workers
+                        .filter(x => x.status === intf.Consts.WorkerStatus.alive);
                     let dead_workers = workers
                         .filter(x => x.status === intf.Consts.WorkerStatus.dead)
                         .map(x => x.name);
-                    alive_workers = workers
-                        .filter(x => x.status === intf.Consts.WorkerStatus.alive);
-                    if (alive_workers.length == 0) {
-                        return xcallback();
-                    }
                     async.each(dead_workers, (dead_worker, ycallback) => {
                         self.handleDeadWorker(dead_worker, ycallback);
                     }, xcallback);
                 });
             },
             (xcallback) => {
-                if (!perform_loop || alive_workers.length == 0) {
+                if (!perform_loop) {
                     return xcallback();
                 }
+                // retrieve list of topologies and their statuses
                 self.storage.getTopologyStatus((err, topologies_all) => {
                     if (err)
                         return xcallback(err);
@@ -186,14 +184,15 @@ class TopologyLeader {
                 });
             },
             (xcallback) => {
-                if (!perform_loop || alive_workers.length == 0) {
+                if (!perform_loop) {
                     return xcallback();
                 }
+                // check enabled topologies - if they are marked as running, they must be assigned to worker
                 let targets = topologies_enabled
                     .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
                 async.each(targets, (item, xxcallback) => {
                     // strange, topology marked as enabled and running, but no worker specified
-                    // mark it as unassinged.                        
+                    // mark it as unassinged.
                     log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
                     self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, xxcallback);
                 }, xcallback);
@@ -202,44 +201,14 @@ class TopologyLeader {
                 if (!perform_loop || alive_workers.length == 0) {
                     return xcallback();
                 }
-                topologies_enabled.forEach(x => {
-                    x.weight = x.weight || 1;
-                    x.worker_affinity = x.worker_affinity || [];
-                    if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
-                        for (let worker of alive_workers) {
-                            let name = worker.name;
-                            if (name == x.worker) {
-                                let old_weight = 0;
-                                if (worker_weights.has(name)) {
-                                    old_weight = worker_weights.get(name);
-                                }
-                                worker_weights.set(name, old_weight + x.weight);
-                                break;
-                            }
-                        }
-                    }
-                    topologies_for_rebalance.push({
-                        uuid: x.uuid,
-                        weight: x.weight,
-                        worker: x.worker,
-                        affinity: x.worker_affinity
-                    });
-                });
-                let unassigned_topologies = topologies_enabled
-                    .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
-                if (unassigned_topologies.length > 0) {
-                    log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
-                }
-                let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
-                    return { name: x.name, weight: worker_weights.get(x.name) || 0 };
-                }), AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
-                );
-                async.eachSeries(unassigned_topologies, (item, ycallback) => {
-                    let ut = item;
-                    self.assignUnassignedTopology(ut, load_balancer, ycallback);
-                }, xcallback);
+                // go through all enabled topologies and calculate current loads for workers
+                self.assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, xcallback);
             },
             (xcallback) => {
+                if (!perform_loop || alive_workers.length == 0) {
+                    return xcallback();
+                }
+                // check if occasional rebalancing needs to be performed
                 if (self.is_leader) {
                     self.performRebalanceIfNeeded(alive_workers, topologies_for_rebalance, xcallback);
                 }
@@ -248,6 +217,49 @@ class TopologyLeader {
                 }
             }
         ], callback);
+    }
+    /** go through all enabled topologies and calculate current loads for workers.
+     * Then assign unassigned topologies to appropiate workers.
+     */
+    assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, xcallback) {
+        let self = this;
+        topologies_enabled.forEach(x => {
+            x.weight = x.weight || 1;
+            x.worker_affinity = x.worker_affinity || [];
+            if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
+                for (let worker of alive_workers) {
+                    let name = worker.name;
+                    if (name == x.worker) {
+                        let old_weight = 0;
+                        if (worker_weights.has(name)) {
+                            old_weight = worker_weights.get(name);
+                        }
+                        worker_weights.set(name, old_weight + x.weight);
+                        break;
+                    }
+                }
+            }
+            topologies_for_rebalance.push({
+                uuid: x.uuid,
+                weight: x.weight,
+                worker: x.worker,
+                affinity: x.worker_affinity
+            });
+        });
+        let unassigned_topologies = topologies_enabled
+            .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
+        if (unassigned_topologies.length > 0) {
+            log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
+        }
+        // assign unassigned topologies
+        let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
+            return { name: x.name, weight: worker_weights.get(x.name) || 0 };
+        }), AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
+        );
+        async.eachSeries(unassigned_topologies, (item, ycallback) => {
+            let ut = item;
+            self.assignUnassignedTopology(ut, load_balancer, ycallback);
+        }, xcallback);
     }
     /** This method will perform rebalance of topologies on workers if needed.
      */

@@ -44,8 +44,8 @@ export class TopologyWorker {
                 self.start(uuid, config);
                 callback();
             },
-            verifyTopologies: (uuids: string[], callback: intf.SimpleCallback) => {
-                self.verifyTopologies(uuids, callback);
+            resolveTopologyMismatches: (uuids: string[], callback: intf.SimpleCallback) => {
+                self.resolveTopologyMismatches(uuids, callback);
             },
             stopTopology: (uuid: string, callback: intf.SimpleCallback) => {
                 self.shutDownTopology(uuid, false, callback);
@@ -94,8 +94,8 @@ export class TopologyWorker {
         this.coordinator.run();
     }
 
-    /** Thi smethod verifies tha t all topologies are running and properly registered */
-    private verifyTopologies(uuids: string[], callback: intf.SimpleCallback) {
+    /** This method verifies that all topologies are running and properly registered */
+    private resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback) {
         let self = this;
         async.series(
             [
