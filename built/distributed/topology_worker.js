@@ -81,16 +81,21 @@ class TopologyWorker {
     /** This method verifies that all topologies are running and properly registered */
     resolveTopologyMismatches(uuids, callback) {
         let self = this;
+        if (self.waiting_for_shutdown) {
+            return callback();
+        }
         async.series([
             (xcallback) => {
                 // topologies that are running,
                 // but are NOT included in the external list,
                 // must be reported as unassigned
-                let to_stop = self.topologies.filter(y => {
+                let to_stop = self.topologies
+                    .filter(y => {
                     return (uuids.indexOf(y.uuid) < 0);
-                });
+                })
+                    .map(x => x.uuid);
                 async.each(to_stop, (uuid, xxcallback) => {
-                    log.logger().log(this.log_prefix + "Topology is running but it NOT assigned to this worker,will be stopped: " + uuid);
+                    log.logger().warn(this.log_prefix + "Topology is running but it NOT assigned to this worker, will be stopped: " + uuid);
                     self.shutDownTopology(uuid, false, xxcallback);
                 }, xcallback);
             },
@@ -102,7 +107,7 @@ class TopologyWorker {
                     return (self.topologies.filter(x => x.uuid == y).length == 0);
                 });
                 async.each(to_unassign, (uuid, xxcallback) => {
-                    log.logger().log(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + uuid);
+                    log.logger().warn(this.log_prefix + "Topology is assigned to this worker, but it is not running here: " + uuid);
                     self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", xxcallback);
                 }, xcallback);
             }
@@ -130,15 +135,15 @@ class TopologyWorker {
                 }
             }
         });
+        // report topology as running, then try to start it.
+        // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
+        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
+        self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 self.removeAndReportError(rec, err);
             }
             else {
-                // report topology as running, then try to start it.
-                // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
-                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
-                self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
                 rec.proxy.run((err) => {
                     if (err) {
                         self.removeAndReportError(rec, err);
@@ -149,20 +154,16 @@ class TopologyWorker {
     }
     /** Starts single topology */
     start(uuid, config) {
-        if (this.topologies.filter(x => x.uuid == uuid).length > 0) {
-            log.logger().warn(this.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
+        let self = this;
+        if (self.topologies.filter(x => x.uuid == uuid).length > 0) {
+            log.logger().warn(self.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
             return;
         }
-        let self = this;
         try {
             self.injectOverrides(config);
             let compiler = new comp.TopologyCompiler(config);
             compiler.compile();
             config = compiler.getWholeConfig();
-            if (self.topologies.filter(x => x.uuid === uuid).length > 0) {
-                self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.error, "Topology with this UUID already exists: " + uuid);
-                return;
-            }
             let rec = new TopologyItem();
             rec.uuid = uuid;
             rec.config = config;

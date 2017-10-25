@@ -149,6 +149,9 @@ export class TopologyLocal {
         if (!this.isInitialized) {
             throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
         }
+        if (this.isRunning) {
+            throw new Error(this.logging_prefix + "Topology is already running.");
+        }
         log.logger().log(this.logging_prefix + "Local topology started");
         for (let spout of this.spouts) {
             spout.run();
