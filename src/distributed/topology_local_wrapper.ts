@@ -84,7 +84,6 @@ class TopologyLocalWrapper {
             let topology = compiler.getWholeConfig();
             self.topology_local = new tl.TopologyLocal();
             self.topology_local.init(self.uuid, topology, (err) => {
-                self.topology_local.run();
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
             });
         }
