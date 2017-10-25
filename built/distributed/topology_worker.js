@@ -81,6 +81,9 @@ class TopologyWorker {
     /** This method verifies that all topologies are running and properly registered */
     resolveTopologyMismatches(uuids, callback) {
         let self = this;
+        if (self.waiting_for_shutdown) {
+            return callback();
+        }
         async.series([
             (xcallback) => {
                 // topologies that are running,
