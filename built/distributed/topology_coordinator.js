@@ -205,14 +205,10 @@ class TopologyCoordinator extends EventEmitter {
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
             if (err)
                 return callback(err);
-            async.each(topologies, (top, xcallback) => {
-                if (top.status == intf.Consts.TopologyStatus.running) {
-                    self.client.verifyTopology(top.uuid, xcallback);
-                }
-                else {
-                    xcallback();
-                }
-            }, callback);
+            let topologies_running = topologies
+                .filter(x => x.status == intf.Consts.TopologyStatus.running)
+                .map(x => x.uuid);
+            self.client.resolveTopologyMismatches(topologies_running, callback);
         });
     }
 }

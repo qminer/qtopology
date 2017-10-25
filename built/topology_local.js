@@ -201,6 +201,10 @@ class TopologyLocal {
             async.series(tasks, callback);
         });
     }
+    /** Returns uuid of the topology that is running. */
+    getUuid() {
+        return this.uuid;
+    }
     /** Runs heartbeat pump until this object shuts down */
     runHeartbeat() {
         let self = this;
