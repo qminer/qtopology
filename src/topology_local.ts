@@ -85,7 +85,7 @@ export class TopologyLocal {
 
     /** Handler for all internal errors */
     private onInternalError(e: Error) {
-
+        this.onErrorHandler(e);
     }
 
     /** Initialization that sets up internal structure and

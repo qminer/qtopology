@@ -59,6 +59,7 @@ class TopologyLocal {
     }
     /** Handler for all internal errors */
     onInternalError(e) {
+        this.onErrorHandler(e);
     }
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
