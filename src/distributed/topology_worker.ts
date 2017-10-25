@@ -97,6 +97,9 @@ export class TopologyWorker {
     /** This method verifies that all topologies are running and properly registered */
     private resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): void {
         let self = this;
+        if (self.waiting_for_shutdown) {
+            return callback();
+        }
         async.series(
             [
                 (xcallback) => {
