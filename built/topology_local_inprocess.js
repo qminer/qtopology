@@ -23,7 +23,7 @@ const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
 const log = require("./util/logger");
 /** Base class for spouts and bolts - contains telemetry support */
-class TopologyNodeBaseInproc {
+class TopologyNodeBase {
     constructor(name, telemetry_timeout) {
         this.name = name;
         this.telemetry = new tel.Telemetry(name);
@@ -54,9 +54,9 @@ class TopologyNodeBaseInproc {
         this.telemetry_total.add(duration);
     }
 }
-exports.TopologyNodeBaseInproc = TopologyNodeBaseInproc;
+exports.TopologyNodeBase = TopologyNodeBase;
 /** Wrapper for spout */
-class TopologySpoutInproc extends TopologyNodeBaseInproc {
+class TopologySpoutWrapper extends TopologyNodeBase {
     /** Constructor needs to receive all data */
     constructor(config, context) {
         super(config.name, config.telemetry_timeout);
@@ -81,6 +81,7 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         catch (e) {
             log.logger().error("Error while creating an inproc spout");
             log.logger().exception(e);
+            throw e;
         }
         self.emitCallback = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
@@ -249,9 +250,9 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         }
     }
 }
-exports.TopologySpoutInproc = TopologySpoutInproc;
+exports.TopologySpoutWrapper = TopologySpoutWrapper;
 /** Wrapper for bolt */
-class TopologyBoltInproc extends TopologyNodeBaseInproc {
+class TopologyBoltWrapper extends TopologyNodeBase {
     /** Constructor needs to receive all data */
     constructor(config, context) {
         super(config.name, config.telemetry_timeout);
@@ -289,6 +290,7 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         catch (e) {
             log.logger().error("Error while creating an inproc bolt");
             log.logger().exception(e);
+            throw e;
         }
     }
     /** Returns name of this node */
@@ -404,5 +406,5 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         }
     }
 }
-exports.TopologyBoltInproc = TopologyBoltInproc;
+exports.TopologyBoltWrapper = TopologyBoltWrapper;
 //# sourceMappingURL=topology_local_inprocess.js.map

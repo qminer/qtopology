@@ -28,7 +28,7 @@ import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
 
 /** Base class for spouts and bolts - contains telemetry support */
-export class TopologyNodeBaseInproc {
+export class TopologyNodeBase {
 
     protected name: string;
     private telemetry_next_emit: number;
@@ -71,7 +71,7 @@ export class TopologyNodeBaseInproc {
 
 
 /** Wrapper for spout */
-export class TopologySpoutInproc extends TopologyNodeBaseInproc {
+export class TopologySpoutWrapper extends TopologyNodeBase {
 
     private context: any;
     private working_dir: string;
@@ -110,6 +110,7 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
         } catch (e) {
             log.logger().error("Error while creating an inproc spout");
             log.logger().exception(e);
+            throw e;
         }
 
         self.emitCallback = (data, stream_id, callback) => {
@@ -279,7 +280,7 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
 }
 
 /** Wrapper for bolt */
-export class TopologyBoltInproc extends TopologyNodeBaseInproc {
+export class TopologyBoltWrapper extends TopologyNodeBase {
 
     private context: any;
     private working_dir: string;
@@ -336,6 +337,7 @@ export class TopologyBoltInproc extends TopologyNodeBaseInproc {
         } catch (e) {
             log.logger().error("Error while creating an inproc bolt");
             log.logger().exception(e);
+            throw e;
         }
     }
 

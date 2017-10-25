@@ -1,6 +1,6 @@
 import * as intf from "./topology_interfaces";
 /** Base class for spouts and bolts - contains telemetry support */
-export declare class TopologyNodeBaseInproc {
+export declare class TopologyNodeBase {
     protected name: string;
     private telemetry_next_emit;
     private telemetry_timeout;
@@ -15,7 +15,7 @@ export declare class TopologyNodeBaseInproc {
     telemetryAdd(duration: number): void;
 }
 /** Wrapper for spout */
-export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
+export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private context;
     private working_dir;
     private cmd;
@@ -49,7 +49,7 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     private createSysSpout(spout_config);
 }
 /** Wrapper for bolt */
-export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
+export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private context;
     private working_dir;
     private cmd;
