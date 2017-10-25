@@ -9,7 +9,7 @@ export interface TopologyCoordinatorClient {
     stopTopology(uuid: string, callback: intf.SimpleCallback): any;
     /** Object needs to kill given topology */
     killTopology(uuid: string, callback: intf.SimpleCallback): any;
-    /** Object should verify that the list fo running topologies matches the given list. */
+    /** Object should verify that the list of running topologies matches the given list. */
     verifyTopologies(uuids: string[], callback: intf.SimpleCallback): any;
     /** Object should shut down */
     shutdown(): any;

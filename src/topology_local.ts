@@ -225,6 +225,11 @@ export class TopologyLocal {
         });
     }
 
+    /** Returns uuid of the topology that is running. */
+    getUuid(): string {
+        return this.uuid;
+    }
+
     /** Runs heartbeat pump until this object shuts down */
     private runHeartbeat() {
         let self = this;
