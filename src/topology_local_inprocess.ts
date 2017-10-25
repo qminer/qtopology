@@ -146,7 +146,14 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Handler for heartbeat signal */
     heartbeat() {
         let self = this;
-        self.child.heartbeat();
+        // check isError?
+        try {
+            self.child.heartbeat();
+        } catch (e) {
+            log.logger().error("Error in spout heartbeat");
+            log.logger().exception(e);
+            // self.isError?
+        }
         self.telemetryHeartbeat((msg, stream_id) => {
             self.emitCallback(msg, stream_id, () => { });
         });
@@ -154,20 +161,46 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
 
     /** Shuts down the process */
     shutdown(callback: intf.SimpleCallback) {
-        this.child.shutdown(callback);
+        // check isError? Do we kill gracefully or not?
+        try {
+            this.child.shutdown(callback);
+            // wrap callback to set self.isError when an exception passed?
+        } catch (e) {
+            // threw an exception before passing control 
+            log.logger().error("Unhandled error in spout shutdown");
+            log.logger().exception(e);
+            callback(e);
+            // set isError?
+        }
     }
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
-        this.child.init(this.name, this.init_params, this.context, callback);
+        try {
+            this.child.init(this.name, this.init_params, this.context, callback);
+            // wrap callback to set self.isError when an exception passed?
+        } catch (e) {
+            // threw an exception before passing control
+            log.logger().error("Unhandled error in spout init");
+            log.logger().exception(e);
+            callback(e);
+            // set isError?
+        }
     }
 
-    /** Sends run signal and starts the "pump"" */
+    /** Sends run signal and starts the "pump" */
     run() {
         let self = this;
         this.isPaused = false;
-        this.child.run();
+        try {
+            this.child.run();
+        } catch (e) {
+            log.logger().error("Error in spout run");
+            log.logger().exception(e);
+            // set isError and do not run the pump?
+        }
         async.whilst(
+            // also check isError?
             () => { return !self.isPaused; },
             (xcallback) => {
                 if (Date.now() < this.nextTs) {
@@ -179,7 +212,10 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
             },
             (err: Error) => {
                 if (err) {
-                    log.logger().exception(err)
+                    log.logger().error("Error in spout next");
+                    log.logger().exception(err);
+                    // set isError?
+                    // set isPaused?
                 }
             });
     }
@@ -187,6 +223,7 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Requests next data message */
     private next(callback: intf.SimpleCallback) {
         let self = this;
+        // check isError?
         if (this.isPaused) {
             callback();
         } else {
@@ -228,7 +265,13 @@ export class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Sends pause signal to child */
     pause() {
         this.isPaused = true;
-        this.child.pause();
+        try {
+            this.child.pause();
+        } catch (e) {
+            log.logger().error("Error in spout pause");
+            log.logger().exception(e);
+            // set isError?
+        }
     }
 
     /** Factory method for sys spouts */
