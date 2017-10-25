@@ -29,7 +29,7 @@
     ],
     "bolts": [
         {
-            "name": "bolt",
+            "name": "bolt1",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",
@@ -45,7 +45,7 @@
             "working_dir": ".",
             "type": "sys",
             "cmd": "bomb",
-            "disabled": true,
+            "disabled": false,
             "inputs": [
                 {
                     "source": "pump"
