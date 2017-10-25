@@ -20,7 +20,7 @@ class TopologyLocalWrapper {
     /** Constructor that sets up call routing */
     constructor() {
         let self = this;
-        this.topology_local = new tl.TopologyLocal();
+        this.topology_local = null;
         this.waiting_for_shutdown = false;
         this.lastPing = Date.now();
         this.log_prefix = "[Wrapper] ";
@@ -68,6 +68,13 @@ class TopologyLocalWrapper {
     private handle(msg: intf.ParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
+            if (self.topology_local) {
+                let s = `Init called in the child process (${msg.data.general.uuid}), but the topology is already running (${self.topology_local.getUuid()}).`;
+                log.logger().error(self.log_prefix + s);
+                self.sendToParent(intf.ChildMsgCode.response_init, { err: new Error(s) });
+                return;
+            }
+
             log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
             self.log_prefix = `[Wrapper ${self.uuid}] `;
@@ -75,6 +82,7 @@ class TopologyLocalWrapper {
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
+            self.topology_local = new tl.TopologyLocal();
             self.topology_local.init(self.uuid, topology, (err) => {
                 self.topology_local.run();
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
@@ -85,15 +93,37 @@ class TopologyLocalWrapper {
             self.sendToParent(intf.ChildMsgCode.response_ping, {});
         }
         if (msg.cmd === intf.ParentMsgCode.run) {
+            if (!self.topology_local) {
+                let s = `Run called in the child process, but the topology hasn't been initialized yet.`;
+                log.logger().error(self.log_prefix + s);
+                self.sendToParent(intf.ChildMsgCode.response_run, { err: new Error(s) });
+                return;
+            }
             self.topology_local.run();
             self.sendToParent(intf.ChildMsgCode.response_run, {});
         }
         if (msg.cmd === intf.ParentMsgCode.pause) {
+            if (!self.topology_local) {
+                let s = `Pause called in the child process, but the topology hasn't been initialized yet.`;
+                log.logger().error(self.log_prefix + s);
+                self.sendToParent(intf.ChildMsgCode.response_pause, { err: new Error(s) });
+                return;
+            }
             self.topology_local.pause((err) => {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
+            if (!self.topology_local) {
+                let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
+                log.logger().error(self.log_prefix + s);
+                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
+                setTimeout(() => {
+                    log.logger().important(self.log_prefix + "Stopping the topology process from the child");
+                    process.exit(0);
+                }, 0);
+                return;
+            }
             self.shutdown();
         }
     }
@@ -120,12 +150,10 @@ class TopologyLocalWrapper {
                     log.logger().exception(err);
                 }
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err });
-
                 setTimeout(() => {
-                    // stop the process if it was not stopped so far
                     log.logger().important(self.log_prefix + "Stopping the topology process from the child");
                     process.exit(0);
-                }, 500);
+                }, 0);
             });
         } catch (e) {
             // stop the process if it was not stopped so far

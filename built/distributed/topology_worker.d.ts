@@ -14,6 +14,8 @@ export declare class TopologyWorker {
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object);
     /** Starts this worker */
     run(): void;
+    /** This method verifies that all topologies are running and properly registered */
+    private resolveTopologyMismatches(uuids, callback);
     /** Internal method that creates proxy for given topology item */
     private createProxy(rec);
     /** Starts single topology */
