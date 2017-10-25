@@ -66,9 +66,12 @@ class TopologyLocalWrapper {
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
-            self.topology_local = new tl.TopologyLocal();
+            self.topology_local = new tl.TopologyLocal(() => { self.killProcess(110); });
             self.topology_local.init(self.uuid, topology, (err) => {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
+                if (err) {
+                    self.killProcess(10);
+                }
             });
         }
         if (msg.cmd === intf.ParentMsgCode.ping) {
@@ -94,6 +97,9 @@ class TopologyLocalWrapper {
             }
             self.topology_local.pause((err) => {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
+                if (err) {
+                    self.killProcess(20);
+                }
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
@@ -101,14 +107,18 @@ class TopologyLocalWrapper {
                 let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
                 log.logger().error(self.log_prefix + s);
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
-                setTimeout(() => {
-                    log.logger().important(self.log_prefix + "Stopping the topology process from the child");
-                    process.exit(0);
-                }, 0);
+                self.killProcess();
                 return;
             }
             self.shutdown();
         }
+    }
+    killProcess(exit_code) {
+        let self = this;
+        setTimeout(() => {
+            log.logger().important(self.log_prefix + "Stopping the topology process from the child");
+            process.exit(exit_code || 0);
+        }, 0);
     }
     /** This method shuts down the local topology */
     shutdown() {

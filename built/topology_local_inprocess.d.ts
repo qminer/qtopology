@@ -14,7 +14,7 @@ export declare class TopologyNodeBaseInproc {
     /** Adds duration to internal telemetry */
     telemetryAdd(duration: number): void;
 }
-/** Wrapper for "spout" in-process */
+/** Wrapper for spout */
 export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     private context;
     private working_dir;
@@ -22,9 +22,11 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     private subtype;
     private init_params;
     private isPaused;
+    private isError;
     private nextTs;
     private child;
     private emitCallback;
+    private errorCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
     /** Returns name of this node */
@@ -37,7 +39,7 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     shutdown(callback: intf.SimpleCallback): void;
     /** Initializes child object. */
     init(callback: intf.SimpleCallback): void;
-    /** Sends run signal and starts the "pump"" */
+    /** Sends run signal and starts the "pump" */
     run(): void;
     /** Requests next data message */
     private next(callback);
@@ -46,7 +48,7 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Factory method for sys spouts */
     private createSysSpout(spout_config);
 }
-/** Wrapper for "bolt" in-process */
+/** Wrapper for bolt */
 export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
     private context;
     private working_dir;
@@ -54,6 +56,7 @@ export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
     private subtype;
     private init_params;
     private isShuttingDown;
+    private isError;
     private nextTs;
     private allow_parallel;
     private inSend;
@@ -61,6 +64,7 @@ export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
     private pendingShutdownCallback;
     private child;
     private emitCallback;
+    private errorCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
     /** Returns name of this node */

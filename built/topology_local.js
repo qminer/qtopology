@@ -42,7 +42,7 @@ exports.OutputRouter = OutputRouter;
 /** This class runs local topology */
 class TopologyLocal {
     /** Constructor prepares the object before any information is received. */
-    constructor() {
+    constructor(onError) {
         this.spouts = [];
         this.bolts = [];
         this.config = null;
@@ -55,6 +55,10 @@ class TopologyLocal {
         this.isInitialized = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
+        this.onErrorHandler = onError || (() => { });
+    }
+    /** Handler for all internal errors */
+    onInternalError(e) {
     }
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
@@ -78,6 +82,9 @@ class TopologyLocal {
                     bolt_config.onEmit = (data, stream_id, callback) => {
                         self.redirect(bolt_config.name, data, stream_id, callback);
                     };
+                    bolt_config.onError = (e) => {
+                        self.onInternalError(e);
+                    };
                     let bolt = null;
                     bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
                     self.bolts.push(bolt);
@@ -98,6 +105,9 @@ class TopologyLocal {
                     }
                     spout_config.onEmit = (data, stream_id, callback) => {
                         self.redirect(spout_config.name, data, stream_id, callback);
+                    };
+                    spout_config.onError = (e) => {
+                        self.onInternalError(e);
                     };
                     let spout = null;
                     spout = new top_inproc.TopologySpoutInproc(spout_config, context);

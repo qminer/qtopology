@@ -63,9 +63,10 @@ export class TopologyLocal {
     private isRunning: boolean;
     private isShuttingDown: boolean;
     private heartbeatTimer: NodeJS.Timer;
+    private onErrorHandler: intf.SimpleCallback;
 
     /** Constructor prepares the object before any information is received. */
-    constructor() {
+    constructor(onError?: intf.SimpleCallback) {
         this.spouts = [];
         this.bolts = [];
         this.config = null;
@@ -79,6 +80,12 @@ export class TopologyLocal {
         this.isInitialized = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
+        this.onErrorHandler = onError || (() => { });
+    }
+
+    /** Handler for all internal errors */
+    private onInternalError(e: Error) {
+
     }
 
     /** Initialization that sets up internal structure and
@@ -103,6 +110,9 @@ export class TopologyLocal {
                     bolt_config.onEmit = (data, stream_id, callback) => {
                         self.redirect(bolt_config.name, data, stream_id, callback);
                     };
+                    bolt_config.onError = (e: Error) => {
+                        self.onInternalError(e);
+                    };
                     let bolt = null;
                     bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
                     self.bolts.push(bolt);
@@ -123,6 +133,9 @@ export class TopologyLocal {
                     }
                     spout_config.onEmit = (data, stream_id, callback) => {
                         self.redirect(spout_config.name, data, stream_id, callback);
+                    };
+                    spout_config.onError = (e: Error) => {
+                        self.onInternalError(e);
                     };
                     let spout = null;
 
