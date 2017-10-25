@@ -21,11 +21,6 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     private cmd;
     private subtype;
     private init_params;
-    private isStarted;
-    private isClosed;
-    private isExit;
-    private isError;
-    private onExit;
     private isPaused;
     private nextTs;
     private child;
@@ -58,12 +53,6 @@ export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
     private cmd;
     private subtype;
     private init_params;
-    private isStarted;
-    private isClosed;
-    private isExit;
-    private isError;
-    private onExit;
-    private isPaused;
     private isShuttingDown;
     private nextTs;
     private allow_parallel;

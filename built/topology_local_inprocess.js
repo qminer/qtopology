@@ -66,11 +66,6 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         this.cmd = config.cmd;
         this.subtype = config.subtype;
         this.init_params = config.init || {};
-        this.isStarted = false;
-        this.isClosed = false;
-        this.isExit = false;
-        this.isError = false;
-        this.onExit = null;
         let self = this;
         try {
             if (config.type == "sys") {
@@ -81,15 +76,10 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.child = require(module_path).create(this.subtype);
             }
-            this.isStarted = true;
         }
         catch (e) {
             log.logger().error("Error while creating an inproc spout");
             log.logger().exception(e);
-            this.isStarted = true;
-            this.isClosed = true;
-            this.isExit = true;
-            this.isError = true;
         }
         self.emitCallback = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
@@ -220,18 +210,13 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
             if (self.isShuttingDown) {
-                return callback("Bolt is shutting down:", self.name);
+                return callback(new Error("Bolt is shutting down: " + self.name));
             }
             config.onEmit(data, stream_id, callback);
         };
         this.emitCallback = this.init_params.onEmit;
         this.allow_parallel = config.allow_parallel || false;
-        this.isStarted = false;
         this.isShuttingDown = false;
-        this.isClosed = false;
-        this.isExit = false;
-        this.isError = false;
-        this.onExit = null;
         this.inSend = 0;
         this.pendingSendRequests = [];
         this.pendingShutdownCallback = null;
@@ -244,15 +229,10 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.child = require(module_path).create(this.subtype);
             }
-            this.isStarted = true;
         }
         catch (e) {
             log.logger().error("Error while creating an inproc bolt");
             log.logger().exception(e);
-            this.isStarted = true;
-            this.isClosed = true;
-            this.isExit = true;
-            this.isError = true;
         }
     }
     /** Returns name of this node */
