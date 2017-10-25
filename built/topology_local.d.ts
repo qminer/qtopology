@@ -42,6 +42,8 @@ export declare class TopologyLocal {
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback): void;
+    /** Returns uuid of the topology that is running. */
+    getUuid(): string;
     /** Runs heartbeat pump until this object shuts down */
     private runHeartbeat();
     /** Sends heartbeat signal to all child processes */

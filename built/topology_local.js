@@ -105,7 +105,13 @@ class TopologyLocal {
                     tasks.push((xcallback) => { spout.init(xcallback); });
                 });
                 self.runHeartbeat();
-                async.series(tasks, callback);
+                async.series(tasks, (err) => {
+                    if (err) {
+                        log.logger().error(self.logging_prefix + "Error while initializing topology");
+                        log.logger().exception(err);
+                    }
+                    callback(err);
+                });
             });
         }
         catch (e) {
@@ -194,6 +200,10 @@ class TopologyLocal {
             }
             async.series(tasks, callback);
         });
+    }
+    /** Returns uuid of the topology that is running. */
+    getUuid() {
+        return this.uuid;
     }
     /** Runs heartbeat pump until this object shuts down */
     runHeartbeat() {
