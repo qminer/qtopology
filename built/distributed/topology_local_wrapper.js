@@ -125,7 +125,7 @@ class TopologyLocalWrapper {
             log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${process.pid}`);
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unhandeled exception,
-                // we have the original error from the data field of the message                
+                // we have the original error from the data field of the message
                 if (err) {
                     log.logger().error(self.log_prefix + "Error in shutdown");
                     log.logger().exception(err);

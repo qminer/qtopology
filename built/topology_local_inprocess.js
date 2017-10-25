@@ -144,8 +144,7 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
                         self.telemetryAdd(Date.now() - ts_start);
                         if (err) {
                             log.logger().exception(err);
-                            callback();
-                            return;
+                            return callback(err);
                         }
                         if (!data) {
                             self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
