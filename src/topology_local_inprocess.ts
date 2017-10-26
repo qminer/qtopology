@@ -301,7 +301,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private subtype: string;
     private init_params: any;
     private isShuttingDown: boolean;
-    private isError: boolean;
     private allow_parallel: boolean;
     private inSend: number;
     private pendingSendRequests: any[];
@@ -372,7 +371,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         } catch (e) {
             log.logger().error("Error in bolt heartbeat");
             log.logger().exception(e);
-            self.isError = true;
             self.errorCallback(e);
             return;
         }
@@ -383,6 +381,8 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
 
     /** Shuts down the child */
     shutdown(callback: intf.SimpleCallback) {
+        // wrap callback to set self.isError when an exception passed
+        callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
         try {
             this.isShuttingDown = true;
@@ -398,18 +398,21 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
 
     /** Initializes child object. */
     init(callback: intf.SimpleCallback) {
+        // wrap callback to set self.isError when an exception passed
+        callback = this.wrapCallbackSetError(callback);
         try {
             this.child.init(this.name, this.init_params, this.context, callback);
         } catch (e) {
             log.logger().error("Error in bolt init");
             log.logger().exception(e);
-            this.isError = true;
-            this.errorCallback(e);
+            callback(e);
         }
     }
 
     /** Sends data to child object. */
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        // wrap callback to set self.isError when an exception passed
+        callback = this.wrapCallbackSetError(callback);
         let self = this;
         if (self.isError) return callback(new Error(`Bolt ${self.name} has error flag set.`));
         let ts_start = Date.now();
@@ -425,7 +428,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
                 self.child.receive(data, stream_id, (err) => {
                     self.telemetryAdd(Date.now() - ts_start);
                     callback(err);
-                    if (err) return; // stop processing if there was an error
+                    if (err) { return; } // stop processing if there was an error
                     self.inSend--;
                     if (self.inSend === 0) {
                         if (self.pendingSendRequests.length > 0) {
