@@ -1,7 +1,5 @@
 import * as intf from "../topology_interfaces";
-import * as sh from "../util/stream_helpers";
 import * as fs from "fs";
-import * as cp from "child_process";
 import * as rl from "readline";
 
 

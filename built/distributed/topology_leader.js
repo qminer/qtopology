@@ -355,7 +355,6 @@ class TopologyLeader {
     /** checks all worker records if any of them is not active anymore. */
     disableDefunctWorkers(data_workers, callback) {
         let self = this;
-        let limit = Date.now() - WORKER_IDLE_INTERVAL;
         async.each(data_workers, (worker, xcallback) => {
             self.disableDefunctWorkerSingle(worker, xcallback);
         }, callback);

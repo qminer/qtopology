@@ -1,5 +1,4 @@
 import * as intf from "../topology_interfaces";
-import * as pm from "../util/pattern_matcher";
 import * as rest from 'node-rest-client';
 
 /** This spout sends GET request to the specified url in regular
@@ -43,7 +42,7 @@ export class GetSpout implements intf.Spout {
         }
         if (this.next_ts < Date.now()) {
             let self = this;
-            let req = self.client.get(self.url, (new_data, response) => {
+            self.client.get(self.url, (new_data, response) => {
                 self.next_tuple = { body: new_data.toString() };
                 self.next_ts = Date.now() + self.repeat;
             });

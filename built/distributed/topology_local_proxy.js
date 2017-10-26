@@ -11,7 +11,6 @@ const PING_INTERVAL = 3000;
 class TopologyLocalProxy {
     /** Constructor that sets up call routing */
     constructor(child_exit_callback) {
-        let self = this;
         this.log_prefix = "[Proxy] ";
         this.init_cb = null;
         this.run_cb = null;

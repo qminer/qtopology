@@ -8,8 +8,11 @@
         "module": "commonjs",
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
+        "alwaysStrict": true,
+        "diagnostics": false,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedParameters": false,
+        "pretty": false,
         "types": [
             "node"
         ],

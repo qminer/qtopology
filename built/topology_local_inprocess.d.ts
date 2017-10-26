@@ -57,7 +57,6 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private init_params;
     private isShuttingDown;
     private isError;
-    private nextTs;
     private allow_parallel;
     private inSend;
     private pendingSendRequests;

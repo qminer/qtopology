@@ -4,7 +4,6 @@ import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
-import * as fe from "../util/freq_estimator";
 
 /** Utility class for holding data about single topology */
 class TopologyItem {

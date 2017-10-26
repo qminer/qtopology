@@ -233,23 +233,26 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                     this.child.next((err, data, stream_id, xcallback) => {
                         self.telemetryAdd(Date.now() - ts_start);
                         if (err) {
+                            // child sent an error, xcallback is ignored
                             log.logger().exception(err);
                             return callback(err);
                         }
                         if (!data) {
+                            // child didn't send any data, so xcallback is ignored
                             self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
                             return callback();
                         } else {
                             try {
                                 self.emitCallback(data, stream_id, (err) => {
                                     // in case child object expects confirmation call for this tuple
-                                    if (xcallback) {
-                                        xcallback(err, callback);
+                                    if (xcallback && !err) {
+                                        xcallback(null, callback);
                                     } else {
-                                        callback();
+                                        callback(err);
                                     }
                                 });
                             } catch (e) {
+                                // there was an error, don't call the child's xcallback
                                 callback(e);
                             }
                         }
@@ -298,6 +301,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private subtype: string;
     private init_params: any;
     private isShuttingDown: boolean;
+    private isError: boolean;
     private allow_parallel: boolean;
     private inSend: number;
     private pendingSendRequests: any[];
@@ -305,7 +309,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
 
     private child: intf.Bolt;
     private emitCallback: intf.BoltEmitCallback;
-
 
     /** Constructor needs to receive all data */
     constructor(config, context: any) {
