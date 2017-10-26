@@ -35,7 +35,7 @@ export class TopologyNodeBase {
     private telemetry: tel.Telemetry;
     private telemetry_total: tel.Telemetry;
     protected isError: boolean;
-    protected errorCallback: intf.SimpleCallback;
+    protected errorCallback: intf.SimpleCallback; // used for functions without callbacks
 
     constructor(name: string, telemetry_timeout: number) {
         this.name = name;
@@ -88,7 +88,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     private subtype: string;
     private init_params: any;
     private isPaused: boolean;
-    private isShutDown: boolean;
+    private isShuttingDown: boolean;
     private nextTs: number;
 
     private child: intf.Spout;
@@ -127,7 +127,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         self.errorCallback = config.onError || (() => { });
         self.errorCallback = self.wrapCallbackSetError(self.errorCallback);
         self.isPaused = true;
-        self.isShutDown = false;
+        self.isShuttingDown = false;
         self.nextTs = Date.now();
     }
 
@@ -164,8 +164,9 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
-        if (this.isShutDown) return callback(); // TODO what to do here?
-        this.isShutDown = true;
+        // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+        if (this.isShuttingDown) return callback(new Error("Spout is already shutting down."));
+        this.isShuttingDown = true;
         try {
             this.child.shutdown(callback);
         } catch (e) {
@@ -386,8 +387,10 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
+        // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+        if (this.isShuttingDown) return callback(new Error("Bolt is already shutting down."));
+        this.isShuttingDown = true;
         try {
-            this.isShuttingDown = true;
             if (this.inSend === 0) {
                 return this.child.shutdown(callback);
             } else {

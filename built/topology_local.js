@@ -67,6 +67,9 @@ class TopologyLocal {
     init(uuid, config, callback) {
         try {
             let self = this;
+            if (self.isInitialized) {
+                return callback();
+            }
             self.config = config;
             self.uuid = uuid;
             self.logging_prefix = `[TopologyLocal ${uuid}] `;
@@ -74,6 +77,9 @@ class TopologyLocal {
             self.pass_binary_messages = config.general.pass_binary_messages || false;
             self.isInitialized = true;
             self.initContext((err, context) => {
+                if (err) {
+                    return callback(err);
+                }
                 try {
                     let tasks = [];
                     self.config.bolts.forEach((bolt_config) => {
@@ -81,14 +87,13 @@ class TopologyLocal {
                             log.logger().debug(self.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
                             return;
                         }
-                        bolt_config.onEmit = (data, stream_id, callback) => {
-                            self.redirect(bolt_config.name, data, stream_id, callback);
+                        bolt_config.onEmit = (data, stream_id, xcallback) => {
+                            self.redirect(bolt_config.name, data, stream_id, xcallback);
                         };
                         bolt_config.onError = (e) => {
                             self.onInternalError(e);
                         };
-                        let bolt = null;
-                        bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
+                        let bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
                         self.bolts.push(bolt);
                         tasks.push((xcallback) => { bolt.init(xcallback); });
                         for (let input of bolt_config.inputs) {
@@ -105,14 +110,13 @@ class TopologyLocal {
                             log.logger().debug(self.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
                             return;
                         }
-                        spout_config.onEmit = (data, stream_id, callback) => {
-                            self.redirect(spout_config.name, data, stream_id, callback);
+                        spout_config.onEmit = (data, stream_id, xcallback) => {
+                            self.redirect(spout_config.name, data, stream_id, xcallback);
                         };
                         spout_config.onError = (e) => {
                             self.onInternalError(e);
                         };
-                        let spout = null;
-                        spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
+                        let spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
                         self.spouts.push(spout);
                         tasks.push((xcallback) => { spout.init(xcallback); });
                     });
@@ -124,21 +128,21 @@ class TopologyLocal {
                         else {
                             self.runHeartbeat();
                         }
-                        callback(err);
+                        return callback(err);
                     });
                 }
                 catch (e) {
                     log.logger().error(self.logging_prefix + "Error while initializing topology");
                     log.logger().exception(e);
-                    callback(e);
+                    return callback(e);
                 }
             });
         }
         catch (e) {
-            callback(e);
+            return callback(e);
         }
     }
-    /** Sends run signal to all spouts */
+    /** Sends run signal to all spouts. Each spout.run is idempotent */
     run() {
         if (!this.isInitialized) {
             throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
@@ -147,31 +151,32 @@ class TopologyLocal {
             throw new Error(this.logging_prefix + "Topology is already running.");
         }
         log.logger().log(this.logging_prefix + "Local topology started");
+        // spouts pass internal exceptions to errorCallback
         for (let spout of this.spouts) {
             spout.run();
         }
         this.isRunning = true;
     }
-    /** Sends pause signal to all spouts */
+    /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback) {
-        try {
-            if (!this.isInitialized) {
-                throw new Error(this.logging_prefix + "Topology not initialized and cannot be paused.");
-            }
-            for (let spout of this.spouts) {
-                spout.pause();
-            }
-            this.isRunning = false;
+        if (!this.isInitialized) {
+            return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
-        catch (e) {
-            callback(e);
+        // spouts pass internal exceptions to errorCallback
+        for (let spout of this.spouts) {
+            spout.pause();
         }
-        callback();
+        this.isRunning = false;
+        return callback();
     }
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
         if (!this.isInitialized) {
-            return callback();
+            return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
+        }
+        if (this.isShuttingDown) {
+            // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+            return callback(new Error(this.logging_prefix + "Topology is already shutting down."));
         }
         let self = this;
         self.isShuttingDown = true;
@@ -181,6 +186,12 @@ class TopologyLocal {
             clearInterval(self.heartbeatTimer);
         }
         self.pause((err) => {
+            if (err) {
+                // only possible error is when isInit is false
+                log.logger().error("THIS SHOULD NOT HAPPEN!");
+                log.logger().exception(err);
+                return this.onInternalError(err);
+            }
             let tasks = [];
             self.spouts.forEach((spout) => {
                 tasks.push((xcallback) => {
@@ -248,7 +259,10 @@ class TopologyLocal {
                 spout.heartbeat();
             }
             catch (e) {
+                // All exceptions should have been caught and passed to errorCallback
+                log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(e);
+                return this.onInternalError(e);
             }
         }
         for (let bolt of this.bolts) {
@@ -256,7 +270,10 @@ class TopologyLocal {
                 bolt.heartbeat();
             }
             catch (e) {
+                // All exceptions should have been caught and passed to errorCallback
+                log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(e);
+                return this.onInternalError(e);
             }
         }
     }
