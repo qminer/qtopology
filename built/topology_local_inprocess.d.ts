@@ -23,6 +23,7 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private init_params;
     private isPaused;
     private isError;
+    private isShutDown;
     private nextTs;
     private child;
     private emitCallback;
