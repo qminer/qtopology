@@ -26,6 +26,7 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private subtype;
     private init_params;
     private isPaused;
+    private isShutDown;
     private nextTs;
     private child;
     private emitCallback;

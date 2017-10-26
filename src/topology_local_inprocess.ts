@@ -88,6 +88,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     private subtype: string;
     private init_params: any;
     private isPaused: boolean;
+    private isShutDown: boolean;
     private nextTs: number;
 
     private child: intf.Spout;
@@ -126,6 +127,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         self.errorCallback = config.onError || (() => { });
         self.errorCallback = self.wrapCallbackSetError(self.errorCallback);
         self.isPaused = true;
+        self.isShutDown = false;
         self.nextTs = Date.now();
     }
 
@@ -143,6 +145,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     heartbeat() {
         let self = this;
         if (self.isError) return;
+        if (self.isPaused) return;
         try {
             self.child.heartbeat();
         } catch (e) {
@@ -161,10 +164,11 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
+        if (this.isShutDown) return callback(); // TODO what to do here?
+        this.isShutDown = true;
         try {
             this.child.shutdown(callback);
         } catch (e) {
-            // threw an exception before passing control
             log.logger().error("Unhandled error in spout shutdown");
             log.logger().exception(e);
             callback(e);
@@ -178,7 +182,6 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         try {
             this.child.init(this.name, this.init_params, this.context, callback);
         } catch (e) {
-            // threw an exception before passing control
             log.logger().error("Unhandled error in spout init");
             log.logger().exception(e);
             callback(e);
@@ -188,18 +191,17 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     /** Sends run signal and starts the "pump" */
     run() {
         let self = this;
+        if (!this.isPaused) return; // already running
         this.isPaused = false;
         try {
             this.child.run();
         } catch (e) {
             log.logger().error("Error in spout run");
             log.logger().exception(e);
-            // set isError and do not run the pump
             self.errorCallback(e);
             return;
         }
         async.whilst(
-            // also check isError?
             () => { return !self.isPaused && !self.isError; },
             (xcallback) => {
                 if (Date.now() < this.nextTs) {
@@ -223,7 +225,6 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         let self = this;
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        // check isError?
         if (self.isPaused || self.isError) {
             return callback();
         } else {
@@ -266,6 +267,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
 
     /** Sends pause signal to child */
     pause() {
+        if (this.isPaused) return; // already paused
         this.isPaused = true;
         try {
             this.child.pause();
