@@ -280,14 +280,11 @@ export class TopologyLeader {
         topologies_enabled.forEach(x => {
             x.weight = x.weight || 1;
             x.worker_affinity = x.worker_affinity || [];
-            if (x.status == intf.Consts.TopologyStatus.unassigned) {
+            if (x.status == intf.Consts.TopologyStatus.running) {
                 for (let worker of alive_workers) {
                     let name = worker.name;
                     if (name == x.worker) {
-                        let old_weight = 0;
-                        if (worker_weights.has(name)) {
-                            old_weight = worker_weights.get(name);
-                        }
+                        let old_weight = (worker_weights.has(name) ? worker_weights.get(name) : 0);
                         worker_weights.set(name, old_weight + x.weight);
                         break;
                     }
