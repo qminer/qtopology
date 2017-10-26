@@ -314,12 +314,12 @@ export class TopologyLeader {
             AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
         );
         let assignments = unassigned_topologies
-            .map(x=>{
+            .map(x => {
                 let worker = load_balancer.next(x.worker_affinity, x.weight);
                 topologies_for_rebalance
                     .filter(y => y.uuid == x.uuid)
                     .forEach(y => { y.worker = worker; });
-                return {uuid: x.uuid, worker: worker};
+                return { uuid: x.uuid, worker: worker };
             });
 
         async.eachSeries(
