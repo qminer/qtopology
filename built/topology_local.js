@@ -42,7 +42,7 @@ exports.OutputRouter = OutputRouter;
 /** This class runs local topology */
 class TopologyLocal {
     /** Constructor prepares the object before any information is received. */
-    constructor() {
+    constructor(onError) {
         this.spouts = [];
         this.bolts = [];
         this.config = null;
@@ -55,6 +55,11 @@ class TopologyLocal {
         this.isInitialized = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
+        this.onErrorHandler = onError || (() => { });
+    }
+    /** Handler for all internal errors */
+    onInternalError(e) {
+        this.onErrorHandler(e);
     }
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
@@ -69,49 +74,64 @@ class TopologyLocal {
             self.pass_binary_messages = config.general.pass_binary_messages || false;
             self.isInitialized = true;
             self.initContext((err, context) => {
-                let tasks = [];
-                self.config.bolts.forEach((bolt_config) => {
-                    if (bolt_config.disabled) {
-                        log.logger().debug(self.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
-                        return;
-                    }
-                    bolt_config.onEmit = (data, stream_id, callback) => {
-                        self.redirect(bolt_config.name, data, stream_id, callback);
-                    };
-                    let bolt = null;
-                    bolt = new top_inproc.TopologyBoltInproc(bolt_config, context);
-                    self.bolts.push(bolt);
-                    tasks.push((xcallback) => { bolt.init(xcallback); });
-                    for (let input of bolt_config.inputs) {
-                        if (input.disabled) {
-                            log.logger().debug(self.logging_prefix + `Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
-                            continue;
+                try {
+                    let tasks = [];
+                    self.config.bolts.forEach((bolt_config) => {
+                        if (bolt_config.disabled) {
+                            log.logger().debug(self.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
+                            return;
                         }
-                        log.logger().debug(self.logging_prefix + `Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
-                        self.router.register(input.source, bolt_config.name, input.stream_id);
-                    }
-                });
-                self.config.spouts.forEach((spout_config) => {
-                    if (spout_config.disabled) {
-                        log.logger().debug(self.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
-                        return;
-                    }
-                    spout_config.onEmit = (data, stream_id, callback) => {
-                        self.redirect(spout_config.name, data, stream_id, callback);
-                    };
-                    let spout = null;
-                    spout = new top_inproc.TopologySpoutInproc(spout_config, context);
-                    self.spouts.push(spout);
-                    tasks.push((xcallback) => { spout.init(xcallback); });
-                });
-                self.runHeartbeat();
-                async.series(tasks, (err) => {
-                    if (err) {
-                        log.logger().error(self.logging_prefix + "Error while initializing topology");
-                        log.logger().exception(err);
-                    }
-                    callback(err);
-                });
+                        bolt_config.onEmit = (data, stream_id, callback) => {
+                            self.redirect(bolt_config.name, data, stream_id, callback);
+                        };
+                        bolt_config.onError = (e) => {
+                            self.onInternalError(e);
+                        };
+                        let bolt = null;
+                        bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
+                        self.bolts.push(bolt);
+                        tasks.push((xcallback) => { bolt.init(xcallback); });
+                        for (let input of bolt_config.inputs) {
+                            if (input.disabled) {
+                                log.logger().debug(self.logging_prefix + `Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                                continue;
+                            }
+                            log.logger().debug(self.logging_prefix + `Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                            self.router.register(input.source, bolt_config.name, input.stream_id);
+                        }
+                    });
+                    self.config.spouts.forEach((spout_config) => {
+                        if (spout_config.disabled) {
+                            log.logger().debug(self.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
+                            return;
+                        }
+                        spout_config.onEmit = (data, stream_id, callback) => {
+                            self.redirect(spout_config.name, data, stream_id, callback);
+                        };
+                        spout_config.onError = (e) => {
+                            self.onInternalError(e);
+                        };
+                        let spout = null;
+                        spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
+                        self.spouts.push(spout);
+                        tasks.push((xcallback) => { spout.init(xcallback); });
+                    });
+                    async.series(tasks, (err) => {
+                        if (err) {
+                            log.logger().error(self.logging_prefix + "Error while initializing topology");
+                            log.logger().exception(err);
+                        }
+                        else {
+                            self.runHeartbeat();
+                        }
+                        callback(err);
+                    });
+                }
+                catch (e) {
+                    log.logger().error(self.logging_prefix + "Error while initializing topology");
+                    log.logger().exception(e);
+                    callback(e);
+                }
             });
         }
         catch (e) {

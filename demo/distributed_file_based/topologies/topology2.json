@@ -30,7 +30,7 @@
     ],
     "bolts": [
         {
-            "name": "bolt",
+            "name": "bolt2",
             "working_dir": ".",
             "type": "sys",
             "cmd": "console",

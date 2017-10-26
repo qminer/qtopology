@@ -30,8 +30,11 @@ export declare class TopologyLocal {
     private isRunning;
     private isShuttingDown;
     private heartbeatTimer;
+    private onErrorHandler;
     /** Constructor prepares the object before any information is received. */
-    constructor();
+    constructor(onError?: intf.SimpleCallback);
+    /** Handler for all internal errors */
+    private onInternalError(e);
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */

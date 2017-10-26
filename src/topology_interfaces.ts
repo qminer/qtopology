@@ -122,7 +122,8 @@ export enum ChildMsgCode {
     response_run,
     response_pause,
     response_ping,
-    response_shutdown
+    response_shutdown,
+    error
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -240,7 +241,7 @@ export interface CoordinationStorage {
     setTopologyPid(uuid: string, pid: number, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
-    
+
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback);
     getMsgQueueContent(callback: SimpleResultCallback<MsgQueueItem[]>);
 

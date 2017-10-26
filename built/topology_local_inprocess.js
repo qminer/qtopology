@@ -23,7 +23,7 @@ const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
 const log = require("./util/logger");
 /** Base class for spouts and bolts - contains telemetry support */
-class TopologyNodeBaseInproc {
+class TopologyNodeBase {
     constructor(name, telemetry_timeout) {
         this.name = name;
         this.telemetry = new tel.Telemetry(name);
@@ -54,9 +54,9 @@ class TopologyNodeBaseInproc {
         this.telemetry_total.add(duration);
     }
 }
-exports.TopologyNodeBaseInproc = TopologyNodeBaseInproc;
-/** Wrapper for "spout" in-process */
-class TopologySpoutInproc extends TopologyNodeBaseInproc {
+exports.TopologyNodeBase = TopologyNodeBase;
+/** Wrapper for spout */
+class TopologySpoutWrapper extends TopologyNodeBase {
     /** Constructor needs to receive all data */
     constructor(config, context) {
         super(config.name, config.telemetry_timeout);
@@ -66,11 +66,7 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         this.cmd = config.cmd;
         this.subtype = config.subtype;
         this.init_params = config.init || {};
-        this.isStarted = false;
-        this.isClosed = false;
-        this.isExit = false;
         this.isError = false;
-        this.onExit = null;
         let self = this;
         try {
             if (config.type == "sys") {
@@ -81,19 +77,16 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.child = require(module_path).create(this.subtype);
             }
-            this.isStarted = true;
         }
         catch (e) {
             log.logger().error("Error while creating an inproc spout");
             log.logger().exception(e);
-            this.isStarted = true;
-            this.isClosed = true;
-            this.isExit = true;
-            this.isError = true;
+            throw e;
         }
         self.emitCallback = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
+        self.errorCallback = config.onError || (() => { });
         self.isPaused = true;
         self.nextTs = Date.now();
     }
@@ -108,25 +101,66 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Handler for heartbeat signal */
     heartbeat() {
         let self = this;
-        self.child.heartbeat();
+        if (self.isError)
+            return;
+        try {
+            self.child.heartbeat();
+        }
+        catch (e) {
+            log.logger().error("Error in spout heartbeat");
+            log.logger().exception(e);
+            self.isError = true;
+            self.errorCallback(e);
+            return;
+        }
         self.telemetryHeartbeat((msg, stream_id) => {
             self.emitCallback(msg, stream_id, () => { });
         });
     }
     /** Shuts down the process */
     shutdown(callback) {
-        this.child.shutdown(callback);
+        if (this.isError)
+            return;
+        try {
+            this.child.shutdown(callback);
+            // wrap callback to set self.isError when an exception passed?
+        }
+        catch (e) {
+            // threw an exception before passing control
+            log.logger().error("Unhandled error in spout shutdown");
+            log.logger().exception(e);
+            this.isError = true;
+            callback(e);
+        }
     }
     /** Initializes child object. */
     init(callback) {
-        this.child.init(this.name, this.init_params, this.context, callback);
+        try {
+            this.child.init(this.name, this.init_params, this.context, callback);
+        }
+        catch (e) {
+            // threw an exception before passing control
+            log.logger().error("Unhandled error in spout init");
+            log.logger().exception(e);
+            this.isError = true;
+            this.errorCallback(e);
+        }
     }
-    /** Sends run signal and starts the "pump"" */
+    /** Sends run signal and starts the "pump" */
     run() {
         let self = this;
         this.isPaused = false;
-        this.child.run();
-        async.whilst(() => { return !self.isPaused; }, (xcallback) => {
+        try {
+            this.child.run();
+        }
+        catch (e) {
+            log.logger().error("Error in spout run");
+            log.logger().exception(e);
+            // set isError and do not run the pump?
+        }
+        async.whilst(
+        // also check isError?
+        () => { return !self.isPaused && !self.isError; }, (xcallback) => {
             if (Date.now() < this.nextTs) {
                 let sleep = this.nextTs - Date.now();
                 setTimeout(() => { xcallback(); }, sleep);
@@ -136,14 +170,18 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
             }
         }, (err) => {
             if (err) {
+                log.logger().error("Error in spout next");
                 log.logger().exception(err);
+                self.isError = true;
+                self.errorCallback(err);
             }
         });
     }
     /** Requests next data message */
     next(callback) {
         let self = this;
-        if (this.isPaused) {
+        // check isError?
+        if (self.isPaused || self.isError) {
             callback();
         }
         else {
@@ -154,8 +192,7 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
                         self.telemetryAdd(Date.now() - ts_start);
                         if (err) {
                             log.logger().exception(err);
-                            callback();
-                            return;
+                            return callback(err);
                         }
                         if (!data) {
                             self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
@@ -188,7 +225,15 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Sends pause signal to child */
     pause() {
         this.isPaused = true;
-        this.child.pause();
+        try {
+            this.child.pause();
+        }
+        catch (e) {
+            log.logger().error("Error in spout pause");
+            log.logger().exception(e);
+            this.isError = true;
+            this.errorCallback(e);
+        }
     }
     /** Factory method for sys spouts */
     createSysSpout(spout_config) {
@@ -205,9 +250,9 @@ class TopologySpoutInproc extends TopologyNodeBaseInproc {
         }
     }
 }
-exports.TopologySpoutInproc = TopologySpoutInproc;
-/** Wrapper for "bolt" in-process */
-class TopologyBoltInproc extends TopologyNodeBaseInproc {
+exports.TopologySpoutWrapper = TopologySpoutWrapper;
+/** Wrapper for bolt */
+class TopologyBoltWrapper extends TopologyNodeBase {
     /** Constructor needs to receive all data */
     constructor(config, context) {
         super(config.name, config.telemetry_timeout);
@@ -217,21 +262,18 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
         this.subtype = config.subtype;
+        this.isError = false;
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
             if (self.isShuttingDown) {
-                return callback("Bolt is shutting down:", self.name);
+                return callback(new Error("Bolt is shutting down: " + self.name));
             }
             config.onEmit(data, stream_id, callback);
         };
         this.emitCallback = this.init_params.onEmit;
+        this.errorCallback = config.onError || (() => { });
         this.allow_parallel = config.allow_parallel || false;
-        this.isStarted = false;
         this.isShuttingDown = false;
-        this.isClosed = false;
-        this.isExit = false;
-        this.isError = false;
-        this.onExit = null;
         this.inSend = 0;
         this.pendingSendRequests = [];
         this.pendingShutdownCallback = null;
@@ -244,15 +286,11 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.child = require(module_path).create(this.subtype);
             }
-            this.isStarted = true;
         }
         catch (e) {
             log.logger().error("Error while creating an inproc bolt");
             log.logger().exception(e);
-            this.isStarted = true;
-            this.isClosed = true;
-            this.isExit = true;
-            this.isError = true;
+            throw e;
         }
     }
     /** Returns name of this node */
@@ -266,13 +304,26 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
     /** Handler for heartbeat signal */
     heartbeat() {
         let self = this;
-        self.child.heartbeat();
+        if (self.isError)
+            return;
+        try {
+            self.child.heartbeat();
+        }
+        catch (e) {
+            log.logger().error("Error in bolt heartbeat");
+            log.logger().exception(e);
+            self.isError = true;
+            self.errorCallback(e);
+            return;
+        }
         self.telemetryHeartbeat((msg, stream_id) => {
             self.emitCallback(msg, stream_id, () => { });
         });
     }
     /** Shuts down the child */
     shutdown(callback) {
+        if (this.isError)
+            return callback();
         try {
             this.isShuttingDown = true;
             if (this.inSend === 0) {
@@ -292,12 +343,17 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
             this.child.init(this.name, this.init_params, this.context, callback);
         }
         catch (e) {
-            callback(e);
+            log.logger().error("Error in bolt init");
+            log.logger().exception(e);
+            this.isError = true;
+            this.errorCallback(e);
         }
     }
     /** Sends data to child object. */
     receive(data, stream_id, callback) {
         let self = this;
+        if (self.isError)
+            return callback(new Error(`Bolt ${self.name} has error flag set.`));
         let ts_start = Date.now();
         if (self.inSend > 0 && !self.allow_parallel) {
             self.pendingSendRequests.push({
@@ -312,6 +368,8 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
                 self.child.receive(data, stream_id, (err) => {
                     self.telemetryAdd(Date.now() - ts_start);
                     callback(err);
+                    if (err)
+                        return; // stop processing if there was an error
                     self.inSend--;
                     if (self.inSend === 0) {
                         if (self.pendingSendRequests.length > 0) {
@@ -348,5 +406,5 @@ class TopologyBoltInproc extends TopologyNodeBaseInproc {
         }
     }
 }
-exports.TopologyBoltInproc = TopologyBoltInproc;
+exports.TopologyBoltWrapper = TopologyBoltWrapper;
 //# sourceMappingURL=topology_local_inprocess.js.map

@@ -95,6 +95,7 @@ export declare enum ChildMsgCode {
     response_pause = 2,
     response_ping = 3,
     response_shutdown = 4,
+    error = 5,
 }
 /**
  * Constants for using distributed functionality.
