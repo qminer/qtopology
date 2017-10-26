@@ -300,19 +300,6 @@ class TopologyLeader {
             self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, MESSAGE_INTERVAL, xcallback);
         }, callback);
     }
-    // /**
-    //  * This method assigns topology to the worker that is provided by the load-balancer.
-    //  * @param ut - unassigned toplogy object
-    //  * @param load_balancer - load balancer object that tells you which worker to send the topology to
-    //  * @param callback - callback to call when done
-    //  */
-    // private assignUnassignedTopology(ut: intf.TopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleResultCallback<string>) {
-    //     let self = this;
-    //     let target = load_balancer.next(ut.worker_affinity, ut.weight);
-    //     self.assignTopologyToWorker(target, ut.uuid, (err) => {
-    //         callback(err, target);
-    //     });
-    // }
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
