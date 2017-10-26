@@ -6,6 +6,8 @@ export declare class TopologyNodeBase {
     private telemetry_timeout;
     private telemetry;
     private telemetry_total;
+    protected isError: boolean;
+    protected errorCallback: intf.SimpleCallback;
     constructor(name: string, telemetry_timeout: number);
     /** This method checks if telemetry data should be emitted
      * and calls provided callback if that is the case.
@@ -13,6 +15,8 @@ export declare class TopologyNodeBase {
     telemetryHeartbeat(emitCallback: (msg: any, stream_id: string) => void): void;
     /** Adds duration to internal telemetry */
     telemetryAdd(duration: number): void;
+    /** helper function that sets isError flag when a callback is called with an error */
+    protected wrapCallbackSetError(callback: intf.SimpleCallback): intf.SimpleCallback;
 }
 /** Wrapper for spout */
 export declare class TopologySpoutWrapper extends TopologyNodeBase {
@@ -22,11 +26,9 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private subtype;
     private init_params;
     private isPaused;
-    private isError;
     private nextTs;
     private child;
     private emitCallback;
-    private errorCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
     /** Returns name of this node */
@@ -56,14 +58,12 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private subtype;
     private init_params;
     private isShuttingDown;
-    private isError;
     private allow_parallel;
     private inSend;
     private pendingSendRequests;
     private pendingShutdownCallback;
     private child;
     private emitCallback;
-    private errorCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
     /** Returns name of this node */
