@@ -38,20 +38,15 @@ export declare class TopologyLeader {
      * to alive workers.
      */
     private performLeaderLoop(callback);
+    /** Check enabled topologies - if they are marked as running, they must be assigned to worker */
+    private handleSuspiciousTopologies(topologies_enabled, topologies_disabled, callback);
     /** go through all enabled topologies and calculate current loads for workers.
      * Then assign unassigned topologies to appropiate workers.
      */
-    private assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, xcallback);
+    private assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, callback);
     /** This method will perform rebalance of topologies on workers if needed.
      */
     private performRebalanceIfNeeded(workers, topologies, callback);
-    /**
-     * This method assigns topology to the worker that is provided by the load-balancer.
-     * @param ut - unassigned toplogy object
-     * @param load_balancer - load balancer object that tells you which worker to send the topology to
-     * @param callback - callback to call when done
-     */
-    private assignUnassignedTopology(ut, load_balancer, callback);
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
