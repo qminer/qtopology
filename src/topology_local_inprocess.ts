@@ -2,7 +2,6 @@ import * as intf from "./topology_interfaces";
 
 import * as async from "async";
 import * as path from "path";
-import * as cp from "child_process";
 
 import * as fb from "./std_nodes/filter_bolt";
 import * as pb from "./std_nodes/post_bolt";
@@ -222,23 +221,26 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                     this.child.next((err, data, stream_id, xcallback) => {
                         self.telemetryAdd(Date.now() - ts_start);
                         if (err) {
+                            // child sent an error, xcallback is ignored
                             log.logger().exception(err);
                             return callback(err);
                         }
                         if (!data) {
+                            // child didn't send any data, so xcallback is ignored
                             self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
                             callback();
                         } else {
                             try {
                                 self.emitCallback(data, stream_id, (err) => {
                                     // in case child object expects confirmation call for this tuple
-                                    if (xcallback) {
-                                        xcallback(err, callback);
+                                    if (xcallback && !err) {
+                                        xcallback(null, callback);
                                     } else {
-                                        callback();
+                                        callback(err);
                                     }
                                 });
                             } catch (e) {
+                                // there was an error, don't call the child's xcallback
                                 callback(e);
                             }
                         }
@@ -289,7 +291,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private init_params: any;
     private isShuttingDown: boolean;
     private isError: boolean;
-    private nextTs: number;
     private allow_parallel: boolean;
     private inSend: number;
     private pendingSendRequests: any[];

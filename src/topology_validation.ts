@@ -1,4 +1,3 @@
-import * as  fs from "fs";
 import * as jsch from "jsonschema";
 import * as intf from "./topology_interfaces";
 

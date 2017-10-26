@@ -46,7 +46,6 @@ class PaternMatcher {
             target_value = target_value[field];
         }
         if (filter.values) {
-            let match = false;
             for (let val of filter.values) {
                 if (target_value === val) {
                     return true;
@@ -54,7 +53,6 @@ class PaternMatcher {
             }
         }
         else {
-            let match = false;
             for (let like of filter.$like) {
                 if (like.test(target_value)) {
                     return true;

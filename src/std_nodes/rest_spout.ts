@@ -1,5 +1,4 @@
 import * as intf from "../topology_interfaces";
-import * as pm from "../util/pattern_matcher";
 import * as http from 'http';
 
 /** This spout receives requests (messages/data) over REST interface.

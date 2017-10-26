@@ -61,7 +61,7 @@ class TopologyLocalWrapper {
 
     /** Starts infinite loop by reading messages from parent or console */
     start() {
-        let self = this;
+        //let self = this;
     }
 
     /** Internal main handler for incoming messages */

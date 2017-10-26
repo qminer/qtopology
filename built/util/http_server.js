@@ -103,10 +103,10 @@ class MinimalHttpServer {
     }
     /** For running the server */
     run(port) {
-        var server = http.createServer(this.withBody((req, resp) => {
+        let server = http.createServer(this.withBody((req, resp) => {
             // get the HTTP method, path and body of the request
-            var method = req.method;
-            var addr = req.url;
+            // let method = req.method;
+            let addr = req.url;
             logger.logger().debug(this.log_prefix + `Handling ${req.method} ${addr}`);
             if (this.routes.has(addr)) {
                 let rec = this.routes.get(addr);
