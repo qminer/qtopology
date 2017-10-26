@@ -216,19 +216,8 @@ export class TopologyLeader {
                     if (!perform_loop) {
                         return xcallback();
                     }
-                    // check enabled topologies - if they are marked as running, they must be assigned to worker
-                    let targets = topologies_enabled
-                        .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
-                    async.each(
-                        targets,
-                        (item: intf.TopologyStatus, xxcallback) => {
-                            // strange, topology marked as enabled and running, but no worker specified
-                            // mark it as unassinged.
-                            log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
-                            self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, xxcallback);
-                        },
-                        xcallback
-                    );
+                    // Check enabled topologies - if they are marked as running, they must be assigned to worker
+                    self.handleSuspiciousTopologies(topologies_enabled, topologies_disabled, xcallback);
                 },
                 (xcallback) => {
                     if (!perform_loop || alive_workers.length == 0) {
@@ -253,17 +242,45 @@ export class TopologyLeader {
         );
     }
 
+    /** Check enabled topologies - if they are marked as running, they must be assigned to worker */
+    private handleSuspiciousTopologies(
+        topologies_enabled: intf.TopologyStatus[],
+        topologies_disabled: intf.TopologyStatus[],
+        callback: intf.SimpleCallback) {
+
+        let self = this;
+        let targets = topologies_enabled
+            .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
+        async.each(targets, (item: intf.TopologyStatus, xcallback) => {
+            // strange, topology marked as enabled and running, but no worker specified
+            // mark it as unassinged.
+            log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
+            self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, (err) => {
+                if (err)
+                    return xcallback(err);
+                // move the topology in internal arrays
+                topologies_enabled.splice(topologies_enabled.indexOf(item), 1);
+                topologies_disabled.push(item);
+                xcallback();
+            });
+        }, callback);
+    }
+
     /** go through all enabled topologies and calculate current loads for workers.
      * Then assign unassigned topologies to appropiate workers.
      */
     private assignUnassignedTopologies(
-        topologies_enabled: intf.TopologyStatus[], topologies_for_rebalance: lb.Topology[],
-        alive_workers: intf.WorkerStatus[], worker_weights: Map<string, number>, xcallback: intf.SimpleCallback) {
+        topologies_enabled: intf.TopologyStatus[],
+        topologies_for_rebalance: lb.Topology[],
+        alive_workers: intf.WorkerStatus[],
+        worker_weights: Map<string, number>,
+        callback: intf.SimpleCallback) {
+
         let self = this;
         topologies_enabled.forEach(x => {
             x.weight = x.weight || 1;
             x.worker_affinity = x.worker_affinity || [];
-            if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
+            if (x.status == intf.Consts.TopologyStatus.unassigned) {
                 for (let worker of alive_workers) {
                     let name = worker.name;
                     if (name == x.worker) {
@@ -296,13 +313,21 @@ export class TopologyLeader {
             }),
             AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
         );
+        let assignments = unassigned_topologies
+            .map(x=>{
+                let worker = load_balancer.next(x.worker_affinity, x.weight);
+                topologies_for_rebalance
+                    .filter(y => y.uuid == x.uuid)
+                    .forEach(y => { y.worker = worker; });
+                return {uuid: x.uuid, worker: worker};
+            });
+
         async.eachSeries(
-            unassigned_topologies,
-            (item, ycallback) => {
-                let ut = item as intf.TopologyStatus;
-                self.assignUnassignedTopology(ut, load_balancer, ycallback);
+            assignments,
+            (item, xcallback) => {
+                self.assignTopologyToWorker(item.worker, item.uuid, xcallback);
             },
-            xcallback
+            callback
         );
     }
 
@@ -342,17 +367,19 @@ export class TopologyLeader {
         );
     }
 
-    /**
-     * This method assigns topology to the worker that is provided by the load-balancer.
-     * @param ut - unassigned toplogy object
-     * @param load_balancer - load balancer object that tells you which worker to send the topology to
-     * @param callback - callback to call when done
-     */
-    private assignUnassignedTopology(ut: intf.TopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleCallback) {
-        let self = this;
-        let target = load_balancer.next(ut.worker_affinity, ut.weight);
-        self.assignTopologyToWorker(target, ut.uuid, callback);
-    }
+    // /**
+    //  * This method assigns topology to the worker that is provided by the load-balancer.
+    //  * @param ut - unassigned toplogy object
+    //  * @param load_balancer - load balancer object that tells you which worker to send the topology to
+    //  * @param callback - callback to call when done
+    //  */
+    // private assignUnassignedTopology(ut: intf.TopologyStatus, load_balancer: lb.LoadBalancerEx, callback: intf.SimpleResultCallback<string>) {
+    //     let self = this;
+    //     let target = load_balancer.next(ut.worker_affinity, ut.weight);
+    //     self.assignTopologyToWorker(target, ut.uuid, (err) => {
+    //         callback(err, target);
+    //     });
+    // }
 
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
