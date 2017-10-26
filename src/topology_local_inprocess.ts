@@ -165,7 +165,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
         if (this.isShutDown) return callback(); // TODO what to do here?
-        this.isShutDown=true;
+        this.isShutDown = true;
         try {
             this.child.shutdown(callback);
         } catch (e) {
