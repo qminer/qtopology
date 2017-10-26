@@ -122,7 +122,8 @@ export enum ChildMsgCode {
     response_run,
     response_pause,
     response_ping,
-    response_shutdown
+    response_shutdown,
+    error
 }
 
 ////////////////////////////////////////////////////////////////////////

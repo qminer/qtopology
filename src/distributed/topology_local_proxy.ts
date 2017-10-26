@@ -3,6 +3,7 @@ import * as cp from "child_process";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
+const PING_INTERVAL = 3000;
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -18,6 +19,7 @@ export class TopologyLocalProxy {
     private pingIntervalId: NodeJS.Timer;
     private pendingPings: number;
     private log_prefix: string;
+    private last_child_err: Error;
 
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback) {
@@ -49,6 +51,9 @@ export class TopologyLocalProxy {
                     cb(msg.data.err);
                 }
             }
+            if (msg.cmd == intf.ChildMsgCode.error) {
+                self.last_child_err = new Error(msg.data.err);
+            }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
                 if (self.run_cb) {
                     let cb = self.run_cb;
@@ -77,7 +82,7 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            let e = new Error(`CLOSE Child process ${this.child.pid} exited with code ${code}`);
+            let e = self.last_child_err || new Error(`CLOSE Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -86,7 +91,7 @@ export class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            let e = new Error(`EXIT Child process ${this.child.pid} exited with code ${code}`);
+            let e = self.last_child_err || new Error(`EXIT Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -105,7 +110,7 @@ export class TopologyLocalProxy {
                     self.kill(() => { });
                 }
             },
-            3000);
+            PING_INTERVAL);
     }
 
     /** Check if this object has been shut down already */

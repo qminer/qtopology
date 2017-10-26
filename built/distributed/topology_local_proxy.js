@@ -4,6 +4,7 @@ const path = require("path");
 const cp = require("child_process");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
+const PING_INTERVAL = 3000;
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -36,6 +37,9 @@ class TopologyLocalProxy {
                     cb(msg.data.err);
                 }
             }
+            if (msg.cmd == intf.ChildMsgCode.error) {
+                self.last_child_err = new Error(msg.data.err);
+            }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
                 if (self.run_cb) {
                     let cb = self.run_cb;
@@ -64,7 +68,7 @@ class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("close", (code) => {
-            let e = new Error(`CLOSE Child process ${this.child.pid} exited with code ${code}`);
+            let e = self.last_child_err || new Error(`CLOSE Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -73,7 +77,7 @@ class TopologyLocalProxy {
             self.callPendingCallbacks2(e);
         });
         self.child.on("exit", (code) => {
-            let e = new Error(`EXIT Child process ${this.child.pid} exited with code ${code}`);
+            let e = self.last_child_err || new Error(`EXIT Child process ${this.child.pid} exited with code ${code}`);
             self.callPendingCallbacks(e);
             if (code === 0) {
                 e = null;
@@ -91,7 +95,7 @@ class TopologyLocalProxy {
                 log.logger().error(this.log_prefix + "Too many un-answered pings, sending kill to child process...");
                 self.kill(() => { });
             }
-        }, 3000);
+        }, PING_INTERVAL);
     }
     /** Check if this object has been shut down already */
     wasShutDown() {

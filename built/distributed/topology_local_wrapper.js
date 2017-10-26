@@ -66,11 +66,11 @@ class TopologyLocalWrapper {
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
-            self.topology_local = new tl.TopologyLocal(() => { self.killProcess(110); });
+            self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(110, err); });
             self.topology_local.init(self.uuid, topology, (err) => {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
                 if (err) {
-                    self.killProcess(10);
+                    self.killProcess(10, err);
                 }
             });
         }
@@ -98,7 +98,7 @@ class TopologyLocalWrapper {
             self.topology_local.pause((err) => {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
                 if (err) {
-                    self.killProcess(20);
+                    self.killProcess(20, err);
                 }
             });
         }
@@ -113,12 +113,14 @@ class TopologyLocalWrapper {
             self.shutdown();
         }
     }
-    killProcess(exit_code) {
+    killProcess(exit_code, err) {
         let self = this;
+        self.sendToParent(intf.ChildMsgCode.error, { err: err.message });
+        // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
             log.logger().important(self.log_prefix + "Stopping the topology process from the child");
             process.exit(exit_code || 0);
-        }, 0);
+        }, 100);
     }
     /** This method shuts down the local topology */
     shutdown() {
