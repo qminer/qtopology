@@ -212,6 +212,7 @@ export class TopologyLocal {
                 // only possible error is when isInit is false
                 log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(err);
+                return this.onInternalError(err);
             }
             let tasks = [];
             self.spouts.forEach((spout) => {
@@ -282,6 +283,7 @@ export class TopologyLocal {
                 // All exceptions should have been caught and passed to errorCallback
                 log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(e);
+                return this.onInternalError(e);
             }
         }
         for (let bolt of this.bolts) {
@@ -291,6 +293,7 @@ export class TopologyLocal {
                 // All exceptions should have been caught and passed to errorCallback
                 log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(e);
+                return this.onInternalError(e);
             }
         }
     }
