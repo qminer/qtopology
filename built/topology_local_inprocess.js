@@ -99,7 +99,7 @@ class TopologySpoutWrapper extends TopologyNodeBase {
         self.errorCallback = config.onError || (() => { });
         self.errorCallback = self.wrapCallbackSetError(self.errorCallback);
         self.isPaused = true;
-        self.isShutDown = false;
+        self.isShuttingDown = false;
         self.nextTs = Date.now();
     }
     /** Returns name of this node */
@@ -136,9 +136,10 @@ class TopologySpoutWrapper extends TopologyNodeBase {
         callback = this.wrapCallbackSetError(callback);
         if (this.isError)
             return callback();
-        if (this.isShutDown)
-            return callback(); // TODO what to do here?
-        this.isShutDown = true;
+        // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+        if (this.isShuttingDown)
+            return callback(new Error("Spout is already shutting down."));
+        this.isShuttingDown = true;
         try {
             this.child.shutdown(callback);
         }
@@ -346,8 +347,11 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         callback = this.wrapCallbackSetError(callback);
         if (this.isError)
             return callback();
+        // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+        if (this.isShuttingDown)
+            return callback(new Error("Bolt is already shutting down."));
+        this.isShuttingDown = true;
         try {
-            this.isShuttingDown = true;
             if (this.inSend === 0) {
                 return this.child.shutdown(callback);
             }

@@ -39,9 +39,9 @@ export declare class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
-    /** Sends run signal to all spouts */
+    /** Sends run signal to all spouts. Each spout.run is idempotent */
     run(): void;
-    /** Sends pause signal to all spouts */
+    /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback): void;
