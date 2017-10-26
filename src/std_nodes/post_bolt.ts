@@ -1,5 +1,4 @@
 import * as intf from "../topology_interfaces";
-import * as pm from "../util/pattern_matcher";
 import * as rest from 'node-rest-client';
 
 /** This bolt sends POST request to specified url (fixed or provided inside data)
