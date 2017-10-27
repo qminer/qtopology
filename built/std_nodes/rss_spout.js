@@ -22,7 +22,7 @@ class RssSpout {
         if (Date.now() >= this.next_call_after) {
             let self = this;
             log.logger().debug(this.logging_prefix + "Starting RSS crawl: " + self.url);
-            let req = self.client.get(self.url, (new_data, response) => {
+            self.client.get(self.url, (new_data, response) => {
                 for (let item of new_data.rss.channel.item) {
                     self.tuples.push(item);
                 }

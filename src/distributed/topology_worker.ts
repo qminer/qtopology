@@ -4,16 +4,12 @@ import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
-import * as fe from "../util/freq_estimator";
-
-const RESTART_SCORE_LIMIT = 10;
 
 /** Utility class for holding data about single topology */
 class TopologyItem {
     uuid: string;
     config: any;
     proxy: tlp.TopologyLocalProxy;
-    error_frequency_score: fe.EventFrequencyScore;
 }
 
 /** This class handles topology worker - singleton instance on
@@ -146,28 +142,18 @@ export class TopologyWorker {
             if (self.waiting_for_shutdown || rec.proxy.wasShutDown()) {
                 self.removeTopology(rec.uuid);
             } else {
-                // check if topology restarted a lot recently
-                let score = rec.error_frequency_score.add(new Date());
-                let too_often = (score >= RESTART_SCORE_LIMIT);
-                if (too_often) {
-                    self.removeAndReportError(rec, err);
-                } else {
-                    // not too often, just restart
-                    setTimeout(() => {
-                        self.createProxy(rec);
-                    }, 0);
-                }
+                self.removeAndReportError(rec, err);
             }
         });
         // report topology as running, then try to start it.
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
         self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
-        self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
-        
+
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 self.removeAndReportError(rec, err);
             } else {
+                self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
                 rec.proxy.run((err) => {
                     if (err) {
                         self.removeAndReportError(rec, err);
@@ -194,7 +180,6 @@ export class TopologyWorker {
             let rec = new TopologyItem();
             rec.uuid = uuid;
             rec.config = config;
-            rec.error_frequency_score = new fe.EventFrequencyScore(10 * 60 * 1000);
             self.createProxy(rec);
 
             // only change internal state when all other steps passed
@@ -246,7 +231,8 @@ export class TopologyWorker {
         );
     }
 
-    private shutDownTopologies(callback) {
+    /** Sends shutdown signals to all topologies */
+    private shutDownTopologies(callback: intf.SimpleCallback) {
         let self = this;
         let first_err: Error = null;
         async.each(
@@ -267,6 +253,7 @@ export class TopologyWorker {
         );
     }
 
+    /** Sends shut down signal to single topology */
     private shutDownTopology(uuid: string, do_kill: boolean, callback: intf.SimpleCallback) {
         let self = this;
         let hits = self.topologies.filter(x => x.uuid == uuid);
@@ -278,6 +265,7 @@ export class TopologyWorker {
         }
     }
 
+    /** Internal method that contains common steps for kill and shutdown sequence */
     private shutDownTopologyInternal(item: TopologyItem, do_kill: boolean, callback: intf.SimpleCallback) {
         let self = this;
         async.series(
@@ -303,6 +291,7 @@ export class TopologyWorker {
         );
     }
 
+    /** Remove given topology from internal list and report an error */
     private removeAndReportError(rec: TopologyItem, err: Error) {
         this.removeTopology(rec.uuid);
         this.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);

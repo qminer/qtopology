@@ -22,7 +22,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             assert.equal(emits.length, 0);
             assert.equal(target.getBoltObject()._init_called, 0);
         });
@@ -40,7 +40,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             target.init((err) => {
                 assert.ok(!err);
                 assert.equal(emits.length, 0);
@@ -64,7 +64,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             target.init((err) => {
                 assert.ok(!err);
                 assert.equal(emits.length, 0);
@@ -91,7 +91,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             let data1 = { x: 89 };
             let data_stream1 = null;
             async.series(
@@ -128,7 +128,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             let data1 = { x: 89 };
             let data_stream1 = "SomeStreamId";
             async.series(
@@ -165,7 +165,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             let data1 = { x: 89 };
             let data_stream1 = null;
 
@@ -214,7 +214,7 @@ describe('TopologyBoltInproc', function () {
                     some: "data"
                 }
             };
-            let target = new tli.TopologyBoltInproc(config);
+            let target = new tli.TopologyBoltWrapper(config);
             let data1 = { x: 89 };
             let data_stream1 = "stream1";
 

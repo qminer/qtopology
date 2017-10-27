@@ -12,6 +12,7 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.storage_props = ko.observableArray();
     this.msg_queue_current = ko.observableArray();
     this.msg_queue_history = ko.observableArray();
+    this.active_blade = null;
 
     var self = this;
     self.toggle_workers_not_alive = function (item) {
@@ -173,6 +174,7 @@ QTopologyDashboardViewModel.prototype.showBlade = function (name) {
         $("#" + blade_name).hide();
     }
     $("#" + name).show();
+    this.active_blade = name;
 }
 QTopologyDashboardViewModel.prototype.showMsgQueue = function () {
     var self = this;
@@ -242,6 +244,7 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
 
 QTopologyDashboardViewModel.prototype.closeBlade = function () {
     $(".blade").hide();
+    this.active_blade = null;
 }
 
 QTopologyDashboardViewModel.prototype.prepareBlades = function () {
@@ -261,7 +264,9 @@ QTopologyDashboardViewModel.prototype.setTopologyEnabled = function (uuid) {
     var self = this;
     self.post("enable-topology", { uuid: uuid }, function () {
         self.loadData(function () {
-            self.showTopologyInfo(uuid);
+            if (self.active_blade == this.bladeTopology) {
+                self.showTopologyInfo(uuid);
+            }
         });
     });
 }
@@ -269,7 +274,9 @@ QTopologyDashboardViewModel.prototype.setTopologyDisabled = function (uuid) {
     var self = this;
     self.post("disable-topology", { uuid: uuid }, function () {
         self.loadData(function () {
-            self.showTopologyInfo(uuid);
+            if (self.active_blade == this.bladeTopology) {
+                self.showTopologyInfo(uuid);
+            }
         });
     });
 }
@@ -277,7 +284,9 @@ QTopologyDashboardViewModel.prototype.clearTopologyError = function (uuid) {
     var self = this;
     self.post("clear-topology-error", { uuid: uuid }, function () {
         self.loadData(function () {
-            self.showTopologyInfo(uuid);
+            if (self.active_blade == this.bladeTopology) {
+                self.showTopologyInfo(uuid);
+            }
         });
     });
 }
@@ -285,7 +294,9 @@ QTopologyDashboardViewModel.prototype.stopTopology = function (uuid) {
     var self = this;
     self.post("stop-topology", { uuid: uuid }, function () {
         self.loadData(function () {
-            self.showTopologyInfo(uuid);
+            if (self.active_blade == this.bladeTopology) {
+                self.showTopologyInfo(uuid);
+            }
         });
     });
 }
@@ -293,7 +304,9 @@ QTopologyDashboardViewModel.prototype.killTopology = function (uuid) {
     var self = this;
     self.post("kill-topology", { uuid: uuid }, function () {
         self.loadData(function () {
-            self.showTopologyInfo(uuid);
+            if (self.active_blade == this.bladeTopology) {
+                self.showTopologyInfo(uuid);
+            }
         });
     });
 }
@@ -301,7 +314,7 @@ QTopologyDashboardViewModel.prototype.deleteWorker = function (name) {
     var self = this;
     self.post("delete-worker", { name: name }, function () {
         self.loadData(function () {
-            self.showWorkerInfo(name);
+            self.closeBlade();
         });
     });
 }
@@ -309,7 +322,9 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
     var self = this;
     self.post("shut-down-worker", { name: name }, function () {
         self.loadData(function () {
-            self.showWorkerInfo(name);
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
         });
     });
 }
@@ -317,7 +332,9 @@ QTopologyDashboardViewModel.prototype.rebalanceLeader = function (name) {
     var self = this;
     self.post("rebalance-leader", { name: name }, function () {
         self.loadData(function () {
-            self.showWorkerInfo(name);
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
         });
     });
 }

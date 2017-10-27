@@ -1,5 +1,4 @@
 import * as intf from "../topology_interfaces";
-import * as pm from "../util/pattern_matcher";
 import * as fs from 'fs';
 import * as path from 'path';
 

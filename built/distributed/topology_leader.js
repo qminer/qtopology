@@ -187,15 +187,8 @@ class TopologyLeader {
                 if (!perform_loop) {
                     return xcallback();
                 }
-                // check enabled topologies - if they are marked as running, they must be assigned to worker
-                let targets = topologies_enabled
-                    .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
-                async.each(targets, (item, xxcallback) => {
-                    // strange, topology marked as enabled and running, but no worker specified
-                    // mark it as unassinged.
-                    log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
-                    self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, xxcallback);
-                }, xcallback);
+                // Check enabled topologies - if they are marked as running, they must be assigned to worker
+                self.handleSuspiciousTopologies(topologies_enabled, topologies_disabled, xcallback);
             },
             (xcallback) => {
                 if (!perform_loop || alive_workers.length == 0) {
@@ -218,22 +211,38 @@ class TopologyLeader {
             }
         ], callback);
     }
+    /** Check enabled topologies - if they are marked as running, they must be assigned to worker */
+    handleSuspiciousTopologies(topologies_enabled, topologies_disabled, callback) {
+        let self = this;
+        let targets = topologies_enabled
+            .filter(x => x.status == intf.Consts.TopologyStatus.running && x.worker == null);
+        async.each(targets, (item, xcallback) => {
+            // strange, topology marked as enabled and running, but no worker specified
+            // mark it as unassinged.
+            log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
+            self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, (err) => {
+                if (err)
+                    return xcallback(err);
+                // move the topology in internal arrays
+                topologies_enabled.splice(topologies_enabled.indexOf(item), 1);
+                topologies_disabled.push(item);
+                xcallback();
+            });
+        }, callback);
+    }
     /** go through all enabled topologies and calculate current loads for workers.
      * Then assign unassigned topologies to appropiate workers.
      */
-    assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, xcallback) {
+    assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, callback) {
         let self = this;
         topologies_enabled.forEach(x => {
             x.weight = x.weight || 1;
             x.worker_affinity = x.worker_affinity || [];
-            if (x.status == "" || x.status == intf.Consts.TopologyStatus.unassigned) {
+            if (x.status == intf.Consts.TopologyStatus.running) {
                 for (let worker of alive_workers) {
                     let name = worker.name;
                     if (name == x.worker) {
-                        let old_weight = 0;
-                        if (worker_weights.has(name)) {
-                            old_weight = worker_weights.get(name);
-                        }
+                        let old_weight = (worker_weights.has(name) ? worker_weights.get(name) : 0);
                         worker_weights.set(name, old_weight + x.weight);
                         break;
                     }
@@ -256,10 +265,17 @@ class TopologyLeader {
             return { name: x.name, weight: worker_weights.get(x.name) || 0 };
         }), AFFINITY_FACTOR // affinity means N-times stronger gravitational pull towards that worker
         );
-        async.eachSeries(unassigned_topologies, (item, ycallback) => {
-            let ut = item;
-            self.assignUnassignedTopology(ut, load_balancer, ycallback);
-        }, xcallback);
+        let assignments = unassigned_topologies
+            .map(x => {
+            let worker = load_balancer.next(x.worker_affinity, x.weight);
+            topologies_for_rebalance
+                .filter(y => y.uuid == x.uuid)
+                .forEach(y => { y.worker = worker; });
+            return { uuid: x.uuid, worker: worker };
+        });
+        async.eachSeries(assignments, (item, xcallback) => {
+            self.assignTopologyToWorker(item.worker, item.uuid, xcallback);
+        }, callback);
     }
     /** This method will perform rebalance of topologies on workers if needed.
      */
@@ -283,17 +299,6 @@ class TopologyLeader {
             log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
             self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, MESSAGE_INTERVAL, xcallback);
         }, callback);
-    }
-    /**
-     * This method assigns topology to the worker that is provided by the load-balancer.
-     * @param ut - unassigned toplogy object
-     * @param load_balancer - load balancer object that tells you which worker to send the topology to
-     * @param callback - callback to call when done
-     */
-    assignUnassignedTopology(ut, load_balancer, callback) {
-        let self = this;
-        let target = load_balancer.next(ut.worker_affinity, ut.weight);
-        self.assignTopologyToWorker(target, ut.uuid, callback);
     }
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
@@ -355,7 +360,6 @@ class TopologyLeader {
     /** checks all worker records if any of them is not active anymore. */
     disableDefunctWorkers(data_workers, callback) {
         let self = this;
-        let limit = Date.now() - WORKER_IDLE_INTERVAL;
         async.each(data_workers, (worker, xcallback) => {
             self.disableDefunctWorkerSingle(worker, xcallback);
         }, callback);

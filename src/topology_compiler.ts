@@ -1,4 +1,3 @@
-import * as intf from "./topology_interfaces";
 import * as validator from "./topology_validation"
 
 /** Helper function for injecting the variables in ${VARNAME} location.

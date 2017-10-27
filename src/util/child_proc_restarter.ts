@@ -88,7 +88,7 @@ export class ChildProcRestarter {
             this.proc.stdout.on("data", outputToConsole);
             this.proc.stderr.on("data", outputToConsole);
         }
-        this.proc.on("exit", (code) => {
+        this.proc.on("exit", () => {
             delete this.proc;
             self.proc = null;
             if (self.pending_exit_cb) {

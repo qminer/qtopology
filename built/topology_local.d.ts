@@ -30,15 +30,18 @@ export declare class TopologyLocal {
     private isRunning;
     private isShuttingDown;
     private heartbeatTimer;
+    private onErrorHandler;
     /** Constructor prepares the object before any information is received. */
-    constructor();
+    constructor(onError?: intf.SimpleCallback);
+    /** Handler for all internal errors */
+    private onInternalError(e);
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
-    /** Sends run signal to all spouts */
+    /** Sends run signal to all spouts. Each spout.run is idempotent */
     run(): void;
-    /** Sends pause signal to all spouts */
+    /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback): void;

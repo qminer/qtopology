@@ -1,11 +1,13 @@
 import * as intf from "./topology_interfaces";
 /** Base class for spouts and bolts - contains telemetry support */
-export declare class TopologyNodeBaseInproc {
+export declare class TopologyNodeBase {
     protected name: string;
     private telemetry_next_emit;
     private telemetry_timeout;
     private telemetry;
     private telemetry_total;
+    protected isError: boolean;
+    protected errorCallback: intf.SimpleCallback;
     constructor(name: string, telemetry_timeout: number);
     /** This method checks if telemetry data should be emitted
      * and calls provided callback if that is the case.
@@ -13,20 +15,18 @@ export declare class TopologyNodeBaseInproc {
     telemetryHeartbeat(emitCallback: (msg: any, stream_id: string) => void): void;
     /** Adds duration to internal telemetry */
     telemetryAdd(duration: number): void;
+    /** helper function that sets isError flag when a callback is called with an error */
+    protected wrapCallbackSetError(callback: intf.SimpleCallback): intf.SimpleCallback;
 }
-/** Wrapper for "spout" in-process */
-export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
+/** Wrapper for spout */
+export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private context;
     private working_dir;
     private cmd;
     private subtype;
     private init_params;
-    private isStarted;
-    private isClosed;
-    private isExit;
-    private isError;
-    private onExit;
     private isPaused;
+    private isShuttingDown;
     private nextTs;
     private child;
     private emitCallback;
@@ -42,7 +42,7 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     shutdown(callback: intf.SimpleCallback): void;
     /** Initializes child object. */
     init(callback: intf.SimpleCallback): void;
-    /** Sends run signal and starts the "pump"" */
+    /** Sends run signal and starts the "pump" */
     run(): void;
     /** Requests next data message */
     private next(callback);
@@ -51,21 +51,14 @@ export declare class TopologySpoutInproc extends TopologyNodeBaseInproc {
     /** Factory method for sys spouts */
     private createSysSpout(spout_config);
 }
-/** Wrapper for "bolt" in-process */
-export declare class TopologyBoltInproc extends TopologyNodeBaseInproc {
+/** Wrapper for bolt */
+export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private context;
     private working_dir;
     private cmd;
     private subtype;
     private init_params;
-    private isStarted;
-    private isClosed;
-    private isExit;
-    private isError;
-    private onExit;
-    private isPaused;
     private isShuttingDown;
-    private nextTs;
     private allow_parallel;
     private inSend;
     private pendingSendRequests;
