@@ -17,6 +17,7 @@ var ChildMsgCode;
     ChildMsgCode[ChildMsgCode["response_pause"] = 2] = "response_pause";
     ChildMsgCode[ChildMsgCode["response_ping"] = 3] = "response_ping";
     ChildMsgCode[ChildMsgCode["response_shutdown"] = 4] = "response_shutdown";
+    ChildMsgCode[ChildMsgCode["error"] = 5] = "error";
 })(ChildMsgCode = exports.ChildMsgCode || (exports.ChildMsgCode = {}));
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites

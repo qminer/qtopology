@@ -1,9 +1,7 @@
 import * as path from "path";
-import * as fs from "fs";
 import * as http from "http";
 
 import * as intf from "../../topology_interfaces";
-import * as log from "../../util/logger";
 import * as http_server from "../../util/http_server";
 
 //////////////////////////////////////////////////////////////////////

@@ -13,6 +13,7 @@ export declare class TopologyLocalProxy {
     private pingIntervalId;
     private pendingPings;
     private log_prefix;
+    private last_child_err;
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback);
     /** Starts child process and sets up all event handlers */

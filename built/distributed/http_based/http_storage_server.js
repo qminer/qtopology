@@ -69,7 +69,7 @@ function initHttpServer(storage) {
         storage.getMsgQueueContent(callback);
     });
     http_server.addHandler('/register-topology', (data, callback) => {
-        let result = storage.registerTopology(data.uuid, data.config, callback);
+        storage.registerTopology(data.uuid, data.config, callback);
     });
     http_server.addHandler('/disable-topology', (data, callback) => {
         storage.disableTopology(data.uuid, callback);

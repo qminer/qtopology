@@ -26,8 +26,12 @@ export declare class TopologyWorker {
     private removeTopology(uuid);
     /** Shuts down the worker and all its subprocesses. */
     shutdown(callback: intf.SimpleCallback): void;
+    /** Sends shutdown signals to all topologies */
     private shutDownTopologies(callback);
+    /** Sends shut down signal to single topology */
     private shutDownTopology(uuid, do_kill, callback);
+    /** Internal method that contains common steps for kill and shutdown sequence */
     private shutDownTopologyInternal(item, do_kill, callback);
+    /** Remove given topology from internal list and report an error */
     private removeAndReportError(rec, err);
 }
