@@ -7,6 +7,9 @@ const log = require("../util/logger");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
+ *
+ * ERROR CODES
+ *
  */
 class TopologyLocalWrapper {
     /** Constructor that sets up call routing */
@@ -22,7 +25,7 @@ class TopologyLocalWrapper {
         process.on("uncaughtException", (e) => {
             log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
             log.logger().exception(e);
-            self.shutdown();
+            self.killProcess(intf.ChildExitCode.unhandeled_error, e);
         });
         process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + process.pid);
@@ -34,14 +37,21 @@ class TopologyLocalWrapper {
         });
         this.pingIntervalId = setInterval(() => {
             if (!process.connected) {
-                log.logger().error(`${self.log_prefix}Connected property in child process (pid=${process.pid}) is false, shutting down topology.`);
-                self.shutdown();
+                let s = `${self.log_prefix}Connected property in child process (pid=${process.pid}) is false, shutting down topology.`;
+                log.logger().error(s);
+                // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                //                     Calling shutdown should be done when we believe the state is OK.
+                self.killProcess(intf.ChildExitCode.parent_disconnect, new Error(s));
                 return;
             }
             let now = Date.now();
             if (now - this.lastPing > 20 * 1000) {
-                log.logger().error(`${self.log_prefix}Ping inside child process (pid=${process.pid}) was not received from parent in predefined interval, shutting down topology.`);
-                self.shutdown();
+                let s = `${self.log_prefix}Ping inside child process (pid=${process.pid}) was not received from parent in predefined interval, shutting down topology.`;
+                log.logger().error(s);
+                // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                //                     Calling shutdown should be done when we believe the state is OK.
+                self.killProcess(intf.ChildExitCode.parent_ping_timeout, new Error(s));
+                return;
             }
         }, 3000);
     }
@@ -61,16 +71,17 @@ class TopologyLocalWrapper {
             }
             log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
-            self.log_prefix = `[Wrapper ${self.uuid}] `;
+            self.log_prefix = `[Wrapper ${self.uuid}]`;
             delete msg.data.general.uuid;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
             compiler.compile();
             let topology = compiler.getWholeConfig();
-            self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(110, err); });
+            // if an internal error is raised we will exit with code 110
+            self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
                 if (err) {
-                    self.killProcess(10, err);
+                    self.killProcess(intf.ChildExitCode.init_error, err);
                 }
             });
         }
@@ -98,7 +109,7 @@ class TopologyLocalWrapper {
             self.topology_local.pause((err) => {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
                 if (err) {
-                    self.killProcess(20, err);
+                    self.killProcess(intf.ChildExitCode.pause_error, err);
                 }
             });
         }
@@ -107,7 +118,7 @@ class TopologyLocalWrapper {
                 let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
                 log.logger().error(self.log_prefix + s);
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
-                self.killProcess();
+                self.killProcess(intf.ChildExitCode.shutdown_notinit_error, new Error(s));
                 return;
             }
             self.shutdown();
@@ -115,17 +126,22 @@ class TopologyLocalWrapper {
     }
     killProcess(exit_code, err) {
         let self = this;
-        self.sendToParent(intf.ChildMsgCode.error, { err: err.message });
+        if (err) {
+            self.sendToParent(intf.ChildMsgCode.error, { err: err.message });
+        }
         // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
-            log.logger().important(self.log_prefix + "Stopping the topology process from the child");
-            process.exit(exit_code || 0);
+            log.logger().important(self.log_prefix + `Calling process.exit(${exit_code || intf.ChildExitCode.exit_ok}) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
+            process.exit(exit_code || intf.ChildExitCode.exit_ok);
         }, 100);
     }
-    /** This method shuts down the local topology */
+    /** This method shuts down the local topology.
+     * Any bolt/spout shutdown exception `err` will be propagated
+     * to this method and will result in calling self.killProcess(shutdown_internal_error, err)
+     */
     shutdown() {
+        let self = this;
         try {
-            let self = this;
             if (self.waiting_for_shutdown) {
                 return;
             }
@@ -136,24 +152,29 @@ class TopologyLocalWrapper {
             self.waiting_for_shutdown = true;
             log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${process.pid}`);
             self.topology_local.shutdown((err) => {
-                // if we are shutting down due to unhandeled exception,
+                // if we are shutting down due to unrecoverable exception
                 // we have the original error from the data field of the message
-                if (err) {
-                    log.logger().error(self.log_prefix + "Error in shutdown");
-                    log.logger().exception(err);
-                }
                 self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err });
+                if (err) {
+                    log.logger().error(self.log_prefix + `Error shutting down topology ${self.uuid}, process id = ${process.pid}`);
+                    log.logger().exception(err);
+                    self.killProcess(intf.ChildExitCode.shutdown_internal_error, err);
+                    return;
+                }
                 setTimeout(() => {
-                    log.logger().important(self.log_prefix + "Stopping the topology process from the child");
+                    log.logger().important(self.log_prefix + `Calling process.exit(0) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
                     process.exit(0);
                 }, 0);
             });
         }
         catch (e) {
             // stop the process if it was not stopped so far
-            log.logger().error(this.log_prefix + `Error while shutting down topology, process id = ${process.pid}`);
+            log.logger().error("THIS SHOULD NOT HAPPEN!"); // topology_local shutdown is never expected to throw (propagate errors through callbacks)
+            log.logger().error(this.log_prefix + `Error while shutting down topology ${self.uuid}, process id = ${process.pid}`);
             log.logger().exception(e);
-            process.exit(1);
+            self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: e });
+            self.killProcess(intf.ChildExitCode.shutdown_unlikely_error, e);
+            return;
         }
     }
     /** Sends command to parent process.
