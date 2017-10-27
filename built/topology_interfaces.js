@@ -22,15 +22,15 @@ var ChildMsgCode;
 var ChildExitCode;
 (function (ChildExitCode) {
     ChildExitCode[ChildExitCode["exit_ok"] = 0] = "exit_ok";
+    ChildExitCode[ChildExitCode["parent_disconnect"] = 1] = "parent_disconnect";
+    ChildExitCode[ChildExitCode["parent_ping_timeout"] = 2] = "parent_ping_timeout";
     ChildExitCode[ChildExitCode["init_error"] = 10] = "init_error";
     ChildExitCode[ChildExitCode["pause_error"] = 20] = "pause_error";
     ChildExitCode[ChildExitCode["shutdown_notinit_error"] = 30] = "shutdown_notinit_error";
     ChildExitCode[ChildExitCode["shutdown_internal_error"] = 40] = "shutdown_internal_error";
     ChildExitCode[ChildExitCode["shutdown_unlikely_error"] = 41] = "shutdown_unlikely_error";
     ChildExitCode[ChildExitCode["internal_error"] = 110] = "internal_error";
-    ChildExitCode[ChildExitCode["unhandeled_error"] = 99] = "unhandeled_error";
-    ChildExitCode[ChildExitCode["parent_disconnect"] = 1] = "parent_disconnect";
-    ChildExitCode[ChildExitCode["parent_ping_timeout"] = 2] = "parent_ping_timeout";
+    ChildExitCode[ChildExitCode["unhandeled_error"] = 999] = "unhandeled_error";
 })(ChildExitCode = exports.ChildExitCode || (exports.ChildExitCode = {}));
 ////////////////////////////////////////////////////////////////////////
 // Coordination-storage interface and its satelites
