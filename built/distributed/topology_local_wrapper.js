@@ -7,9 +7,6 @@ const log = require("../util/logger");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
- *
- * ERROR CODES
- *
  */
 class TopologyLocalWrapper {
     /** Constructor that sets up call routing */
