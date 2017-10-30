@@ -97,6 +97,18 @@ export declare enum ChildMsgCode {
     response_shutdown = 4,
     error = 5,
 }
+export declare enum ChildExitCode {
+    exit_ok = 0,
+    parent_disconnect = 1,
+    parent_ping_timeout = 2,
+    init_error = 10,
+    pause_error = 20,
+    shutdown_notinit_error = 30,
+    shutdown_internal_error = 40,
+    shutdown_unlikely_error = 41,
+    internal_error = 110,
+    unhandeled_error = 999,
+}
 /**
  * Constants for using distributed functionality.
  */
