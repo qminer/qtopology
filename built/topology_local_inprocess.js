@@ -348,8 +348,9 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         if (this.isError)
             return callback();
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
-        if (this.isShuttingDown)
+        if (this.isShuttingDown) {
             return callback(new Error("Bolt is already shutting down."));
+        }
         this.isShuttingDown = true;
         try {
             if (this.inSend === 0) {

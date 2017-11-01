@@ -4,6 +4,7 @@ const topology_compiler = require("../topology_compiler");
 const tl = require("../topology_local");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
+const serialize_error = require("serialize-error");
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
@@ -36,8 +37,8 @@ class TopologyLocalWrapper {
             if (!process.connected) {
                 let s = `${self.log_prefix}Connected property in child process (pid=${process.pid}) is false, shutting down topology.`;
                 log.logger().error(s);
-                // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
-                //                     Calling shutdown should be done when we believe the state is OK.
+                // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                // Calling shutdown should be done when we believe the state is OK.
                 self.killProcess(intf.ChildExitCode.parent_disconnect, new Error(s));
                 return;
             }
@@ -45,8 +46,8 @@ class TopologyLocalWrapper {
             if (now - this.lastPing > 20 * 1000) {
                 let s = `${self.log_prefix}Ping inside child process (pid=${process.pid}) was not received from parent in predefined interval, shutting down topology.`;
                 log.logger().error(s);
-                // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
-                //                     Calling shutdown should be done when we believe the state is OK.
+                // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                // Calling shutdown should be done when we believe the state is OK.
                 self.killProcess(intf.ChildExitCode.parent_ping_timeout, new Error(s));
                 return;
             }
@@ -93,8 +94,12 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_run, { err: new Error(s) });
                 return;
             }
-            self.topology_local.run();
-            self.sendToParent(intf.ChildMsgCode.response_run, {});
+            self.topology_local.run((err) => {
+                self.sendToParent(intf.ChildMsgCode.response_run, { err: err });
+                if (err) {
+                    self.killProcess(intf.ChildExitCode.run_error, err);
+                }
+            });
         }
         if (msg.cmd === intf.ParentMsgCode.pause) {
             if (!self.topology_local) {
@@ -124,7 +129,7 @@ class TopologyLocalWrapper {
     killProcess(exit_code, err) {
         let self = this;
         if (err) {
-            self.sendToParent(intf.ChildMsgCode.error, { err: err.message });
+            self.sendToParent(intf.ChildMsgCode.error, { err: err });
         }
         // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
@@ -180,6 +185,9 @@ class TopologyLocalWrapper {
      */
     sendToParent(cmd, data) {
         if (process.send) {
+            if (data.err) {
+                data.err = serialize_error(data.err);
+            }
             process.send({ cmd: cmd, data: data });
         }
         else {

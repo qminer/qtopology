@@ -94,7 +94,7 @@ export class TopologyLocal {
     init(uuid: string, config: any, callback: intf.SimpleCallback) {
         try {
             let self = this;
-            if (self.isInitialized) { return callback(); }
+            if (self.isInitialized) { return callback(new Error(self.logging_prefix + "Already initialized")); }
             self.config = config;
             self.uuid = uuid;
             self.logging_prefix = `[TopologyLocal ${uuid}] `;
@@ -164,12 +164,12 @@ export class TopologyLocal {
     }
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run() {
+    run(callback: intf.SimpleCallback) {
         if (!this.isInitialized) {
-            throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
+            return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
         if (this.isRunning) {
-            throw new Error(this.logging_prefix + "Topology is already running.");
+            return callback(new Error(this.logging_prefix + "Topology is already running."));
         }
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
@@ -177,11 +177,12 @@ export class TopologyLocal {
             spout.run();
         }
         this.isRunning = true;
+        return callback();
     }
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback) {
-        if (!this.isInitialized) { 
+        if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
         // spouts pass internal exceptions to errorCallback

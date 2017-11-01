@@ -91,7 +91,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     private isShuttingDown: boolean;
     private nextTs: number;
 
-    private child: intf.Spout;
+    private child: intf.Spout; // TODO rename child to spout (not a child process)
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
@@ -388,7 +388,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         callback = this.wrapCallbackSetError(callback);
         if (this.isError) return callback();
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
-        if (this.isShuttingDown) return callback(new Error("Bolt is already shutting down."));
+        if (this.isShuttingDown) { return callback(new Error("Bolt is already shutting down.")); }
         this.isShuttingDown = true;
         try {
             if (this.inSend === 0) {

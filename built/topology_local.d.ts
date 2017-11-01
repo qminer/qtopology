@@ -40,7 +40,7 @@ export declare class TopologyLocal {
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run(): void;
+    run(callback: intf.SimpleCallback): void;
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
