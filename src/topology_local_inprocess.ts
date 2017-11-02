@@ -309,7 +309,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private pendingSendRequests: any[];
     private pendingShutdownCallback: intf.SimpleCallback;
 
-    private child: intf.Bolt;
+    private child: intf.Bolt; // TODO rename child to bolt
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
@@ -386,7 +386,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     shutdown(callback: intf.SimpleCallback) {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        if (this.isError) return callback();
+        if (this.isError) return callback(new Error("Bolt failed to shutdown in previous call, will not try again"));
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
         if (this.isShuttingDown) { return callback(new Error("Bolt is already shutting down.")); }
         this.isShuttingDown = true;

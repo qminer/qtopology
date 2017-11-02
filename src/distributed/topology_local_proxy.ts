@@ -19,6 +19,7 @@ import * as deserialize_error from "deserialize-error";
 // [local] not initialized -> (response_shutdown, error), exit(shutdown_internal_error)
 // [local inproc] bolt/spout shutdown error -> (response_shutdown, error), exit(shutdown_internal_error)
 // ([local inproc] call 2x -> (response_shutdown, error), exit(shutdown_internal_error)) // this behavior would happen if upper layers would permit this event
+// ([local inproc] call 1x fail then call again -> (response_shutdown, error), exit(shutdown_internal_error)) // this behavior would happen if upper layers would permit this event
 
 // PING
 // [local wrapper] connection to parent lost -> (error), exit(parent_disconnect)
@@ -42,6 +43,7 @@ import * as deserialize_error from "deserialize-error";
 
 // TODO: consistent behavior on all levels: call 2x, not initialized
 // TODO: specific exit codes for internal errors: attach code to Error object
+// TODO: local inproc: guards against noninit
 
 
 const PING_INTERVAL = 3000;
@@ -270,22 +272,19 @@ export class TopologyLocalProxy {
 
     /** Sends kill signal to underlaying process */
     kill(callback: intf.SimpleCallback) {
-        if (this.child == null) {
+        if ((this.child == null) || this.child.killed ||
+            (this.was_shut_down && this.has_exited)) {
             return callback();
         }
-        if (this.child.killed) { return callback(); }
-        // shut_down has been called
-        // the child should have exited
         if (this.was_shut_down) {
             if (!this.has_exited) {
                 // child shutdown must result in exit!
-                log.logger().error(this.log_prefix + "THIS SHOULD NOT HAPPEN. Child has shutdown but has not exited");
-                this.child.kill("SIGKILL");
+                log.logger().error(this.log_prefix +
+                    "THIS SHOULD NOT HAPPEN. Child has shutdown but has not exited");
             }
-            return callback();
         }
         this.child.kill("SIGKILL");
-        callback()
+        return callback();
     }
 
     /** Internal method for sending messages to child process */
