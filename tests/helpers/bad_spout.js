@@ -18,6 +18,9 @@ class BadSpout {
         this._init_called = 0;
         this._heartbeat_called = 0;
         this._shutdown_called = 0;
+        this._run_called = 0;
+        this._pause_called = 0;
+        this._next_called = 0;
         this._timeout = 0;
 
         if (subtype == badActions.throw) {
@@ -29,8 +32,8 @@ class BadSpout {
     doAction(callback) {
         if (this.action == badActions.throw) {
             throw new Error();
-        } else if (this.action == badActions.callbackException){
-            setTimeout(()=> {
+        } else if (this.action == badActions.callbackException) {
+            setTimeout(() => {
                 return callback(new Error());
             }, this._timeout);
             return;
@@ -70,21 +73,26 @@ class BadSpout {
     }
 
     run() {
+        this._run_called++;
         if (this.location == badLocations.run && this.action == bb.badActions.throw) {
             this.doAction();
         }
     }
 
     pause() {
+        this._pause_called++;
         if (this.location == badLocations.pause && this.action == bb.badActions.throw) {
             this.doAction();
         }
     }
     next(callback) {
+        this._next_called++;
         if (this.location == badLocations.next) {
             this.doAction(callback);
         } else {
-            setTimeout(callback, this._timeout);
+            setTimeout(() => {
+                return callback(null, {}, null, null);
+            }, this._timeout);
         }
     }
 }
