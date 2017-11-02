@@ -13,16 +13,16 @@ import * as deserialize_error from "deserialize-error";
 
 // SHUTDOWN (must result in exit)
 // [local wrapper] no topology_local -> (response_shutdown, error), exit(shutdown_notinit_error)
-// [local wrapper] call 2x -> nothing (ignore)
+// [local wrapper] call 2x -> (), NOT exit
 // [local wrapper] unlikely error -> (response_shutdown, error), exit(shutdown_unlikely_error)
-// ([local] call 2x -> (response_shutdown, error), exit(shutdown_internal_error))
+// ([local] call 2x -> (response_shutdown, error), exit(shutdown_internal_error))  // this behavior would happen if upper layers would permit this event
 // [local] not initialized -> (response_shutdown, error), exit(shutdown_internal_error)
 // [local inproc] bolt/spout shutdown error -> (response_shutdown, error), exit(shutdown_internal_error)
-// ([local inproc] call 2x -> (response_shutdown, error), exit(shutdown_internal_error))
+// ([local inproc] call 2x -> (response_shutdown, error), exit(shutdown_internal_error)) // this behavior would happen if upper layers would permit this event
 
 // PING
-// [local wrapper] connection to parent lost -> (parent_disconnect, error), exit
-// [local wrapper] ping timeout -> (parent_ping_timeout, error), exit
+// [local wrapper] connection to parent lost -> (error), exit(parent_disconnect)
+// [local wrapper] ping timeout -> (error), exit(parent_ping_timeout)
 
 // PAUSE
 // [local wrapper] no topology_local -> (response_pause, error), NOT exit
@@ -35,12 +35,13 @@ import * as deserialize_error from "deserialize-error";
 // [local] not initialized -> (response_run, error), exit(run_error)
 // [local] call 2x -> (response_run, error), exit(run_error)
 // [local inproc] spout run error -> (error), exit(internal_error)
-// ([local inproc] call 2x -> (response_run), NOT exit)
+// ([local inproc] call 2x -> (response_run), NOT exit) // this behavior would happen if upper layers would permit this event
 
 // HEARTBEAT
 // [local inproc] bolt/spout hearbeat error -> (error), exit(internal_error)
 
 // TODO: consistent behavior on all levels: call 2x, not initialized
+// TODO: specific exit codes for internal errors: attach code to Error object
 
 
 const PING_INTERVAL = 3000;
