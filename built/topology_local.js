@@ -190,7 +190,7 @@ class TopologyLocal {
                 // only possible error is when isInit is false
                 log.logger().error("THIS SHOULD NOT HAPPEN!");
                 log.logger().exception(err);
-                return this.onInternalError(err);
+                return callback(err);
             }
             let tasks = [];
             self.spouts.forEach((spout) => {
