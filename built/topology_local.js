@@ -298,7 +298,12 @@ class TopologyLocal {
                 data_clone = JSON.parse(s);
             }
             let bolt = self.getBolt(destination);
-            bolt.receive(data_clone, stream_id, xcallback);
+            try {
+                bolt.receive(data_clone, stream_id, xcallback);
+            }
+            catch (e) {
+                return xcallback;
+            }
         }, callback);
     }
     /** Find bolt with given name.
@@ -321,8 +326,10 @@ class TopologyLocal {
             let common_context = {};
             async.eachSeries(self.config.general.initialization, (init_conf, xcallback) => {
                 try {
-                    if (init_conf.disabled)
-                        return xcallback(); // skip if disabled
+                    if (init_conf.disabled) {
+                        // skip if disabled
+                        return xcallback();
+                    }
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
                     init_conf.init = init_conf.init || {};
