@@ -617,9 +617,9 @@ describe('local_inprocess: spout errors', function () {
                 target.pause();
                 setTimeout(() => {
                     assert(onErrorCalled);
-                    assert.equal(emits.length, 0);
+                    assert.equal(emits.length, 1);
                     assert.equal(target.getSpoutObject()._init_called, 1);
-                    assert.equal(target.getSpoutObject()._next_called, 0);
+                    assert.equal(target.getSpoutObject()._next_called, 1);
                     done();
                 }, 10);
             });
