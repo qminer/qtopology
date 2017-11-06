@@ -163,10 +163,9 @@ class TopologyLocalWrapper {
                     self.killProcess(intf.ChildExitCode.shutdown_internal_error, err);
                     return;
                 }
-                setTimeout(() => {
-                    log.logger().important(self.log_prefix + `Calling process.exit(0) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
-                    process.exit(0);
-                }, 0);
+                log.logger().important(self.log_prefix + `Calling process.exit(0) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
+                self.killProcess(intf.ChildExitCode.exit_ok, null);
+                return;
             });
         }
         catch (e) {
