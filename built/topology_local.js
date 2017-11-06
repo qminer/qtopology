@@ -58,6 +58,18 @@ class TopologyLocal {
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
     }
+    /** helper function that wraps a callback with try/catch */
+    tryCallback(callback) {
+        return (err) => {
+            try {
+                callback(err);
+            }
+            catch (e) {
+                log.logger().error("THIS SHOULD NOT HAPPEN: exception THROWN in callback!");
+                log.logger().exception(e);
+            }
+        };
+    }
     /** Handler for all internal errors */
     onInternalError(e) {
         this.onErrorHandler(e);
@@ -66,6 +78,7 @@ class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid, config, callback) {
+        callback = this.tryCallback(callback);
         try {
             let self = this;
             if (self.isInitialized) {
@@ -153,6 +166,7 @@ class TopologyLocal {
         }
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.run();
         }
@@ -165,6 +179,7 @@ class TopologyLocal {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.pause();
         }
@@ -336,7 +351,7 @@ class TopologyLocal {
                 bolt.receive(data_clone, stream_id, xcallback);
             }
             catch (e) {
-                return xcallback;
+                return xcallback(e);
             }
         }, callback);
     }
