@@ -205,10 +205,9 @@ class TopologySpoutWrapper extends TopologyNodeBase {
             let ts_start = Date.now();
             setImmediate(() => {
                 try {
-                    this.child.next((err, data, stream_id, xcallback) => {
+                    this.child.next((err, data, stream_id) => {
                         self.telemetryAdd(Date.now() - ts_start);
                         if (err) {
-                            // child sent an error, xcallback is ignored
                             log.logger().exception(err);
                             return callback(err);
                         }
@@ -219,15 +218,7 @@ class TopologySpoutWrapper extends TopologyNodeBase {
                         }
                         else {
                             try {
-                                self.emitCallback(data, stream_id, (err) => {
-                                    // in case child object expects confirmation call for this tuple
-                                    if (xcallback && !err) {
-                                        xcallback(null, callback);
-                                    }
-                                    else {
-                                        callback(err);
-                                    }
-                                });
+                                self.emitCallback(data, stream_id, callback);
                             }
                             catch (e) {
                                 // there was an error, don't call the child's xcallback
