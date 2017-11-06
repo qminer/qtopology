@@ -63,7 +63,7 @@ class TopologyLocalProxy {
         let self = this;
         // send uuid in command-line parameters so that it is visible in process list
         // wont be used for anything
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper"), ["uuid:" + uuid], { silent: false });
+        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
             let msg = msgx;
             if (msg.data.err) {
