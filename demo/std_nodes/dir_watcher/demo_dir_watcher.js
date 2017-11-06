@@ -17,10 +17,9 @@ async.series(
         },
         (xcallback) => {
             console.log("Init done");
-            topology.run();
-            setTimeout(function () {
+            topology.run(setTimeout(function () {
                 xcallback();
-            }, 2000);
+            }, 2000));
         },
         (xcallback) => {
             fs.appendFileSync("./temp_file.tmp", "Some content\n", {encoding: "utf8"});

@@ -234,16 +234,19 @@ class TopologyLocal {
                     tasks.push(factory(module_path));
                 }
             }
-            if (this.config.general.shutdown_hard) {
-                tasks.push((xcallback) => {
+            async.series(tasks, (e) => {
+                // call hard shutdown regardless of the error
+                if (this.config.general.shutdown_hard) {
                     try {
                         self.shutdownHard();
                     }
-                    catch (e) { }
-                    xcallback();
-                });
-            }
-            async.series(tasks, callback);
+                    catch (e) {
+                        log.logger().exception(e);
+                        /* do nothing extra */
+                    }
+                }
+                callback(e);
+            });
         });
     }
     /** Runs hard-core shutdown sequence */
@@ -261,6 +264,7 @@ class TopologyLocal {
                     require(module_path).shutdown_hard();
                 }
                 catch (e) {
+                    log.logger().exception(e);
                     // just swallow the error
                 }
             }

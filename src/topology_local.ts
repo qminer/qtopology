@@ -253,14 +253,18 @@ export class TopologyLocal {
                     tasks.push(factory(module_path));
                 }
             }
-            if (this.config.general.shutdown_hard) {
-                tasks.push((xcallback) => {
-                    try { self.shutdownHard(); }
-                    catch (e) { /* do nothing */ }
-                    xcallback();
-                });
-            }
-            async.series(tasks, callback);
+            async.series(tasks, (e) => {
+                // call hard shutdown regardless of the error
+                if (this.config.general.shutdown_hard) {
+                    try {
+                        self.shutdownHard();
+                    } catch (e) {
+                        log.logger().exception(e);
+                        /* do nothing extra */
+                    }
+                }
+                callback(e);
+            });
         });
     }
 
@@ -276,6 +280,7 @@ export class TopologyLocal {
                     let module_path = path.join(dir, shutdown_conf.cmd);
                     require(module_path).shutdown_hard();
                 } catch (e) {
+                    log.logger().exception(e);
                     // just swallow the error
                 }
             }
