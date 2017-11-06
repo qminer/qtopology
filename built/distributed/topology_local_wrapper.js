@@ -126,11 +126,14 @@ class TopologyLocalWrapper {
             self.shutdown();
         }
     }
+    /** Kill this process the hard way. */
     killProcess(exit_code, err) {
         let self = this;
         if (err) {
             self.sendToParent(intf.ChildMsgCode.error, { err: err });
         }
+        // call hard shut-down anyway
+        this.topology_local.shutdownHard();
         // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
             log.logger().important(self.log_prefix + `Calling process.exit(${exit_code || intf.ChildExitCode.exit_ok}) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
