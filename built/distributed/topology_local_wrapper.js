@@ -18,24 +18,45 @@ class TopologyLocalWrapper {
         this.waiting_for_shutdown = false;
         this.lastPing = Date.now();
         this.log_prefix = "[Wrapper] ";
+        this.exitTimeout = 100;
+        this.pingTimeout = 20 * 1000;
+        this.pingInterval = 3000;
         this.process.on("message", (msg) => {
             self.handle(msg);
         });
         this.process.on("uncaughtException", (e) => {
             log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
             log.logger().exception(e);
+            self.clearPingInterval();
             self.killProcess(intf.ChildExitCode.unhandeled_error, e);
         });
         this.process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + self.process.pid);
-            self.shutdown();
+            if (!self.topology_local) {
+                this.exitNonInit();
+            }
+            else {
+                self.shutdown();
+            }
         });
         this.process.on('SIGTERM', () => {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + self.process.pid);
-            self.shutdown();
+            if (!self.topology_local) {
+                this.exitNonInit();
+            }
+            else {
+                self.shutdown();
+            }
         });
+        this.setPingInterval();
+    }
+    /** sets ping interval */
+    setPingInterval() {
+        let self = this;
+        this.clearPingInterval();
         this.pingIntervalId = setInterval(() => {
             if (!self.process.connected) {
+                self.clearPingInterval();
                 let s = `${self.log_prefix}Connected property in child process (pid=${self.process.pid}) is false, shutting down topology.`;
                 log.logger().error(s);
                 // Bad state: we cannot know if there isn't some other parent that's running the same topology.
@@ -44,7 +65,8 @@ class TopologyLocalWrapper {
                 return;
             }
             let now = Date.now();
-            if (now - this.lastPing > 20 * 1000) {
+            if (now - this.lastPing > this.pingTimeout) {
+                self.clearPingInterval();
                 let s = `${self.log_prefix}Ping inside child process (pid=${self.process.pid}) was not received from parent in predefined interval, shutting down topology.`;
                 log.logger().error(s);
                 // Bad state: we cannot know if there isn't some other parent that's running the same topology.
@@ -52,7 +74,23 @@ class TopologyLocalWrapper {
                 self.killProcess(intf.ChildExitCode.parent_ping_timeout, new Error(s));
                 return;
             }
-        }, 3000);
+        }, this.pingInterval);
+    }
+    /** clears ping interval */
+    clearPingInterval() {
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+            this.pingIntervalId = null;
+        }
+    }
+    /** exit logic when not initialized */
+    exitNonInit() {
+        let self = this;
+        self.clearPingInterval();
+        let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
+        log.logger().error(self.log_prefix + s);
+        self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
+        self.killProcess(intf.ChildExitCode.shutdown_notinit_error, new Error(s));
     }
     /** Starts infinite loop by reading messages from parent or console */
     start() {
@@ -70,10 +108,17 @@ class TopologyLocalWrapper {
             }
             log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
-            self.log_prefix = `[Wrapper ${self.uuid}]`;
+            self.log_prefix = `[Wrapper ${self.uuid}] `;
             delete msg.data.general.uuid;
             let compiler = new topology_compiler.TopologyCompiler(msg.data);
-            compiler.compile();
+            try {
+                compiler.compile();
+            }
+            catch (err) {
+                self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
+                self.killProcess(intf.ChildExitCode.init_error, err);
+                return;
+            }
             let topology = compiler.getWholeConfig();
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
@@ -118,10 +163,7 @@ class TopologyLocalWrapper {
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
             if (!self.topology_local) {
-                let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
-                log.logger().error(self.log_prefix + s);
-                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
-                self.killProcess(intf.ChildExitCode.shutdown_notinit_error, new Error(s));
+                this.exitNonInit();
                 return;
             }
             self.shutdown();
@@ -130,16 +172,25 @@ class TopologyLocalWrapper {
     /** Kill this process the hard way. */
     killProcess(exit_code, err) {
         let self = this;
+        self.clearPingInterval();
         if (err) {
             self.sendToParent(intf.ChildMsgCode.error, { err: err });
         }
         // call hard shut-down anyway
-        this.topology_local.shutdownHard();
+        if (this.topology_local) {
+            try {
+                this.topology_local.shutdownHard();
+            }
+            catch (e) {
+                log.logger().error(this.log_prefix + `THIS SHOULD NOT HAPPEN. Error while shutdownHard in topology ${self.uuid}, process id = ${self.process.pid}`);
+                log.logger().exception(e);
+            }
+        }
         // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
             log.logger().important(self.log_prefix + `Calling process.exit(${exit_code || intf.ChildExitCode.exit_ok}) from the child process for topology ${self.uuid}, process id = ${self.process.pid}`);
             self.process.exit(exit_code || intf.ChildExitCode.exit_ok);
-        }, 100);
+        }, self.exitTimeout);
     }
     /** This method shuts down the local topology.
      * Any bolt/spout shutdown exception `err` will be propagated
@@ -151,10 +202,7 @@ class TopologyLocalWrapper {
             if (self.waiting_for_shutdown) {
                 return;
             }
-            if (this.pingIntervalId) {
-                clearInterval(this.pingIntervalId);
-                this.pingIntervalId = null;
-            }
+            self.clearPingInterval();
             self.waiting_for_shutdown = true;
             log.logger().important(self.log_prefix + `Shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
             self.topology_local.shutdown((err) => {
@@ -167,7 +215,6 @@ class TopologyLocalWrapper {
                     self.killProcess(intf.ChildExitCode.shutdown_internal_error, err);
                     return;
                 }
-                log.logger().important(self.log_prefix + `Calling process.exit(0) from the child process for topology ${self.uuid}, process id = ${self.process.pid}`);
                 self.killProcess(intf.ChildExitCode.exit_ok, null);
                 return;
             });

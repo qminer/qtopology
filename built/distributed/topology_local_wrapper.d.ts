@@ -8,10 +8,19 @@ export declare class TopologyLocalWrapper {
     private topology_local;
     private waiting_for_shutdown;
     private log_prefix;
+    private exitTimeout;
+    private pingTimeout;
+    private pingInterval;
     private lastPing;
     private pingIntervalId;
     /** Constructor that sets up call routing */
-    constructor(proc: any);
+    constructor(proc?: any);
+    /** sets ping interval */
+    private setPingInterval();
+    /** clears ping interval */
+    private clearPingInterval();
+    /** exit logic when not initialized */
+    private exitNonInit();
     /** Starts infinite loop by reading messages from parent or console */
     start(): void;
     /** Internal main handler for incoming messages */
