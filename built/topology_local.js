@@ -53,6 +53,7 @@ class TopologyLocal {
         this.isRunning = false;
         this.isShuttingDown = false;
         this.isInitialized = false;
+        this.shutdownHardCalled = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
@@ -233,8 +234,37 @@ class TopologyLocal {
                     tasks.push(factory(module_path));
                 }
             }
+            if (this.config.general.shutdown_hard) {
+                tasks.push((xcallback) => {
+                    try {
+                        self.shutdownHard();
+                    }
+                    catch (e) { }
+                    xcallback();
+                });
+            }
             async.series(tasks, callback);
         });
+    }
+    /** Runs hard-core shutdown sequence */
+    shutdownHard() {
+        if (this.config.general.shutdown_hard) {
+            if (this.shutdownHardCalled)
+                return;
+            this.shutdownHardCalled = true;
+            for (let shutdown_conf of this.config.general.shutdown_hard) {
+                try {
+                    if (shutdown_conf.disabled)
+                        continue; // skip if disabled
+                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    let module_path = path.join(dir, shutdown_conf.cmd);
+                    require(module_path).shutdown_hard();
+                }
+                catch (e) {
+                    // just swallow the error
+                }
+            }
+        }
     }
     /** Returns uuid of the topology that is running. */
     getUuid() {

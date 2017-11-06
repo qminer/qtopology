@@ -72,6 +72,32 @@
                         ],
                         "additionalProperties": false
                     }
+                },
+                "shutdown_hard": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "working_dir": {
+                                "type": "string"
+                            },
+                            "cmd": {
+                                "type": "string"
+                            },
+                            "init": {
+                                "type": "object",
+                                "additionalProperties": true
+                            },
+                            "disabled": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "working_dir",
+                            "cmd"
+                        ],
+                        "additionalProperties": false
+                    }
                 }
             },
             "required": [

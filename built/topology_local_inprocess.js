@@ -22,6 +22,7 @@ const tss = require("./std_nodes/test_spout");
 const ds = require("./std_nodes/dir_watcher_spout");
 const tel = require("./util/telemetry");
 const log = require("./util/logger");
+const NEXT_SLEEP_TIMEOUT = 1 * 1000; // number of miliseconds to "sleep" when spout.next() returned no data
 /** Base class for spouts and bolts - contains telemetry support */
 class TopologyNodeBase {
     constructor(name, telemetry_timeout) {
@@ -212,8 +213,7 @@ class TopologySpoutWrapper extends TopologyNodeBase {
                             return callback(err);
                         }
                         if (!data) {
-                            // child didn't send any data, so xcallback is ignored
-                            self.nextTs = Date.now() + 1 * 1000; // sleep for 1 sec if spout is empty
+                            self.nextTs = Date.now() + NEXT_SLEEP_TIMEOUT;
                             return callback();
                         }
                         else {
