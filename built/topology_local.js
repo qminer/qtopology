@@ -178,6 +178,7 @@ class TopologyLocal {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.pause();
         }

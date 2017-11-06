@@ -730,15 +730,13 @@ describe('local_inprocess: spout errors', function () {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 assert.equal(emits.length, 0);
-                target.spouts[0].getSpoutObject().location = bs.badLocations.next;
-                target.spouts[0].getSpoutObject().action = bs.badActions.callbackException;
                 target.run((e)=>{
                     assert(e == undefined);
                     setTimeout(()=>{
                         assert(errors.length == 1);
                         assert.equal(emits.length, 0);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
-                        assert.equal(target.spouts[0].getSpoutObject()._next_called, 1);
+                        assert.equal(target.spouts[0].getSpoutObject()._next_called, 0);
                         target.shutdown(done);
                     }, 50);
                 });
@@ -775,22 +773,20 @@ describe('local_inprocess: spout errors', function () {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 assert.equal(emits.length, 0);
-                target.spouts[0].getSpoutObject().location = bs.badLocations.next;
-                target.spouts[0].getSpoutObject().action = bs.badActions.callbackException;
                 target.run((e)=>{
                     assert(e == undefined);
                     setTimeout(()=>{
                         assert(errors.length == 1);
                         assert.equal(emits.length, 0);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
-                        assert.equal(target.spouts[0].getSpoutObject()._next_called, 1);
+                        assert.equal(target.spouts[0].getSpoutObject()._next_called, 0);
                         target.shutdown(done);
                     }, 50);
                 });
             });
         });
     });
-    describe.skip('Pause', function () {
+    describe('Pause', function () {
         it('should pass thrown exception to error callback', function (done) {
             let emits = [];
             let onErrorCalled = false;
@@ -811,17 +807,25 @@ describe('local_inprocess: spout errors', function () {
                 },
                 timeout: 10
             };
-            let target = new tli.TopologySpoutWrapper(config);
-            target.init((e) => {
-                target.run();
-                target.pause();
-                setTimeout(() => {
-                    assert(onErrorCalled);
-                    assert.equal(emits.length, 0);
-                    assert.equal(target.getSpoutObject()._init_called, 1);
-                    assert.equal(target.getSpoutObject()._next_called, 0);
-                    done();
-                }, 10);
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            let initErrors = [];
+            target.init("top1", top_config, (e) => {
+                if (e) { initErrors.push(e); }
+                assert(initErrors.length == 0);
+                assert.equal(emits.length, 0);
+                target.run((e)=>{
+                    assert(e == undefined);
+                    target.pause((e)=>{
+                        assert(errors.length == 1);
+                        assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
+                        target.shutdown(done);
+                    });
+                });
             });
         });
         it('should call callback with exception', function (done) {
@@ -843,18 +847,25 @@ describe('local_inprocess: spout errors', function () {
                     location: bs.badLocations.run
                 }
             };
-            let target = new tli.TopologySpoutWrapper(config);
-            target.init((e) => {
-                target.run();
-                target.pause();
-                setTimeout(
-                    (e) => {
-                        assert(onErrorCalled);
-                        assert.equal(emits.length, 0);
-                        assert.equal(target.getSpoutObject()._init_called, 1);
-                        assert.equal(target.getSpoutObject()._next_called, 0);
-                        done();
-                    }, 10);
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            let initErrors = [];
+            target.init("top1", top_config, (e) => {
+                if (e) { initErrors.push(e); }
+                assert(initErrors.length == 0);
+                assert.equal(emits.length, 0);
+                target.run((e)=>{
+                    assert(e == undefined);
+                    target.pause((e)=>{
+                        assert(errors.length == 1);
+                        assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
+                        target.shutdown(done);
+                    });
+                });
             });
         });
     });
