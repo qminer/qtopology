@@ -57,6 +57,18 @@ class TopologyLocal {
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
     }
+    /** helper function that wraps a callback with try/catch */
+    tryCallback(callback) {
+        return (err) => {
+            try {
+                callback(err);
+            }
+            catch (e) {
+                log.logger().error("THIS SHOULD NOT HAPPEN: exception THROWN in callback!");
+                log.logger().exception(e);
+            }
+        };
+    }
     /** Handler for all internal errors */
     onInternalError(e) {
         this.onErrorHandler(e);
@@ -65,10 +77,11 @@ class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid, config, callback) {
+        callback = this.tryCallback(callback);
         try {
             let self = this;
             if (self.isInitialized) {
-                return callback();
+                return callback(new Error(self.logging_prefix + "Already initialized"));
             }
             self.config = config;
             self.uuid = uuid;
@@ -143,19 +156,21 @@ class TopologyLocal {
         }
     }
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run() {
+    run(callback) {
         if (!this.isInitialized) {
-            throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
+            return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
         if (this.isRunning) {
-            throw new Error(this.logging_prefix + "Topology is already running.");
+            return callback(new Error(this.logging_prefix + "Topology is already running."));
         }
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.run();
         }
         this.isRunning = true;
+        return callback();
     }
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback) {
@@ -163,6 +178,7 @@ class TopologyLocal {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.pause();
         }
@@ -297,7 +313,12 @@ class TopologyLocal {
                 data_clone = JSON.parse(s);
             }
             let bolt = self.getBolt(destination);
-            bolt.receive(data_clone, stream_id, xcallback);
+            try {
+                bolt.receive(data_clone, stream_id, xcallback);
+            }
+            catch (e) {
+                return xcallback(e);
+            }
         }, callback);
     }
     /** Find bolt with given name.
@@ -320,8 +341,10 @@ class TopologyLocal {
             let common_context = {};
             async.eachSeries(self.config.general.initialization, (init_conf, xcallback) => {
                 try {
-                    if (init_conf.disabled)
-                        return xcallback(); // skip if disabled
+                    if (init_conf.disabled) {
+                        // skip if disabled
+                        return xcallback();
+                    }
                     let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                     let module_path = path.join(dir, init_conf.cmd);
                     init_conf.init = init_conf.init || {};

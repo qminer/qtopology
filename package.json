@@ -33,8 +33,10 @@
     "async": "^1.5.2",
     "body-parser": "^1.17.2",
     "colors": "^1.1.0",
+    "deserialize-error": "0.0.3",
     "express": "^4.15.4",
     "jsonschema": "^1.1.1",
-    "node-rest-client": "^3.0.7"
+    "node-rest-client": "^3.0.7",
+    "serialize-error": "^2.1.0"
   }
 }

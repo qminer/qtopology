@@ -33,6 +33,8 @@ export declare class TopologyLocal {
     private onErrorHandler;
     /** Constructor prepares the object before any information is received. */
     constructor(onError?: intf.SimpleCallback);
+    /** helper function that wraps a callback with try/catch */
+    protected tryCallback(callback: intf.SimpleCallback): intf.SimpleCallback;
     /** Handler for all internal errors */
     private onInternalError(e);
     /** Initialization that sets up internal structure and
@@ -40,7 +42,7 @@ export declare class TopologyLocal {
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run(): void;
+    run(callback: intf.SimpleCallback): void;
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */

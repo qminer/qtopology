@@ -346,10 +346,11 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
         if (this.isError)
-            return callback();
+            return callback(new Error("Bolt failed to shutdown in previous call, will not try again"));
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
-        if (this.isShuttingDown)
+        if (this.isShuttingDown) {
             return callback(new Error("Bolt is already shutting down."));
+        }
         this.isShuttingDown = true;
         try {
             if (this.inSend === 0) {

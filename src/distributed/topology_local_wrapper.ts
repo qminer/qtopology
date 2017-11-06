@@ -2,13 +2,11 @@ import * as topology_compiler from "../topology_compiler";
 import * as tl from "../topology_local";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
+import * as serialize_error from "serialize-error"
 
 /**
  * This class acts as wrapper for local topology when
  * it is run in child process. It handles communication with parent process.
- * 
- * ERROR CODES
- * 
  */
 class TopologyLocalWrapper {
 
@@ -48,8 +46,8 @@ class TopologyLocalWrapper {
                 if (!process.connected) {
                     let s = `${self.log_prefix}Connected property in child process (pid=${process.pid}) is false, shutting down topology.`;
                     log.logger().error(s);
-                    // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
-                    //                     Calling shutdown should be done when we believe the state is OK.
+                    // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                    // Calling shutdown should be done when we believe the state is OK.
                     self.killProcess(intf.ChildExitCode.parent_disconnect, new Error(s));
                     return;
                 }
@@ -58,8 +56,8 @@ class TopologyLocalWrapper {
                 if (now - this.lastPing > 20 * 1000) {
                     let s = `${self.log_prefix}Ping inside child process (pid=${process.pid}) was not received from parent in predefined interval, shutting down topology.`;
                     log.logger().error(s);
-                    // self.shutdown(); // Bad state: we cannot know if there isn't some other parent that's running the same topology.
-                    //                     Calling shutdown should be done when we believe the state is OK.
+                    // Bad state: we cannot know if there isn't some other parent that's running the same topology.
+                    // Calling shutdown should be done when we believe the state is OK.
                     self.killProcess(intf.ChildExitCode.parent_ping_timeout, new Error(s));
                     return
                 }
@@ -111,8 +109,12 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_run, { err: new Error(s) });
                 return;
             }
-            self.topology_local.run();
-            self.sendToParent(intf.ChildMsgCode.response_run, {});
+            self.topology_local.run((err?: Error) => {
+                self.sendToParent(intf.ChildMsgCode.response_run, { err: err });
+                if (err) {
+                    self.killProcess(intf.ChildExitCode.run_error, err);
+                }
+            });
         }
         if (msg.cmd === intf.ParentMsgCode.pause) {
             if (!self.topology_local) {
@@ -142,7 +144,7 @@ class TopologyLocalWrapper {
 
     private killProcess(exit_code?: number, err?: Error) {
         let self = this;
-        if (err) { self.sendToParent(intf.ChildMsgCode.error, { err: err.message }); }
+        if (err) { self.sendToParent(intf.ChildMsgCode.error, { err: err }); }
         // stop the process after a short while, so that the parent can process the message
         setTimeout(() => {
             log.logger().important(self.log_prefix + `Calling process.exit(${exit_code || intf.ChildExitCode.exit_ok}) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
@@ -176,7 +178,7 @@ class TopologyLocalWrapper {
                     log.logger().exception(err);
                     self.killProcess(intf.ChildExitCode.shutdown_internal_error, err);
                     return;
-                }                
+                }
                 setTimeout(() => {
                     log.logger().important(self.log_prefix + `Calling process.exit(0) from the child process for topology ${self.uuid}, process id = ${process.pid}`);
                     process.exit(0);
@@ -199,6 +201,9 @@ class TopologyLocalWrapper {
      */
     private sendToParent(cmd: intf.ChildMsgCode, data: any) {
         if (process.send) {
+            if (data.err) {
+                data.err = serialize_error(data.err);
+            }
             process.send({ cmd: cmd, data: data });
         } else {
             // we're running in dev/test mode as a standalone process
