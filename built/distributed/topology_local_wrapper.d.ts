@@ -16,6 +16,7 @@ export declare class TopologyLocalWrapper {
     start(): void;
     /** Internal main handler for incoming messages */
     private handle(msg);
+    /** Kill this process the hard way. */
     private killProcess(exit_code?, err?);
     /** This method shuts down the local topology.
      * Any bolt/spout shutdown exception `err` will be propagated
