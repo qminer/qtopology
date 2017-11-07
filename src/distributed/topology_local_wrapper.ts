@@ -44,7 +44,7 @@ export class TopologyLocalWrapper {
         this.process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + self.process.pid);
             if (!self.topology_local) {
-                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
                     intf.ChildExitCode.shutdown_notinit_error);
             } else {
                 self.shutdown();
@@ -53,7 +53,7 @@ export class TopologyLocalWrapper {
         this.process.on('SIGTERM', () => {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + self.process.pid);
             if (!self.topology_local) {
-                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
                     intf.ChildExitCode.shutdown_notinit_error);
             } else {
                 self.shutdown();
@@ -183,7 +183,7 @@ export class TopologyLocalWrapper {
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
             if (!self.topology_local) {
-                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
                     intf.ChildExitCode.shutdown_notinit_error);
                 return;
             }

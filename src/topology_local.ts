@@ -218,7 +218,7 @@ export class TopologyLocal {
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback) {
-        //callback = this.tryCallback(callback);
+        callback = this.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         } if (this.isShuttingDown) {
