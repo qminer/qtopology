@@ -200,6 +200,9 @@ class TopologyLocalWrapper {
         let self = this;
         try {
             if (self.waiting_for_shutdown) {
+                let s = `Ignoring shutdown in the child process (${self.uuid}): the topology is already shutting down (${self.topology_local.getUuid()}).`;
+                log.logger().error(self.log_prefix + s);
+                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
                 return;
             }
             self.clearPingInterval();

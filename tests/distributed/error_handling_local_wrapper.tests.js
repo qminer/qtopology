@@ -4,7 +4,7 @@
 
 const assert = require("assert");
 const log = require("../../built/util/logger");
-log.logger().setLevel("none");
+//log.logger().setLevel("none");
 const tlw = require("../../built/distributed/topology_local_wrapper");
 const bb = require("../helpers/bad_bolt.js");
 const bs = require("../helpers/bad_spout.js");
@@ -103,16 +103,15 @@ describe('local wrapper', function () {
             let total = 0;
             let intv = setInterval(() => {
                 total += 10;
-                if (total > 100) {
+                if (total > 50) {
                     clearInterval(intv);
                     target.clearPingInterval();
-                    done();
                 }
                 mockProcess.emit("message", {
                     cmd: intf.ParentMsgCode.ping,
                     data: {}
                 });
-            }, 10);
+            }, 100);
         });
         it('should ping timeout', function (done) {
             const mockProcess = new MockProcess(done,
@@ -236,5 +235,138 @@ describe('local wrapper', function () {
                 assert.notEqual(mockProcess.sends[0].data.err, null);
             }, 20);
         });
+    });
+    describe('Double calls', function () {
+        it('should not allow calling init twice', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.exit_ok);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: "",
+                    location: ""
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.init,
+                data: top_config
+            });
+            setTimeout(() => {
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.init,
+                    data: top_config
+                });
+                setTimeout(() => {
+                    assert.equal(mockProcess.sends.length, 2);
+                    assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                    assert.equal(mockProcess.sends.length, 2);
+                    assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.response_init);
+                    assert.notEqual(mockProcess.sends[1].data.err, null);
+                    mockProcess.emit("message", {
+                        cmd: intf.ParentMsgCode.shutdown,
+                        data: {}
+                    });
+                }, 10);
+            }, 10);
+        });
+        it('should not allow calling run when already running', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.run_error);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.init,
+                data: top_config
+            });
+            setTimeout(() => {
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.run,
+                    data: {}
+                });
+                setTimeout(() => {
+                    mockProcess.emit("message", {
+                        cmd: intf.ParentMsgCode.run,
+                        data: {}
+                    });
+                    setTimeout(() => {
+                        assert.equal(mockProcess.sends.length, 3);
+                        assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                        assert.equal(mockProcess.sends[0].data.err, null);
+                        assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.response_run);
+                        assert.equal(mockProcess.sends[1].data.err, null);
+                        assert.equal(mockProcess.sends[2].cmd, intf.ChildMsgCode.response_run);
+                        assert.notEqual(mockProcess.sends[2].data.err, null);
+                        clearInterval(target.topology_local.heartbeatTimer);
+                    }, 20);
+                }, 20);
+            }, 20);
+        });
+        it('should not allow calling pause when not running', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.pause_error);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.init,
+                data: top_config
+            });
+            setTimeout(() => {
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.pause,
+                    data: {}
+                });
+                setTimeout(() => {
+                    assert.equal(mockProcess.sends.length, 2);
+                    assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                    assert.equal(mockProcess.sends[0].data.err, null);
+                    assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.response_pause);
+                    assert.notEqual(mockProcess.sends[1].data.err, null);
+                    clearInterval(target.topology_local.heartbeatTimer);
+                }, 20);
+            }, 20);
+        });
+    });
+    it('should not allow calling shutdown twice', function (done) {
+        let mockProcess = new MockProcess(done,
+            intf.ChildExitCode.exit_ok);
+        let target = new tlw.TopologyLocalWrapper(mockProcess);
+        target.exitTimeout = 5;
+        let top_config = JSON.parse(JSON.stringify(topology_json));
+
+        mockProcess.emit("message", {
+            cmd: intf.ParentMsgCode.init,
+            data: top_config
+        });
+        setTimeout(() => {
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.shutdown,
+                data: {}
+            });
+            setTimeout(() => {
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.shutdown,
+                    data: {}
+                });
+                setTimeout(() => {
+                    assert.equal(mockProcess.sends.length, 3);
+                    assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                    assert.equal(mockProcess.sends[0].data.err, null);
+                    assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.response_shutdown);
+                    assert.equal(mockProcess.sends[1].data.err, null);
+                    assert.equal(mockProcess.sends[2].cmd, intf.ChildMsgCode.response_shutdown);
+                    assert.notEqual(mockProcess.sends[2].data.err, null);
+                    clearInterval(target.topology_local.heartbeatTimer);
+                }, 20);
+            }, 20);
+        }, 20);
     });
 });
