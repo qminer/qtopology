@@ -92,6 +92,7 @@ export class TopologyLocalProxy {
                 msg.data.err = deserialize_error(msg.data.err);
             }
             if (msg.cmd == intf.ChildMsgCode.response_init) {
+                if (msg.data.err) { self.last_child_err = msg.data.err; }
                 if (self.init_cb) {
                     let cb = self.init_cb;
                     self.init_cb = null;
@@ -102,6 +103,7 @@ export class TopologyLocalProxy {
                 self.last_child_err = msg.data.err;
             }
             if (msg.cmd == intf.ChildMsgCode.response_run) {
+                if (msg.data.err) { self.last_child_err = msg.data.err; }
                 if (self.run_cb) {
                     let cb = self.run_cb;
                     self.run_cb = null;
@@ -109,6 +111,7 @@ export class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_pause) {
+                if (msg.data.err) { self.last_child_err = msg.data.err; }
                 if (self.pause_cb) {
                     let cb = self.pause_cb;
                     self.pause_cb = null;
@@ -119,6 +122,7 @@ export class TopologyLocalProxy {
                 self.sentPings = 0;
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                if (msg.data.err) { self.last_child_err = msg.data.err; }
                 self.was_shut_down = true;
                 if (self.shutdown_cb) {
                     let cb = self.shutdown_cb;

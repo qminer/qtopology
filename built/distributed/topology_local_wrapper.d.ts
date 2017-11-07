@@ -20,7 +20,7 @@ export declare class TopologyLocalWrapper {
     /** clears ping interval */
     private clearPingInterval();
     /** exit logic when not initialized */
-    private exitNonInit();
+    private exitNonInit(fun, msgCode, exitCode);
     /** Starts infinite loop by reading messages from parent or console */
     start(): void;
     /** Internal main handler for incoming messages */

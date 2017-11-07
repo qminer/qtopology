@@ -44,7 +44,8 @@ export class TopologyLocalWrapper {
         this.process.on('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + self.process.pid);
             if (!self.topology_local) {
-                this.exitNonInit();
+                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                    intf.ChildExitCode.shutdown_notinit_error);
             } else {
                 self.shutdown();
             }
@@ -52,7 +53,8 @@ export class TopologyLocalWrapper {
         this.process.on('SIGTERM', () => {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + self.process.pid);
             if (!self.topology_local) {
-                this.exitNonInit();
+                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                    intf.ChildExitCode.shutdown_notinit_error);
             } else {
                 self.shutdown();
             }
@@ -100,13 +102,13 @@ export class TopologyLocalWrapper {
     }
 
     /** exit logic when not initialized */
-    private exitNonInit() {
+    private exitNonInit(fun: string, msgCode: intf.ChildMsgCode, exitCode: intf.ChildExitCode) {
         let self = this;
         self.clearPingInterval();
-        let s = `Shutdown called in the child process, but the topology hasn't been initialized yet.`;
+        let s = `${fun} called in the child process, but the topology hasn't been initialized yet.`;
         log.logger().error(self.log_prefix + s);
-        self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
-        self.killProcess(intf.ChildExitCode.shutdown_notinit_error, new Error(s));
+        self.sendToParent(msgCode, { err: new Error(s) });
+        self.killProcess(exitCode); // error was already sent to parent
     }
 
     /** Starts infinite loop by reading messages from parent or console */
@@ -134,7 +136,7 @@ export class TopologyLocalWrapper {
                 compiler.compile();
             } catch (err) {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
-                self.killProcess(intf.ChildExitCode.init_error, err);
+                self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
                 return;
             }
             let topology = compiler.getWholeConfig();
@@ -143,7 +145,7 @@ export class TopologyLocalWrapper {
             self.topology_local.init(self.uuid, topology, (err) => {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
                 if (err) {
-                    self.killProcess(intf.ChildExitCode.init_error, err);
+                    self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
                 }
             });
         }
@@ -161,7 +163,7 @@ export class TopologyLocalWrapper {
             self.topology_local.run((err?: Error) => {
                 self.sendToParent(intf.ChildMsgCode.response_run, { err: err });
                 if (err) {
-                    self.killProcess(intf.ChildExitCode.run_error, err);
+                    self.killProcess(intf.ChildExitCode.run_error); // error was already sent to parent
                 }
             });
         }
@@ -175,14 +177,14 @@ export class TopologyLocalWrapper {
             self.topology_local.pause((err?: Error) => {
                 self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
                 if (err) {
-                    self.killProcess(intf.ChildExitCode.pause_error, err);
+                    self.killProcess(intf.ChildExitCode.pause_error); // error was already sent to parent
                 }
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
-
             if (!self.topology_local) {
-                this.exitNonInit();
+                this.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
+                    intf.ChildExitCode.shutdown_notinit_error);
                 return;
             }
             self.shutdown();
@@ -232,10 +234,10 @@ export class TopologyLocalWrapper {
                 if (err) {
                     log.logger().error(self.log_prefix + `Error shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
                     log.logger().exception(err);
-                    self.killProcess(intf.ChildExitCode.shutdown_internal_error, err);
+                    self.killProcess(intf.ChildExitCode.shutdown_internal_error); // error was already sent to parent
                     return;
                 }
-                self.killProcess(intf.ChildExitCode.exit_ok, null);
+                self.killProcess(intf.ChildExitCode.exit_ok);
                 return;
             });
         } catch (e) {
@@ -244,7 +246,7 @@ export class TopologyLocalWrapper {
             log.logger().error(this.log_prefix + `Error while shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
             log.logger().exception(e);
             self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: e });
-            self.killProcess(intf.ChildExitCode.shutdown_unlikely_error, e);
+            self.killProcess(intf.ChildExitCode.shutdown_unlikely_error); // error was already sent to parent
             return;
         }
     }

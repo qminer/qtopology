@@ -98,6 +98,28 @@ describe('local wrapper', function () {
             let target = new tlw.TopologyLocalWrapper(mockProcess);
             target.exitTimeout = 5;
             target.pingTimeout = 20;
+            target.pingInterval = 5;
+            target.setPingInterval();
+            let total = 0;
+            let intv = setInterval(()=>{
+                total += 10;
+                if (total > 100) {
+                    clearInterval(intv);
+                    target.clearPingInterval();
+                    done();
+                }
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.ping,
+                    data: {}
+                });
+            },10);
+        });
+        it('should ping timeout', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.parent_ping_timeout);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            target.pingTimeout = 20;
             target.pingInterval = 10;
             target.setPingInterval();
         });
@@ -153,10 +175,65 @@ describe('local wrapper', function () {
                 data: top_config
             });
             setTimeout(()=>{
-                assert.equal(mockProcess.sends.length, 2);
+                assert.equal(mockProcess.sends.length, 1);
                 assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                 assert.notEqual(mockProcess.sends[0].data.err, null);
-                assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.error);
+            }, 20);
+        });
+        it('should pass an exception to init callback if bolt_config.inputs is missing', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.init_error);
+            mockProcess.connected = false;
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: bb.badActions.throw,
+                    location: bb.badLocations.init
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.init,
+                data: top_config
+            });
+            setTimeout(()=>{
+                assert.equal(mockProcess.sends.length, 1);
+                assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                assert.notEqual(mockProcess.sends[0].data.err, null);
+            }, 20);
+        });
+        it('should pass an exception to init callback if bolt_config.inputs is missing', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.init_error);
+            mockProcess.connected = false;
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: bb.badActions.callbackException,
+                    location: bb.badLocations.init
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.init,
+                data: top_config
+            });
+            setTimeout(()=>{
+                assert.equal(mockProcess.sends.length, 1);
+                assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
+                assert.notEqual(mockProcess.sends[0].data.err, null);
             }, 20);
         });
     });
