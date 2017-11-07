@@ -4,7 +4,7 @@
 
 const assert = require("assert");
 const log = require("../../built/util/logger");
-//log.logger().setLevel("none");
+log.logger().setLevel("none");
 const tlw = require("../../built/distributed/topology_local_wrapper");
 const bb = require("../helpers/bad_bolt.js");
 const bs = require("../helpers/bad_spout.js");
@@ -368,5 +368,60 @@ describe('local wrapper', function () {
                 }, 20);
             }, 20);
         }, 20);
+    });
+    describe('Not initialized calls', function () {
+        it('should exit with error when shutdown is called and not initialized', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.shutdown_notinit_error);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.shutdown,
+                data: {}
+            });
+            setTimeout(() => {
+                assert.equal(mockProcess.sends.length, 1);
+                assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_shutdown);
+                assert.notEqual(mockProcess.sends[0].data.err, null);
+            }, 10);
+        });
+        it('should not allow calling run when not initialized', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.shutdown_notinit_error);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.run,
+                data: {}
+            });
+            setTimeout(() => {
+                assert.equal(mockProcess.sends.length, 1);
+                assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_run);
+                assert.notEqual(mockProcess.sends[0].data.err, null);
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.shutdown,
+                    data: {}
+                });
+            }, 10);
+        });
+        it('should not allow calling pause when not initialized', function (done) {
+            const mockProcess = new MockProcess(done,
+                intf.ChildExitCode.shutdown_notinit_error);
+            let target = new tlw.TopologyLocalWrapper(mockProcess);
+            target.exitTimeout = 5;
+            mockProcess.emit("message", {
+                cmd: intf.ParentMsgCode.pause,
+                data: {}
+            });
+            setTimeout(() => {
+                assert.equal(mockProcess.sends.length, 1);
+                assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_pause);
+                assert.notEqual(mockProcess.sends[0].data.err, null);
+                mockProcess.emit("message", {
+                    cmd: intf.ParentMsgCode.shutdown,
+                    data: {}
+                });
+            }, 10);
+        });
     });
 });
