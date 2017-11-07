@@ -57,6 +57,7 @@ class TopologyLocal {
         this.heartbeatTimer = null;
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
+        this.onErrorHandler = this.tryCallback(this.onErrorHandler);
     }
     /** helper function that wraps a callback with try/catch */
     tryCallback(callback) {
@@ -158,36 +159,42 @@ class TopologyLocal {
     }
     /** Sends run signal to all spouts. Each spout.run is idempotent */
     run(callback) {
+        callback = this.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
         if (this.isRunning) {
             return callback(new Error(this.logging_prefix + "Topology is already running."));
         }
+        this.isRunning = true;
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
         // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.run();
         }
-        this.isRunning = true;
         return callback();
     }
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback) {
+        callback = this.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
+        if (!this.isRunning) {
+            return callback(new Error(this.logging_prefix + "Topology is already paused."));
+        }
+        this.isRunning = false;
         // spouts pass internal exceptions to errorCallback
         // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.pause();
         }
-        this.isRunning = false;
         return callback();
     }
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
+        //callback = this.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         }
@@ -197,18 +204,11 @@ class TopologyLocal {
         }
         let self = this;
         self.isShuttingDown = true;
-        self.isRunning = false;
         // disable heartbeat
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
         }
-        self.pause((err) => {
-            if (err) {
-                // only possible error is when isInit is false
-                log.logger().error("THIS SHOULD NOT HAPPEN!");
-                log.logger().exception(err);
-                return callback(err);
-            }
+        let shutdownTasks = () => {
             let tasks = [];
             self.spouts.forEach((spout) => {
                 tasks.push((xcallback) => {
@@ -251,7 +251,7 @@ class TopologyLocal {
             }
             async.series(tasks, (e) => {
                 // call hard shutdown regardless of the error
-                if (this.config.general.shutdown_hard) {
+                if (self.config.general.shutdown_hard) {
                     try {
                         self.shutdownHard();
                     }
@@ -262,7 +262,21 @@ class TopologyLocal {
                 }
                 callback(e);
             });
-        });
+        };
+        if (self.isRunning) {
+            self.pause((err) => {
+                if (err) {
+                    // only possible error is when isInit is false
+                    log.logger().error("THIS SHOULD NOT HAPPEN!");
+                    log.logger().exception(err);
+                    return callback(err);
+                }
+                shutdownTasks();
+            });
+        }
+        else {
+            shutdownTasks();
+        }
     }
     /** Runs hard-core shutdown sequence */
     shutdownHard() {

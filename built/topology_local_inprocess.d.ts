@@ -27,8 +27,9 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private init_params;
     private isPaused;
     private isShuttingDown;
+    private initCalled;
     private nextTs;
-    private child;
+    private spout;
     private emitCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
@@ -59,11 +60,12 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private subtype;
     private init_params;
     private isShuttingDown;
+    private initCalled;
     private allow_parallel;
     private inSend;
     private pendingSendRequests;
     private pendingShutdownCallback;
-    private child;
+    private bolt;
     private emitCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
