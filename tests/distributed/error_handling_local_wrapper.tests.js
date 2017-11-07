@@ -101,7 +101,7 @@ describe('local wrapper', function () {
             target.pingInterval = 5;
             target.setPingInterval();
             let total = 0;
-            let intv = setInterval(()=>{
+            let intv = setInterval(() => {
                 total += 10;
                 if (total > 100) {
                     clearInterval(intv);
@@ -112,7 +112,7 @@ describe('local wrapper', function () {
                     cmd: intf.ParentMsgCode.ping,
                     data: {}
                 });
-            },10);
+            }, 10);
         });
         it('should ping timeout', function (done) {
             const mockProcess = new MockProcess(done,
@@ -145,7 +145,7 @@ describe('local wrapper', function () {
                 cmd: intf.ParentMsgCode.init,
                 data: top_config
             });
-            setTimeout(()=>{
+            setTimeout(() => {
                 assert.equal(mockProcess.sends.length, 1);
                 assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                 assert.equal(mockProcess.sends[0].data.err, null);
@@ -174,7 +174,7 @@ describe('local wrapper', function () {
                 cmd: intf.ParentMsgCode.init,
                 data: top_config
             });
-            setTimeout(()=>{
+            setTimeout(() => {
                 assert.equal(mockProcess.sends.length, 1);
                 assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                 assert.notEqual(mockProcess.sends[0].data.err, null);
@@ -202,7 +202,7 @@ describe('local wrapper', function () {
                 cmd: intf.ParentMsgCode.init,
                 data: top_config
             });
-            setTimeout(()=>{
+            setTimeout(() => {
                 assert.equal(mockProcess.sends.length, 1);
                 assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                 assert.notEqual(mockProcess.sends[0].data.err, null);
@@ -230,7 +230,7 @@ describe('local wrapper', function () {
                 cmd: intf.ParentMsgCode.init,
                 data: top_config
             });
-            setTimeout(()=>{
+            setTimeout(() => {
                 assert.equal(mockProcess.sends.length, 1);
                 assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                 assert.notEqual(mockProcess.sends[0].data.err, null);

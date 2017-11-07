@@ -400,7 +400,7 @@ describe('local_inprocess: bolt errors', function () {
             target.init((e) => { });
             target.isError = true;
             target.receive({}, null, (e) => {
-                assert(e != undefined);                
+                assert(e != undefined);
                 assert.equal(target.getBoltObject()._init_called, 1);
                 assert.equal(target.getBoltObject()._receive_called, 0);
                 done();
@@ -745,16 +745,16 @@ describe('local_inprocess: spout errors', function () {
                 target.getSpoutObject().location = bs.badLocations.next;
                 target.getSpoutObject().action = bs.badActions.throw;
                 target.run();
-                target.next((e)=>{
+                target.next((e) => {
                     assert(e != null);
                 });
-                setTimeout(()=>{
+                setTimeout(() => {
                     assert(onErrorCalled);
                     assert.equal(emits.length, 0);
                     assert.equal(target.getSpoutObject()._init_called, 1);
                     assert.equal(target.getSpoutObject()._next_called, 2);
                     done();
-                },20);
+                }, 20);
             });
         });
         it('should call callback with exception', function (done) {
@@ -783,16 +783,16 @@ describe('local_inprocess: spout errors', function () {
                 target.getSpoutObject().location = bs.badLocations.next;
                 target.getSpoutObject().action = bs.badActions.callbackException;
                 target.run();
-                target.next((e)=>{
+                target.next((e) => {
                     assert(e != null);
                 });
-                setTimeout(()=>{
+                setTimeout(() => {
                     assert(onErrorCalled);
                     assert.equal(emits.length, 0);
                     assert.equal(target.getSpoutObject()._init_called, 1);
                     assert.equal(target.getSpoutObject()._next_called, 2);
                     done();
-                },20);
+                }, 20);
             });
         });
     });
@@ -827,7 +827,7 @@ describe('local_inprocess: spout errors', function () {
                     done();
                 }, 10);
             });
-        });        
+        });
     });
 
     describe('Pause', function () {
@@ -863,7 +863,7 @@ describe('local_inprocess: spout errors', function () {
                     done();
                 }, 10);
             });
-        });        
+        });
     });
 
 });
