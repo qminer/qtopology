@@ -7,7 +7,6 @@ export declare class TopologyLocalProxy {
     private run_cb;
     private pause_cb;
     private shutdown_cb;
-    private was_shut_down;
     private has_exited;
     private child_exit_callback;
     private child;
@@ -19,16 +18,16 @@ export declare class TopologyLocalProxy {
     constructor(child_exit_callback: intf.SimpleCallback);
     /** Starts child process and sets up all event handlers */
     private setUpChildProcess(uuid);
-    /** Check if this object has been shut down already */
-    wasShutDown(): boolean;
     /** Check if this object has exited */
     hasExited(): boolean;
     /** Returns process PID */
     getPid(): number;
-    /** Calls all pending callbacks with given error and clears them. */
-    private callPendingCallbacks(e);
-    /** Calls pending shutdown callback with given error and clears it. */
-    private callPendingCallbacks2(e);
+    /** Calls all pending callbacks with an exception
+     * (process exited before receving callback) and
+     * forwards the given error to child_exit_callback.
+     * Also clears ping interval.
+     */
+    private onExit(e);
     /** Sends initialization signal to underlaying process */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to underlaying process */
@@ -37,7 +36,10 @@ export declare class TopologyLocalProxy {
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback): void;
-    /** Sends kill signal to underlaying process */
+    /** Sends SIGKILL signal to underlaying process.
+     * This is a last resort - the child should normally
+     * exit after receiving shutdown signal.
+     */
     kill(callback: intf.SimpleCallback): void;
     /** Internal method for sending messages to child process */
     private send(code, data);

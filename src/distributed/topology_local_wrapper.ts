@@ -35,13 +35,13 @@ export class TopologyLocalWrapper {
         this.process.on("message", (msg) => {
             self.handle(msg);
         });
-        this.process.on("uncaughtException", (e: Error) => {
+        this.process.once("uncaughtException", (e: Error) => {
             log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
             log.logger().exception(e);
             self.clearPingInterval();
             self.killProcess(intf.ChildExitCode.unhandeled_error, e);
         });
-        this.process.on('SIGINT', () => {
+        this.process.once('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + self.process.pid);
             if (!self.topology_local) {
                 self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
@@ -50,7 +50,7 @@ export class TopologyLocalWrapper {
                 self.shutdown();
             }
         });
-        this.process.on('SIGTERM', () => {
+        this.process.once('SIGTERM', () => {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + self.process.pid);
             if (!self.topology_local) {
                 self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,

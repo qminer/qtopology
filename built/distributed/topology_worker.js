@@ -115,7 +115,7 @@ class TopologyWorker {
     createProxy(rec) {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (self.waiting_for_shutdown || rec.proxy.wasShutDown()) {
+            if (self.waiting_for_shutdown || rec.proxy.hasExited()) {
                 self.removeTopology(rec.uuid);
             }
             else {
