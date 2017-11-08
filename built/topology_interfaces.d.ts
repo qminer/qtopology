@@ -10,11 +10,8 @@ export interface InitContextCallback {
 export interface BoltEmitCallback {
     (data: any, stream_id: string, callback: SimpleCallback): void;
 }
-export interface SpoutAckCallback {
-    (error: Error, callback: SimpleCallback): void;
-}
 export interface SpoutNextCallback {
-    (err: Error, data: any, stream_id: string, callback?: SpoutAckCallback): void;
+    (err: Error, data: any, stream_id: string): void;
 }
 export interface ValidationOptions {
     config: any;

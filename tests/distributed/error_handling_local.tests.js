@@ -167,7 +167,7 @@ describe('local: bolt errors', function () {
             let initErrors = [];
             target.init("top1", top_config, (e) => {
                 if (e) { initErrors.push(e); }
-                target.run(()=>{
+                target.run(() => {
                     setTimeout(() => {
                         assert(initErrors.length == 0);
                         assert.equal(target.bolts[0].getBoltObject()._init_called, 1);
@@ -279,7 +279,7 @@ describe('local: bolt errors', function () {
                     action: bb.badActions.throw,
                     location: bb.badLocations.receive
                 },
-                inputs: [{ source: "source1"} ]
+                inputs: [{ source: "source1" }]
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
@@ -322,7 +322,7 @@ describe('local: bolt errors', function () {
                     action: bb.badActions.callbackException,
                     location: bb.badLocations.receive
                 },
-                inputs: [{ source: "source1"} ]
+                inputs: [{ source: "source1" }]
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
@@ -350,7 +350,7 @@ describe('local: bolt errors', function () {
 
 });
 
-describe('local_inprocess: spout errors', function () {
+describe('local: spout errors', function () {
     describe('Construction', function () {
         it('should be constructable', function () {
             let errors = [];
@@ -418,11 +418,11 @@ describe('local_inprocess: spout errors', function () {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 log.logger().setLevel("error");
-                log.logger().error = (m)=>{ msg.push(m); }
-                log.logger().exception = (m)=>{ msg.push(m); }
+                log.logger().error = (m) => { msg.push(m); }
+                log.logger().exception = (m) => { msg.push(m); }
                 throw new Error("I'm bad!");
             });
-            setTimeout(()=> {
+            setTimeout(() => {
                 log.logger().setLevel("none");
                 log.logger().error = errfn;
                 log.logger().exception = excfn;
@@ -491,9 +491,37 @@ describe('local_inprocess: spout errors', function () {
                 done();
             });
         });
+        it('should not allow calling init twice', function (done) {
+            let emits = [];
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_spout.js",
+                onEmit: (data, stream_id, callback) => {
+                    emits.push({ data, stream_id });
+                    callback();
+                },
+                init: {
+                    action: "",
+                    location: ""
+                }
+            };
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            target.init("top1", top_config, (e) => {
+                assert(e == undefined);
+                target.init("top1", top_config, (e) => {
+                    assert(e != undefined);
+                    target.shutdown(done);
+                });
+            });
+        });
     });
     describe('Heartbeat', function () {
-        it('should pass thrown exception to error callback', function () {
+        it('should pass thrown exception to error callback', function (done) {
             let emits = [];
             let config = {
                 name: "test1",
@@ -506,7 +534,8 @@ describe('local_inprocess: spout errors', function () {
                 init: {
                     action: bs.badActions.throw,
                     location: bs.badLocations.heartbeat
-                }
+                },
+                inputs: []
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
@@ -514,13 +543,13 @@ describe('local_inprocess: spout errors', function () {
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.general.heartbeat = 5;
-            top_config.bolts.push(config);
+            top_config.spouts.push(config);
             let initErrors = [];
             target.init("top1", top_config, (e) => {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 assert.equal(emits.length, 0);
-                target.run(()=>{
+                target.run(() => {
                     setTimeout(() => {
                         assert.equal(errors.length, 1);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
@@ -615,6 +644,81 @@ describe('local_inprocess: spout errors', function () {
                 });
             });
         });
+        it('should not allow calling shutdown twice', function (done) {
+            let emits = [];
+            let onErrorCalled = false;
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_spout.js",
+                onEmit: (data, stream_id, callback) => {
+                    emits.push({ data, stream_id });
+                    callback();
+                },
+                onError: (e) => {
+                    onErrorCalled = true;
+                },
+                init: {
+                    action: "",
+                    location: ""
+                }
+            };
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            //log.logger().setLevel("error");
+            target.init("top1", top_config, (e) => {
+                target.shutdown((e) => {
+                    assert(e == undefined);
+                    assert.equal(errors.length, 0);
+                    assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
+                    assert.equal(target.spouts[0].getSpoutObject()._shutdown_called, 1);
+                    target.shutdown((e) => {
+                        assert(e != undefined);
+                        assert.equal(errors.length, 0);
+                        assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
+                        assert.equal(target.spouts[0].getSpoutObject()._shutdown_called, 1);
+                        done();
+                    });
+                });
+            });
+        });
+        it('should not allow calling shutdown before initializing', function (done) {
+            let emits = [];
+            let onErrorCalled = false;
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_spout.js",
+                onEmit: (data, stream_id, callback) => {
+                    emits.push({ data, stream_id });
+                    callback();
+                },
+                onError: (e) => {
+                    onErrorCalled = true;
+                },
+                init: {
+                    action: "",
+                    location: ""
+                }
+            };
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            //log.logger().setLevel("error");
+            target.shutdown((e) => {
+                assert(e != undefined);
+                assert.equal(errors.length, 0);
+                assert.equal(target.spouts.length, 0);
+                done();
+            });
+        });
     });
     describe('Next', function () {
         it('should pass thrown exception to callback', function (done) {
@@ -645,14 +749,17 @@ describe('local_inprocess: spout errors', function () {
                 assert.equal(emits.length, 0);
                 target.spouts[0].getSpoutObject().location = bs.badLocations.next;
                 target.spouts[0].getSpoutObject().action = bs.badActions.throw;
-                target.run((e)=>{
+                target.run((e) => {
                     assert(e == undefined);
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         assert(errors.length == 1);
                         assert.equal(emits.length, 0);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
                         assert.equal(target.spouts[0].getSpoutObject()._next_called, 1);
-                        target.shutdown(done);
+                        target.shutdown((e) => {
+                            assert(e != null); // error flag, shutdown refused
+                            done();
+                        });
                     }, 50);
                 });
             });
@@ -685,14 +792,17 @@ describe('local_inprocess: spout errors', function () {
                 assert.equal(emits.length, 0);
                 target.spouts[0].getSpoutObject().location = bs.badLocations.next;
                 target.spouts[0].getSpoutObject().action = bs.badActions.callbackException;
-                target.run((e)=>{
+                target.run((e) => {
                     assert(e == undefined);
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         assert(errors.length == 1);
                         assert.equal(emits.length, 0);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
                         assert.equal(target.spouts[0].getSpoutObject()._next_called, 1);
-                        target.shutdown(done);
+                        target.shutdown((e) => {
+                            assert(e != null); // error flag, shutdown refused
+                            done();
+                        });
                     }, 50);
                 });
             });
@@ -730,19 +840,22 @@ describe('local_inprocess: spout errors', function () {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 assert.equal(emits.length, 0);
-                target.run((e)=>{
+                target.run((e) => {
                     assert(e == undefined);
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         assert(errors.length == 1);
                         assert.equal(emits.length, 0);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
                         assert.equal(target.spouts[0].getSpoutObject()._next_called, 0);
-                        target.shutdown(done);
+                        target.shutdown((e) => {
+                            assert(e != null); // error flag, shutdown refused
+                            done();
+                        });
                     }, 50);
                 });
             });
         });
-        it('should call callback with exception', function (done) {
+        it('should not allow calling run twice', function (done) {
             let emits = [];
             let onErrorCalled = false;
             let config = {
@@ -757,11 +870,11 @@ describe('local_inprocess: spout errors', function () {
                     onErrorCalled = true;
                 },
                 init: {
-                    action: bs.badActions.callbackException,
-                    location: bs.badLocations.run
+                    action: "",
+                    location: ""
                 }
             };
-            
+
             let errors = [];
             let onError = (e) => { errors.push(e); }
             // onError called by heartbeat or internal spout/bolt error         
@@ -770,19 +883,48 @@ describe('local_inprocess: spout errors', function () {
             top_config.spouts.push(config);
             let initErrors = [];
             target.init("top1", top_config, (e) => {
-                if (e) { initErrors.push(e); }
-                assert(initErrors.length == 0);
-                assert.equal(emits.length, 0);
-                target.run((e)=>{
+                target.run((e) => {
                     assert(e == undefined);
-                    setTimeout(()=>{
-                        assert(errors.length == 1);
-                        assert.equal(emits.length, 0);
-                        assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
-                        assert.equal(target.spouts[0].getSpoutObject()._next_called, 0);
-                        target.shutdown(done);
-                    }, 50);
+                    target.run((e) => {
+                        assert(e != undefined);
+                        target.shutdown((e) => {
+                            assert(e == undefined);
+                            done();
+                        });
+                    });
                 });
+            });
+        });
+        it('should not allow calling run twice', function (done) {
+            let emits = [];
+            let onErrorCalled = false;
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_spout.js",
+                onEmit: (data, stream_id, callback) => {
+                    emits.push({ data, stream_id });
+                    callback();
+                },
+                onError: (e) => {
+                    onErrorCalled = true;
+                },
+                init: {
+                    action: "",
+                    location: ""
+                }
+            };
+
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            let initErrors = [];
+            target.run((e) => {
+                assert(e != undefined);
+                done();
             });
         });
     });
@@ -818,17 +960,20 @@ describe('local_inprocess: spout errors', function () {
                 if (e) { initErrors.push(e); }
                 assert(initErrors.length == 0);
                 assert.equal(emits.length, 0);
-                target.run((e)=>{
+                target.run((e) => {
                     assert(e == undefined);
-                    target.pause((e)=>{
+                    target.pause((e) => {
                         assert(errors.length == 1);
                         assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
-                        target.shutdown(done);
+                        target.shutdown((e) => {
+                            assert(e != null); // error flag, shutdown refused
+                            done();
+                        });
                     });
                 });
             });
         });
-        it('should call callback with exception', function (done) {
+        it('should not allow calling pause when not running', function (done) {
             let emits = [];
             let onErrorCalled = false;
             let config = {
@@ -843,9 +988,10 @@ describe('local_inprocess: spout errors', function () {
                     onErrorCalled = true;
                 },
                 init: {
-                    action: bs.badActions.callbackException,
-                    location: bs.badLocations.run
-                }
+                    action: "",
+                    location: ""
+                },
+                timeout: 10
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
@@ -855,19 +1001,47 @@ describe('local_inprocess: spout errors', function () {
             top_config.spouts.push(config);
             let initErrors = [];
             target.init("top1", top_config, (e) => {
-                if (e) { initErrors.push(e); }
-                assert(initErrors.length == 0);
-                assert.equal(emits.length, 0);
-                target.run((e)=>{
-                    assert(e == undefined);
-                    target.pause((e)=>{
-                        assert(errors.length == 1);
-                        assert.equal(target.spouts[0].getSpoutObject()._init_called, 1);
-                        target.shutdown(done);
+                assert(e == undefined);
+                target.pause((e) => {
+                    assert(e != undefined);
+                    target.shutdown((e) => {
+                        assert(e == undefined);
+                        done();
                     });
                 });
             });
         });
+        it('should not allow calling pause when not initialized', function (done) {
+            let emits = [];
+            let onErrorCalled = false;
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_spout.js",
+                onEmit: (data, stream_id, callback) => {
+                    emits.push({ data, stream_id });
+                    callback();
+                },
+                onError: (e) => {
+                    onErrorCalled = true;
+                },
+                init: {
+                    action: "",
+                    location: ""
+                },
+                timeout: 10
+            };
+            let errors = [];
+            let onError = (e) => { errors.push(e); }
+            // onError called by heartbeat or internal spout/bolt error         
+            let target = new tl.TopologyLocal(onError);
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            top_config.spouts.push(config);
+            let initErrors = [];
+            target.pause((e) => {
+                assert(e != undefined);
+                done();
+            });
+        });
     });
-
 });

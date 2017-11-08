@@ -74,14 +74,14 @@ class BadSpout {
 
     run() {
         this._run_called++;
-        if (this.location == badLocations.run && this.action == bb.badActions.throw) {
+        if (this.location == badLocations.run && this.action == badActions.throw) {
             this.doAction();
         }
     }
 
     pause() {
         this._pause_called++;
-        if (this.location == badLocations.pause && this.action == bb.badActions.throw) {
+        if (this.location == badLocations.pause && this.action == badActions.throw) {
             this.doAction();
         }
     }
@@ -91,7 +91,7 @@ class BadSpout {
             this.doAction(callback);
         } else {
             setTimeout(() => {
-                return callback(null, {}, null, null);
+                return callback(null, {}, null);
             }, this._timeout);
         }
     }

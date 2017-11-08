@@ -14,6 +14,10 @@ exports.init = function (config, context, callback) {
 };
 
 exports.shutdown = function (callback) {
-    qtopology.logger().important("Common shutdown", common_context);
+    qtopology.logger().important("Common shutdown " + common_context.cnt);
     callback();
+};
+
+exports.shutdown_hard = function () {
+    qtopology.logger().important("Hard shutdown");
 };
