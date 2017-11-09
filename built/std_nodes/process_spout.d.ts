@@ -1,12 +1,12 @@
 import * as intf from "../topology_interfaces";
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export declare class ProcessSpout implements intf.Spout {
-    private name;
     private stream_id;
     private cmd_line;
     private file_format;
     private csv_separator;
     private csv_fields;
+    private csv_has_header;
     private tuples;
     private should_run;
     constructor();

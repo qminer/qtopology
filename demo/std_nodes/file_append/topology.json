@@ -1,0 +1,40 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "timer",
+            "init": {
+                "title": "some title",
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file_append",
+            "inputs": [
+                {
+                    "source": "pump1"
+                }
+            ],
+            "init": {
+                "prepend_timestamp": true,
+                "file_name_template": "./log.txt",
+                "split_over_time": true,
+                "split_period": 500000,
+                "compress": true
+            }
+        }
+    ],
+    "variables": {}
+}
