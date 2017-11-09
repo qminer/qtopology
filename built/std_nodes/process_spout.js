@@ -4,14 +4,14 @@ const cp = require("child_process");
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 class ProcessSpout {
     constructor() {
-        this.name = null;
+        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
         this.should_run = false;
     }
     init(name, config, context, callback) {
-        this.name = name;
+        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
@@ -19,6 +19,7 @@ class ProcessSpout {
         if (this.file_format == "csv") {
             this.csv_separator = config.separator || ",";
             this.csv_fields = config.fields;
+            this.csv_has_header = config.csv_has_header;
         }
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
@@ -80,17 +81,23 @@ class ProcessSpout {
     }
     readCsvFile(content) {
         let lines = content.split("\n");
-        let header = lines[0].replace("\r", "");
-        let fields = header.split(this.csv_separator);
-        lines = lines.slice(1);
+        // if CSV file contains header, use it.
+        // otherwise, the first line already contains data
+        if (this.csv_has_header) {
+            // read first list and parse fields names
+            let header = lines[0].replace("\r", "");
+            this.csv_fields = header.split(this.csv_separator);
+            ;
+            lines = lines.slice(1);
+        }
         for (let line of lines) {
             line = line.trim().replace("\r", "");
             if (line.length == 0)
                 continue;
             let values = line.split(this.csv_separator);
             let result = {};
-            for (let i = 0; i < fields.length; i++) {
-                result[fields[i]] = values[i];
+            for (let i = 0; i < this.csv_fields.length; i++) {
+                result[this.csv_fields[i]] = values[i];
             }
             this.tuples.push(result);
         }

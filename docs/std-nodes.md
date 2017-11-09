@@ -375,7 +375,7 @@ will write data into files with names like:
 
 ### Delete existing file
 
-You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The new line in the log file will look something like this:
+You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The initialization options in the config file will look something like this:
 
 ```````````json
 {
@@ -384,7 +384,32 @@ You can instruct the bolt to delete existing file at startup by setting option `
 }
 ```````````
 
-> This option only works when `split_over_time` is set to false or skipped.
+> This option only works when `split_over_time` is set to `false` or skipped.
+
+### Compressing older files
+
+You can instruct the bolt to compress older files by setting option `compress` to `true`. The initialization options in the config file will look something like this:
+
+```````````json
+{
+    "file_name_template": "./log.txt",
+    "split_over_time": true,
+    "split_period": 5000,
+    "compress": true
+}
+```````````
+
+This will cause the files to be zipped like this:
+
+- `log_2017_05_15T12:00:00.txt_0.gz`
+- `log_2017_05_15T13:00:00.txt_0.gz`
+- `log_2017_05_15T14:00:00.txt`
+
+Only the current file (the one that we are still writing into) will not be compressed. The latest file will be compressed upon shutdown.
+
+> This option only works when `split_over_time` is set to `true`.
+
+> If there already exists a gzipped file with the same name (e.g. `log_2017_05_15T13:00:00.txt_0.gz`), a new file with an increased postfix will be created (e.g. `log_2017_05_15T13:00:00.txt_1.gz`).
 
 ## Router bolt
 
