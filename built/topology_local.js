@@ -4,6 +4,7 @@ const async = require("async");
 const path = require("path");
 const top_inproc = require("./topology_local_inprocess");
 const log = require("./util/logger");
+const callback_wrappers_1 = require("./util/callback_wrappers");
 ////////////////////////////////////////////////////////////////////
 /** Internal record for router mapping */
 class OutputRouterDestination {
@@ -57,19 +58,7 @@ class TopologyLocal {
         this.heartbeatTimer = null;
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
-        this.onErrorHandler = this.tryCallback(this.onErrorHandler);
-    }
-    /** helper function that wraps a callback with try/catch */
-    tryCallback(callback) {
-        return (err) => {
-            try {
-                callback(err);
-            }
-            catch (e) {
-                log.logger().error("THIS SHOULD NOT HAPPEN: exception THROWN in callback!");
-                log.logger().exception(e);
-            }
-        };
+        this.onErrorHandler = callback_wrappers_1.tryCallback(this.onErrorHandler);
     }
     /** Handler for all internal errors */
     onInternalError(e) {
@@ -79,7 +68,7 @@ class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid, config, callback) {
-        callback = this.tryCallback(callback);
+        callback = callback_wrappers_1.tryCallback(callback);
         try {
             let self = this;
             if (self.isInitialized) {
@@ -159,7 +148,7 @@ class TopologyLocal {
     }
     /** Sends run signal to all spouts. Each spout.run is idempotent */
     run(callback) {
-        callback = this.tryCallback(callback);
+        callback = callback_wrappers_1.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
@@ -177,7 +166,7 @@ class TopologyLocal {
     }
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback) {
-        callback = this.tryCallback(callback);
+        callback = callback_wrappers_1.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
@@ -194,7 +183,7 @@ class TopologyLocal {
     }
     /** Sends shutdown signal to all child processes */
     shutdown(callback) {
-        callback = this.tryCallback(callback);
+        callback = callback_wrappers_1.tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         }
