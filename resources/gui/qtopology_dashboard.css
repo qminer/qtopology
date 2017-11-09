@@ -23,6 +23,44 @@ body{
 .float-right {
     float: right;
 }
+
+/******************************************************/
+
+.error-panel {
+    visibility: none;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: auto;
+    width: 100%;
+    z-index: 200;
+    overflow: auto;
+    background-color: red;
+    color: #fff;
+}
+.error-content {
+    /*background-color: #222;*/
+    /*margin: 15% auto;*/     /* 15% from the top and centered */
+    padding: 20px;
+    /*border: 1px solid #555;*/
+    width: 95%;
+}
+
+.error-close {
+    color: #fff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.error-close:hover,
+.error-close:focus {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
 /**************************************************/
 /* Modal (blade) code based on https://www.w3schools.com/howto/howto_css_modals.asp */
 .blade {
