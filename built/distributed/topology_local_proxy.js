@@ -5,6 +5,7 @@ const cp = require("child_process");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
 const deserialize_error = require("deserialize-error");
+const callback_wrappers_1 = require("../util/callback_wrappers");
 // TODO: specific exit codes for internal errors: attach code to Error object
 const PING_INTERVAL = 3000;
 const MAX_PING_FAILS = 10;
@@ -13,23 +14,28 @@ const MAX_PING_FAILS = 10;
  */
 class TopologyLocalProxy {
     /** Constructor that sets up call routing */
-    constructor(child_exit_callback) {
+    constructor(child_exit_callback, child_process) {
         this.log_prefix = "[Proxy] ";
         this.init_cb = null;
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
         this.has_exited = false;
+        this.exit_code = null;
         this.sentPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
+        this.child_exit_callback = callback_wrappers_1.tryCallback(this.child_exit_callback);
         this.child = null;
+        this.cp = child_process || cp;
+        this.pingInterval = PING_INTERVAL;
+        this.maxPingFails = MAX_PING_FAILS;
     }
     /** Starts child process and sets up all event handlers */
     setUpChildProcess(uuid) {
         let self = this;
         // send uuid in command-line parameters so that it is visible in process list
         // wont be used for anything
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
+        this.child = this.cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
             let msg = msgx;
             if (msg.data.err) {
@@ -91,10 +97,13 @@ class TopologyLocalProxy {
             self.kill(() => { });
             self.has_exited = true;
         });
+        // Normally close and exit will both be called shortly one after
+        // the other.
         self.child.once("close", (code, signal) => {
             let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
+            self.exit_code = code;
             if (self.onExit) {
                 self.onExit(e);
             }
@@ -102,29 +111,34 @@ class TopologyLocalProxy {
         });
         self.child.once("exit", (code, signal) => {
             let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
+            self.exit_code = code;
             if (self.onExit) {
                 self.onExit(e);
             }
             self.has_exited = true;
         });
         // send ping to child in regular intervals
-        this.pingIntervalId = setInterval(() => {
-            if (self.sentPings < MAX_PING_FAILS) {
+        self.pingIntervalId = setInterval(() => {
+            if (self.sentPings < self.maxPingFails) {
                 self.sentPings++;
                 self.send(intf.ParentMsgCode.ping, {});
             }
             else {
-                log.logger().error(this.log_prefix + "Too many un-answered pings, sending kill to child process...");
-                self.last_child_err = new Error(this.log_prefix + "Maximal number of un-anwsered pings to child reached");
+                log.logger().error(self.log_prefix + "Too many un-answered pings, sending kill to child process...");
+                self.last_child_err = new Error(self.log_prefix + "Maximal number of un-anwsered pings to child reached");
                 self.kill(() => { });
             }
-        }, PING_INTERVAL);
+        }, self.pingInterval);
     }
     /** Check if this object has exited */
     hasExited() {
         return this.has_exited;
+    }
+    /** Check if this object has exited */
+    exitCode() {
+        return this.exit_code;
     }
     /** Returns process PID */
     getPid() {
@@ -139,6 +153,7 @@ class TopologyLocalProxy {
      * Also clears ping interval.
      */
     onExit(e) {
+        this.onExit = null;
         if (this.pingIntervalId) {
             clearInterval(this.pingIntervalId);
             this.pingIntervalId = null;
@@ -160,10 +175,10 @@ class TopologyLocalProxy {
             this.shutdown_cb = null;
         }
         this.child_exit_callback(e);
-        this.onExit = null;
     }
     /** Sends initialization signal to underlaying process */
     init(uuid, config, callback) {
+        callback = callback_wrappers_1.tryCallback(callback);
         if (this.init_cb) {
             return callback(new Error(this.log_prefix + "Pending init callback already exists."));
         }
@@ -180,6 +195,7 @@ class TopologyLocalProxy {
     }
     /** Sends run signal to underlaying process */
     run(callback) {
+        callback = callback_wrappers_1.tryCallback(callback);
         if (this.run_cb) {
             return callback(new Error(this.log_prefix + "Pending run callback already exists."));
         }
@@ -190,6 +206,7 @@ class TopologyLocalProxy {
     }
     /** Sends pause signal to underlaying process */
     pause(callback) {
+        callback = callback_wrappers_1.tryCallback(callback);
         if (this.pause_cb) {
             return callback(new Error(this.log_prefix + "Pending pause callback already exists."));
         }
@@ -200,6 +217,7 @@ class TopologyLocalProxy {
     }
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
+        callback = callback_wrappers_1.tryCallback(callback);
         if (this.shutdown_cb) {
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
@@ -213,6 +231,7 @@ class TopologyLocalProxy {
      * exit after receiving shutdown signal.
      */
     kill(callback) {
+        callback = callback_wrappers_1.tryCallback(callback);
         if ((this.child == null) ||
             this.child.killed ||
             this.has_exited) {

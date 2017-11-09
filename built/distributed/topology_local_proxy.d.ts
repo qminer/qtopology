@@ -8,18 +8,24 @@ export declare class TopologyLocalProxy {
     private pause_cb;
     private shutdown_cb;
     private has_exited;
+    private exit_code;
     private child_exit_callback;
     private child;
     private pingIntervalId;
+    private pingInterval;
+    private maxPingFails;
     private sentPings;
     private log_prefix;
     private last_child_err;
+    private cp;
     /** Constructor that sets up call routing */
-    constructor(child_exit_callback: intf.SimpleCallback);
+    constructor(child_exit_callback: intf.SimpleCallback, child_process?: any);
     /** Starts child process and sets up all event handlers */
     private setUpChildProcess(uuid);
     /** Check if this object has exited */
     hasExited(): boolean;
+    /** Check if this object has exited */
+    exitCode(): number;
     /** Returns process PID */
     getPid(): number;
     /** Calls all pending callbacks with an exception

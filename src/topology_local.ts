@@ -3,6 +3,7 @@ import * as async from "async";
 import * as path from "path";
 import * as top_inproc from "./topology_local_inprocess";
 import * as log from "./util/logger";
+import { tryCallback } from "./util/callback_wrappers";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -83,19 +84,7 @@ export class TopologyLocal {
         this.heartbeatTimer = null;
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
-        this.onErrorHandler = this.tryCallback(this.onErrorHandler);
-    }
-
-    /** helper function that wraps a callback with try/catch */
-    protected tryCallback(callback: intf.SimpleCallback): intf.SimpleCallback {
-        return (err?: Error) => {
-            try {
-                callback(err);
-            } catch (e) {
-                log.logger().error("THIS SHOULD NOT HAPPEN: exception THROWN in callback!");
-                log.logger().exception(e);
-            }
-        }
+        this.onErrorHandler = tryCallback(this.onErrorHandler);
     }
 
     /** Handler for all internal errors */
@@ -107,7 +96,7 @@ export class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback) {
-        callback = this.tryCallback(callback);
+        callback = tryCallback(callback);
         try {
             let self = this;
             if (self.isInitialized) { return callback(new Error(self.logging_prefix + "Already initialized")); }
@@ -181,7 +170,7 @@ export class TopologyLocal {
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
     run(callback: intf.SimpleCallback) {
-        callback = this.tryCallback(callback);
+        callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
@@ -200,7 +189,7 @@ export class TopologyLocal {
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback) {
-        callback = this.tryCallback(callback);
+        callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
@@ -218,7 +207,7 @@ export class TopologyLocal {
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback) {
-        callback = this.tryCallback(callback);
+        callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         } if (this.isShuttingDown) {

@@ -3,6 +3,7 @@ import * as cp from "child_process";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 import * as deserialize_error from "deserialize-error";
+import { tryCallback } from "../util/callback_wrappers";
 
 // TODO: specific exit codes for internal errors: attach code to Error object
 
@@ -18,24 +19,33 @@ export class TopologyLocalProxy {
     private pause_cb: intf.SimpleCallback;
     private shutdown_cb: intf.SimpleCallback;
     private has_exited: boolean;
+    private exit_code: number;
     private child_exit_callback: intf.SimpleCallback;
     private child: cp.ChildProcess;
     private pingIntervalId: NodeJS.Timer;
+    private pingInterval: number;
+    private maxPingFails: number;
     private sentPings: number;
     private log_prefix: string;
     private last_child_err: Error;
+    private cp: any; // injectable child_process library (useful for mocking)
 
     /** Constructor that sets up call routing */
-    constructor(child_exit_callback: intf.SimpleCallback) {
+    constructor(child_exit_callback: intf.SimpleCallback, child_process?: any) {
         this.log_prefix = "[Proxy] ";
         this.init_cb = null;
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
         this.has_exited = false;
+        this.exit_code = null;
         this.sentPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
+        this.child_exit_callback = tryCallback(this.child_exit_callback);
         this.child = null;
+        this.cp = child_process || cp;
+        this.pingInterval = PING_INTERVAL;
+        this.maxPingFails = MAX_PING_FAILS;
     }
 
     /** Starts child process and sets up all event handlers */
@@ -43,7 +53,7 @@ export class TopologyLocalProxy {
         let self = this;
         // send uuid in command-line parameters so that it is visible in process list
         // wont be used for anything
-        this.child = cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
+        this.child = this.cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
             let msg = msgx as intf.ChildMsg;
             if (msg.data.err) {
@@ -95,38 +105,47 @@ export class TopologyLocalProxy {
             self.kill(() => { });
             self.has_exited = true;
         });
+        // Normally close and exit will both be called shortly one after
+        // the other.
         self.child.once("close", (code, signal) => {
             let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
+            self.exit_code = code;
             if (self.onExit) { self.onExit(e); }
             self.has_exited = true;
         });
         self.child.once("exit", (code, signal) => {
             let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
+            self.exit_code = code;
             if (self.onExit) { self.onExit(e); }
             self.has_exited = true;
         });
         // send ping to child in regular intervals
-        this.pingIntervalId = setInterval(
+        self.pingIntervalId = setInterval(
             () => {
-                if (self.sentPings < MAX_PING_FAILS) {
+                if (self.sentPings < self.maxPingFails) {
                     self.sentPings++;
                     self.send(intf.ParentMsgCode.ping, {});
                 } else {
-                    log.logger().error(this.log_prefix + "Too many un-answered pings, sending kill to child process...");
-                    self.last_child_err = new Error(this.log_prefix + "Maximal number of un-anwsered pings to child reached");
+                    log.logger().error(self.log_prefix + "Too many un-answered pings, sending kill to child process...");
+                    self.last_child_err = new Error(self.log_prefix + "Maximal number of un-anwsered pings to child reached");
                     self.kill(() => { });
                 }
             },
-            PING_INTERVAL);
+            self.pingInterval);
     }
 
     /** Check if this object has exited */
     hasExited(): boolean {
         return this.has_exited;
+    }
+
+    /** Check if this object has exited */
+    exitCode(): number {
+        return this.exit_code;
     }
 
     /** Returns process PID */
@@ -141,6 +160,7 @@ export class TopologyLocalProxy {
      * Also clears ping interval.
      */
     private onExit(e: Error) {
+        this.onExit = null;
         if (this.pingIntervalId) {
             clearInterval(this.pingIntervalId);
             this.pingIntervalId = null;
@@ -162,11 +182,11 @@ export class TopologyLocalProxy {
             this.shutdown_cb = null;
         }
         this.child_exit_callback(e);
-        this.onExit = null;
     }
 
     /** Sends initialization signal to underlaying process */
     init(uuid: string, config: any, callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (this.init_cb) {
             return callback(new Error(this.log_prefix + "Pending init callback already exists."));
         }
@@ -185,6 +205,7 @@ export class TopologyLocalProxy {
 
     /** Sends run signal to underlaying process */
     run(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (this.run_cb) {
             return callback(new Error(this.log_prefix + "Pending run callback already exists."));
         }
@@ -196,6 +217,7 @@ export class TopologyLocalProxy {
 
     /** Sends pause signal to underlaying process */
     pause(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (this.pause_cb) {
             return callback(new Error(this.log_prefix + "Pending pause callback already exists."));
         }
@@ -207,6 +229,7 @@ export class TopologyLocalProxy {
 
     /** Sends shutdown signal to underlaying process */
     shutdown(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (this.shutdown_cb) { // this proxy is in the process of shutdown
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
@@ -221,6 +244,7 @@ export class TopologyLocalProxy {
      * exit after receiving shutdown signal.
      */
     kill(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if ((this.child == null) || // not initialized
             this.child.killed || // already sent SIGKILL
             this.has_exited) { // exited by signal or exit (shutdown or error)
