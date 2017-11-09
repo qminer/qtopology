@@ -14,6 +14,40 @@
                     "field1": "a"
                 }
             }
+        },
+        {
+            "name": "pump_test",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "test",
+            "init": {
+                "tuples": [
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server2"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server2"
+                    },
+                    {
+                        "server": "server1"
+                    }
+                ]
+            }
         }
     ],
     "bolts": [
@@ -32,6 +66,25 @@
                 "file_name_template": "./log.txt",
                 "split_over_time": true,
                 "split_period": 3000,
+                "compress": true
+            }
+        },
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file_append",
+            "inputs": [
+                {
+                    "source": "pump_test"
+                }
+            ],
+            "init": {
+                "prepend_timestamp": true,
+                "file_name_template": "./log2.txt",
+                "split_over_time": true,
+                "split_period": 3000,
+                "split_by_field": "server",
                 "compress": true
             }
         }
