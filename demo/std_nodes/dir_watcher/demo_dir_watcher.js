@@ -23,13 +23,13 @@ async.series(
             }, 2000);
         },
         (xcallback) => {
-            fs.appendFileSync("./temp_file.tmp", "Some content\n", {encoding: "utf8"});
+            fs.appendFileSync("./temp_file.tmp", "Some content\n", { encoding: "utf8" });
             setTimeout(function () {
                 xcallback();
             }, 2000);
         },
         (xcallback) => {
-            fs.appendFileSync("./temp_file.tmp", "Another content\n", {encoding: "utf8"});
+            fs.appendFileSync("./temp_file.tmp", "Another content\n", { encoding: "utf8" });
             setTimeout(function () {
                 xcallback();
             }, 2000);
@@ -43,6 +43,7 @@ async.series(
         (xcallback) => {
             console.log("Starting shutdown sequence...");
             topology.shutdown(xcallback);
+            topology = null;
         }
     ],
     (err) => {

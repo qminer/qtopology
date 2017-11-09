@@ -31,7 +31,7 @@
                 "prepend_timestamp": true,
                 "file_name_template": "./log.txt",
                 "split_over_time": true,
-                "split_period": 500000,
+                "split_period": 3000,
                 "compress": true
             }
         }
