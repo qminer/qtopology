@@ -22,6 +22,7 @@ export declare class TopologyLocalProxy {
     constructor(child_exit_callback: intf.SimpleCallback, child_process?: any);
     /** Starts child process and sets up all event handlers */
     private setUpChildProcess(uuid);
+    private setPingInterval();
     /** Check if this object has exited */
     hasExited(): boolean;
     /** Check if this object has exited */

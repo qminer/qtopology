@@ -14,6 +14,10 @@ let topology_json = {
     "general": {
         "uuid": "top1",
         "heartbeat": 10000,
+        "wrapper": {
+            "ping_timeout": 20000,
+            "ping_interval": 3000
+        },
         // each module needs to expose init(initObj, common_context, xcallback)
         "initialization": [
             {
@@ -89,6 +93,77 @@ describe('local proxy', function () {
                 done();
             });
             target.child.emit("message", { cmd: intf.ChildMsgCode.response_init, data: { err: null } });
+        });
+    });
+    describe('Integration: ping', function () {
+        it('should result in child exiting after not receiving a ping from the parent', function (done) {
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: "",
+                    location: ""
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+            top_config.general.wrapper.ping_interval = 10;
+            top_config.general.wrapper.ping_timeout = 30;
+
+            let child_exit_callback = Cb();
+            let target = new tlp.TopologyLocalProxy(
+                child_exit_callback
+            );
+            // sends intf.ParentMsgCode.init
+            target.init("top1", top_config, (e) => {
+                assert.equal(e, null); // should succeed
+                setTimeout(() => {
+                    // exception thrown in bolt init should get to here
+                    let e = child_exit_callback('getLastException');
+                    assert.notEqual(e, null);
+                    assert(target.hasExited());
+                    assert.equal(target.exitCode(), intf.ChildExitCode.parent_ping_timeout);
+                    done();
+                }, 150);
+            });
+        });
+        it('should result in killing the child after not receiving a ping response', function (done) {
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: "",
+                    location: ""
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+
+            let child_exit_callback = Cb();
+            let target = new tlp.TopologyLocalProxy(
+                child_exit_callback
+            );
+
+            // sends intf.ParentMsgCode.init
+            target.init("top1", top_config, (e) => {
+                assert.equal(e, null); // should succeed
+                target.pingInterval = 1;
+                target.maxPingFails = 1;
+                target.setPingInterval();
+                setTimeout(() => {
+                    // exception thrown in bolt init should get to here
+                    let e = child_exit_callback('getLastException');
+                    assert.notEqual(e, null); // max unanswered pings exception
+                    assert(target.hasExited()); // we killed it
+                    assert(target.child.killed);
+                    assert.equal(target.exitCode(), null);
+                    done();
+                }, 150);
+            });
         });
     });
     describe('Integration: initialization', function () {
@@ -261,6 +336,39 @@ describe('local proxy', function () {
                         });
                     });
                 }, 50);
+            });
+        });
+        it('should kill the child process', function (done) {
+            let top_config = JSON.parse(JSON.stringify(topology_json));
+            let config = {
+                name: "test1",
+                working_dir: "./tests/helpers",
+                cmd: "bad_bolt.js",
+                init: {
+                    action: "",
+                    location: ""
+                },
+                inputs: []
+            };
+            top_config.bolts.push(config);
+
+            let child_exit_callback = Cb();
+            let target = new tlp.TopologyLocalProxy(
+                child_exit_callback
+            );
+            // sends intf.ParentMsgCode.init
+            target.init("top1", top_config, (e) => {
+                assert.equal(e, null);
+                setTimeout(() => {
+                    target.kill(() => {
+                        assert(target.hasExited());
+                        assert.equal(target.exitCode(), null);
+                        let e = child_exit_callback('getLastException');
+                        assert.equal(e, null);
+                        assert(target.child.killed);
+                        done();
+                    });
+                }, 50); // needs more time due to 100 ms delay between sending response and exiting
             });
         });
     });

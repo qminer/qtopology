@@ -123,6 +123,15 @@ export class TopologyLocalProxy {
             if (self.onExit) { self.onExit(e); }
             self.has_exited = true;
         });
+        
+        self.setPingInterval();
+    }
+    
+    private setPingInterval() {
+        let self = this;
+        if (self.pingIntervalId) {
+            clearInterval(self.pingIntervalId);
+        }
         // send ping to child in regular intervals
         self.pingIntervalId = setInterval(
             () => {
@@ -250,8 +259,9 @@ export class TopologyLocalProxy {
             this.has_exited) { // exited by signal or exit (shutdown or error)
             return callback();
         }
+        log.logger().important(this.log_prefix + "Sending SIGKILL to child process");
         this.child.kill("SIGKILL");
-        return callback();
+        setTimeout(callback, 50);
     }
 
     /** Internal method for sending messages to child process */

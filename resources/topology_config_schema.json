@@ -21,6 +21,18 @@
                 "pass_binary_messages": {
                     "type": "boolean"
                 },
+                "wrapper": {
+                    "type": "object",
+                    "properties": {
+                        "ping_interval": {
+                            "type": "number"
+                        },
+                        "ping_timeout": {
+                            "type": "number"
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "initialization": {
                     "type": "array",
                     "items": {

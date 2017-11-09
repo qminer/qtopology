@@ -120,6 +120,11 @@ class TopologyLocalWrapper {
                 return;
             }
             let topology = compiler.getWholeConfig();
+            if (topology.general && topology.general.wrapper) {
+                this.pingTimeout = topology.general.wrapper.ping_timeout || this.pingTimeout;
+                this.pingInterval = topology.general.wrapper.ping_interval || this.pingInterval;
+                this.setPingInterval();
+            }
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {
