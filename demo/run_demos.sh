@@ -12,6 +12,11 @@ function title {
 #cd ../..
 
 title "Running rest telemetry"
+cd local
+node demo_local.js
+cd ..
+
+title "Running rest telemetry"
 cd std_nodes/telemetry
 node demo_telemetry.js
 cd ../..
