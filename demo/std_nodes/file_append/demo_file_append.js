@@ -16,28 +16,11 @@ async.series(
             topology.init("topology.1", config, xcallback);
         },
         (xcallback) => {
-            console.log("Init done");
-            topology.run(setTimeout(function () {
-                xcallback();
-            }, 2000));
-        },
-        (xcallback) => {
-            fs.appendFileSync("./temp_file.tmp", "Some content\n", { encoding: "utf8" });
+            console.log("Init done, running topology for 20 secs");
+            topology.run();
             setTimeout(function () {
                 xcallback();
-            }, 2000);
-        },
-        (xcallback) => {
-            fs.appendFileSync("./temp_file.tmp", "Another content\n", { encoding: "utf8" });
-            setTimeout(function () {
-                xcallback();
-            }, 2000);
-        },
-        (xcallback) => {
-            fs.unlinkSync("./temp_file.tmp");
-            setTimeout(function () {
-                xcallback();
-            }, 2000);
+            }, 10000);
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");
