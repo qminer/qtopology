@@ -106,7 +106,6 @@ class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: new Error(s) });
                 return;
             }
-            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
             self.log_prefix = `[Wrapper ${self.uuid}] `;
             delete msg.data.general.uuid;
@@ -124,7 +123,11 @@ class TopologyLocalWrapper {
                 this.pingTimeout = topology.general.wrapper.ping_timeout || this.pingTimeout;
                 this.pingInterval = topology.general.wrapper.ping_interval || this.pingInterval;
                 this.setPingInterval();
+                if (topology.general.wrapper.log_level) {
+                    log.logger().setLevel(topology.general.wrapper.log_level);
+                }
             }
+            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {

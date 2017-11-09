@@ -24,6 +24,18 @@
                 "wrapper": {
                     "type": "object",
                     "properties": {
+                        "log_level": {
+                            "type": "string",
+                            "enum": [
+                                "debug",
+                                "log",
+                                "info",
+                                "normal",
+                                "warn",
+                                "error",
+                                "none"
+                            ]
+                        },
                         "ping_interval": {
                             "type": "number"
                         },

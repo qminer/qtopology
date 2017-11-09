@@ -4,7 +4,7 @@
 
 const assert = require("assert");
 const log = require("../../built/util/logger");
-//log.logger().setLevel("none");
+log.logger().setLevel("none");
 const tlp = require("../../built/distributed/topology_local_proxy");
 const bb = require("../helpers/bad_bolt.js");
 const bs = require("../helpers/bad_spout.js");
@@ -15,6 +15,7 @@ let topology_json = {
         "uuid": "top1",
         "heartbeat": 10000,
         "wrapper": {
+            "log_level": "none",
             "ping_timeout": 20000,
             "ping_interval": 3000
         },
