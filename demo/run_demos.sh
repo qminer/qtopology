@@ -1,12 +1,60 @@
-echo "#### Running file_append demo"
+function title {
+    echo ""
+    echo "#######################################################"
+    echo "## "$1 
+    echo "#######################################################"
+    echo ""
+} 
+
+#title "Running bomb demo"
+#cd std_nodes/bomb
+#node demo_bomb.js
+#cd ../..
+
+title "Running rest telemetry"
+cd std_nodes/telemetry
+node demo_telemetry.js
+cd ../..
+
+title "Running rest demo"
+cd std_nodes/rest
+node demo_rest.js
+cd ../..
+
+title "Running rss demo"
+cd std_nodes/rss
+node demo_rss.js
+cd ../..
+
+title "Running process demo"
+cd std_nodes/process
+node demo_process.js
+cd ../..
+
+title "Running file_reader demo"
+cd std_nodes/file_reader
+node demo_file_reader.js
+cd ../..
+
+title "Running disabled demo"
+cd std_nodes/disabled
+node demo_disabling.js
+cd ../..
+
+title "Running file_append demo"
 cd std_nodes/file_append
 node demo_file_append.js
 rm *.gz     # cleanup
 cd ../..
 
-echo "#### Running dir_watcher demo"
+title "Running dir_watcher demo"
 cd std_nodes/dir_watcher
 node demo_dir_watcher.js
 cd ../..
 
-echo "#### Demos finished"
+title "Running counter demo"
+cd std_nodes/counter
+node demo_counter.js
+cd ../..
+
+title "Demos finished"

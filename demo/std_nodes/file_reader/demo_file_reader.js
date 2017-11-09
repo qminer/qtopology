@@ -15,13 +15,17 @@ async.series(
         },
         (xcallback) => {
             console.log("Init done");
-            topology.run(setTimeout(function () {
-                xcallback();
-            }, 20000));
+            topology.run((err) => {
+                if (err) return xcallback(err);
+                setTimeout(function () {
+                    xcallback();
+                }, 20000);
+            });
         },
         (xcallback) => {
             console.log("Starting shutdown sequence...");
             topology.shutdown(xcallback);
+            topology = null;
         }
     ],
     (err) => {
