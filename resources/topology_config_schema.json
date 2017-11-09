@@ -21,6 +21,30 @@
                 "pass_binary_messages": {
                     "type": "boolean"
                 },
+                "wrapper": {
+                    "type": "object",
+                    "properties": {
+                        "log_level": {
+                            "type": "string",
+                            "enum": [
+                                "debug",
+                                "log",
+                                "info",
+                                "normal",
+                                "warn",
+                                "error",
+                                "none"
+                            ]
+                        },
+                        "ping_interval": {
+                            "type": "number"
+                        },
+                        "ping_timeout": {
+                            "type": "number"
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "initialization": {
                     "type": "array",
                     "items": {

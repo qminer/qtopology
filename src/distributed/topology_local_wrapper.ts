@@ -35,13 +35,13 @@ export class TopologyLocalWrapper {
         this.process.on("message", (msg) => {
             self.handle(msg);
         });
-        this.process.on("uncaughtException", (e: Error) => {
+        this.process.once("uncaughtException", (e: Error) => {
             log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
             log.logger().exception(e);
             self.clearPingInterval();
             self.killProcess(intf.ChildExitCode.unhandeled_error, e);
         });
-        this.process.on('SIGINT', () => {
+        this.process.once('SIGINT', () => {
             log.logger().warn(self.log_prefix + "Received SIGINT, this process id = " + self.process.pid);
             if (!self.topology_local) {
                 self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
@@ -50,7 +50,7 @@ export class TopologyLocalWrapper {
                 self.shutdown();
             }
         });
-        this.process.on('SIGTERM', () => {
+        this.process.once('SIGTERM', () => {
             log.logger().warn(self.log_prefix + "Received SIGTERM, this process id = " + self.process.pid);
             if (!self.topology_local) {
                 self.exitNonInit("Shutdown", intf.ChildMsgCode.response_shutdown,
@@ -126,8 +126,6 @@ export class TopologyLocalWrapper {
                 self.sendToParent(intf.ChildMsgCode.response_init, { err: new Error(s) });
                 return;
             }
-
-            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             self.uuid = msg.data.general.uuid;
             self.log_prefix = `[Wrapper ${self.uuid}] `;
             delete msg.data.general.uuid;
@@ -140,6 +138,15 @@ export class TopologyLocalWrapper {
                 return;
             }
             let topology = compiler.getWholeConfig();
+            if (topology.general && topology.general.wrapper) {
+                this.pingTimeout = topology.general.wrapper.ping_timeout || this.pingTimeout;
+                this.pingInterval = topology.general.wrapper.ping_interval || this.pingInterval;
+                this.setPingInterval();
+                if (topology.general.wrapper.log_level) {
+                    log.logger().setLevel(topology.general.wrapper.log_level);
+                }
+            }
+            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {

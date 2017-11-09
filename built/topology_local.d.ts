@@ -34,8 +34,6 @@ export declare class TopologyLocal {
     private onErrorHandler;
     /** Constructor prepares the object before any information is received. */
     constructor(onError?: intf.SimpleCallback);
-    /** helper function that wraps a callback with try/catch */
-    protected tryCallback(callback: intf.SimpleCallback): intf.SimpleCallback;
     /** Handler for all internal errors */
     private onInternalError(e);
     /** Initialization that sets up internal structure and
