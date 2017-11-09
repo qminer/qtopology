@@ -10,11 +10,8 @@ export interface InitContextCallback {
 export interface BoltEmitCallback {
     (data: any, stream_id: string, callback: SimpleCallback): void;
 }
-export interface SpoutAckCallback {
-    (error: Error, callback: SimpleCallback): void;
-}
 export interface SpoutNextCallback {
-    (err: Error, data: any, stream_id: string, callback?: SpoutAckCallback): void;
+    (err: Error, data: any, stream_id: string): void;
 }
 export interface ValidationOptions {
     config: any;
@@ -103,6 +100,7 @@ export declare enum ChildExitCode {
     parent_ping_timeout = 2,
     init_error = 10,
     pause_error = 20,
+    run_error = 25,
     shutdown_notinit_error = 30,
     shutdown_internal_error = 40,
     shutdown_unlikely_error = 41,
