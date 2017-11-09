@@ -7,9 +7,11 @@ export declare class FileAppendBolt implements intf.Bolt {
     private file_name_template;
     private current_data;
     private current_file_contains_data;
+    private split_value;
     private prepend_timestamp;
     private split_over_time;
     private split_period;
+    private split_by_field;
     private next_split_after;
     private compress;
     constructor();
@@ -18,7 +20,7 @@ export declare class FileAppendBolt implements intf.Bolt {
     private fileNameTimestampValue();
     private writeToFile(callback);
     /** Zip current file if it exists  */
-    private zipCurrentFile(xcallback);
+    private zipCurrentFile(callback);
     /** Perform low-level zipping */
     private zipFile(fname, callback);
     heartbeat(): void;
