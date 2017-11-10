@@ -4,7 +4,6 @@ import * as intf from "../topology_interfaces";
  * it and runs assigned topologies as subprocesses.
 */
 export declare class TopologyWorker {
-    private name;
     private log_prefix;
     private overrides;
     private coordinator;
