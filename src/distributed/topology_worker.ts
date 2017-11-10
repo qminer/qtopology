@@ -17,8 +17,6 @@ class TopologyItem {
  * it and runs assigned topologies as subprocesses.
 */
 export class TopologyWorker {
-
-    private name: string;
     private log_prefix: string;
     private overrides: any;
     private coordinator: coord.TopologyCoordinator;
@@ -27,7 +25,6 @@ export class TopologyWorker {
 
     /** Initializes this object */
     constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
-        this.name = name;
         this.log_prefix = `[Worker ${name}] `;
         this.overrides = overrides || {};
         this.waiting_for_shutdown = false;
@@ -50,10 +47,12 @@ export class TopologyWorker {
                 self.shutDownTopology(uuid, true, callback);
             },
             shutdown: () => {
-                log.logger().important(this.log_prefix + "Received shutdown instruction from coordinator");
+                log.logger().important(this.log_prefix + `Received shutdown instruction from coordinator in worker (pid ${process.pid})`);
                 if (!self.waiting_for_shutdown) {
                     self.waiting_for_shutdown = true;
+                    log.logger().important(this.log_prefix + "Starting graceful worker shutdown...");
                     self.shutdown(() => {
+                        log.logger().important(this.log_prefix + "Exiting with code 0");
                         process.exit(0);
                     });
                 };
@@ -61,12 +60,13 @@ export class TopologyWorker {
         });
 
         process.on('uncaughtException', (err) => {
-            log.logger().error(this.log_prefix + "Unhandled exception caught");
+            log.logger().error(this.log_prefix + `Unhandled exception in topology worker (pid ${process.pid})`);
             log.logger().exception(err);
             if (!self.waiting_for_shutdown) {
                 self.waiting_for_shutdown = true;
                 log.logger().warn(this.log_prefix + "Worker shutting down gracefully");
                 self.shutdown(() => {
+                    log.logger().warn(this.log_prefix + "Exiting with code 1");
                     process.exit(1);
                 });
             }
@@ -74,15 +74,16 @@ export class TopologyWorker {
         let common_shutdown = () => {
             if (!self.waiting_for_shutdown) {
                 self.waiting_for_shutdown = true;
-                log.logger().important(this.log_prefix + "Received Shutdown signal from system, this process id = " + process.pid);
+                log.logger().important(this.log_prefix + `Received SIGINT or SIGTERM signal in worker (pid ${process.pid})`);
                 log.logger().important(this.log_prefix + "Starting graceful worker shutdown...");
                 self.shutdown(() => {
-                    process.exit(1);
+                    log.logger().important(this.log_prefix + "Exiting with code 0");
+                    process.exit(0);
                 });
             }
         };
-        process.on('SIGINT', common_shutdown);
-        process.on('SIGTERM', common_shutdown);
+        process.once('SIGINT', common_shutdown);
+        process.once('SIGTERM', common_shutdown);
     }
 
     /** Starts this worker */
@@ -139,15 +140,21 @@ export class TopologyWorker {
     private createProxy(rec: TopologyItem): void {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (self.waiting_for_shutdown || rec.proxy.hasExited()) {
-                self.removeTopology(rec.uuid);
-            } else {
+            if (err) {
                 self.removeAndReportError(rec, err);
+            } else {
+                self.removeTopology(rec.uuid);
             }
+            // TODO: check this
+            // if (self.waiting_for_shutdown || rec.proxy.hasExited()) {
+            //     self.removeTopology(rec.uuid);
+            // } else {
+            //     self.removeAndReportError(rec, err);
+            // }
         });
         // report topology as running, then try to start it.
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
-        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, "");
+        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, ""); // TODO: why no callback?
 
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
