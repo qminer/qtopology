@@ -8,6 +8,7 @@ import * as async from "async";
 /////////////////////////////////////////////////////////////////////////////
 
 const injection_placeholder = "##INJECT##";
+const injection_placeholder_field = "##INJECT2##";
 
 /** This bolt writes incoming messages to file. */
 export class FileAppendBolt implements intf.Bolt {
@@ -18,20 +19,24 @@ export class FileAppendBolt implements intf.Bolt {
     private file_name_current: string;
     private file_name_template: string;
 
-    private current_data: string[];
+    private current_data: Map<string, string[]>;
     private current_file_contains_data: boolean;
+    private split_value: Set<string>;
 
     private prepend_timestamp: boolean;
     private split_over_time: boolean;
     private split_period: number;
+    private split_by_field: string;
     private next_split_after: number;
     private compress: boolean;
 
     constructor() {
         this.name = null;
         this.log_prefix = null;
-        this.current_data = [];
+        this.current_data = new Map<string, string[]>();
+        this.split_value = new Set<string>();
         this.current_file_contains_data = false;
+        this.split_by_field = null;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
@@ -41,6 +46,7 @@ export class FileAppendBolt implements intf.Bolt {
         this.prepend_timestamp = config.prepend_timestamp;
         this.split_over_time = config.split_over_time;
         this.split_period = config.split_period || 60 * 60 * 1000;
+        this.split_by_field = config.split_by_field;
         this.compress = config.compress;
 
         // prepare filename template for injection
@@ -50,6 +56,7 @@ export class FileAppendBolt implements intf.Bolt {
             this.file_name_template =
                 this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
                 "_" + injection_placeholder +
+                (this.split_by_field ? "_" + injection_placeholder_field : "") +
                 ext;
         } else {
             this.file_name_current = this.file_name_template;
@@ -78,7 +85,7 @@ export class FileAppendBolt implements intf.Bolt {
     }
 
     private writeToFile(callback: intf.SimpleCallback) {
-        if (this.current_data.length == 0) return callback();
+        if (this.current_data.size == 0) return callback();
 
         let d = Date.now();
         let do_file_split = (this.split_over_time && this.next_split_after < d);
@@ -87,7 +94,7 @@ export class FileAppendBolt implements intf.Bolt {
             [
                 (xcallback) => {
                     if (!do_file_split) return xcallback();
-                    // perform compressio of existing file if it exists
+                    // perform compression of existing file if it exists
                     this.zipCurrentFile(xcallback);
                 },
                 (xcallback) => {
@@ -101,11 +108,15 @@ export class FileAppendBolt implements intf.Bolt {
                 },
                 (xcallback) => {
                     // write data to current file
-                    let lines = self.current_data;
-                    self.current_data = [];
-                    for (let line of lines) {
-                        fs.appendFileSync(self.file_name_current, line);
-                    }
+                    self.current_data.forEach((value, key) => {
+                        let lines = value;
+                        this.split_value.add(key);
+                        let fname = self.file_name_current.replace(injection_placeholder_field, key);
+                        for (let line of lines) {
+                            fs.appendFileSync(fname, line);
+                        }
+                    });
+                    self.current_data.clear();
                     self.current_file_contains_data = true;
                     xcallback();
                 },
@@ -115,21 +126,32 @@ export class FileAppendBolt implements intf.Bolt {
     }
 
     /** Zip current file if it exists  */
-    private zipCurrentFile(xcallback: any) {
+    private zipCurrentFile(callback: intf.SimpleCallback) {
         let self = this;
         if (self.compress && self.current_file_contains_data) {
-            log.logger().log(`${self.log_prefix} compressing current file: ${self.file_name_current}`);
-            self.zipFile(self.file_name_current, xcallback);
+            let fnames = [];
+            self.split_value.forEach((value, key) => {
+                let fname = self.file_name_current.replace(injection_placeholder_field, key);
+                fnames.push(fname);
+            });
+            async.eachLimit(
+                fnames, 3,
+                (item, xcallback) => {
+                    if (fs.existsSync(item)) {
+                        log.logger().log(`${self.log_prefix} compressing current file: ${item}`);
+                        self.zipFile(item, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                },
+                callback);
         } else {
-            xcallback();
+            callback();
         }
     }
 
     /** Perform low-level zipping */
     private zipFile(fname: string, callback: intf.SimpleCallback) {
-        if (!fs.existsSync(fname)) {
-            throw new Error(`File ${fname} doesn't exist.`);
-        }
         const filePath = path.resolve(fname);
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
@@ -180,7 +202,14 @@ export class FileAppendBolt implements intf.Bolt {
             s += this.toISOFormatLocal(Date.now()) + " ";
         }
         s += JSON.stringify(data);
-        this.current_data.push(s + "\n");
+        let key: string = "";
+        if (this.split_by_field) {
+            key = data[this.split_by_field];
+        }
+        if (!this.current_data.has(key)) {
+            this.current_data.set(key, []);
+        }
+        this.current_data.get(key).push(s + "\n");
         callback();
     }
 }

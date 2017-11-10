@@ -1,3 +1,11 @@
+################################################################
+## This script runs all (most?) of demo projects to check
+## that they execute without error.
+################################################################
+
+set -e
+start=`date +%s`
+
 function title {
     echo ""
     echo "#######################################################"
@@ -63,3 +71,7 @@ node demo_counter.js
 cd ../..
 
 title "Demos finished"
+end=`date +%s`
+
+runtime=$((end-start))
+echo "Time needed: "$runtime" sec"

@@ -373,6 +373,41 @@ will write data into files with names like:
 - `log_2017_05_15T14:00:00.txt`
 - ....
 
+#### Splitting by field value
+
+If you want to send data to different file depending on the value of single field, you can set `split_by_field` settings
+
+For example, setting options to
+
+```````````````json
+{
+    "file_name_template": "./log.txt",
+    "split_over_time": true,
+    "split_period": 3600000,
+    "split_by_field": "server"
+}
+```````````````
+
+and processing the data such as
+
+``````json
+{ "server": "server1" }
+{ "server": "server2" }
+{ "server": "server3" }
+``````
+
+will write data into files with names like:
+
+- `log_2017_05_15T12:00:00_server1.txt`
+- `log_2017_05_15T12:00:00_server2.txt`
+- `log_2017_05_15T12:00:00_server3.txt`
+- `log_2017_05_15T13:00:00_server1.txt`
+- `log_2017_05_15T13:00:00_server2.txt`
+- `log_2017_05_15T13:00:00_server3.txt`
+- ....
+
+> Values of this field must be filename-friendly!
+
 ### Delete existing file
 
 You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The initialization options in the config file will look something like this:
