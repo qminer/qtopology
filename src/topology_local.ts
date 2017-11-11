@@ -3,6 +3,7 @@ import * as async from "async";
 import * as path from "path";
 import * as top_inproc from "./topology_local_inprocess";
 import * as log from "./util/logger";
+import { tryCallback } from "./util/callback_wrappers";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -62,6 +63,7 @@ export class TopologyLocal {
     private isInitialized: boolean;
     private isRunning: boolean;
     private isShuttingDown: boolean;
+    private shutdownHardCalled: boolean;
     private heartbeatTimer: NodeJS.Timer;
     private onErrorHandler: intf.SimpleCallback; // handles internal errors
 
@@ -78,9 +80,11 @@ export class TopologyLocal {
         this.isRunning = false;
         this.isShuttingDown = false;
         this.isInitialized = false;
+        this.shutdownHardCalled = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => { });
+        this.onErrorHandler = tryCallback(this.onErrorHandler);
     }
 
     /** Handler for all internal errors */
@@ -92,9 +96,10 @@ export class TopologyLocal {
      * starts underlaying processes.
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         try {
             let self = this;
-            if (self.isInitialized) { return callback(); }
+            if (self.isInitialized) { return callback(new Error(self.logging_prefix + "Already initialized")); }
             self.config = config;
             self.uuid = uuid;
             self.logging_prefix = `[TopologyLocal ${uuid}] `;
@@ -164,36 +169,45 @@ export class TopologyLocal {
     }
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run() {
+    run(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (!this.isInitialized) {
-            throw new Error(this.logging_prefix + "Topology not initialized and cannot run.");
+            return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
         if (this.isRunning) {
-            throw new Error(this.logging_prefix + "Topology is already running.");
+            return callback(new Error(this.logging_prefix + "Topology is already running."));
         }
+        this.isRunning = true;
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.run();
         }
-        this.isRunning = true;
+        return callback();
     }
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback) {
-        if (!this.isInitialized) { 
+        callback = tryCallback(callback);
+        if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
+        if (!this.isRunning) {
+            return callback(new Error(this.logging_prefix + "Topology is already paused."));
+        }
+        this.isRunning = false;
         // spouts pass internal exceptions to errorCallback
+        // no exceptions are expected to be thrown here
         for (let spout of this.spouts) {
             spout.pause();
         }
-        this.isRunning = false;
         return callback();
     }
 
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback) {
+        callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         } if (this.isShuttingDown) {
@@ -202,18 +216,12 @@ export class TopologyLocal {
         }
         let self = this;
         self.isShuttingDown = true;
-        self.isRunning = false;
         // disable heartbeat
         if (self.heartbeatTimer) {
             clearInterval(self.heartbeatTimer);
         }
-        self.pause((err) => {
-            if (err) {
-                // only possible error is when isInit is false
-                log.logger().error("THIS SHOULD NOT HAPPEN!");
-                log.logger().exception(err);
-                return callback(err);
-            }
+
+        let shutdownTasks = () => {
             let tasks = [];
             self.spouts.forEach((spout) => {
                 tasks.push((xcallback) => {
@@ -250,8 +258,51 @@ export class TopologyLocal {
                     tasks.push(factory(module_path));
                 }
             }
-            async.series(tasks, callback);
-        });
+            async.series(tasks, (e) => {
+                // call hard shutdown regardless of the error
+                if (self.config.general.shutdown_hard) {
+                    try {
+                        self.shutdownHard();
+                    } catch (e) {
+                        log.logger().exception(e);
+                        /* do nothing extra */
+                    }
+                }
+                callback(e);
+            });
+        };
+        if (self.isRunning) {
+            self.pause((err) => {
+                if (err) {
+                    // only possible error is when isInit is false
+                    log.logger().error("THIS SHOULD NOT HAPPEN!");
+                    log.logger().exception(err);
+                    return callback(err);
+                }
+                shutdownTasks();
+            });
+        } else {
+            shutdownTasks();
+        }        
+    }
+
+    /** Runs hard-core shutdown sequence */
+    shutdownHard() {
+        if (this.config.general.shutdown_hard) {
+            if (this.shutdownHardCalled) return;
+            this.shutdownHardCalled = true;
+            for (let shutdown_conf of this.config.general.shutdown_hard) {
+                try {
+                    if (shutdown_conf.disabled) continue; // skip if disabled
+                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    let module_path = path.join(dir, shutdown_conf.cmd);
+                    require(module_path).shutdown_hard();
+                } catch (e) {
+                    log.logger().exception(e);
+                    // just swallow the error
+                }
+            }
+        }
     }
 
     /** Returns uuid of the topology that is running. */
@@ -320,7 +371,11 @@ export class TopologyLocal {
                     data_clone = JSON.parse(s);
                 }
                 let bolt = self.getBolt(destination);
-                bolt.receive(data_clone, stream_id, xcallback);
+                try {
+                    bolt.receive(data_clone, stream_id, xcallback);
+                } catch (e) {
+                     return xcallback(e);
+                }
             },
             callback
         );
@@ -349,7 +404,10 @@ export class TopologyLocal {
                 self.config.general.initialization,
                 (init_conf, xcallback) => {
                     try {
-                        if (init_conf.disabled) return xcallback(); // skip if disabled
+                        if (init_conf.disabled) {
+                            // skip if disabled
+                            return xcallback();
+                        }
                         let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
                         let module_path = path.join(dir, init_conf.cmd);
                         init_conf.init = init_conf.init || {};
@@ -368,7 +426,3 @@ export class TopologyLocal {
         }
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////////
-
-exports.TopologyLocal = TopologyLocal;

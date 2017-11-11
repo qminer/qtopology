@@ -373,9 +373,44 @@ will write data into files with names like:
 - `log_2017_05_15T14:00:00.txt`
 - ....
 
+#### Splitting by field value
+
+If you want to send data to different file depending on the value of single field, you can set `split_by_field` settings
+
+For example, setting options to
+
+```````````````json
+{
+    "file_name_template": "./log.txt",
+    "split_over_time": true,
+    "split_period": 3600000,
+    "split_by_field": "server"
+}
+```````````````
+
+and processing the data such as
+
+``````json
+{ "server": "server1" }
+{ "server": "server2" }
+{ "server": "server3" }
+``````
+
+will write data into files with names like:
+
+- `log_2017_05_15T12:00:00_server1.txt`
+- `log_2017_05_15T12:00:00_server2.txt`
+- `log_2017_05_15T12:00:00_server3.txt`
+- `log_2017_05_15T13:00:00_server1.txt`
+- `log_2017_05_15T13:00:00_server2.txt`
+- `log_2017_05_15T13:00:00_server3.txt`
+- ....
+
+> Values of this field must be filename-friendly!
+
 ### Delete existing file
 
-You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The new line in the log file will look something like this:
+You can instruct the bolt to delete existing file at startup by setting option `delete_existing` to `true`. The initialization options in the config file will look something like this:
 
 ```````````json
 {
@@ -384,7 +419,32 @@ You can instruct the bolt to delete existing file at startup by setting option `
 }
 ```````````
 
-> This option only works when `split_over_time` is set to false or skipped.
+> This option only works when `split_over_time` is set to `false` or skipped.
+
+### Compressing older files
+
+You can instruct the bolt to compress older files by setting option `compress` to `true`. The initialization options in the config file will look something like this:
+
+```````````json
+{
+    "file_name_template": "./log.txt",
+    "split_over_time": true,
+    "split_period": 5000,
+    "compress": true
+}
+```````````
+
+This will cause the files to be zipped like this:
+
+- `log_2017_05_15T12:00:00.txt_0.gz`
+- `log_2017_05_15T13:00:00.txt_0.gz`
+- `log_2017_05_15T14:00:00.txt`
+
+Only the current file (the one that we are still writing into) will not be compressed. The latest file will be compressed upon shutdown.
+
+> This option only works when `split_over_time` is set to `true`.
+
+> If there already exists a gzipped file with the same name (e.g. `log_2017_05_15T13:00:00.txt_0.gz`), a new file with an increased postfix will be created (e.g. `log_2017_05_15T13:00:00.txt_1.gz`).
 
 ## Router bolt
 

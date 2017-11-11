@@ -29,6 +29,7 @@ export declare class TopologyLocal {
     private isInitialized;
     private isRunning;
     private isShuttingDown;
+    private shutdownHardCalled;
     private heartbeatTimer;
     private onErrorHandler;
     /** Constructor prepares the object before any information is received. */
@@ -40,11 +41,13 @@ export declare class TopologyLocal {
      */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run(): void;
+    run(callback: intf.SimpleCallback): void;
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     pause(callback: intf.SimpleCallback): void;
     /** Sends shutdown signal to all child processes */
     shutdown(callback: intf.SimpleCallback): void;
+    /** Runs hard-core shutdown sequence */
+    shutdownHard(): void;
     /** Returns uuid of the topology that is running. */
     getUuid(): string;
     /** Runs heartbeat pump until this object shuts down */

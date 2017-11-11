@@ -15,8 +15,7 @@ async.series(
         },
         (xcallback) => {
             console.log("Init done");
-            topology.run();
-            setTimeout(() => {
+            topology.run(() => {
                 xcallback();
             }, 10000);
         },

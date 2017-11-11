@@ -22,6 +22,17 @@
         <h1 data-bind="text: title"></h1>
     </div>
 
+    <div class="error-panel" data-bind="visible: showError" style="display: none">
+        <div class="error-content">
+            <!-- <div class="pull-right">
+                <span class="error-panel-button" data-bind="click: closeError">&times;</span>
+            </div> -->
+            <div class="error-close close-btn" data-bind="click: closeError">&times;</div>
+            <h3>Error</h3>
+            <p data-bind="text: errorMessage"></p>
+        </div>
+    </div>
+
     <div id="bladeMsgQueue" class="blade" style="display: none">
         <div class="blade-content">
             <div class="blade-close close-btn" data-bind="click: closeBlade">&times;</div>
@@ -158,9 +169,10 @@
                                         </div>
                                         <label data-bind="text: uuid()"></label>
                                         <div>
-                                            worker: <span data-bind="text: worker()"></span>
-                                            &bull;
-                                            pid: <span data-bind="text: pid()"></span>
+                                            worker:
+                                            <span data-bind="text: worker()"></span>
+                                            &bull; pid:
+                                            <span data-bind="text: pid()"></span>
                                         </div>
                                         <div class="right">
                                             <a data-bind="click: open">More &raquo;</a>
@@ -318,9 +330,8 @@
                                 <div class="action-desc">
                                     <h2>USE WITH CAUTION</h2>
                                     <p>
-                                        Instruct worker to send KILL signal to the topology.
-                                        This will abruptly stop the topology and might <b>cause
-                                        corrupt state</b>.
+                                        Instruct worker to send KILL signal to the topology. This will abruptly stop the topology and might
+                                        <b>cause corrupt state</b>.
                                     </p>
                                     <p>
                                         Also, the topology will be marked as disabled, so other workers wont pick it up and run it.
@@ -492,9 +503,10 @@
                                 </div>
                                 <label data-bind="text: uuid()"></label>
                                 <div>
-                                    worker: <span data-bind="text: worker()"></span>
-                                    &bull;
-                                    pid: <span data-bind="text: pid()"></span>
+                                    worker:
+                                    <span data-bind="text: worker()"></span>
+                                    &bull; pid:
+                                    <span data-bind="text: pid()"></span>
                                 </div>
                                 <div class="right">
                                     <a data-bind="click: open">More &raquo;</a>

@@ -26,6 +26,7 @@ var ChildExitCode;
     ChildExitCode[ChildExitCode["parent_ping_timeout"] = 2] = "parent_ping_timeout";
     ChildExitCode[ChildExitCode["init_error"] = 10] = "init_error";
     ChildExitCode[ChildExitCode["pause_error"] = 20] = "pause_error";
+    ChildExitCode[ChildExitCode["run_error"] = 25] = "run_error";
     ChildExitCode[ChildExitCode["shutdown_notinit_error"] = 30] = "shutdown_notinit_error";
     ChildExitCode[ChildExitCode["shutdown_internal_error"] = 40] = "shutdown_internal_error";
     ChildExitCode[ChildExitCode["shutdown_unlikely_error"] = 41] = "shutdown_unlikely_error";
