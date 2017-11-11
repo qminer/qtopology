@@ -21,6 +21,30 @@
                 "pass_binary_messages": {
                     "type": "boolean"
                 },
+                "wrapper": {
+                    "type": "object",
+                    "properties": {
+                        "log_level": {
+                            "type": "string",
+                            "enum": [
+                                "debug",
+                                "log",
+                                "info",
+                                "normal",
+                                "warn",
+                                "error",
+                                "none"
+                            ]
+                        },
+                        "ping_interval": {
+                            "type": "number"
+                        },
+                        "ping_timeout": {
+                            "type": "number"
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "initialization": {
                     "type": "array",
                     "items": {
@@ -48,6 +72,32 @@
                     }
                 },
                 "shutdown": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "working_dir": {
+                                "type": "string"
+                            },
+                            "cmd": {
+                                "type": "string"
+                            },
+                            "init": {
+                                "type": "object",
+                                "additionalProperties": true
+                            },
+                            "disabled": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "working_dir",
+                            "cmd"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "shutdown_hard": {
                     "type": "array",
                     "items": {
                         "type": "object",

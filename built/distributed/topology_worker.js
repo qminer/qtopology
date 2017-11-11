@@ -93,8 +93,8 @@ class TopologyWorker {
                 })
                     .map(x => x.uuid);
                 async.each(to_stop, (uuid, xxcallback) => {
-                    log.logger().warn(this.log_prefix + "Topology is running but it NOT assigned to this worker, will be stopped: " + uuid);
-                    self.shutDownTopology(uuid, false, xxcallback);
+                    log.logger().warn(this.log_prefix + "Topology is running but it NOT assigned to this worker, will be KILLED: " + uuid);
+                    self.shutDownTopology(uuid, true, xxcallback);
                 }, xcallback);
             },
             (xcallback) => {
@@ -115,7 +115,7 @@ class TopologyWorker {
     createProxy(rec) {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
-            if (self.waiting_for_shutdown || rec.proxy.wasShutDown()) {
+            if (self.waiting_for_shutdown || rec.proxy.hasExited()) {
                 self.removeTopology(rec.uuid);
             }
             else {

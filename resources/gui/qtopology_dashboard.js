@@ -36,8 +36,14 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.bladeWorker = "bladeWorker";
     this.bladeTopology = "bladeTopology";
 
+    this.showError = ko.observable(false);
+    this.errorMessage = ko.observable("");
+
     this.blades = [this.bladeWorker, this.bladeTopology];
     this.prepareBlades();
+}
+QTopologyDashboardViewModel.prototype.closeError = function () {
+    this.showError(false);
 }
 QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
     var dd = new Date(d.getTime());
@@ -47,13 +53,20 @@ QTopologyDashboardViewModel.prototype.formatDateGui = function (d) {
         .substr(0, 19);
 }
 QTopologyDashboardViewModel.prototype.post = function (cmd, data, callback) {
+    var self = this;
+    self.showError(false);
+    self.errorMessage("");
     $.ajax({
         url: cmd,
         type: "POST",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         data: JSON.stringify(data),
-        success: callback
+        success: callback,
+        error: function (xhr, status, e) {
+            self.showError(true);
+            self.errorMessage("[" + cmd + "]:" + xhr.responseText);
+        }
     });
 }
 QTopologyDashboardViewModel.prototype.loadData = function (callback) {
@@ -255,7 +268,11 @@ QTopologyDashboardViewModel.prototype.prepareBlades = function () {
     $(".blade").hide();
     $(document).keyup(function (e) {
         if (e.keyCode === 27) {
-            self.closeBlade();
+            if (self.showError()) {
+                self.showError(false);
+            } else {
+                self.closeBlade();
+            }
         }
     });
 }

@@ -13,6 +13,12 @@
                 "working_dir": ".",
                 "cmd": "init_and_shutdown.js"
             }
+        ],
+        "shutdown_hard": [
+            {
+                "working_dir": ".",
+                "cmd": "init_and_shutdown.js"
+            }
         ]
     },
     "spouts": [

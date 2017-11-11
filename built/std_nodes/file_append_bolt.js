@@ -2,20 +2,31 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
+const log = require("../util/logger");
+const zlib = require("zlib");
+const async = require("async");
 /////////////////////////////////////////////////////////////////////////////
 const injection_placeholder = "##INJECT##";
+const injection_placeholder_field = "##INJECT2##";
 /** This bolt writes incoming messages to file. */
 class FileAppendBolt {
     constructor() {
         this.name = null;
-        this.current_data = "";
+        this.log_prefix = null;
+        this.current_data = new Map();
+        this.split_value = new Set();
+        this.current_file_contains_data = false;
+        this.split_by_field = null;
     }
     init(name, config, context, callback) {
         this.name = name;
+        this.log_prefix = `[FileAppendBolt ${this.name}] `;
         this.file_name_template = config.file_name_template;
         this.prepend_timestamp = config.prepend_timestamp;
         this.split_over_time = config.split_over_time;
         this.split_period = config.split_period || 60 * 60 * 1000;
+        this.split_by_field = config.split_by_field;
+        this.compress = config.compress;
         // prepare filename template for injection
         if (this.split_over_time) {
             let ext = path.extname(this.file_name_template);
@@ -23,6 +34,7 @@ class FileAppendBolt {
             this.file_name_template =
                 this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
                     "_" + injection_placeholder +
+                    (this.split_by_field ? "_" + injection_placeholder_field : "") +
                     ext;
         }
         else {
@@ -48,22 +60,113 @@ class FileAppendBolt {
         return s;
     }
     writeToFile(callback) {
-        if (this.current_data.length == 0)
+        if (this.current_data.size == 0)
             return callback();
         let d = Date.now();
-        if (this.split_over_time && this.next_split_after < d) {
-            this.file_name_current = this.file_name_template.replace(injection_placeholder, this.fileNameTimestampValue());
-            this.next_split_after = d + this.split_period;
+        let do_file_split = (this.split_over_time && this.next_split_after < d);
+        let self = this;
+        async.series([
+            (xcallback) => {
+                if (!do_file_split)
+                    return xcallback();
+                // perform compression of existing file if it exists
+                this.zipCurrentFile(xcallback);
+            },
+            (xcallback) => {
+                if (!do_file_split)
+                    return xcallback();
+                // calculate new file name
+                self.current_file_contains_data = false;
+                self.file_name_current = self.file_name_template.replace(injection_placeholder, self.fileNameTimestampValue());
+                log.logger().log(`${self.log_prefix} new file generated: ${self.file_name_current}`);
+                self.next_split_after = d + self.split_period;
+                xcallback();
+            },
+            (xcallback) => {
+                // write data to current file
+                self.current_data.forEach((value, key) => {
+                    let lines = value;
+                    this.split_value.add(key);
+                    let fname = self.file_name_current.replace(injection_placeholder_field, key);
+                    for (let line of lines) {
+                        fs.appendFileSync(fname, line);
+                    }
+                });
+                self.current_data.clear();
+                self.current_file_contains_data = true;
+                xcallback();
+            },
+        ], callback);
+    }
+    /** Zip current file if it exists  */
+    zipCurrentFile(callback) {
+        let self = this;
+        if (self.compress && self.current_file_contains_data) {
+            let fnames = [];
+            self.split_value.forEach((value, key) => {
+                let fname = self.file_name_current.replace(injection_placeholder_field, key);
+                fnames.push(fname);
+            });
+            async.eachLimit(fnames, 3, (item, xcallback) => {
+                if (fs.existsSync(item)) {
+                    log.logger().log(`${self.log_prefix} compressing current file: ${item}`);
+                    self.zipFile(item, xcallback);
+                }
+                else {
+                    xcallback();
+                }
+            }, callback);
         }
-        let s = this.current_data;
-        this.current_data = "";
-        fs.appendFile(this.file_name_current, s, callback);
+        else {
+            callback();
+        }
+    }
+    /** Perform low-level zipping */
+    zipFile(fname, callback) {
+        const filePath = path.resolve(fname);
+        let counter = 0;
+        let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
+        while (fs.existsSync(gzFilePath)) {
+            counter++;
+            gzFilePath = path.resolve(fname + "_" + counter + ".gz");
+        }
+        try {
+            let gzOption = {
+                level: zlib.Z_BEST_SPEED,
+                memLevel: zlib.Z_BEST_SPEED
+            };
+            let gzip = zlib.createGzip(gzOption);
+            const inputStream = fs.createReadStream(filePath);
+            const outStream = fs.createWriteStream(gzFilePath);
+            inputStream.pipe(gzip).pipe(outStream);
+            outStream.on('finish', (err) => {
+                if (err)
+                    return callback(err);
+                fs.unlink(filePath, callback);
+            });
+        }
+        catch (e) {
+            if (fs.existsSync(gzFilePath)) {
+                fs.unlinkSync(gzFilePath);
+            }
+            callback(e);
+        }
     }
     heartbeat() {
         this.writeToFile(() => { });
     }
     shutdown(callback) {
-        this.writeToFile(callback);
+        let self = this;
+        this.writeToFile((err) => {
+            if (err)
+                return callback(err);
+            if (self.current_file_contains_data) {
+                self.zipCurrentFile(callback);
+            }
+            else {
+                callback();
+            }
+        });
     }
     receive(data, stream_id, callback) {
         let s = "";
@@ -71,7 +174,14 @@ class FileAppendBolt {
             s += this.toISOFormatLocal(Date.now()) + " ";
         }
         s += JSON.stringify(data);
-        this.current_data += s + "\n";
+        let key = "";
+        if (this.split_by_field) {
+            key = data[this.split_by_field];
+        }
+        if (!this.current_data.has(key)) {
+            this.current_data.set(key, []);
+        }
+        this.current_data.get(key).push(s + "\n");
         callback();
     }
 }
