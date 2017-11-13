@@ -34,7 +34,7 @@ Save this topology into file `topology.json`
             "type": "inproc",
             "cmd": "my_bolt.js",
             "inputs": [
-                { "source": "pump1" }
+                { "source": "pump1", "stream_id": "stream1" }
             ],
             "init": {}
         }
@@ -143,7 +143,7 @@ class MySpout {
         if (this._data_index >= this._data.length) {
             callback(null, null, null); // or just callback()
         } else {
-            callback(null, this._data[this._data_index++], "xstream");
+            callback(null, this._data[this._data_index++], "stream1");
         }
     }
 }

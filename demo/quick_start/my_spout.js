@@ -41,7 +41,7 @@ class MySpout {
         if (this._data_index >= this._data.length) {
             callback(null, null, null); // or just callback()
         } else {
-            callback(null, this._data[this._data_index++], "xstream");
+            callback(null, this._data[this._data_index++], "stream1");
         }
     }
 }
