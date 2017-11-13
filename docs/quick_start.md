@@ -165,7 +165,7 @@ const qtopology = require("qtopology");
 let config = require("./topology.json");
 
 // compile it - injects variables and performs some checks
-let compiler = new qtopology.compiler.TopologyCompiler(config);
+let compiler = new qtopology.TopologyCompiler(config);
 compiler.compile();
 config = compiler.getWholeConfig();
 
@@ -173,15 +173,16 @@ config = compiler.getWholeConfig();
 let topology = new qtopology.TopologyLocal();
 topology.init("uuid.1", config, (err) => {
     if (err) { console.log(err); return; }
-
     // let topology run for 20 seconds
-    topology.run();
-    setTimeout(() => {
-        topology.shutdown((err) => {
-            if (err) { console.log(err); }
-            console.log("Finished.");
-        });
-    }, 20 * 1000);
+    topology.run((e)=>{
+        if (e) { console.log(e) }
+        setTimeout(() => {
+            topology.shutdown((err) => {
+                if (err) { console.log(err); }
+                console.log("Finished.");
+            });
+        }, 20 * 1000);
+    });
 });
 ``````````````````````
 

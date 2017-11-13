@@ -5,6 +5,7 @@
         "declaration": true,
         "sourceMap": true,
         "target": "es6",
+        "lib":["es2016"],
         "module": "commonjs",
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
