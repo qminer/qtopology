@@ -1,26 +1,25 @@
 @startuml
-package "Main process" {
+package "Worker - Main process" {
   [Worker] --> [Coordinator]
   [Coordinator] --> [Leader]
   [Worker] --o [TopologyProxy]
-
-[Coordinator] --> [CustomStorageImplementation]
-[Leader] --> [CustomStorageImplementation]
+  [Coordinator] --> [CustomStorageImplementation]
+  [Leader] --> [CustomStorageImplementation]
 }
 
 package "Child process" {
   [TopologyWrapper] --> [LocalTopology]
 }
- 
+
 node "Worker 2" {
   [Worker2]
-} 
+}
 node "Worker 3" {
   [Worker3]
-} 
+}
 node "Worker 4" {
   [Worker4]
-} 
+}
 
 
 database "Common storage" {
