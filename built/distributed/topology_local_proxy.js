@@ -251,7 +251,12 @@ class TopologyLocalProxy {
     /** Internal method for sending messages to child process */
     send(code, data) {
         let msg = { cmd: code, data: data };
-        this.child.send(msg);
+        if (this.child.connected) {
+            this.child.send(msg);
+        }
+        else {
+            log.logger().warn(this.log_prefix + 'Skipping send (child process not connected): ' + intf.ParentMsgCode[code]);
+        }
     }
 }
 exports.TopologyLocalProxy = TopologyLocalProxy;
