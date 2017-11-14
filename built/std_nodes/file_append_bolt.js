@@ -25,7 +25,9 @@ class FileAppendBolt {
         this.prepend_timestamp = config.prepend_timestamp;
         this.split_over_time = config.split_over_time;
         this.split_period = config.split_period || 60 * 60 * 1000;
-        this.split_by_field = config.split_by_field;
+        if (config.split_by_field) {
+            this.split_by_field = config.split_by_field.split(".");
+        }
         this.compress = config.compress;
         // prepare filename template for injection
         if (this.split_over_time) {
@@ -69,7 +71,9 @@ class FileAppendBolt {
             (xcallback) => {
                 if (!do_file_split)
                     return xcallback();
-                // perform compression of existing file if it exists
+                // perform compression of existing file if it exists.
+                // only used when file split will occur
+                // otherwise we just zip at shutdown.
                 this.zipCurrentFile(xcallback);
             },
             (xcallback) => {
@@ -160,7 +164,7 @@ class FileAppendBolt {
         this.writeToFile((err) => {
             if (err)
                 return callback(err);
-            if (self.current_file_contains_data) {
+            if (self.compress && self.current_file_contains_data) {
                 self.zipCurrentFile(callback);
             }
             else {
@@ -176,7 +180,11 @@ class FileAppendBolt {
         s += JSON.stringify(data);
         let key = "";
         if (this.split_by_field) {
-            key = data[this.split_by_field];
+            let obj = data;
+            for (let i = 0; i < this.split_by_field.length - 1; i++) {
+                obj = obj[this.split_by_field[i]];
+            }
+            key = obj[this.split_by_field[this.split_by_field.length - 1]];
         }
         if (!this.current_data.has(key)) {
             this.current_data.set(key, []);
