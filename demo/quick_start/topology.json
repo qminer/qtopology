@@ -1,0 +1,27 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "inproc",
+            "working_dir": ".",
+            "cmd": "my_spout.js",
+            "init": {}
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "inproc",
+            "cmd": "my_bolt.js",
+            "inputs": [
+                { "source": "pump1", "stream_id": "stream1" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

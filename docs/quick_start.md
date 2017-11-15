@@ -34,7 +34,7 @@ Save this topology into file `topology.json`
             "type": "inproc",
             "cmd": "my_bolt.js",
             "inputs": [
-                { "source": "pump1" }
+                { "source": "pump1", "stream_id": "stream1" }
             ],
             "init": {}
         }
@@ -143,7 +143,7 @@ class MySpout {
         if (this._data_index >= this._data.length) {
             callback(null, null, null); // or just callback()
         } else {
-            callback(null, this._data[this._data_index++], "xstream");
+            callback(null, this._data[this._data_index++], "stream1");
         }
     }
 }
@@ -165,7 +165,7 @@ const qtopology = require("qtopology");
 let config = require("./topology.json");
 
 // compile it - injects variables and performs some checks
-let compiler = new qtopology.compiler.TopologyCompiler(config);
+let compiler = new qtopology.TopologyCompiler(config);
 compiler.compile();
 config = compiler.getWholeConfig();
 
@@ -173,15 +173,16 @@ config = compiler.getWholeConfig();
 let topology = new qtopology.TopologyLocal();
 topology.init("uuid.1", config, (err) => {
     if (err) { console.log(err); return; }
-
     // let topology run for 20 seconds
-    topology.run();
-    setTimeout(() => {
-        topology.shutdown((err) => {
-            if (err) { console.log(err); }
-            console.log("Finished.");
-        });
-    }, 20 * 1000);
+    topology.run((e)=>{
+        if (e) { console.log(e) }
+        setTimeout(() => {
+            topology.shutdown((err) => {
+                if (err) { console.log(err); }
+                console.log("Finished.");
+            });
+        }, 20 * 1000);
+    });
 });
 ``````````````````````
 

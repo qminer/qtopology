@@ -153,7 +153,7 @@ describe('local proxy', function () {
             target.init("top1", top_config, (e) => {
                 assert.equal(e, null); // should succeed
                 target.pingInterval = 1;
-                target.maxPingFails = 1;
+                target.maxPingFails = 0;
                 target.setPingInterval();
                 setTimeout(() => {
                     // exception thrown in bolt init should get to here

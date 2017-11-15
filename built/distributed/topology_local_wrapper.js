@@ -25,7 +25,7 @@ class TopologyLocalWrapper {
             self.handle(msg);
         });
         this.process.once("uncaughtException", (e) => {
-            log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper: " + e);
+            log.logger().error(self.log_prefix + "Unhandeled error in topology wrapper");
             log.logger().exception(e);
             self.clearPingInterval();
             self.killProcess(intf.ChildExitCode.unhandeled_error, e);
