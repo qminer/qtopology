@@ -167,8 +167,6 @@ export class TopologyWorker {
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
         self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, ""); // TODO: why no callback?
 
-        self.topologies.push(rec);
-
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 // Three types of errors possible:
@@ -221,6 +219,8 @@ export class TopologyWorker {
             rec.uuid = uuid;
             rec.config = config;
             self.createInitAndRunProxy(rec, callback);
+            // only change internal state when all other steps passed
+            self.topologies.push(rec);
         } catch (err) {
             log.logger().error(this.log_prefix + "Error while creating topology proxy for " + uuid);
             log.logger().exception(err);
