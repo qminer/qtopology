@@ -213,8 +213,9 @@ export class TopologyCoordinator {
                 });
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                 self.client.stopTopology(msg.content.uuid, () => {
+                    // TODO: make sure that assignTopologyToWorker can be called 
+                    // when a shutdown errors (topology reported status error)
                     if (msg.content.new_worker) {
-                        // TODO: make sure that we handle this correctly when a shutdown errors (topology reported status error)
                         // ok, we got an instruction to explicitly re-assign topology to new worker
                         self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, callback);
                     } else {
@@ -237,7 +238,7 @@ export class TopologyCoordinator {
                 // unknown message
                 return callback();
             }
-        });        
+        });
     }
 
     /** This method checks if all topologies, assigned to this worker, actually run. */
