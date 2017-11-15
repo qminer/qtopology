@@ -1,6 +1,5 @@
 import * as async from "async";
 import * as leader from "./topology_leader";
-import * as EventEmitter from "events";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
@@ -15,12 +14,14 @@ export interface TopologyCoordinatorClient {
     /** Object should resolve differences between running topologies and the given list. */
     resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback);
     /** Object should shut down */
-    shutdown();
+    shutdown(callback: intf.SimpleCallback);
+    /** Process exit wrapper */
+    exit(code: number);
 }
 
 /** This class handles communication with topology coordination storage.
  */
-export class TopologyCoordinator extends EventEmitter {
+export class TopologyCoordinator {
 
     private storage: intf.CoordinationStorage;
     private client: TopologyCoordinatorClient;
@@ -35,7 +36,6 @@ export class TopologyCoordinator extends EventEmitter {
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient) {
-        super();
         this.storage = storage;
         this.client = client;
         this.name = name;
@@ -94,7 +94,10 @@ export class TopologyCoordinator extends EventEmitter {
                 } else {
                     // This exit was not triggered from outside,
                     // so notify the parent.
-                    self.client.shutdown();
+                    self.client.shutdown(() => {
+                        log.logger().important(this.log_prefix + "Exiting with code 0");
+                        self.client.exit(0);
+                    });
                 }
             }
         );
@@ -182,53 +185,59 @@ export class TopologyCoordinator extends EventEmitter {
         });
     }
 
-    /** This method checks for new messages from coordination storage. */
+    /** This method checks for new messages from coordination storage.
+     * TODO1: start topologies (parallel)
+     * TODO2: stop topologies (parallel)
+     */
     private handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
         if (self.is_shutting_down) {
             return callback();
         }
-        self.storage.getMessages(self.name, (err, msgs) => {
-            if (err) return callback(err);
-            async.each(
-                msgs,
-                (msg: intf.StorageResultMessage, xcallback) => {
-                    if (msg.created < self.start_time) {
-                        // just ignore, it was sent before this coordinator was started
-                    } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
-                        self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
-                            if (self.name == res.worker) {
-                                // topology is still assigned to this worker
-                                // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                                self.client.startTopology(msg.content.uuid, res.config, xcallback);
-                            }
-                        })
-                    } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                        self.client.stopTopology(msg.content.uuid, (err) => {
-                            if (err) return callback(err);
-                            if (msg.content.new_worker) {
-                                // ok, we got an instruction to explicitely re-assign topology to new worker
-                                self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, xcallback);
-                            } else {
-                                xcallback();
-                            }
-                        });
-                    } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
-                        self.client.killTopology(msg.content.uuid, xcallback);
-                    } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
-                        self.client.shutdown();
-                        xcallback();
-                    } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
-                        self.leadership.forceRebalance();
-                        xcallback();
+        self.storage.getMessage(self.name, (err, msg) => {
+            if (err) { return callback(err); }
+            if (!msg) { return callback(); }
+            if (msg.created < self.start_time) {
+                // just ignore, it was sent before this coordinator was started
+                return callback();
+            } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
+                self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
+                    if (err) { return callback(err); }
+                    if (self.name == res.worker) {
+                        // topology is still assigned to this worker
+                        // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
+                        self.client.startTopology(msg.content.uuid, res.config, callback);
                     } else {
-                        // unknown message
-                        xcallback();
+                        return callback();
                     }
-                },
-                callback
-            );
-        });
+                });
+            } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
+                self.client.stopTopology(msg.content.uuid, () => {
+                    if (msg.content.new_worker) {
+                        // TODO: make sure that we handle this correctly when a shutdown errors (topology reported status error)
+                        // ok, we got an instruction to explicitly re-assign topology to new worker
+                        self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, callback);
+                    } else {
+                        return callback();
+                    }
+                });
+            } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
+                self.client.killTopology(msg.content.uuid, callback);
+            } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
+                // shutdown only logs exceptions
+                self.client.shutdown(() => {
+                    // do not call callback() - we're exiting
+                    log.logger().important(this.log_prefix + "Exiting with code 0");
+                    self.client.exit(0);
+                });
+            } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
+                self.leadership.forceRebalance();
+                return callback();
+            } else {
+                // unknown message
+                return callback();
+            }
+        });        
     }
 
     /** This method checks if all topologies, assigned to this worker, actually run. */

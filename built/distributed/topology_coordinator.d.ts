@@ -1,5 +1,3 @@
-/// <reference types="node" />
-import * as EventEmitter from "events";
 import * as intf from "../topology_interfaces";
 /** Interface for objects that coordinator needs to communicate with. */
 export interface TopologyCoordinatorClient {
@@ -12,11 +10,13 @@ export interface TopologyCoordinatorClient {
     /** Object should resolve differences between running topologies and the given list. */
     resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): any;
     /** Object should shut down */
-    shutdown(): any;
+    shutdown(callback: intf.SimpleCallback): any;
+    /** Process exit wrapper */
+    exit(code: number): any;
 }
 /** This class handles communication with topology coordination storage.
  */
-export declare class TopologyCoordinator extends EventEmitter {
+export declare class TopologyCoordinator {
     private storage;
     private client;
     private name;
@@ -41,7 +41,10 @@ export declare class TopologyCoordinator extends EventEmitter {
     reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback): void;
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
-    /** This method checks for new messages from coordination storage. */
+    /** This method checks for new messages from coordination storage.
+     * TODO1: start topologies (parallel)
+     * TODO2: stop topologies (parallel)
+     */
     private handleIncommingRequests(callback);
     /** This method checks if all topologies, assigned to this worker, actually run. */
     private checkAssignedTopologies(callback);

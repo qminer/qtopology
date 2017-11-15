@@ -20,6 +20,9 @@ class HttpStorage {
     getMessages(name, callback) {
         this.call("get-messages", { worker: name }, callback);
     }
+    getMessage(name, callback) {
+        this.call("get-message", { worker: name }, callback);
+    }
     getWorkerStatus(callback) {
         this.call("worker-statuses", {}, callback);
     }

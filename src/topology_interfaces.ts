@@ -238,6 +238,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
+    getMessage(name: string, callback: SimpleResultCallback<StorageResultMessage>);
     getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>);
 
     getTopologyHistory(uuid: string, callback: SimpleResultCallback<TopologyStatusHistory[]>);
