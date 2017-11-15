@@ -146,7 +146,7 @@ export class TopologyWorker {
                 log.logger().exception(err);
             } else {
                 log.logger().error(this.log_prefix + "THIS SHOULD NOT HAPPEN. Child process " +
-                "should have exited. KILLING child process.");
+                    "should have exited. KILLING child process.");
             }
             rec.proxy.kill(() => { });
         }
@@ -158,7 +158,7 @@ export class TopologyWorker {
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
             self.ensureExit(rec, err);
             if (err) {
-                self.removeAndReportError(rec, err, ()=>{}); // on exit with error
+                self.removeAndReportError(rec, err, () => { }); // on exit with error
             } else {
                 self.removeTopology(rec.uuid); // on normal exit
             }
