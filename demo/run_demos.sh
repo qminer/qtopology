@@ -70,6 +70,11 @@ cd std_nodes/counter
 node demo_counter.js
 cd ../..
 
+title "Running quick start demo"
+cd quick_start
+node top.js
+cd ..
+
 title "Demos finished"
 end=`date +%s`
 

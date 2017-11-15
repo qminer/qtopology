@@ -5,6 +5,13 @@ const log = require("../util/logger");
  * if the callback threw an exception.
 */
 function tryCallback(callback) {
+    if (callback == undefined) {
+        return (err) => {
+            if (err) {
+                log.logger().exception(err);
+            }
+        };
+    }
     return (err) => {
         try {
             return callback(err);
