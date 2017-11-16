@@ -227,10 +227,10 @@ export class TopologyCoordinator {
             } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                 // shutdown only logs exceptions
                 self.client.shutdown(() => {
-                    // do not call callback() - we're exiting
                     log.logger().important(this.log_prefix + "Exiting with code 0");
                     self.client.exit(0);
                 });
+                return callback();
             } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
                 self.leadership.forceRebalance();
                 return callback();
