@@ -91,11 +91,11 @@ class TopologyLocalProxy {
         self.child.on("error", (e) => {
             // Called when the process could not be spawned or killed or when message sending fails
             // All of these are considered as bad state and we need to exit
+            self.has_exited = true;
             if (self.onExit) {
                 self.onExit(e);
             }
             self.kill(() => { });
-            self.has_exited = true;
         });
         // Normally close and exit will both be called shortly one after
         // the other.
@@ -104,20 +104,20 @@ class TopologyLocalProxy {
                 new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
             self.exit_code = code;
+            self.has_exited = true;
             if (self.onExit) {
                 self.onExit(e);
             }
-            self.has_exited = true;
         });
         self.child.once("exit", (code, signal) => {
             let exitErr = (signal == null && code !== 0) ?
                 new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
             let e = self.last_child_err || exitErr;
             self.exit_code = code;
+            self.has_exited = true;
             if (self.onExit) {
                 self.onExit(e);
             }
-            self.has_exited = true;
         });
         self.setPingInterval();
     }

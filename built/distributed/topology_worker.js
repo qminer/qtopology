@@ -164,7 +164,7 @@ class TopologyWorker {
                         // Two types of errors possible:
                         // - already running (NOT exit) -> this should not be possible
                         //   since we created a new proxy and called init and run once.
-                        // - running noninitialiyed (NOT exit) -> this should not be possible
+                        // - running non-initialized (NOT exit) -> this should not be possible
                         //   since we created a new proxy and called init successfully
                         self.ensureExit(rec, err);
                         self.removeAndReportError(rec, err);
