@@ -4,26 +4,31 @@ The following components comprise the distributed setting for `qtopology`:
 
 ![Worker statuses](imgs/components.svg)
 
-### Worker
+## Worker
 
-Ideally, runs as single instance on single server (but there is no obstacle to having several workers on single machine):
+Ideally, runs as single instance on single server (but there is no obstacle to having several workers on single machine). It needs the following:
 
 - logical name
 - method of coordination
 
-It then creates an instance of a coordinator, passes to it the method of coordination and awaits instructions. These include command "start", which starts the topology with provided definition.
+It then creates an instance of a coordinator, passes to it the method of coordination and awaits instructions. These include command `start`, which starts the topology with provided definition.
 
-### Coordinator
+## Coordinator
 
 A subordinate class of worker - takes care of coordination with other workers.
 
 - Listens for messages, addressed to this worker
-- Updates statuses of worker's topologies
-- Updates status of worker
+    - `start_topology`
+    - `stop_topology`
+    - `kill_topology`
+    - `shutdown`
+    - `rebalance`
+- Updates statuses of worker's topologies inside coordination storage
+- Updates status of worker inside coordination storage
 
-It contains a subordinate class that handles leadership checks and repated tasks.
+It also contains a subordinate class that handles leadership checks and repated tasks.
 
-### Local topology
+## Local topology
 
 This object:
 
@@ -31,6 +36,7 @@ This object:
 - sends them commands, e.g. `init`, `run`, `pause`, `shutdown`
 
 ## Status transitions
+
 ### Worker statuses
 
 ![Worker statuses](imgs/worker_statuses.svg)
@@ -38,7 +44,6 @@ This object:
 ### Topology statuses
 
 ![Topology statuses](imgs/topology_statuses.svg)
-
 
 ## Sequence between coordinator, worker and local topology
 
@@ -62,23 +67,23 @@ The worker first performs the initialization sequence and the runs two sequences
 |-------------|--------|
 |  | Checks if leadership is established |
 | Returns leadership status |  |
-|  | If leadership is ok, do nothing more |
-|  | Send leadership candidacy |
-| Register candidacy |  |
-|  | Check candidacy |
-| Send `true` if candidacy sucessfull |  |
+|  | If leadership is ok, do nothing else |
+|  | Sends leadership candidacy |
+| Registers candidacy |  |
+|  | Checks candidacy |
+| Sends `true` if candidacy sucessfull |  |
 |  | If not elected leader, do nothing more |
-|  | Get worker statuses |
-| Return worker statuses after marking those with overdue pings as `dead` | |
-| | For all `dead` workers unassign their topologies |
-| Update statuses for these topologies | |
-| | Pronounce `dead` workers as `unloaded` |
-| Store new worker statuses | |
-| | Get topology statuses |
-| Get topology statuses after setting overdue `waiting` status to `unassigned` and setting topologies of `dead` worker to `unassigned`  | |
-| | Assign `unassigned` and `stopped` topologies to new workers by setting the to status `waiting` |
-| Store new statuses for these topologies | |
-| Store messages for workers to load topologies | |
+|  | Gets worker statuses |
+| Returns worker statuses after marking those with overdue pings as `dead` | |
+| | For all `dead` workers unassigns their topologies |
+| Updates statuses for these topologies | |
+| | Pronounces `dead` workers as `unloaded` |
+| Stores new worker statuses | |
+| | Gets topology statuses |
+| Gets topology statuses after setting overdue `waiting` status to `unassigned` and setting topologies of `dead` worker to `unassigned`  | |
+| | Assigns `unassigned` and `stopped` topologies to new workers by setting the to status `waiting` |
+| Stores new statuses for these topologies | |
+| Stores messages for workers to load topologies | |
 
 ![Topology statuses](imgs/sequence_leader.svg)
 
@@ -90,40 +95,5 @@ The worker first performs the initialization sequence and the runs two sequences
 | Returns messages for this worker |  |
 |  | Handle message such as "start topology" or "shutdown" |
 | Update topology status if start successful |  |
-|  |  |
-
 
 ![Topology statuses](imgs/sequence_worker.svg)
-
-## Sequence between local topology and child processes
-
-### Bolts
-
-| Local topology | Child process |
-|-------------|--------|
-| Starts child process | Starts and uses command-line arguments |
-| Sends `init` command | |
-| | Initializes and send `init_completed` |
-| Sends `data` command | |
-| | Processes data and optionally emits `data` command (zero, one or many). When finished with this data item, emits `ack` event. |
-| Sends `heartbeat` command | |
-| | Reacts to heartbeat and optionally emits `data` command (zero, one or many) |
-| Sends `shutdown` command| |
-| | Must gracefully stop the process. |
-
-### Spouts
-
-| Local topology | Child process |
-|-------------|--------|
-| Starts child process | Starts and uses command-line arguments |
-| Sends `init` command | |
-| | Initializes and send `init_completed` |
-| Sends `next` command | |
-| | Either emits exactly one `data` command or `empty` command |
-| When tuple is processed, sends `spout_ack` command | |
-| | Optionally handles `spout_ack` command |
-| Sends `heartbeat` command | |
-| | Reacts to heartbeat and optionally emits `data` command (zero, one or many) |
-| Sends `shutdown` command| |
-| | Must gracefully stop the process |
-
