@@ -333,13 +333,20 @@ export class TopologyLeader {
                 return { uuid: x.uuid, worker: worker };
             });
 
-        async.eachSeries(
-            assignments,
-            (item, xcallback) => {
-                self.assignTopologyToWorker(item.worker, item.uuid, xcallback);
+        // group assignments by worker
+        let tasks = [];
+        let workers = Array.from(new Set(assignments.map(a => a.worker)));
+        for (let worker of workers) {
+            let worker_assignments = assignments.filter(a => a.worker == worker);
+            let uuids = worker_assignments.map(a => a.uuid);
+            tasks.push({ worker: worker, uuids: uuids });
+        }
+        async.each(
+            tasks,
+            (task, xcallback) => {
+                self.assignTopologiesToWorker(task.worker, task.uuids, xcallback);
             },
-            callback
-        );
+            callback);
     }
 
     /** This method will perform rebalance of topologies on workers if needed.
