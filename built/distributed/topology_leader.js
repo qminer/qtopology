@@ -311,9 +311,18 @@ class TopologyLeader {
             return { name: x.name, weight: 0 };
         }), AFFINITY_FACTOR);
         let steps = load_balancer.rebalance(topologies);
-        async.each(steps.changes, (change, xcallback) => {
-            log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
-            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, MESSAGE_INTERVAL, xcallback);
+        // group rebalancing by old worker
+        let rebalance_tasks = [];
+        let workers_old = Array.from(new Set(steps.changes.map(change => change.worker_old)));
+        for (let worker_old of workers_old) {
+            let worker_changes = steps.changes.filter(change => change.worker_old == worker_old);
+            let stopInfoArray = worker_changes.map(change => { return { uuid: change.uuid, worker_new: change.worker_new }; });
+            rebalance_tasks.push({ worker_old: worker_old, stopInfoArray: stopInfoArray });
+        }
+        async.each(rebalance_tasks, (rebalance_task, xcallback) => {
+            log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
+                `: ${rebalance_task.stopInfoArray.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
+            self.storage.sendMessageToWorker(rebalance_task.worker_old, intf.Consts.LeaderMessages.stop_topologies, rebalance_task.stopInfoArray, MESSAGE_INTERVAL, xcallback);
         }, callback);
     }
     /** Handles situation when there is a dead worker and its

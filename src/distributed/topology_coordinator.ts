@@ -229,13 +229,27 @@ export class TopologyCoordinator {
                 self.client.stopTopology(msg.content.uuid, () => {
                     // TODO: make sure that assignTopologyToWorker can be called 
                     // when a shutdown errors (topology reported status error)
-                    if (msg.content.new_worker) {
+                    if (msg.content.worker_new) {
                         // ok, we got an instruction to explicitly re-assign topology to new worker
-                        self.leadership.assignTopologyToWorker(msg.content.new_worker, msg.content.uuid, callback);
+                        self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
                     } else {
                         return callback();
                     }
                 });
+            } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
+                async.each(msg.content.stopInfoArray,
+                    (stopInfo: any, xcallback) => {
+                        self.client.stopTopology(stopInfo.uuid, () => {
+                            // TODO: make sure that assignTopologyToWorker can be called 
+                            // when a shutdown errors (topology reported status error)
+                            if (stopInfo.worker_new) {
+                                // ok, we got an instruction to explicitly re-assign topology to new worker
+                                self.leadership.assignTopologyToWorker(stopInfo.worker_new, stopInfo.uuid, xcallback);
+                            } else {
+                                return xcallback();
+                            }
+                        });
+                    }, callback);
             } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
                 self.client.killTopology(msg.content.uuid, callback);
             } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
