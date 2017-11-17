@@ -200,7 +200,7 @@ export class TopologyCoordinator {
             } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
                 self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
                     if (err) { return callback(err); }
-                    if (self.name == res.worker) {
+                    if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                         // topology is still assigned to this worker
                         // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
                         self.client.startTopology(msg.content.uuid, res.config, callback);
@@ -212,7 +212,7 @@ export class TopologyCoordinator {
                 async.each(msg.content.uuids, (uuid: string, xcallback) => {
                     self.storage.getTopologyInfo(uuid, (err, res) => {
                         if (err) { return xcallback(err); }
-                        if (self.name == res.worker) {
+                        if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                             // topology is still assigned to this worker
                             // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
                             self.client.startTopology(uuid, res.config, xcallback);
@@ -225,8 +225,7 @@ export class TopologyCoordinator {
                 });
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                 self.client.stopTopology(msg.content.uuid, () => {
-                    // TODO: make sure that assignTopologyToWorker can be called 
-                    // when a shutdown errors (topology reported status error)
+                    // errors will be reported to storage and prevent starting new topologies
                     if (msg.content.worker_new) {
                         // ok, we got an instruction to explicitly re-assign topology to new worker
                         self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
@@ -238,8 +237,7 @@ export class TopologyCoordinator {
                 async.each(msg.content.stop_topologies,
                     (stop_topology: any, xcallback) => {
                         self.client.stopTopology(stop_topology.uuid, () => {
-                            // TODO: make sure that assignTopologyToWorker can be called 
-                            // when a shutdown errors (topology reported status error)
+                            // errors will be reported to storage and prevent starting new topologies
                             if (stop_topology.worker_new) {
                                 // ok, we got an instruction to explicitly re-assign topology to new worker
                                 self.leadership.assignTopologyToWorker(stop_topology.worker_new, stop_topology.uuid, xcallback);
