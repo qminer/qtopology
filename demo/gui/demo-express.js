@@ -66,7 +66,9 @@ server.initComplex(
         console.log(err);
         process.exit(1);
     }
-    app.listen(3000, () => {
-        console.log("Express running on port " + 3000);
+    let port = 3000;
+    app.listen(port, () => {
+        console.log("Express running on port " + port);
+        console.log(`Open http://localhost:${port}/dashboard`);
     });
 });
