@@ -61,14 +61,15 @@ server.initComplex(
         back_url: "/abc",
         storage: storage,
         title: "Custom dashboard title"
-    }, (err) => {    
-    if (err) {
-        console.log(err);
-        process.exit(1);
-    }
-    let port = 3000;
-    app.listen(port, () => {
-        console.log("Express running on port " + port);
-        console.log(`Open http://localhost:${port}/dashboard`);
+    },
+    (err) => {
+        if (err) {
+            console.log(err);
+            process.exit(1);
+        }
+        let port = 3000;
+        app.listen(port, () => {
+            console.log("Express running on port " + port);
+            console.log(`Open http://localhost:${port}/dashboard`);
+        });
     });
-});
