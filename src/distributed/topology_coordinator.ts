@@ -87,7 +87,7 @@ export class TopologyCoordinator {
                     xcallback
                 );
             },
-            (err) => {
+            (err: Error) => {
                 log.logger().important(self.log_prefix + "Coordinator stopped.");
                 if (self.shutdown_callback) {
                     self.shutdown_callback(err);
@@ -186,8 +186,7 @@ export class TopologyCoordinator {
     }
 
     /** This method checks for new messages from coordination storage.
-     * TODO1: start topologies (parallel)
-     * TODO2: stop topologies (parallel)
+     * TODO: stop topologies (parallel)
      */
     private handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
@@ -210,6 +209,21 @@ export class TopologyCoordinator {
                     } else {
                         return callback();
                     }
+                });
+            } else if (msg.cmd === intf.Consts.LeaderMessages.start_topologies) {
+                async.each(msg.content.uuids, (uuid: string, xcallback) => {
+                    self.storage.getTopologyInfo(uuid, (err, res) => {
+                        if (err) { return xcallback(err); }
+                        if (self.name == res.worker) {
+                            // topology is still assigned to this worker
+                            // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
+                            self.client.startTopology(uuid, res.config, xcallback);
+                        } else {
+                            return xcallback();
+                        }
+                    });
+                }, (err: Error) => {
+                    return callback(err);
                 });
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                 self.client.stopTopology(msg.content.uuid, () => {

@@ -137,7 +137,9 @@ export declare var Consts: {
     LeaderMessages: {
         rebalance: string;
         start_topology: string;
+        start_topologies: string;
         stop_topology: string;
+        stop_topologies: string;
         kill_topology: string;
         shutdown: string;
     };

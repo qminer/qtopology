@@ -42,8 +42,7 @@ export declare class TopologyCoordinator {
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
     /** This method checks for new messages from coordination storage.
-     * TODO1: start topologies (parallel)
-     * TODO2: stop topologies (parallel)
+     * TODO: stop topologies (parallel)
      */
     private handleIncommingRequests(callback);
     /** This method checks if all topologies, assigned to this worker, actually run. */

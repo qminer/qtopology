@@ -68,7 +68,7 @@ export class TopologyLeader {
                     self.singleLoopStep(xcallback);
                 }, self.loop_timeout);
             },
-            (err) => {
+            (err: Error) => {
                 log.logger().important(self.log_prefix + "Leader shutdown finished.");
                 self.is_shut_down = true;
                 self.is_running = false;
@@ -116,8 +116,22 @@ export class TopologyLeader {
     assignTopologyToWorker(target: string, uuid: string, callback: intf.SimpleCallback) {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
-        self.storage.assignTopology(uuid, target, (err) => {
+        self.storage.assignTopology(uuid, target, (err: Error) => {
+            if (err) { return callback(err); }
             self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, MESSAGE_INTERVAL, callback);
+        });
+    }
+
+    /** Sometimes outside code gets instruction to assign topologies to specific worker. */
+    assignTopologiesToWorker(target: string, uuids: string[], callback: intf.SimpleCallback) {
+        let self = this;
+        log.logger().log(self.log_prefix + `Assigning topologies ${uuids} to worker ${target}`);
+        async.each(uuids, (uuid, xcallback) => {
+            self.storage.assignTopology(uuid, target, xcallback);
+        }, (err: Error) => {
+            if (err) { return callback(err); }
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topologies,
+                { uuids: uuids }, MESSAGE_INTERVAL, callback);
         });
     }
 
@@ -382,7 +396,7 @@ export class TopologyLeader {
                         self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                     }
                 },
-                (err) => {
+                (err: Error) => {
                     if (err) {
                         log.logger().important(self.log_prefix + "Error while handling dead worker " + err);
                         return callback(err);
@@ -495,9 +509,12 @@ export class TopologyLeader {
                     xcallback();
                 }
             ],
-            (err) => {
-                if (err) return callback(err);
-                callback(null, res);
+            (err: Error) => {
+                if (err) {
+                    return callback(err);
+                } else {
+                    return callback(null, res);
+                }
             }
         );
     }

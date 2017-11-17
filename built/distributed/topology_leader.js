@@ -93,7 +93,23 @@ class TopologyLeader {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
+            if (err) {
+                return callback(err);
+            }
             self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, MESSAGE_INTERVAL, callback);
+        });
+    }
+    /** Sometimes outside code gets instruction to assign topologies to specific worker. */
+    assignTopologiesToWorker(target, uuids, callback) {
+        let self = this;
+        log.logger().log(self.log_prefix + `Assigning topologies ${uuids} to worker ${target}`);
+        async.each(uuids, (uuid, xcallback) => {
+            self.storage.assignTopology(uuid, target, xcallback);
+        }, (err) => {
+            if (err) {
+                return callback(err);
+            }
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topologies, { uuids: uuids }, MESSAGE_INTERVAL, callback);
         });
     }
     /** Single step in checking if current node should be
@@ -419,9 +435,12 @@ class TopologyLeader {
                 xcallback();
             }
         ], (err) => {
-            if (err)
+            if (err) {
                 return callback(err);
-            callback(null, res);
+            }
+            else {
+                return callback(null, res);
+            }
         });
     }
 }

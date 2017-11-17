@@ -148,8 +148,7 @@ class TopologyCoordinator {
         });
     }
     /** This method checks for new messages from coordination storage.
-     * TODO1: start topologies (parallel)
-     * TODO2: stop topologies (parallel)
+     * TODO: stop topologies (parallel)
      */
     handleIncommingRequests(callback) {
         let self = this;
@@ -180,6 +179,25 @@ class TopologyCoordinator {
                     else {
                         return callback();
                     }
+                });
+            }
+            else if (msg.cmd === intf.Consts.LeaderMessages.start_topologies) {
+                async.each(msg.content.uuids, (uuid, xcallback) => {
+                    self.storage.getTopologyInfo(uuid, (err, res) => {
+                        if (err) {
+                            return xcallback(err);
+                        }
+                        if (self.name == res.worker) {
+                            // topology is still assigned to this worker
+                            // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
+                            self.client.startTopology(uuid, res.config, xcallback);
+                        }
+                        else {
+                            return xcallback();
+                        }
+                    });
+                }, (err) => {
+                    return callback(err);
                 });
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
