@@ -375,18 +375,18 @@ export class TopologyLeader {
         let workers_old = Array.from(new Set(steps.changes.map(change => change.worker_old)));
         for (let worker_old of workers_old) {
             let worker_changes = steps.changes.filter(change => change.worker_old == worker_old);
-            let stopInfoArray = worker_changes.map(change => { return { uuid: change.uuid, worker_new: change.worker_new }; });
-            rebalance_tasks.push({ worker_old: worker_old, stopInfoArray: stopInfoArray });
+            let stop_topologies = worker_changes.map(change => { return { uuid: change.uuid, worker_new: change.worker_new }; });
+            rebalance_tasks.push({ worker_old: worker_old, stop_topologies: stop_topologies });
         }
         async.each(
             rebalance_tasks,
             (rebalance_task, xcallback) => {
                 log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` + 
-                 `: ${rebalance_task.stopInfoArray.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
+                 `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
                 self.storage.sendMessageToWorker(
                     rebalance_task.worker_old,
                     intf.Consts.LeaderMessages.stop_topologies,
-                    rebalance_task.stopInfoArray,
+                    rebalance_task.stop_topologies,
                     MESSAGE_INTERVAL,
                     xcallback);
             },
