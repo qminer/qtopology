@@ -185,9 +185,7 @@ export class TopologyCoordinator {
         });
     }
 
-    /** This method checks for new messages from coordination storage.
-     * TODO: stop topologies (parallel)
-     */
+    /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
         if (self.is_shutting_down) {

@@ -41,9 +41,7 @@ export declare class TopologyCoordinator {
     reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback): void;
     /** Set status on given worker */
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
-    /** This method checks for new messages from coordination storage.
-     * TODO: stop topologies (parallel)
-     */
+    /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);
     /** This method checks if all topologies, assigned to this worker, actually run. */
     private checkAssignedTopologies(callback);
