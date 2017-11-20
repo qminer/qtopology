@@ -11,6 +11,7 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
+    getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>): void;
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;

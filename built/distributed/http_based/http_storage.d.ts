@@ -6,6 +6,7 @@ export declare class HttpStorage implements intf.CoordinationStorage {
     constructor(port?: number);
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>): void;
+    getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>): void;
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>): void;
     getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;

@@ -25,8 +25,9 @@
   "license": "BSD-2-Clause",
   "readmeFilename": "README.md",
   "devDependencies": {
-    "@types/node": "^8.0.47",
+    "@types/async": "^2.0.45",
     "@types/colors": "^1.1.0",
+    "@types/node": "^8.0.47",
     "mocha": "^3.2.0"
   },
   "dependencies": {

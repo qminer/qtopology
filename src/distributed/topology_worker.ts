@@ -34,8 +34,7 @@ export class TopologyWorker {
         this.coordinator = new coord.TopologyCoordinator(name, storage, {
             startTopology: (uuid: string, config: any, callback: intf.SimpleCallback) => {
                 log.logger().important(self.log_prefix + "Received start instruction from coordinator: " + uuid);
-                self.start(uuid, config);
-                callback();
+                self.start(uuid, config, callback);
             },
             resolveTopologyMismatches: (uuids: string[], callback: intf.SimpleCallback) => {
                 self.resolveTopologyMismatches(uuids, callback);
@@ -46,16 +45,16 @@ export class TopologyWorker {
             killTopology: (uuid: string, callback: intf.SimpleCallback) => {
                 self.shutDownTopology(uuid, true, callback);
             },
-            shutdown: () => {
+            shutdown: (callback: intf.SimpleCallback) => {
                 log.logger().important(this.log_prefix + `Received shutdown instruction from coordinator in worker (pid ${process.pid})`);
                 if (!self.waiting_for_shutdown) {
                     self.waiting_for_shutdown = true;
                     log.logger().important(this.log_prefix + "Starting graceful worker shutdown...");
-                    self.shutdown(() => {
-                        log.logger().important(this.log_prefix + "Exiting with code 0");
-                        self.exit(0);
-                    });
+                    self.shutdown(callback);
                 };
+            },
+            exit: (code: number) => {
+                self.exit(code);
             }
         });
 
@@ -147,19 +146,19 @@ export class TopologyWorker {
                 log.logger().exception(err);
             } else {
                 log.logger().error(this.log_prefix + "THIS SHOULD NOT HAPPEN. Child process " +
-                "should have exited. KILLING child process.");
+                    "should have exited. KILLING child process.");
             }
             rec.proxy.kill(() => { });
         }
     }
 
     /** Internal method that creates proxy for given topology item */
-    private createInitAndRunProxy(rec: TopologyItem): void {
+    private createInitAndRunProxy(rec: TopologyItem, callback: intf.SimpleCallback): void {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
             self.ensureExit(rec, err);
             if (err) {
-                self.removeAndReportError(rec, err); // on exit with error
+                self.removeAndReportError(rec, err, () => { }); // on exit with error
             } else {
                 self.removeTopology(rec.uuid); // on normal exit
             }
@@ -168,8 +167,6 @@ export class TopologyWorker {
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
         self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, ""); // TODO: why no callback?
 
-        // rec will be added to this.topologies shortly after this call
-        // and berfore init and run CALLBACKS are executed.
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 // Three types of errors possible:
@@ -177,8 +174,10 @@ export class TopologyWorker {
                 //   since we created a new proxy and called init once.
                 // - compile error (exit)
                 // - internal init error (exit)
+                log.logger().error(self.log_prefix + "Error while initializing topology: " + rec.uuid);
+                log.logger().exception(err);
                 self.ensureExit(rec, err);
-                self.removeAndReportError(rec, err);
+                self.removeAndReportError(rec, err, () => { callback(); }); // reporting errors will be logged
             } else {
                 self.coordinator.reportTopologyPid(rec.uuid, rec.proxy.getPid());
                 rec.proxy.run((err) => {
@@ -188,8 +187,12 @@ export class TopologyWorker {
                         //   since we created a new proxy and called init and run once.
                         // - running non-initialized (NOT exit) -> this should not be possible
                         //   since we created a new proxy and called init successfully
+                        log.logger().error(self.log_prefix + "Error while calling topology run: " + rec.uuid);
+                        log.logger().exception(err);
                         self.ensureExit(rec, err);
-                        self.removeAndReportError(rec, err);
+                        self.removeAndReportError(rec, err, () => { callback(); }); // reporting errors will be logged
+                    } else {
+                        return callback();
                     }
                 });
             }
@@ -199,7 +202,7 @@ export class TopologyWorker {
     /** Starts single topology.
      * Guards itself from duplicated calls.
      */
-    private start(uuid: string, config: any) {
+    private start(uuid: string, config: any, callback: intf.SimpleCallback) {
         let self = this;
         if (self.hasTopology(uuid)) {
             log.logger().warn(self.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
@@ -215,8 +218,7 @@ export class TopologyWorker {
             let rec = new TopologyItem();
             rec.uuid = uuid;
             rec.config = config;
-            self.createInitAndRunProxy(rec);
-
+            self.createInitAndRunProxy(rec, callback);
             // only change internal state when all other steps passed
             self.topologies.push(rec);
         } catch (err) {
@@ -247,29 +249,26 @@ export class TopologyWorker {
         this.topologies = this.topologies.filter(x => x.uuid != uuid);
     }
 
-    /** Shuts down the worker and all its subprocesses. */
+    /** Shuts down the worker and all its subprocesses.
+     * Does not pass any exceptions, only logs them.
+     */
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
         async.series(
             [
                 (xcallback) => {
-                    // preShutdown will swallow exceptions
+                    // reports worker as closing and stops leadership
+                    // logs exceptions, does not return them.
                     self.coordinator.preShutdown(xcallback);
                 },
                 (xcallback) => {
-                    // shutDownTopologies will return the first
-                    // encountered exception which will be swallowed
-                    // here.
-                    self.shutDownTopologies((err) => {
-                        if (err) {
-                            log.logger().error(self.log_prefix + "Error while shutting down topologies:");
-                            log.logger().exception(err);
-                        }
-                        xcallback();
-                    });
+                    // tries to shut down all topologies,
+                    // logs exceptions, does not return them.
+                    self.shutDownTopologies(xcallback);
                 },
                 (xcallback) => {
-                    // may pass an exception.
+                    // reports worker as dead and stops the coorinator loop,
+                    // logs exceptions, does not return them.
                     self.coordinator.shutdown(xcallback);
                 }
             ],
@@ -278,26 +277,22 @@ export class TopologyWorker {
     }
 
     /** Sends shutdown signals to all topologies. Will try to shutdown
-     * all topologies and if any of them failed, return the first error.
+     * all topologies and log any failures.
      */
     private shutDownTopologies(callback: intf.SimpleCallback) {
         let self = this;
-        let first_err: Error = null;
         async.each(
             self.topologies,
             (item: TopologyItem, xcallback) => {
                 self.shutDownTopologyInternal(item, false, (err) => {
-                    if (err) {
+                    if (err) { // reporting error
                         log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
                         log.logger().exception(err);
                     }
-                    first_err = first_err || err;
-                    xcallback(null);
+                    xcallback();
                 });
             },
-            () => {
-                callback(first_err);
-            }
+            callback
         );
     }
 
@@ -306,42 +301,42 @@ export class TopologyWorker {
         let self = this;
         let top = self.topologies.find(top => top.uuid == uuid);
         if (top) {
-            self.shutDownTopologyInternal(top, do_kill, callback);
+            self.shutDownTopologyInternal(top, do_kill, (err) => {
+                if (err) { // reporting error
+                    log.logger().error(self.log_prefix + "Error while shutting down topology: " + uuid);
+                    log.logger().exception(err);
+                }
+                return callback();
+            });
         } else {
-            // TODO: error, cannot shutdown topology that is not running?
-            callback();
+            // Nothing to do
+            return callback();
         }
     }
 
     /** Internal method that contains common steps for kill and shutdown sequence */
     private shutDownTopologyInternal(item: TopologyItem, do_kill: boolean, callback: intf.SimpleCallback) {
         let self = this;
-        async.series(
-            [
-                (xcallback) => {
-                    if (do_kill) {
-                        item.proxy.kill(xcallback);
-                    } else {
-                        item.proxy.shutdown(xcallback);
-                    }
-                }
-            ],
-            (err) => {
-                if (err) {
-                    log.logger().error(self.log_prefix + "Error while shutting down topology " + item.uuid);
-                    log.logger().exception(err);
-                    self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
-                } else {
-                    log.logger().debug(self.log_prefix + "setting topology as unassigned: " + item.uuid);
-                    self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
-                }
+        let afterShutdown = (err) => {
+            if (err) {
+                log.logger().error(self.log_prefix + "Error while shutting down topology " + item.uuid);
+                log.logger().exception(err);
+                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
+            } else {
+                log.logger().debug(self.log_prefix + "setting topology as unassigned: " + item.uuid);
+                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
             }
-        );
+        }
+        if (do_kill) {
+            item.proxy.kill(afterShutdown);
+        } else {
+            item.proxy.shutdown(afterShutdown);
+        }
     }
 
     /** Remove given topology from internal list and report an error */
-    private removeAndReportError(rec: TopologyItem, err: Error) {
+    private removeAndReportError(rec: TopologyItem, err: Error, callback: intf.SimpleCallback) {
         this.removeTopology(rec.uuid);
-        this.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err);
+        this.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
     }
 }
