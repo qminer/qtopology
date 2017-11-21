@@ -1,5 +1,3 @@
-/// <reference types="node" />
-import * as EventEmitter from "events";
 import * as intf from "../topology_interfaces";
 /** Interface for objects that coordinator needs to communicate with. */
 export interface TopologyCoordinatorClient {
@@ -12,11 +10,13 @@ export interface TopologyCoordinatorClient {
     /** Object should resolve differences between running topologies and the given list. */
     resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): any;
     /** Object should shut down */
-    shutdown(): any;
+    shutdown(callback: intf.SimpleCallback): any;
+    /** Process exit wrapper */
+    exit(code: number): any;
 }
 /** This class handles communication with topology coordination storage.
  */
-export declare class TopologyCoordinator extends EventEmitter {
+export declare class TopologyCoordinator {
     private storage;
     private client;
     private name;

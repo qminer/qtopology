@@ -65,7 +65,9 @@ exports.Consts = {
     LeaderMessages: {
         rebalance: "rebalance",
         start_topology: "start_topology",
+        start_topologies: "start_topologies",
         stop_topology: "stop_topology",
+        stop_topologies: "stop_topologies",
         kill_topology: "kill_topology",
         shutdown: "shutdown"
     }

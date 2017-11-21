@@ -21,6 +21,10 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         let worker = data.worker;
         storage.getMessages(worker, callback);
     });
+    http_server.addHandler('/get-message', (data, callback) => {
+        let worker = data.worker;
+        storage.getMessage(worker, callback);
+    });
     http_server.addHandler('/assign-topology', (data, callback) => {
         let worker = data.worker;
         let uuid = data.uuid;

@@ -148,7 +148,7 @@ export class TopologyLocal {
                         self.spouts.push(spout);
                         tasks.push((xcallback) => { spout.init(xcallback); });
                     });
-                    async.series(tasks, (err) => {
+                    async.series(tasks, (err: Error) => {
                         if (err) {
                             log.logger().error(self.logging_prefix + "Error while initializing topology");
                             log.logger().exception(err);
@@ -258,7 +258,7 @@ export class TopologyLocal {
                     tasks.push(factory(module_path));
                 }
             }
-            async.series(tasks, (e) => {
+            async.series(tasks, (e: Error) => {
                 // call hard shutdown regardless of the error
                 if (self.config.general.shutdown_hard) {
                     try {
@@ -402,7 +402,7 @@ export class TopologyLocal {
             let common_context = {};
             async.eachSeries(
                 self.config.general.initialization,
-                (init_conf, xcallback) => {
+                (init_conf: any, xcallback) => {
                     try {
                         if (init_conf.disabled) {
                             // skip if disabled

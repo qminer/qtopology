@@ -29,6 +29,8 @@ export declare class TopologyLeader {
     forceRebalance(): void;
     /** Sometimes outside code gets instruction to assign topology to specific worker. */
     assignTopologyToWorker(target: string, uuid: string, callback: intf.SimpleCallback): void;
+    /** Sometimes outside code gets instruction to assign topologies to specific worker. */
+    assignTopologiesToWorker(target: string, uuids: string[], callback: intf.SimpleCallback): void;
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/

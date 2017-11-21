@@ -20,20 +20,22 @@ export declare class TopologyWorker {
     /** Internal method ensures that a topology exits. */
     private ensureExit(rec, err?);
     /** Internal method that creates proxy for given topology item */
-    private createInitAndRunProxy(rec);
+    private createInitAndRunProxy(rec, callback);
     /** Starts single topology.
      * Guards itself from duplicated calls.
      */
-    private start(uuid, config);
+    private start(uuid, config, callback);
     private hasTopology(uuid);
     /** This method injects override values into variables section of the configuration. */
     private injectOverrides(config);
     /** Remove specified topology from internal list */
     private removeTopology(uuid);
-    /** Shuts down the worker and all its subprocesses. */
+    /** Shuts down the worker and all its subprocesses.
+     * Does not pass any exceptions, only logs them.
+     */
     shutdown(callback: intf.SimpleCallback): void;
     /** Sends shutdown signals to all topologies. Will try to shutdown
-     * all topologies and if any of them failed, return the first error.
+     * all topologies and log any failures.
      */
     private shutDownTopologies(callback);
     /** Sends shut down signal to single topology */
@@ -41,5 +43,5 @@ export declare class TopologyWorker {
     /** Internal method that contains common steps for kill and shutdown sequence */
     private shutDownTopologyInternal(item, do_kill, callback);
     /** Remove given topology from internal list and report an error */
-    private removeAndReportError(rec, err);
+    private removeAndReportError(rec, err, callback);
 }
