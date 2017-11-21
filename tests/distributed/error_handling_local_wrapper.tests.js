@@ -335,7 +335,7 @@ describe('local wrapper', function () {
             }, 20);
         });
     });
-    it('should not allow calling shutdown twice', function (done) {
+    it('should allow calling shutdown twice', function (done) {
         let mockProcess = new MockProcess(done,
             intf.ChildExitCode.exit_ok);
         let target = new tlw.TopologyLocalWrapper(mockProcess);
@@ -357,13 +357,11 @@ describe('local wrapper', function () {
                     data: {}
                 });
                 setTimeout(() => {
-                    assert.equal(mockProcess.sends.length, 3);
+                    assert.equal(mockProcess.sends.length, 2);
                     assert.equal(mockProcess.sends[0].cmd, intf.ChildMsgCode.response_init);
                     assert.equal(mockProcess.sends[0].data.err, null);
                     assert.equal(mockProcess.sends[1].cmd, intf.ChildMsgCode.response_shutdown);
                     assert.equal(mockProcess.sends[1].data.err, null);
-                    assert.equal(mockProcess.sends[2].cmd, intf.ChildMsgCode.response_shutdown);
-                    assert.notEqual(mockProcess.sends[2].data.err, null);
                     clearInterval(target.topology_local.heartbeatTimer);
                 }, 20);
             }, 20);

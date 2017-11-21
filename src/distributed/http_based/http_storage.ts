@@ -30,6 +30,9 @@ export class HttpStorage implements intf.CoordinationStorage {
     getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
         this.call("get-messages", { worker: name }, callback);
     }
+    getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>) {
+        this.call("get-message", { worker: name }, callback);
+    }
     getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
         this.call("worker-statuses", {}, callback);
     }
