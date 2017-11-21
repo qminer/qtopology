@@ -93,7 +93,23 @@ class TopologyLeader {
         let self = this;
         log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
+            if (err) {
+                return callback(err);
+            }
             self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, MESSAGE_INTERVAL, callback);
+        });
+    }
+    /** Sometimes outside code gets instruction to assign topologies to specific worker. */
+    assignTopologiesToWorker(target, uuids, callback) {
+        let self = this;
+        log.logger().log(self.log_prefix + `Assigning topologies ${uuids} to worker ${target}`);
+        async.each(uuids, (uuid, xcallback) => {
+            self.storage.assignTopology(uuid, target, xcallback);
+        }, (err) => {
+            if (err) {
+                return callback(err);
+            }
+            self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topologies, { uuids: uuids }, MESSAGE_INTERVAL, callback);
         });
     }
     /** Single step in checking if current node should be
@@ -273,8 +289,16 @@ class TopologyLeader {
                 .forEach(y => { y.worker = worker; });
             return { uuid: x.uuid, worker: worker };
         });
-        async.eachSeries(assignments, (item, xcallback) => {
-            self.assignTopologyToWorker(item.worker, item.uuid, xcallback);
+        // group assignments by worker
+        let tasks = [];
+        let workers = Array.from(new Set(assignments.map(a => a.worker)));
+        for (let worker of workers) {
+            let worker_assignments = assignments.filter(a => a.worker == worker);
+            let uuids = worker_assignments.map(a => a.uuid);
+            tasks.push({ worker: worker, uuids: uuids });
+        }
+        async.each(tasks, (task, xcallback) => {
+            self.assignTopologiesToWorker(task.worker, task.uuids, xcallback);
         }, callback);
     }
     /** This method will perform rebalance of topologies on workers if needed.
@@ -295,9 +319,18 @@ class TopologyLeader {
             return { name: x.name, weight: 0 };
         }), AFFINITY_FACTOR);
         let steps = load_balancer.rebalance(topologies);
-        async.each(steps.changes, (change, xcallback) => {
-            log.logger().log(self.log_prefix + `Rebalancing - assigning topology ${change.uuid} from worker ${change.worker_old} to worker ${change.worker_new}`);
-            self.storage.sendMessageToWorker(change.worker_old, intf.Consts.LeaderMessages.stop_topology, { uuid: change.uuid, new_worker: change.worker_new }, MESSAGE_INTERVAL, xcallback);
+        // group rebalancing by old worker
+        let rebalance_tasks = [];
+        let workers_old = Array.from(new Set(steps.changes.map(change => change.worker_old)));
+        for (let worker_old of workers_old) {
+            let worker_changes = steps.changes.filter(change => change.worker_old == worker_old);
+            let stop_topologies = worker_changes.map(change => { return { uuid: change.uuid, worker_new: change.worker_new }; });
+            rebalance_tasks.push({ worker_old: worker_old, stop_topologies: stop_topologies });
+        }
+        async.each(rebalance_tasks, (rebalance_task, xcallback) => {
+            log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
+                `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
+            self.storage.sendMessageToWorker(rebalance_task.worker_old, intf.Consts.LeaderMessages.stop_topologies, rebalance_task.stop_topologies, MESSAGE_INTERVAL, xcallback);
         }, callback);
     }
     /** Handles situation when there is a dead worker and its
@@ -419,9 +452,12 @@ class TopologyLeader {
                 xcallback();
             }
         ], (err) => {
-            if (err)
+            if (err) {
                 return callback(err);
-            callback(null, res);
+            }
+            else {
+                return callback(null, res);
+            }
         });
     }
 }
