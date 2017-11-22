@@ -253,7 +253,7 @@ export class TopologyLocalProxy {
         if (this.received_shutdown_response) {
             // the child also exited and onExit was called before
             if (this.has_exited) {
-                this.shutdown_cb = callback; // just to guard against second call from parent
+                this.shutdown_cb = ()=>{}; // just to guard against second call from parent
                 return callback();
             } else {
                 // the child WILL exit soon (it calls killProcess right after sending response to parent)
