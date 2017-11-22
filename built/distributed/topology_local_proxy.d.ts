@@ -7,6 +7,7 @@ export declare class TopologyLocalProxy {
     private run_cb;
     private pause_cb;
     private shutdown_cb;
+    private received_shutdown_response;
     private has_exited;
     private exit_code;
     private child_exit_callback;
