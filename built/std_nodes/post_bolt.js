@@ -5,12 +5,10 @@ const rest = require("node-rest-client");
  * and forwards the request. */
 class PostBolt {
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.fixed_url = null;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;
         this.client = new rest.Client();

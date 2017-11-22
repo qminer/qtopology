@@ -32,7 +32,7 @@ export class RssSpout implements intf.Spout {
     }
 
     heartbeat() {
-        if (Date.now() >= this.next_call_after) {
+        if (Date.now() >= this.next_call_after && this.should_run) {
             let self = this;
             log.logger().debug(this.logging_prefix + "Starting RSS crawl: "  + self.url);
             self.client.get(self.url, (new_data, response) => {
@@ -45,6 +45,7 @@ export class RssSpout implements intf.Spout {
     }
 
     shutdown(callback: intf.SimpleCallback) {
+        this.should_run = false;
         callback();
     }
 
@@ -57,6 +58,9 @@ export class RssSpout implements intf.Spout {
     }
 
     next(callback: intf.SpoutNextCallback) {
+        if (!this.should_run) {
+            return callback(null, null, null);
+        }
         if (this.tuples.length == 0) {
             return callback(null, null, null);
         }

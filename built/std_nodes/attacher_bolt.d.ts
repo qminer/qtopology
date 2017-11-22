@@ -2,7 +2,6 @@ import * as intf from "../topology_interfaces";
 /** This bolt attaches fixed fields to incoming messages
  * and sends them forward. */
 export declare class AttacherBolt implements intf.Bolt {
-    private name;
     private extra_fields;
     private onEmit;
     constructor();

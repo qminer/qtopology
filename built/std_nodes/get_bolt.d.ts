@@ -3,7 +3,6 @@ import * as intf from "../topology_interfaces";
  * and forwards the result.
  * */
 export declare class GetBolt implements intf.Bolt {
-    private name;
     private fixed_url;
     private client;
     private onEmit;

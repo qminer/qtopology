@@ -19,7 +19,7 @@ class RssSpout {
         callback();
     }
     heartbeat() {
-        if (Date.now() >= this.next_call_after) {
+        if (Date.now() >= this.next_call_after && this.should_run) {
             let self = this;
             log.logger().debug(this.logging_prefix + "Starting RSS crawl: " + self.url);
             self.client.get(self.url, (new_data, response) => {
@@ -31,6 +31,7 @@ class RssSpout {
         }
     }
     shutdown(callback) {
+        this.should_run = false;
         callback();
     }
     run() {
@@ -40,6 +41,9 @@ class RssSpout {
         this.should_run = false;
     }
     next(callback) {
+        if (!this.should_run) {
+            return callback(null, null, null);
+        }
         if (this.tuples.length == 0) {
             return callback(null, null, null);
         }
