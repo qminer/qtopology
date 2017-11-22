@@ -18,6 +18,7 @@ export class TopologyLocalProxy {
     private run_cb: intf.SimpleCallback;
     private pause_cb: intf.SimpleCallback;
     private shutdown_cb: intf.SimpleCallback;
+    private received_shutdown_response: boolean;
     private has_exited: boolean;
     private exit_code: number;
     private child_exit_callback: intf.SimpleCallback;
@@ -37,6 +38,7 @@ export class TopologyLocalProxy {
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
+        this.received_shutdown_response = false;
         this.has_exited = false;
         this.exit_code = null;
         this.sentPings = 0;
@@ -90,6 +92,10 @@ export class TopologyLocalProxy {
                 self.sentPings = 0;
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                // on SIGINT, the child might exit before the
+                // parent requests it and shutdown callback
+                // will not exist yet.
+                self.received_shutdown_response = true;
                 if (msg.data.err) { self.last_child_err = msg.data.err; }
                 if (self.shutdown_cb) {
                     let cb = self.shutdown_cb;
@@ -123,10 +129,10 @@ export class TopologyLocalProxy {
             self.has_exited = true;
             if (self.onExit) { self.onExit(e); }
         });
-        
+
         self.setPingInterval();
     }
-    
+
     private setPingInterval() {
         let self = this;
         if (self.pingIntervalId) {
@@ -242,7 +248,22 @@ export class TopologyLocalProxy {
         if (this.shutdown_cb) { // this proxy is in the process of shutdown
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
+
+        // the child might have ALREADY sent shutdown response (SIGINT, SIGTERM)
+        if (this.received_shutdown_response) {
+            // the child also exited and onExit was called before
+            if (this.has_exited) {
+                this.shutdown_cb = ()=>{}; // just to guard against second call from parent
+                return callback();
+            } else {
+                // the child WILL exit soon (it calls killProcess right after sending response to parent)
+                // this.shutdown_cb must NOT be set (otherwise onExit will create an error)
+                return callback();
+            }
+        }
+
         this.shutdown_cb = callback;
+
         // child guards itself against shutting down twice
         // or shutting down uninitialized, returns an exception in response
         this.send(intf.ParentMsgCode.shutdown, {});
