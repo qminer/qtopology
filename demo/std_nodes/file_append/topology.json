@@ -21,6 +21,7 @@
             "working_dir": "",
             "cmd": "test",
             "init": {
+                "delay_between": 2000,
                 "tuples": [
                     {
                         "server": "server1"
