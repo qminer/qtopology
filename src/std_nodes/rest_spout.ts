@@ -6,7 +6,6 @@ import * as http from 'http';
  */
 export class RestSpout implements intf.Spout {
 
-    private name: string;
     private stream_id: string;
     private should_run: boolean;
     private port: number;
@@ -16,7 +15,6 @@ export class RestSpout implements intf.Spout {
     private queue: any[];
 
     constructor() {
-        this.name = null;
         this.port = null;
         this.stream_id = null;
         this.should_run = false;
@@ -28,7 +26,6 @@ export class RestSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.port = config.port;
         this.stream_id = config.stream_id;
         this.max_queue_len = config.max_queue_len || this.max_queue_len;

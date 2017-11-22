@@ -3,7 +3,6 @@ import * as intf from "../topology_interfaces";
  * Primarily used for testing.
 */
 export declare class BombBolt implements intf.Bolt {
-    private name;
     private explode_after;
     private started_at;
     private onEmit;

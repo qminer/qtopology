@@ -1,7 +1,6 @@
 import * as intf from "../topology_interfaces";
 /** This spout reads input file in several supported formats and emits tuples. */
 export declare class FileReaderSpout implements intf.Spout {
-    private name;
     private stream_id;
     private file_format;
     private file_name;

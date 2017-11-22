@@ -3,7 +3,6 @@ import * as intf from "../topology_interfaces";
  * time intervals and forwards the result.
  * */
 export declare class GetSpout implements intf.Spout {
-    private name;
     private stream_id;
     private url;
     private repeat;

@@ -3,7 +3,6 @@ import * as intf from "../topology_interfaces";
  * It assumes data is in JSON format.
  */
 export declare class RestSpout implements intf.Spout {
-    private name;
     private stream_id;
     private should_run;
     private port;
