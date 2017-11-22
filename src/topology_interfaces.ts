@@ -170,7 +170,9 @@ export var Consts = {
     LeaderMessages: {
         rebalance: "rebalance",
         start_topology: "start_topology",
+        start_topologies: "start_topologies",
         stop_topology: "stop_topology",
+        stop_topologies: "stop_topologies",
         kill_topology: "kill_topology",
         shutdown: "shutdown"
     }
@@ -238,6 +240,7 @@ export interface CoordinationStorage {
     getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>);
     getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>);
     getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
+    getMessage(name: string, callback: SimpleResultCallback<StorageResultMessage>);
     getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>);
 
     getTopologyHistory(uuid: string, callback: SimpleResultCallback<TopologyStatusHistory[]>);

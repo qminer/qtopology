@@ -424,8 +424,11 @@ class TopologyBoltWrapper extends TopologyNodeBase {
                             self.receive(d.data, d.stream_id, d.callback);
                         }
                         else if (self.pendingShutdownCallback) {
-                            self.shutdown(self.pendingShutdownCallback);
+                            // self.shutdown(self.pendingShutdownCallback);
+                            // self.pendingShutdownCallback = null;
+                            let cb = self.pendingShutdownCallback;
                             self.pendingShutdownCallback = null;
+                            cb();
                         }
                     }
                 });
