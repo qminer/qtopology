@@ -1,8 +1,8 @@
-import * as topology_compiler from "../topology_compiler";
-import * as tl from "../topology_local";
-import * as intf from "../topology_interfaces";
-import * as log from "../util/logger";
-import * as serialize_error from "serialize-error"
+import * as topology_compiler from '../topology_compiler';
+import * as tl from '../topology_local';
+import * as intf from '../topology_interfaces';
+import * as log from '../util/logger';
+import * as serialize_error from 'serialize-error';
 
 /**
  * This class acts as wrapper for local topology when
@@ -11,11 +11,10 @@ import * as serialize_error from "serialize-error"
 export class TopologyLocalWrapper {
 
     private uuid: string;
-    private process: NodeJS.Process;
+    private process: any; // NodeJS.Process
     private topology_local: tl.TopologyLocal;
     private waiting_for_shutdown: boolean;
     private log_prefix: string;
-    private exitTimeout: number; // milliseconds
     private pingTimeout: number; // milliseconds
     private pingInterval: number; // milliseconds
     private lastPing: number;
@@ -27,11 +26,10 @@ export class TopologyLocalWrapper {
         this.process = proc || process;
         this.topology_local = null;
         this.waiting_for_shutdown = false;
-        this.lastPing = Date.now();
         this.log_prefix = "[Wrapper] ";
-        this.exitTimeout = 100;
         this.pingTimeout = 20 * 1000;
         this.pingInterval = 3000;
+        this.lastPing = Date.now();
         this.process.on("message", (msg) => {
             self.handle(msg);
         });
@@ -107,8 +105,10 @@ export class TopologyLocalWrapper {
         self.clearPingInterval();
         let s = `${fun} called in the child process, but the topology hasn't been initialized yet.`;
         log.logger().error(self.log_prefix + s);
-        self.sendToParent(msgCode, { err: new Error(s) });
-        self.killProcess(exitCode); // error was already sent to parent
+        self.sendToParent(msgCode, { err: new Error(s) }, () => {
+            self.killProcess(exitCode); // error was already sent to parent
+        });
+
     }
 
     /** Starts infinite loop by reading messages from parent or console */
@@ -133,14 +133,15 @@ export class TopologyLocalWrapper {
             try {
                 compiler.compile();
             } catch (err) {
-                self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
-                self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
+                self.sendToParent(intf.ChildMsgCode.response_init, { err: err }, () => {
+                    self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
+                });
                 return;
             }
             let topology = compiler.getWholeConfig();
             if (topology.general && topology.general.wrapper) {
-                this.pingTimeout = topology.general.wrapper.ping_timeout || this.pingTimeout;
-                this.pingInterval = topology.general.wrapper.ping_interval || this.pingInterval;
+                this.pingTimeout = topology.general.wrapper.ping_child_timeout || this.pingTimeout;
+                this.pingInterval = topology.general.wrapper.ping_child_interval || this.pingInterval;
                 this.setPingInterval();
                 if (topology.general.wrapper.log_level) {
                     log.logger().setLevel(topology.general.wrapper.log_level);
@@ -150,10 +151,11 @@ export class TopologyLocalWrapper {
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {
-                self.sendToParent(intf.ChildMsgCode.response_init, { err: err });
-                if (err) {
-                    self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
-                }
+                self.sendToParent(intf.ChildMsgCode.response_init, { err: err }, () => {
+                    if (err) {
+                        self.killProcess(intf.ChildExitCode.init_error); // error was already sent to parent
+                    }
+                });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.ping) {
@@ -168,10 +170,11 @@ export class TopologyLocalWrapper {
                 return;
             }
             self.topology_local.run((err?: Error) => {
-                self.sendToParent(intf.ChildMsgCode.response_run, { err: err });
-                if (err) {
-                    self.killProcess(intf.ChildExitCode.run_error); // error was already sent to parent
-                }
+                self.sendToParent(intf.ChildMsgCode.response_run, { err: err }, () => {
+                    if (err) {
+                        self.killProcess(intf.ChildExitCode.run_error); // error was already sent to parent
+                    }
+                });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.pause) {
@@ -182,10 +185,11 @@ export class TopologyLocalWrapper {
                 return;
             }
             self.topology_local.pause((err?: Error) => {
-                self.sendToParent(intf.ChildMsgCode.response_pause, { err: err });
-                if (err) {
-                    self.killProcess(intf.ChildExitCode.pause_error); // error was already sent to parent
-                }
+                self.sendToParent(intf.ChildMsgCode.response_pause, { err: err }, () => {
+                    if (err) {
+                        self.killProcess(intf.ChildExitCode.pause_error); // error was already sent to parent
+                    }
+                });
             });
         }
         if (msg.cmd === intf.ParentMsgCode.shutdown) {
@@ -203,22 +207,27 @@ export class TopologyLocalWrapper {
         let self = this;
         self.clearPingInterval();
         if (err) {
-            self.sendToParent(intf.ChildMsgCode.error, { err: err });
-        }
-        // call hard shut-down anyway
-        if (this.topology_local) {
-            try {
-                this.topology_local.shutdownHard();
-            } catch (e) {
-                log.logger().error(this.log_prefix + `THIS SHOULD NOT HAPPEN. Error while shutdownHard in topology ${self.uuid}, process id = ${self.process.pid}`);
-                log.logger().exception(e);
+            self.sendToParent(intf.ChildMsgCode.error, { err: err }, (e) => {
+                if (e) {
+                    self.process.exit(intf.ChildExitCode.parent_disconnect);
+                } else {
+                    self.process.exit(exit_code || intf.ChildExitCode.internal_error);
+                }
+            });
+        } else {
+            // call hard shut-down anyway
+            if (this.topology_local) {
+                try {
+                    this.topology_local.shutdownHard();
+                } catch (e) {
+                    log.logger().error(this.log_prefix + `THIS SHOULD NOT HAPPEN. Error while shutdownHard in topology ${self.uuid}, process id = ${self.process.pid}`);
+                    log.logger().exception(e);
+                }
             }
-        }
-        // stop the process after a short while, so that the parent can process the message
-        setTimeout(() => {
+            // stop the process after a short while, so that the parent can process the message
             log.logger().important(self.log_prefix + `Calling process.exit(${exit_code || intf.ChildExitCode.exit_ok}) from the child process for topology ${self.uuid}, process id = ${self.process.pid}`);
             self.process.exit(exit_code || intf.ChildExitCode.exit_ok);
-        }, self.exitTimeout);
+        }
     }
 
     /** This method shuts down the local topology.
@@ -231,7 +240,7 @@ export class TopologyLocalWrapper {
             if (self.waiting_for_shutdown) {
                 let s = `Ignoring shutdown in the child process (${self.uuid}): the topology is already shutting down (${self.topology_local.getUuid()}).`;
                 log.logger().warn(self.log_prefix + s);
-                //self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: new Error(s) });
+                // do not send error to parent (topology not in error state)
                 return;
             }
             self.clearPingInterval();
@@ -240,24 +249,24 @@ export class TopologyLocalWrapper {
             self.topology_local.shutdown((err) => {
                 // if we are shutting down due to unrecoverable exception
                 // we have the original error from the data field of the message
-                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err });
-                if (err) {
-                    log.logger().error(self.log_prefix + `Error shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
-                    log.logger().exception(err);
-                    self.killProcess(intf.ChildExitCode.shutdown_internal_error); // error was already sent to parent
-                    return;
-                }
-                self.killProcess(intf.ChildExitCode.exit_ok);
-                return;
+                self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: err }, () => {
+                    if (err) {
+                        log.logger().error(self.log_prefix + `Error shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
+                        log.logger().exception(err);
+                        self.killProcess(intf.ChildExitCode.shutdown_internal_error); // error was already sent to parent
+                        return;
+                    }
+                    self.killProcess(intf.ChildExitCode.exit_ok);
+                });
             });
         } catch (e) {
             // stop the process if it was not stopped so far
             log.logger().error("THIS SHOULD NOT HAPPEN!"); // topology_local shutdown is never expected to throw (propagate errors through callbacks)
             log.logger().error(this.log_prefix + `Error while shutting down topology ${self.uuid}, process id = ${self.process.pid}`);
             log.logger().exception(e);
-            self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: e });
-            self.killProcess(intf.ChildExitCode.shutdown_unlikely_error); // error was already sent to parent
-            return;
+            self.sendToParent(intf.ChildMsgCode.response_shutdown, { err: e }, () => {
+                self.killProcess(intf.ChildExitCode.shutdown_unlikely_error); // error was already sent to parent
+            });
         }
     }
 
@@ -265,15 +274,20 @@ export class TopologyLocalWrapper {
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    private sendToParent(cmd: intf.ChildMsgCode, data: any) {
+    private sendToParent(cmd: intf.ChildMsgCode, data: any, callback?: intf.SimpleCallback) {
         if (this.process.send) {
             if (data.err) {
                 data.err = serialize_error(data.err);
             }
-            this.process.send({ cmd: cmd, data: data });
+            if (callback) {
+                this.process.send({ cmd: cmd, data: data }, null, {}, callback);
+            } else {
+                this.process.send({ cmd: cmd, data: data });
+            }
         } else {
             // we're running in dev/test mode as a standalone process
             console.log(this.log_prefix + "Sending command", { cmd: cmd, data: data });
+            if (callback) { return callback(); }
         }
     }
 }

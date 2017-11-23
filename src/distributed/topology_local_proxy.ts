@@ -7,8 +7,6 @@ import { tryCallback } from "../util/callback_wrappers";
 
 // TODO: specific exit codes for internal errors: attach code to Error object
 
-const PING_INTERVAL = 3000;
-const MAX_PING_FAILS = 10;
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -24,9 +22,9 @@ export class TopologyLocalProxy {
     private child_exit_callback: intf.SimpleCallback;
     private child: cp.ChildProcess;
     private pingIntervalId: NodeJS.Timer;
-    private pingInterval: number;
-    private maxPingFails: number;
-    private sentPings: number;
+    private pingTimeout: number; // milliseconds
+    private pingInterval: number; // milliseconds
+    private lastPing: number;
     private log_prefix: string;
     private last_child_err: Error;
     private cp: any; // injectable child_process library (useful for mocking)
@@ -41,13 +39,13 @@ export class TopologyLocalProxy {
         this.received_shutdown_response = false;
         this.has_exited = false;
         this.exit_code = null;
-        this.sentPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
         this.child_exit_callback = tryCallback(this.child_exit_callback);
         this.child = null;
         this.cp = child_process || cp;
-        this.pingInterval = PING_INTERVAL;
-        this.maxPingFails = MAX_PING_FAILS;
+        this.pingTimeout = 30 * 1000;
+        this.pingInterval = 3000;
+        this.lastPing = Date.now();
     }
 
     /** Starts child process and sets up all event handlers */
@@ -89,7 +87,7 @@ export class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_ping) {
-                self.sentPings = 0;
+                self.lastPing = Date.now();
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
                 // on SIGINT, the child might exit before the
@@ -141,8 +139,8 @@ export class TopologyLocalProxy {
         // send ping to child in regular intervals
         self.pingIntervalId = setInterval(
             () => {
-                if (self.sentPings < self.maxPingFails) {
-                    self.sentPings++;
+                let now = Date.now();
+                if (now - this.lastPing < this.pingTimeout) {
                     self.send(intf.ParentMsgCode.ping, {});
                 } else {
                     log.logger().error(self.log_prefix + "Too many un-answered pings, sending kill to child process...");
@@ -208,6 +206,10 @@ export class TopologyLocalProxy {
         if (this.child != null) {
             return callback(new Error(this.log_prefix + "Child already initialized."));
         }
+        if (config.general && config.general.wrapper) {
+            this.pingTimeout = config.general.wrapper.ping_parent_timeout || this.pingTimeout;
+            this.pingInterval = config.general.wrapper.ping_parent_interval || this.pingInterval;
+        }
         this.setUpChildProcess(uuid);
 
         this.log_prefix = `[Proxy ${uuid}] `;
@@ -253,7 +255,7 @@ export class TopologyLocalProxy {
         if (this.received_shutdown_response) {
             // the child also exited and onExit was called before
             if (this.has_exited) {
-                this.shutdown_cb = ()=>{}; // just to guard against second call from parent
+                this.shutdown_cb = () => { }; // just to guard against second call from parent
                 return callback();
             } else {
                 // the child WILL exit soon (it calls killProcess right after sending response to parent)

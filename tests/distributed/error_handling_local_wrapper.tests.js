@@ -55,7 +55,7 @@ class MockProcess extends EventEmitter {
         }
         this.done();
     }
-    send(obj) { this.sends.push(obj); }
+    send(obj, sendHandle, options, callback) { this.sends.push(obj); if (callback) { return callback(); } }
 }
 
 describe('local wrapper', function () {
