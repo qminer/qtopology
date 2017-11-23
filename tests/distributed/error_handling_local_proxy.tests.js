@@ -16,8 +16,8 @@ let topology_json = {
         "heartbeat": 10000,
         "wrapper": {
             "log_level": "none",
-            "ping_timeout": 20000,
-            "ping_interval": 3000
+            "ping_child_timeout": 20000,
+            "ping_child_interval": 3000
         },
         // each module needs to expose init(initObj, common_context, xcallback)
         "initialization": [
@@ -110,8 +110,8 @@ describe('local proxy', function () {
                 inputs: []
             };
             top_config.bolts.push(config);
-            top_config.general.wrapper.ping_interval = 10;
-            top_config.general.wrapper.ping_timeout = 30;
+            top_config.general.wrapper.ping_child_interval = 10;
+            top_config.general.wrapper.ping_child_timeout = 30;
 
             let child_exit_callback = Cb();
             let target = new tlp.TopologyLocalProxy(
@@ -153,7 +153,7 @@ describe('local proxy', function () {
             target.init("top1", top_config, (e) => {
                 assert.equal(e, null); // should succeed
                 target.pingInterval = 1;
-                target.maxPingFails = 0;
+                target.pingTimeout = 0;
                 target.setPingInterval();
                 setTimeout(() => {
                     // exception thrown in bolt init should get to here
