@@ -1,8 +1,8 @@
-import * as topology_compiler from '../topology_compiler';
-import * as tl from '../topology_local';
-import * as intf from '../topology_interfaces';
-import * as log from '../util/logger';
-import * as serialize_error from 'serialize-error';
+import * as topology_compiler from "../topology_compiler";
+import * as tl from "../topology_local";
+import * as intf from "../topology_interfaces";
+import * as log from "../util/logger";
+import * as serialize_error from "serialize-error";
 
 /**
  * This class acts as wrapper for local topology when
@@ -11,7 +11,7 @@ import * as serialize_error from 'serialize-error';
 export class TopologyLocalWrapper {
 
     private uuid: string;
-    private process: any; // NodeJS.Process
+    private process: any; // this should be NodeJS.Process, but the four parameter send method is missing in typescript.
     private topology_local: tl.TopologyLocal;
     private waiting_for_shutdown: boolean;
     private log_prefix: string;
