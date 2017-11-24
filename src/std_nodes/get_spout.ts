@@ -6,7 +6,6 @@ import * as rest from 'node-rest-client';
  * */
 export class GetSpout implements intf.Spout {
 
-    private name: string;
     private stream_id: string;
     private url: string;
     private repeat: number;
@@ -16,8 +15,6 @@ export class GetSpout implements intf.Spout {
     private client: rest.Client;
 
     constructor() {
-        this.name = null;
-
         this.url = null;
         this.stream_id = null;
         this.repeat = null;
@@ -28,7 +25,6 @@ export class GetSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.url = config.url;
         this.repeat = config.repeat;
         this.stream_id = config.stream_id;

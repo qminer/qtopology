@@ -36,10 +36,16 @@
                                 "none"
                             ]
                         },
-                        "ping_interval": {
+                        "ping_parent_timeout": {
                             "type": "number"
                         },
-                        "ping_timeout": {
+                        "ping_parent_interval": {
+                            "type": "number"
+                        },
+                        "ping_child_timeout": {
+                            "type": "number"
+                        },
+                        "ping_child_interval": {
                             "type": "number"
                         }
                     },

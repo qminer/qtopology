@@ -8,7 +8,6 @@ export declare class TopologyLocalWrapper {
     private topology_local;
     private waiting_for_shutdown;
     private log_prefix;
-    private exitTimeout;
     private pingTimeout;
     private pingInterval;
     private lastPing;
@@ -36,5 +35,5 @@ export declare class TopologyLocalWrapper {
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    private sendToParent(cmd, data);
+    private sendToParent(cmd, data, callback?);
 }

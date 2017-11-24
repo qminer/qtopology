@@ -4,11 +4,16 @@ language: node_js
 
 node_js:
   - 6
+  - 8
+
+before_install:
+  - npm install -g typescript
 
 install:
   - npm install
 
 script:
+  - tsc
   - npm install -g mocha
   - npm test
 

@@ -7,8 +7,6 @@ const log = require("../util/logger");
 const deserialize_error = require("deserialize-error");
 const callback_wrappers_1 = require("../util/callback_wrappers");
 // TODO: specific exit codes for internal errors: attach code to Error object
-const PING_INTERVAL = 3000;
-const MAX_PING_FAILS = 10;
 /**
  * This class acts as a proxy for local topology inside parent process.
  */
@@ -20,15 +18,16 @@ class TopologyLocalProxy {
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
+        this.received_shutdown_response = false;
         this.has_exited = false;
         this.exit_code = null;
-        this.sentPings = 0;
         this.child_exit_callback = child_exit_callback || (() => { });
         this.child_exit_callback = callback_wrappers_1.tryCallback(this.child_exit_callback);
         this.child = null;
         this.cp = child_process || cp;
-        this.pingInterval = PING_INTERVAL;
-        this.maxPingFails = MAX_PING_FAILS;
+        this.pingTimeout = 30 * 1000;
+        this.pingInterval = 3000;
+        this.lastPing = Date.now();
     }
     /** Starts child process and sets up all event handlers */
     setUpChildProcess(uuid) {
@@ -75,9 +74,13 @@ class TopologyLocalProxy {
                 }
             }
             if (msg.cmd == intf.ChildMsgCode.response_ping) {
-                self.sentPings = 0;
+                self.lastPing = Date.now();
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                // on SIGINT, the child might exit before the
+                // parent requests it and shutdown callback
+                // will not exist yet.
+                self.received_shutdown_response = true;
                 if (msg.data.err) {
                     self.last_child_err = msg.data.err;
                 }
@@ -128,8 +131,8 @@ class TopologyLocalProxy {
         }
         // send ping to child in regular intervals
         self.pingIntervalId = setInterval(() => {
-            if (self.sentPings < self.maxPingFails) {
-                self.sentPings++;
+            let now = Date.now();
+            if (now - this.lastPing < this.pingTimeout) {
                 self.send(intf.ParentMsgCode.ping, {});
             }
             else {
@@ -192,6 +195,10 @@ class TopologyLocalProxy {
         if (this.child != null) {
             return callback(new Error(this.log_prefix + "Child already initialized."));
         }
+        if (config.general && config.general.wrapper) {
+            this.pingTimeout = config.general.wrapper.ping_parent_timeout || this.pingTimeout;
+            this.pingInterval = config.general.wrapper.ping_parent_interval || this.pingInterval;
+        }
         this.setUpChildProcess(uuid);
         this.log_prefix = `[Proxy ${uuid}] `;
         this.init_cb = callback;
@@ -228,6 +235,19 @@ class TopologyLocalProxy {
         if (this.shutdown_cb) {
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
+        // the child might have ALREADY sent shutdown response (SIGINT, SIGTERM)
+        if (this.received_shutdown_response) {
+            // the child also exited and onExit was called before
+            if (this.has_exited) {
+                this.shutdown_cb = () => { }; // just to guard against second call from parent
+                return callback();
+            }
+            else {
+                // the child WILL exit soon (it calls killProcess right after sending response to parent)
+                // this.shutdown_cb must NOT be set (otherwise onExit will create an error)
+                return callback();
+            }
+        }
         this.shutdown_cb = callback;
         // child guards itself against shutting down twice
         // or shutting down uninitialized, returns an exception in response
@@ -239,8 +259,8 @@ class TopologyLocalProxy {
      */
     kill(callback) {
         callback = callback_wrappers_1.tryCallback(callback);
-        if ((this.child == null) ||
-            this.child.killed ||
+        if ((this.child == null) || // not initialized
+            this.child.killed || // already sent SIGKILL
             this.has_exited) {
             return callback();
         }

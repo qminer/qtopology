@@ -7,19 +7,16 @@ import * as pm  from "../util/pattern_matcher";
  * filter and sends them forward. */
 export class FilterBolt implements intf.Bolt {
 
-    private name: string;
     private matcher: pm.PaternMatcher;
     private onEmit: intf.BoltEmitCallback;
 
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.matcher = null;
     }
 
     /** Initializes filtering pattern */
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.matcher = new pm.PaternMatcher(config.filter);
         callback();

@@ -11,14 +11,12 @@ class FileChangeRec {
 
 /** This spout monitors directory for changes. */
 export class DirWatcherSpout implements intf.Spout {
-    private name: string;
     private dir_name: string;
     private queue: FileChangeRec[];
     private should_run: boolean;
     private stream_id: string;
 
     constructor() {
-        this.name = null;
         this.should_run = true;
         this.dir_name = null;
         this.queue = [];
@@ -26,7 +24,6 @@ export class DirWatcherSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.dir_name = path.resolve(config.dir_name);
         this.stream_id = config.stream_id;
 

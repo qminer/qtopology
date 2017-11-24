@@ -6,13 +6,11 @@ const log = require("../util/logger");
 */
 class BombBolt {
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.explode_after = null;
         this.started_at = null;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.explode_after = config.explode_after || 10 * 1000;
         this.started_at = Date.now();
