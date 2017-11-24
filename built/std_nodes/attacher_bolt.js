@@ -5,12 +5,10 @@ const oo = require("../util/object_override");
  * and sends them forward. */
 class AttacherBolt {
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.extra_fields = null;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));
         callback();

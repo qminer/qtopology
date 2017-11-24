@@ -164,6 +164,10 @@ This spout will emit these messages:
 { "ts": "2017-03-16T12:36:33.952Z", "a": 14.3 }
 ``````````````````````````````
 
+### Delaying the messages
+
+Optionally, one can use parameters `delay_start` (delay before the first tuple is emitted) and `delay_between` (delay between two consecutive tuples) to control when tuples are emitted. The parameter values are in miliseconds.
+
 ## Timer spout
 
 `cmd="timer"`

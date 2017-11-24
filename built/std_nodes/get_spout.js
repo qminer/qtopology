@@ -6,7 +6,6 @@ const rest = require("node-rest-client");
  * */
 class GetSpout {
     constructor() {
-        this.name = null;
         this.url = null;
         this.stream_id = null;
         this.repeat = null;
@@ -15,7 +14,6 @@ class GetSpout {
         this.next_ts = Date.now();
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.url = config.url;
         this.repeat = config.repeat;
         this.stream_id = config.stream_id;

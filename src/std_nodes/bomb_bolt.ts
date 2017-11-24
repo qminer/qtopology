@@ -6,20 +6,17 @@ import * as log from "../util/logger";
 */
 export class BombBolt implements intf.Bolt {
 
-    private name: string;
     private explode_after: number;
     private started_at: number;
     private onEmit: intf.BoltEmitCallback;
 
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.explode_after = null;
         this.started_at = null;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.explode_after = config.explode_after || 10 * 1000;
         this.started_at = Date.now();

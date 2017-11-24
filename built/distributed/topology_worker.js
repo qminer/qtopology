@@ -138,6 +138,7 @@ class TopologyWorker {
                 self.removeAndReportError(rec, err, () => { }); // on exit with error
             }
             else {
+                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.unassigned, "");
                 self.removeTopology(rec.uuid); // on normal exit
             }
         });

@@ -7,7 +7,6 @@ const low_water = 50;
 /** This spout reads input file in several supported formats and emits tuples. */
 class FileReaderSpout {
     constructor() {
-        this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
@@ -16,7 +15,6 @@ class FileReaderSpout {
         this.line_reader_paused = false;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.stream_id = config.stream_id;
         this.file_name = config.file_name;
         this.file_format = config.file_format || "json";

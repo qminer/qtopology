@@ -7,13 +7,11 @@ const pm = require("../util/pattern_matcher");
 class RouterBolt {
     /** Simple constructor */
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.matchers = [];
     }
     /** Initializes routing patterns */
     init(name, config, context, callback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         for (let stream_id in config.routes) {
             if (config.routes.hasOwnProperty(stream_id)) {

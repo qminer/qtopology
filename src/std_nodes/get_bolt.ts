@@ -6,19 +6,16 @@ import * as rest from 'node-rest-client';
  * */
 export class GetBolt implements intf.Bolt {
 
-    private name: string;
     private fixed_url: string;
     private client: rest.Client;
     private onEmit: intf.BoltEmitCallback;
 
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.fixed_url = null;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;
         this.client = new rest.Client();
