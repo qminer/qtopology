@@ -6,20 +6,17 @@ import * as pm from "../util/pattern_matcher";
  * queries and sends them forward using mapped stream ids. */
 export class RouterBolt implements intf.Bolt {
 
-    private name: string;
     private matchers: any[];
     private onEmit: intf.BoltEmitCallback;
 
     /** Simple constructor */
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.matchers = [];
     }
 
     /** Initializes routing patterns */
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         for (let stream_id in config.routes) {
             if (config.routes.hasOwnProperty(stream_id)) {

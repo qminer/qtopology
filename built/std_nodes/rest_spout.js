@@ -6,7 +6,6 @@ const http = require("http");
  */
 class RestSpout {
     constructor() {
-        this.name = null;
         this.port = null;
         this.stream_id = null;
         this.should_run = false;
@@ -16,7 +15,6 @@ class RestSpout {
         this.max_queue_len = 1000;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.port = config.port;
         this.stream_id = config.stream_id;
         this.max_queue_len = config.max_queue_len || this.max_queue_len;

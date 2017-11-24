@@ -6,13 +6,11 @@ const pm = require("../util/pattern_matcher");
  * filter and sends them forward. */
 class FilterBolt {
     constructor() {
-        this.name = null;
         this.onEmit = null;
         this.matcher = null;
     }
     /** Initializes filtering pattern */
     init(name, config, context, callback) {
-        this.name = name;
         this.onEmit = config.onEmit;
         this.matcher = new pm.PaternMatcher(config.filter);
         callback();

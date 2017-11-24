@@ -2,7 +2,6 @@ import * as intf from "../topology_interfaces";
 /** This bolt filters incoming messages based on provided
  * filter and sends them forward. */
 export declare class FilterBolt implements intf.Bolt {
-    private name;
     private matcher;
     private onEmit;
     constructor();

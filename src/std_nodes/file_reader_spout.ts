@@ -9,7 +9,6 @@ const low_water = 50;
 /** This spout reads input file in several supported formats and emits tuples. */
 export class FileReaderSpout implements intf.Spout {
 
-    private name: string;
     private stream_id: string;
     private file_format: string;
     private file_name: string;
@@ -22,7 +21,6 @@ export class FileReaderSpout implements intf.Spout {
     private line_reader_paused: boolean;
 
     constructor() {
-        this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
@@ -32,7 +30,6 @@ export class FileReaderSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
         this.stream_id = config.stream_id;
         this.file_name = config.file_name;
         this.file_format = config.file_format || "json";

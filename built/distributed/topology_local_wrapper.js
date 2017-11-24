@@ -127,7 +127,7 @@ class TopologyLocalWrapper {
                     log.logger().setLevel(topology.general.wrapper.log_level);
                 }
             }
-            log.logger().important(self.log_prefix + "Initializing topology " + msg.data.general.uuid);
+            log.logger().important(self.log_prefix + "Initializing topology " + self.uuid);
             // if an internal error is raised we will exit with code 110
             self.topology_local = new tl.TopologyLocal((err) => { self.killProcess(intf.ChildExitCode.internal_error, err); });
             self.topology_local.init(self.uuid, topology, (err) => {

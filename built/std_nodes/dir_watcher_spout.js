@@ -7,14 +7,12 @@ class FileChangeRec {
 /** This spout monitors directory for changes. */
 class DirWatcherSpout {
     constructor() {
-        this.name = null;
         this.should_run = true;
         this.dir_name = null;
         this.queue = [];
         this.stream_id = null;
     }
     init(name, config, context, callback) {
-        this.name = name;
         this.dir_name = path.resolve(config.dir_name);
         this.stream_id = config.stream_id;
         let self = this;

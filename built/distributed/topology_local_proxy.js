@@ -20,6 +20,7 @@ class TopologyLocalProxy {
         this.run_cb = null;
         this.pause_cb = null;
         this.shutdown_cb = null;
+        this.received_shutdown_response = false;
         this.has_exited = false;
         this.exit_code = null;
         this.sentPings = 0;
@@ -78,6 +79,10 @@ class TopologyLocalProxy {
                 self.sentPings = 0;
             }
             if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                // on SIGINT, the child might exit before the
+                // parent requests it and shutdown callback
+                // will not exist yet.
+                self.received_shutdown_response = true;
                 if (msg.data.err) {
                     self.last_child_err = msg.data.err;
                 }
@@ -228,6 +233,19 @@ class TopologyLocalProxy {
         if (this.shutdown_cb) {
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
+        // the child might have ALREADY sent shutdown response (SIGINT, SIGTERM)
+        if (this.received_shutdown_response) {
+            // the child also exited and onExit was called before
+            if (this.has_exited) {
+                this.shutdown_cb = () => { }; // just to guard against second call from parent
+                return callback();
+            }
+            else {
+                // the child WILL exit soon (it calls killProcess right after sending response to parent)
+                // this.shutdown_cb must NOT be set (otherwise onExit will create an error)
+                return callback();
+            }
+        }
         this.shutdown_cb = callback;
         // child guards itself against shutting down twice
         // or shutting down uninitialized, returns an exception in response
@@ -239,8 +257,8 @@ class TopologyLocalProxy {
      */
     kill(callback) {
         callback = callback_wrappers_1.tryCallback(callback);
-        if ((this.child == null) ||
-            this.child.killed ||
+        if ((this.child == null) || // not initialized
+            this.child.killed || // already sent SIGKILL
             this.has_exited) {
             return callback();
         }

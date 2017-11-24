@@ -1,7 +1,6 @@
 import * as intf from "../topology_interfaces";
 /** This spout monitors directory for changes. */
 export declare class DirWatcherSpout implements intf.Spout {
-    private name;
     private dir_name;
     private queue;
     private should_run;
