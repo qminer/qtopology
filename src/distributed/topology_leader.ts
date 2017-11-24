@@ -381,12 +381,12 @@ export class TopologyLeader {
         async.each(
             rebalance_tasks,
             (rebalance_task, xcallback) => {
-                log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` + 
+                log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
                  `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
                 self.storage.sendMessageToWorker(
                     rebalance_task.worker_old,
                     intf.Consts.LeaderMessages.stop_topologies,
-                    rebalance_task.stop_topologies,
+                    { stop_topologies: rebalance_task.stop_topologies },
                     MESSAGE_INTERVAL,
                     xcallback);
             },
