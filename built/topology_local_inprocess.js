@@ -10,6 +10,7 @@ const gb = require("./std_nodes/get_bolt");
 const rb = require("./std_nodes/router_bolt");
 const bb = require("./std_nodes/bomb_bolt");
 const fab = require("./std_nodes/file_append_bolt");
+const fab2 = require("./std_nodes/file_append_bolt_ex");
 const cntb = require("./std_nodes/counter_bolt");
 const dtb = require("./std_nodes/date_transform_bolt");
 const frs = require("./std_nodes/file_reader_spout");
@@ -448,6 +449,7 @@ class TopologyBoltWrapper extends TopologyNodeBase {
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();
+            case "file_append_ex": return new fab2.FileAppendBoltEx();
             case "date_transform": return new dtb.DateTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();

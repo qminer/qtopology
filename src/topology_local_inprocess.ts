@@ -11,6 +11,7 @@ import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
 import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
+import * as fab2 from "./std_nodes/file_append_bolt_ex";
 import * as cntb from "./std_nodes/counter_bolt";
 import * as dtb from "./std_nodes/date_transform_bolt";
 
@@ -471,6 +472,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();
+            case "file_append_ex": return new fab2.FileAppendBoltEx();
             case "date_transform": return new dtb.DateTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
