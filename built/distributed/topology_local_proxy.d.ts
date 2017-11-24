@@ -13,9 +13,9 @@ export declare class TopologyLocalProxy {
     private child_exit_callback;
     private child;
     private pingIntervalId;
+    private pingTimeout;
     private pingInterval;
-    private maxPingFails;
-    private sentPings;
+    private lastPing;
     private log_prefix;
     private last_child_err;
     private cp;

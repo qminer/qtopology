@@ -386,7 +386,7 @@ export class TopologyLeader {
                 self.storage.sendMessageToWorker(
                     rebalance_task.worker_old,
                     intf.Consts.LeaderMessages.stop_topologies,
-                    rebalance_task.stop_topologies,
+                    { stop_topologies: rebalance_task.stop_topologies },
                     MESSAGE_INTERVAL,
                     xcallback);
             },
