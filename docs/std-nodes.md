@@ -324,7 +324,6 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 }
 ```````````````````````````````
 
-
 ## File-append bolt
 
 `cmd="file_append"`
@@ -352,7 +351,7 @@ This example will log all incoming data into file `log.txt` inside `logs` subdir
 
 You can instruct the bolt to prepend timestamp (in local timezone using ISO format), by setting option `prepend_timestamp` to `true`. The new line in the log file will look something like this:
 
-```````````
+```````````json
 2017-05-14T15:52:07.341 {"ts":"2017-03-16T12:36:33.952Z","a":14.3}
 ```````````
 
@@ -449,6 +448,36 @@ Only the current file (the one that we are still writing into) will not be compr
 > This option only works when `split_over_time` is set to `true`.
 
 > If there already exists a gzipped file with the same name (e.g. `log_2017_05_15T13:00:00.txt_0.gz`), a new file with an increased postfix will be created (e.g. `log_2017_05_15T13:00:00.txt_1.gz`).
+
+## File-append bolt extended
+
+`cmd="file_append_ex"`
+
+This bolt is in essence very similar to the `file_append` bolt type, but with the following differences:
+
+- It always splits files with time - init parameter `split_period` is required.
+- "Current time" is read from the data, from specified field (instead of current system time) - init parameter `timestamp_field` is required.
+- It always splits files on given data field - init parameter `split_by_field` is required.
+- It always compresses the files
+- It never prepends timestamp
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "file_append_ex",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "file_name_template": "./log.txt",
+        "split_period": 60000,
+        "split_by_field": "server",
+        "timestamp_field": "ts"
+    }
+}
+```````````````````````````````
 
 ## Router bolt
 
