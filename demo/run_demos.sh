@@ -9,10 +9,10 @@ start=`date +%s`
 function title {
     echo ""
     echo "#######################################################"
-    echo "## "$1 
+    echo "## "$1
     echo "#######################################################"
     echo ""
-} 
+}
 
 #title "Running bomb demo"
 #cd std_nodes/bomb
@@ -57,6 +57,12 @@ cd ../..
 title "Running file_append demo"
 cd std_nodes/file_append
 node demo_file_append.js
+rm *.gz     # cleanup
+cd ../..
+
+title "Running file_append_ex demo"
+cd std_nodes/file_append_ex
+node demo_file_append_ex.js
 rm *.gz     # cleanup
 cd ../..
 
