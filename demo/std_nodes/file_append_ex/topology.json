@@ -1,0 +1,82 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "timer",
+            "init": {
+                "title": "some title",
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        },
+        {
+            "name": "pump_test",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "test",
+            "init": {
+                "delay_between": 500,
+                "tuples": [
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:00:01"
+                    },
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:00:45"
+                    },
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:02:14"
+                    },
+                    {
+                        "server": "server2",
+                        "ts": "2017-01-01T00:02:28"
+                    },
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:03:45"
+                    },
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:04:31"
+                    },
+                    {
+                        "server": "server2",
+                        "ts": "2017-01-01T00:04:33"
+                    },
+                    {
+                        "server": "server1",
+                        "ts": "2017-01-01T00:04:34"
+                    }
+                ]
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file_append_ex",
+            "inputs": [
+                {
+                    "source": "pump_test"
+                }
+            ],
+            "init": {
+                "file_name_template": "./log.txt",
+                "split_period": 60000,
+                "split_by_field": "server",
+                "timestamp_field": "ts"
+            }
+        }
+    ],
+    "variables": {}
+}
