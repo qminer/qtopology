@@ -23,6 +23,7 @@ List of standard bolts:
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [File-append bolt](#file-append-bolt)
+- [File-append bolt extended](#file-append-bolt-extended)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
