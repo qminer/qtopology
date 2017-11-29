@@ -106,7 +106,7 @@ export class FileAppendBolt implements intf.Bolt {
                     // calculate new file name
                     self.current_file_contains_data = false;
                     self.file_name_current = self.file_name_template.replace(injection_placeholder, self.fileNameTimestampValue());
-                    log.logger().log(`${self.log_prefix} new file generated: ${self.file_name_current}`);
+                    log.logger().debug(`${self.log_prefix} new file generated: ${self.file_name_current}`);
                     self.next_split_after = d + self.split_period;
                     xcallback();
                 },
