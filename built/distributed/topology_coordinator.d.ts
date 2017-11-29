@@ -27,6 +27,8 @@ export declare class TopologyCoordinator {
     private leadership;
     private start_time;
     private log_prefix;
+    private pingIntervalId;
+    private pingInterval;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient);
     /** Runs main loop */
@@ -45,4 +47,5 @@ export declare class TopologyCoordinator {
     private handleIncommingRequests(callback);
     /** This method checks if all topologies, assigned to this worker, actually run. */
     private checkAssignedTopologies(callback);
+    private setPingInterval();
 }

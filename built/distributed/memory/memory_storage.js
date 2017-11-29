@@ -406,12 +406,15 @@ class MemoryStorage {
         }
         callback(null);
     }
-    pingWorker(name) {
+    pingWorker(name, callback) {
         for (let worker of this.workers) {
             if (worker.name == name) {
                 worker.last_ping = Date.now();
                 break;
             }
+        }
+        if (callback) {
+            return callback();
         }
     }
     unassignWaitingTopologies() {

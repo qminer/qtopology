@@ -19,12 +19,16 @@ class TopologyCoordinator {
         this.loop_timeout = 2 * 1000; // 2 seconds for refresh
         this.start_time = new Date();
         this.log_prefix = "[Coordinator] ";
+        this.pingIntervalId = null;
+        this.pingInterval = 1000;
     }
     /** Runs main loop */
     run() {
         let self = this;
         self.is_running = true;
-        self.storage.registerWorker(self.name, () => { });
+        self.storage.registerWorker(self.name, () => {
+            self.setPingInterval();
+        });
         self.leadership.run();
         let check_counter = 0;
         async.whilst(() => {
@@ -91,6 +95,7 @@ class TopologyCoordinator {
     shutdown(callback) {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
+        clearInterval(self.pingIntervalId);
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
@@ -257,6 +262,16 @@ class TopologyCoordinator {
                 .map(x => x.uuid);
             self.client.resolveTopologyMismatches(topologies_running, callback);
         });
+    }
+    setPingInterval() {
+        let self = this;
+        if (self.pingIntervalId) {
+            clearInterval(self.pingIntervalId);
+        }
+        // send ping to child in regular intervals
+        self.pingIntervalId = setInterval(() => {
+            self.storage.pingWorker(self.name);
+        }, self.pingInterval);
     }
 }
 exports.TopologyCoordinator = TopologyCoordinator;

@@ -247,6 +247,7 @@ export interface CoordinationStorage {
     getWorkerHistory(name: string, callback: SimpleResultCallback<WorkerStatusHistory[]>);
 
     registerWorker(name: string, callback: SimpleCallback);
+    pingWorker(name: string, callback?: SimpleCallback);
     announceLeaderCandidacy(name: string, callback: SimpleCallback);
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>);
 
