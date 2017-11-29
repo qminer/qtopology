@@ -440,22 +440,22 @@ export class TopologyLeader {
                     // handle status
                     if (worker.status != intf.Consts.WorkerStatus.alive) return xcallback();
                     if (worker.last_ping >= limit1) return xcallback();
+                    log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping)/1000})`);
                     worker.status = intf.Consts.WorkerStatus.dead;
                     // TODO what if worker just had an old PING when starting two servers simultaneously?
                     // TODO what if worker timed out, but comes back? Should we change it's status to live? 
                     // TODO how can leadership loop run when worker is dead?
-                    log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping)/1000})`);
                     self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
                 },
                 (xcallback) => {
                     // handle lstatus
                     if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.status != intf.Consts.WorkerStatus.alive) {
+                        log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (before leadership was ${intf.Consts.WorkerLStatus[worker.lstatus]}, worker was ${intf.Consts.WorkerStatus[worker.status]})`);
                         worker.lstatus = intf.Consts.WorkerLStatus.normal;
-                        log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (previously not live, not normal leader))`);
                         self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
                     } else if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.last_ping < limit2) {
+                        log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (sec since leader ping: ${(Date.now() - worker.last_ping)/1000}; before leadership was ${intf.Consts.WorkerLStatus[worker.lstatus]}, worker was ${intf.Consts.WorkerStatus[worker.status]})`);
                         worker.lstatus = intf.Consts.WorkerLStatus.normal;
-                        log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (sec since leader ping: ${(Date.now() - worker.last_ping)/1000})`);
                         self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
                     } else {
                         xcallback();
