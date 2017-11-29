@@ -77,10 +77,12 @@ class TopologyLeader {
     shutdown(callback) {
         let self = this;
         if (self.is_shut_down) {
+            log.logger().important(self.log_prefix + `Already shut down.`);
             callback();
         }
         else {
             self.shutdown_callback = callback;
+            log.logger().important(self.log_prefix + `Shutting down.`);
             self.is_running = false;
         }
     }
@@ -91,7 +93,7 @@ class TopologyLeader {
     /** Sometimes outside code gets instruction to assign topology to specific worker. */
     assignTopologyToWorker(target, uuid, callback) {
         let self = this;
-        log.logger().log(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
+        log.logger().important(self.log_prefix + `Assigning topology ${uuid} to worker ${target}`);
         self.storage.assignTopology(uuid, target, (err) => {
             if (err) {
                 return callback(err);
@@ -102,7 +104,7 @@ class TopologyLeader {
     /** Sometimes outside code gets instruction to assign topologies to specific worker. */
     assignTopologiesToWorker(target, uuids, callback) {
         let self = this;
-        log.logger().log(self.log_prefix + `Assigning topologies ${uuids} to worker ${target}`);
+        log.logger().important(self.log_prefix + `Assigning topologies ${uuids} to worker ${target}`);
         async.each(uuids, (uuid, xcallback) => {
             self.storage.assignTopology(uuid, target, xcallback);
         }, (err) => {
@@ -122,7 +124,7 @@ class TopologyLeader {
             (xcallback) => {
                 self.refreshStatuses((err, data) => {
                     if (err)
-                        return xcallback(err);
+                        return xcallback(err); // TODO: err leads to candidacy!
                     should_announce = (data.leadership_status != intf.Consts.LeadershipStatus.ok);
                     xcallback();
                 });
@@ -130,6 +132,7 @@ class TopologyLeader {
             (xcallback) => {
                 if (!should_announce)
                     return xcallback();
+                log.logger().important(self.log_prefix + `Announcing leader candidacy.`);
                 self.storage.announceLeaderCandidacy(self.name, xcallback);
             },
             (xcallback) => {
@@ -144,6 +147,7 @@ class TopologyLeader {
                         self.performLeaderLoop(xcallback);
                     }
                     else {
+                        log.logger().important(self.log_prefix + "This worker did not become a leader...");
                         xcallback();
                     }
                 });
@@ -274,7 +278,7 @@ class TopologyLeader {
         let unassigned_topologies = topologies_enabled
             .filter(x => x.status === intf.Consts.TopologyStatus.unassigned);
         if (unassigned_topologies.length > 0) {
-            log.logger().log(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
+            log.logger().important(self.log_prefix + "Found unassigned topologies: " + JSON.stringify(unassigned_topologies));
         }
         // assign unassigned topologies
         let load_balancer = new lb.LoadBalancerEx(alive_workers.map(x => {
@@ -328,7 +332,7 @@ class TopologyLeader {
             rebalance_tasks.push({ worker_old: worker_old, stop_topologies: stop_topologies });
         }
         async.each(rebalance_tasks, (rebalance_task, xcallback) => {
-            log.logger().log(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
+            log.logger().important(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
                 `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
             self.storage.sendMessageToWorker(rebalance_task.worker_old, intf.Consts.LeaderMessages.stop_topologies, { stop_topologies: rebalance_task.stop_topologies }, MESSAGE_INTERVAL, xcallback);
         }, callback);
@@ -372,16 +376,22 @@ class TopologyLeader {
                 if (worker.last_ping >= limit1)
                     return xcallback();
                 worker.status = intf.Consts.WorkerStatus.dead;
+                // TODO what if worker just had an old PING when starting two servers simultaneously?
+                // TODO what if worker timed out, but comes back? Should we change it's status to live? 
+                // TODO how can leadership loop run when worker is dead?
+                log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping) / 1000})`);
                 self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
             },
             (xcallback) => {
                 // handle lstatus
                 if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.status != intf.Consts.WorkerStatus.alive) {
                     worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                    log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (previously not live, not normal leader))`);
                     self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
                 }
                 else if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.last_ping < limit2) {
                     worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                    log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (sec since leader ping: ${(Date.now() - worker.last_ping) / 1000})`);
                     self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
                 }
                 else {
@@ -409,9 +419,11 @@ class TopologyLeader {
             let limit = Date.now() - WORKER_IDLE_INTERVAL;
             async.each(data, (topology, xcallback) => {
                 if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < limit) {
+                    log.logger().important(self.log_prefix + `Unassigning waiting topology ${topology.uuid} (sec since ping: ${(Date.now() - topology.last_ping) / 1000})`);
                     self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                 }
                 else if (topology.status == intf.Consts.TopologyStatus.running && dead_workers.indexOf(topology.worker) >= 0) {
+                    log.logger().important(self.log_prefix + `Unassigning running topology ${topology.uuid} on a dead worker ${topology.worker}`);
                     self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                 }
                 else {

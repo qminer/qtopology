@@ -266,6 +266,7 @@ export class TopologyCoordinator {
     }
 
     /** This method checks if all topologies, assigned to this worker, actually run. */
+    // TODO assert PIDs
     private checkAssignedTopologies(callback: intf.SimpleCallback) {
         let self = this;
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {

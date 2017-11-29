@@ -246,6 +246,7 @@ class TopologyCoordinator {
         });
     }
     /** This method checks if all topologies, assigned to this worker, actually run. */
+    // TODO assert PIDs
     checkAssignedTopologies(callback) {
         let self = this;
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
