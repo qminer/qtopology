@@ -113,7 +113,7 @@ class FileAppendBolt {
             });
             async.eachLimit(fnames, 3, (item, xcallback) => {
                 if (fs.existsSync(item)) {
-                    log.logger().log(`${self.log_prefix} compressing current file: ${item}`);
+                    log.logger().debug(`${self.log_prefix} compressing current file: ${item}`);
                     self.zipFile(item, xcallback);
                 }
                 else {
