@@ -12,6 +12,7 @@ export declare class HttpStorage implements intf.CoordinationStorage {
     getTopologiesForWorker(name: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>): void;
     getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<any>): void;
     registerWorker(name: string, callback: intf.SimpleCallback): void;
+    pingWorker(name: string, callback?: intf.SimpleCallback): void;
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback): void;
     checkLeaderCandidacy(name: string, callback: intf.SimpleResultCallback<boolean>): void;
     assignTopology(uuid: string, name: string, callback: intf.SimpleCallback): void;
