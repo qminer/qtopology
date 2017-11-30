@@ -49,7 +49,7 @@ class BucketHandler {
         this.file_name_current = this.file_name_template
             .replace(injection_placeholder, Utils.fileNameTimestampValue(this.ts_start, this.split_period));
         this.curr_file_contains_data = false;
-        log.logger().log(`${this.log_prefix} new file generated: ${this.file_name_current}`);
+        log.logger().debug(`${this.log_prefix} new file generated: ${this.file_name_current}`);
     }
     /** Perform low-level zipping */
     zipFile(fname, callback) {

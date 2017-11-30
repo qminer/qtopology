@@ -38,6 +38,9 @@ class HttpStorage {
     registerWorker(name, callback) {
         this.call("register-worker", { worker: name }, callback);
     }
+    pingWorker(name, callback) {
+        this.call("ping-worker", { worker: name }, callback);
+    }
     announceLeaderCandidacy(name, callback) {
         this.call("announce-leader-candidacy", { worker: name }, callback);
     }

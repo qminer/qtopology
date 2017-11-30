@@ -33,6 +33,8 @@ export class TopologyCoordinator {
     private leadership: leader.TopologyLeader;
     private start_time: Date;
     private log_prefix: string;
+    private pingIntervalId: NodeJS.Timer;
+    private pingInterval: number;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient) {
@@ -46,13 +48,17 @@ export class TopologyCoordinator {
         this.loop_timeout = 2 * 1000; // 2 seconds for refresh
         this.start_time = new Date();
         this.log_prefix = "[Coordinator] ";
+        this.pingIntervalId = null;
+        this.pingInterval = 1000;
     }
 
     /** Runs main loop */
     run() {
         let self = this;
         self.is_running = true;
-        self.storage.registerWorker(self.name, () => { });
+        self.storage.registerWorker(self.name, () => {
+            self.setPingInterval();
+        });
         self.leadership.run();
 
         let check_counter = 0;
@@ -127,6 +133,7 @@ export class TopologyCoordinator {
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
+        clearInterval(self.pingIntervalId);
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
@@ -266,6 +273,7 @@ export class TopologyCoordinator {
     }
 
     /** This method checks if all topologies, assigned to this worker, actually run. */
+    // TODO assert PIDs
     private checkAssignedTopologies(callback: intf.SimpleCallback) {
         let self = this;
         self.storage.getTopologiesForWorker(self.name, (err, topologies) => {
@@ -276,5 +284,18 @@ export class TopologyCoordinator {
 
             self.client.resolveTopologyMismatches(topologies_running, callback);
         });
+    }
+
+    private setPingInterval() {
+        let self = this;
+        if (self.pingIntervalId) {
+            clearInterval(self.pingIntervalId);
+        }
+        // send ping to child in regular intervals
+        self.pingIntervalId = setInterval(
+            () => {
+                self.storage.pingWorker(self.name)
+            },
+            self.pingInterval);
     }
 }

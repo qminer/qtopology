@@ -468,12 +468,15 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null);
     }
 
-    private pingWorker(name: string) {
+    pingWorker(name: string, callback?: intf.SimpleCallback) {
         for (let worker of this.workers) {
             if (worker.name == name) {
                 worker.last_ping = Date.now();
                 break;
             }
+        }
+        if (callback) {
+            return callback();
         }
     }
 
