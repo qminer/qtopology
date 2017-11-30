@@ -48,6 +48,9 @@ export class HttpStorage implements intf.CoordinationStorage {
     registerWorker(name: string, callback: intf.SimpleCallback) {
         this.call("register-worker", { worker: name }, callback);
     }
+    pingWorker(name: string, callback?: intf.SimpleCallback) {
+        this.call("ping-worker", { worker: name }, callback);
+    }
     announceLeaderCandidacy(name: string, callback: intf.SimpleCallback) {
         this.call("announce-leader-candidacy", { worker: name }, callback);
     }
