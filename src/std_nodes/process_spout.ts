@@ -1,6 +1,53 @@
 import * as intf from "../topology_interfaces";
 import * as cp from "child_process";
 
+
+export class Utils {
+
+    public static readJsonFile(content: string, tuples: any[]) {
+        let lines = content.split("\n");
+        for (let line of lines) {
+            line = line.trim();
+            if (line.length == 0) continue;
+            tuples.push(JSON.parse(line));
+        }
+    }
+
+    public static readRawFile(content: string, tuples: any[]) {
+        let lines = content.split("\n");
+        for (let line of lines) {
+            line = line.trim().replace("\r", "");
+            if (line.length == 0) continue;
+            tuples.push({ content: line });
+        }
+    }
+
+    public static readCsvFile(content: string, tuples: any[], csv_has_header: boolean, csv_separator: string, csv_fields: string[]) {
+        let lines = content.split("\n");
+
+        // if CSV file contains header, use it.
+        // otherwise, the first line already contains data
+        if (csv_has_header) {
+            // read first list and parse fields names
+            let header = lines[0].replace("\r", "");
+            csv_fields = header.split(csv_separator);
+            lines = lines.slice(1);
+        }
+
+        for (let line of lines) {
+            line = line.trim().replace("\r", "");
+            if (line.length == 0) continue;
+            let values = line.split(csv_separator);
+            let result = {};
+            for (let i = 0; i < csv_fields.length; i++) {
+                result[csv_fields[i]] = values[i];
+            }
+            tuples.push(result);
+        }
+    }
+}
+
+
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export class ProcessSpout implements intf.Spout {
 
@@ -44,11 +91,11 @@ export class ProcessSpout implements intf.Spout {
         let content2 = cp.spawnSync(cmd, args).output[1];
         let content = content2.toString();
         if (this.file_format == "json") {
-            this.readJsonFile(content);
+            Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
-            this.readCsvFile(content);
+            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
         } else if (this.file_format == "raw") {
-            this.readRawFile(content);
+            Utils.readRawFile(content, this.tuples);
         } else {
             callback(new Error("Unsupported file format: " + this.file_format));
         }
@@ -81,45 +128,45 @@ export class ProcessSpout implements intf.Spout {
         callback(null, data, this.stream_id);
     }
 
-    private readJsonFile(content: string) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length == 0) continue;
-            this.tuples.push(JSON.parse(line));
-        }
-    }
+    // private readJsonFile(content: string) {
+    //     let lines = content.split("\n");
+    //     for (let line of lines) {
+    //         line = line.trim();
+    //         if (line.length == 0) continue;
+    //         this.tuples.push(JSON.parse(line));
+    //     }
+    // }
 
-    private readRawFile(content: string) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            this.tuples.push({ content: line });
-        }
-    }
+    // private readRawFile(content: string) {
+    //     let lines = content.split("\n");
+    //     for (let line of lines) {
+    //         line = line.trim().replace("\r", "");
+    //         if (line.length == 0) continue;
+    //         this.tuples.push({ content: line });
+    //     }
+    // }
 
-    private readCsvFile(content: string) {
-        let lines = content.split("\n");
+    // private readCsvFile(content: string) {
+    //     let lines = content.split("\n");
 
-        // if CSV file contains header, use it.
-        // otherwise, the first line already contains data
-        if (this.csv_has_header) {
-            // read first list and parse fields names
-            let header = lines[0].replace("\r", "");
-            this.csv_fields = header.split(this.csv_separator);;
-            lines = lines.slice(1);
-        }
+    //     // if CSV file contains header, use it.
+    //     // otherwise, the first line already contains data
+    //     if (this.csv_has_header) {
+    //         // read first list and parse fields names
+    //         let header = lines[0].replace("\r", "");
+    //         this.csv_fields = header.split(this.csv_separator);;
+    //         lines = lines.slice(1);
+    //     }
 
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            let values = line.split(this.csv_separator);
-            let result = {};
-            for (let i = 0; i < this.csv_fields.length; i++) {
-                result[this.csv_fields[i]] = values[i];
-            }
-            this.tuples.push(result);
-        }
-    }
+    //     for (let line of lines) {
+    //         line = line.trim().replace("\r", "");
+    //         if (line.length == 0) continue;
+    //         let values = line.split(this.csv_separator);
+    //         let result = {};
+    //         for (let i = 0; i < this.csv_fields.length; i++) {
+    //             result[this.csv_fields[i]] = values[i];
+    //         }
+    //         this.tuples.push(result);
+    //     }
+    // }
 }

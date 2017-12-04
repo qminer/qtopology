@@ -1,4 +1,9 @@
 import * as intf from "../topology_interfaces";
+export declare class Utils {
+    static readJsonFile(content: string, tuples: any[]): void;
+    static readRawFile(content: string, tuples: any[]): void;
+    static readCsvFile(content: string, tuples: any[], csv_has_header: boolean, csv_separator: string, csv_fields: string[]): void;
+}
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export declare class ProcessSpout implements intf.Spout {
     private stream_id;
@@ -17,7 +22,4 @@ export declare class ProcessSpout implements intf.Spout {
     run(): void;
     pause(): void;
     next(callback: intf.SpoutNextCallback): void;
-    private readJsonFile(content);
-    private readRawFile(content);
-    private readCsvFile(content);
 }
