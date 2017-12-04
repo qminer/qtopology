@@ -11,6 +11,7 @@ export declare class ProcessSpout implements intf.Spout {
     private should_run;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
+    private runProcessAndCollectOutput(callback);
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     run(): void;

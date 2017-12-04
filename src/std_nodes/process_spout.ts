@@ -34,12 +34,15 @@ export class ProcessSpout implements intf.Spout {
             this.csv_has_header = config.csv_has_header;
         }
 
+        this.runProcessAndCollectOutput(callback);
+    }
+
+    private runProcessAndCollectOutput(callback: intf.SimpleCallback) {
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
         args = args.slice(1);
         let content2 = cp.spawnSync(cmd, args).output[1];
         let content = content2.toString();
-
         if (this.file_format == "json") {
             this.readJsonFile(content);
         } else if (this.file_format == "csv") {
@@ -49,7 +52,6 @@ export class ProcessSpout implements intf.Spout {
         } else {
             callback(new Error("Unsupported file format: " + this.file_format));
         }
-
         callback();
     }
 
@@ -108,7 +110,7 @@ export class ProcessSpout implements intf.Spout {
             this.csv_fields = header.split(this.csv_separator);;
             lines = lines.slice(1);
         }
-        
+
         for (let line of lines) {
             line = line.trim().replace("\r", "");
             if (line.length == 0) continue;

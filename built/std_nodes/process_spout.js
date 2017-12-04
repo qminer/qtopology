@@ -21,6 +21,9 @@ class ProcessSpout {
             this.csv_fields = config.fields;
             this.csv_has_header = config.csv_has_header;
         }
+        this.runProcessAndCollectOutput(callback);
+    }
+    runProcessAndCollectOutput(callback) {
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
         args = args.slice(1);
