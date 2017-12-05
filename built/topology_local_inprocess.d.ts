@@ -7,6 +7,7 @@ export declare class TopologyNodeBase {
     private telemetry;
     private telemetry_total;
     protected isError: boolean;
+    protected firstErrorMessage: string;
     protected errorCallback: intf.SimpleCallback;
     constructor(name: string, telemetry_timeout: number);
     /** This method checks if telemetry data should be emitted
