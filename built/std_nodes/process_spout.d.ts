@@ -7,6 +7,8 @@ export declare class ProcessSpout implements intf.Spout {
     private csv_parser;
     private tuples;
     private should_run;
+    private next_run;
+    private run_interval;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
     private runProcessAndCollectOutput(callback);

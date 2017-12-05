@@ -82,6 +82,24 @@ For definition of input parameters and explanation of the output handling, see [
 
 > NOTE: This spout waits for the child process to finish, before it emits the data. This is not suitable for large outputs or long-running processes. See "Process spout continuous" for a version that reads thedata continuously.
 
+The child process can be run repeatedly by setting the `run_interval` settings to the number of milliseconds that we want the process to run.
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z",
+        "run_interval": 60000,
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+The above example will run the child process each minute and collect the results.
+
 ## Process spout continuous
 
 `cmd="process-continuous"`

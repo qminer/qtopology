@@ -1,6 +1,7 @@
 import * as intf from "../topology_interfaces";
 import * as cp from "child_process";
 import { Utils, CsvParser } from "./parsing_utils";
+import { logger } from "../index";
 
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export class ProcessSpout implements intf.Spout {
@@ -11,6 +12,9 @@ export class ProcessSpout implements intf.Spout {
     private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
+
+    private next_run: number;
+    private run_interval: number;
 
     constructor() {
         this.stream_id = null;
@@ -28,8 +32,16 @@ export class ProcessSpout implements intf.Spout {
             config.separator = config.separator || ","
             this.csv_parser = new CsvParser(config);
         }
-
-        this.runProcessAndCollectOutput(callback);
+        if (config.run_interval) {
+            // kick-off perpetual periodic execution
+            this.run_interval = config.run_interval;
+            this.next_run = Number.MIN_VALUE;
+            callback();
+        } else {
+            // run only once - now
+            this.next_run = Number.MAX_VALUE;
+            this.runProcessAndCollectOutput(callback);
+        }
     }
 
     private runProcessAndCollectOutput(callback: intf.SimpleCallback) {
@@ -50,7 +62,17 @@ export class ProcessSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() { }
+    heartbeat() {
+        let d = Date.now();
+        if (d >= this.next_run) {
+            this.next_run = d + this.run_interval;
+            this.runProcessAndCollectOutput((err) => {
+                if (!err) return;
+                logger().error("Error while running child process");
+                logger().exception(err);
+            });
+        }
+    }
 
     shutdown(callback: intf.SimpleCallback) {
         callback();

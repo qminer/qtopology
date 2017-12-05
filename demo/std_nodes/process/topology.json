@@ -11,6 +11,7 @@
             "init": {
                 "cmd_line": "less ./data.ldjson",
                 "stream_id": "stream1",
+                "run_interval": 4000,
                 "date_transform_fields": ["ts"]
             }
         },
@@ -23,6 +24,7 @@
                 "cmd_line": "less ./data.csv",
                 "file_format": "csv",
                 "csv_has_header": true,
+                "run_interval": 8000,
                 "stream_id": "stream2"
             }
         },
@@ -34,6 +36,7 @@
             "init": {
                 "cmd_line": "less ./data.txt",
                 "file_format": "raw",
+                "run_interval": 3000,
                 "stream_id": "stream3"
             }
         }
