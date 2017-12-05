@@ -7,11 +7,10 @@
             "name": "pump1",
             "type": "sys",
             "working_dir": "",
-            "cmd": "process",
+            "cmd": "process-continuous",
             "init": {
-                "cmd_line": "less ./data.ldjson",
+                "cmd_line": "node emitter.js json",
                 "stream_id": "stream1",
-                "run_interval": 4000,
                 "date_transform_fields": ["ts"]
             }
         },
@@ -19,12 +18,11 @@
             "name": "pump2",
             "type": "sys",
             "working_dir": "",
-            "cmd": "process",
+            "cmd": "process-continuous",
             "init": {
-                "cmd_line": "less ./data.csv",
+                "cmd_line": "node emitter.js csv",
                 "file_format": "csv",
                 "csv_has_header": true,
-                "run_interval": 8000,
                 "stream_id": "stream2"
             }
         },
@@ -32,32 +30,15 @@
             "name": "pump3",
             "type": "sys",
             "working_dir": "",
-            "cmd": "process",
+            "cmd": "process-continuous",
             "init": {
-                "cmd_line": "less ./data.txt",
+                "cmd_line": "node emitter.js raw",
                 "file_format": "raw",
-                "run_interval": 3000,
                 "stream_id": "stream3"
             }
         }
     ],
     "bolts": [
-        {
-            "name": "bolt_date",
-            "working_dir": ".",
-            "type": "sys",
-            "cmd": "date_transform",
-            "inputs": [
-                {
-                    "source": "pump1",
-                    "stream_id": "stream1"
-                }
-            ],
-            "init": {
-                "date_transform_fields": ["ts"],
-                "reuse_stream_id": true
-            }
-        },
         {
             "name": "bolt1",
             "working_dir": ".",
@@ -65,7 +46,7 @@
             "cmd": "console",
             "inputs": [
                 {
-                    "source": "bolt_date",
+                    "source": "pump1",
                     "stream_id": "stream1"
                 },
                 {

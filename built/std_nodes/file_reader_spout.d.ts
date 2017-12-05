@@ -4,9 +4,7 @@ export declare class FileReaderSpout implements intf.Spout {
     private stream_id;
     private file_format;
     private file_name;
-    private csv_separator;
-    private csv_fields;
-    private csv_header;
+    private csv_parser;
     private tuples;
     private should_run;
     private line_reader;
@@ -18,7 +16,4 @@ export declare class FileReaderSpout implements intf.Spout {
     run(): void;
     pause(): void;
     next(callback: intf.SpoutNextCallback): void;
-    private processLineJson(content);
-    private processLineRaw(content);
-    private processLineCsv(line);
 }
