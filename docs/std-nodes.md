@@ -80,6 +80,8 @@ This spout behaves like the `file` spout - the difference is that it executes sp
 
 For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
 
+> NOTE: This spout waits for the child process to finish, before it emits the data. This is not suitable for large outputs or long-running processes. See "Process spout continuous" for a version that reads thedata continuously.
+
 ## Process spout continuous
 
 `cmd="process-continuous"`
