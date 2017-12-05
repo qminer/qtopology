@@ -163,13 +163,13 @@ export class ProcessSpoutContinuous implements intf.Spout {
             this.csv_has_header = config.csv_has_header;
         }
 
-        let self = this;;
+        let self = this;
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
         args = args.slice(1);
         this.child_process = cp.spawn(cmd, args);
-        this.child_process.on("data", (data) => {
-            self.handleNewData(data);
+        this.child_process.stdout.on("data", (data) => {
+            self.handleNewData(data.toString());
         });
         callback();
     }
@@ -189,6 +189,7 @@ export class ProcessSpoutContinuous implements intf.Spout {
     heartbeat() { }
 
     shutdown(callback: intf.SimpleCallback) {
+        this.child_process.kill("SIGTERM");
         callback();
     }
 

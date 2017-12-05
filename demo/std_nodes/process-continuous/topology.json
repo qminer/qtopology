@@ -1,0 +1,65 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "process-continuous",
+            "init": {
+                "cmd_line": "node emitter.js json",
+                "stream_id": "stream1",
+                "date_transform_fields": ["ts"]
+            }
+        },
+        {
+            "name": "pump2",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "process-continuous",
+            "init": {
+                "cmd_line": "node emitter.js csv",
+                "file_format": "csv",
+                "csv_has_header": true,
+                "stream_id": "stream2"
+            }
+        },
+        {
+            "name": "pump3",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "process-continuous",
+            "init": {
+                "cmd_line": "node emitter.js raw",
+                "file_format": "raw",
+                "stream_id": "stream3"
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": "pump1",
+                    "stream_id": "stream1"
+                },
+                {
+                    "source": "pump2",
+                    "stream_id": "stream2"
+                },
+                {
+                    "source": "pump3",
+                    "stream_id": "stream3"
+                }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

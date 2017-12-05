@@ -44,6 +44,11 @@ cd std_nodes/process
 node demo_process.js
 cd ../..
 
+title "Running process-continuous demo"
+cd std_nodes/process-continuous
+node demo_process_continuous.js
+cd ../..
+
 title "Running file_reader demo"
 cd std_nodes/file_reader
 node demo_file_reader.js
