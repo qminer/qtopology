@@ -9,7 +9,7 @@
             "working_dir": "",
             "cmd": "process",
             "init": {
-                "cmd_line": "less ../file/data.ldjson",
+                "cmd_line": "less ./data.ldjson",
                 "stream_id": "stream1",
                 "date_transform_fields": ["ts"]
             }
@@ -20,8 +20,9 @@
             "working_dir": "",
             "cmd": "process",
             "init": {
-                "cmd_line": "less ../file/data.csv",
+                "cmd_line": "less ./data.csv",
                 "file_format": "csv",
+                "csv_has_header": true,
                 "stream_id": "stream2"
             }
         },
@@ -31,7 +32,7 @@
             "working_dir": "",
             "cmd": "process",
             "init": {
-                "cmd_line": "less ../file/data.txt",
+                "cmd_line": "less ./data.txt",
                 "file_format": "raw",
                 "stream_id": "stream3"
             }
