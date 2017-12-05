@@ -16,9 +16,11 @@ class ProcessSpout {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ",";
+            this.csv_parser = new parsing_utils_1.CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
         this.runProcessAndCollectOutput(callback);
     }
@@ -32,7 +34,8 @@ class ProcessSpout {
             parsing_utils_1.Utils.readJsonFile(content, this.tuples);
         }
         else if (this.file_format == "csv") {
-            parsing_utils_1.Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            //Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         }
         else if (this.file_format == "raw") {
             parsing_utils_1.Utils.readRawFile(content, this.tuples);
@@ -81,9 +84,11 @@ class ProcessSpoutContinuous {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ",";
+            this.csv_parser = new parsing_utils_1.CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
         let self = this;
         let args = this.cmd_line.split(" ");
@@ -100,7 +105,8 @@ class ProcessSpoutContinuous {
             parsing_utils_1.Utils.readJsonFile(content, this.tuples);
         }
         else if (this.file_format == "csv") {
-            parsing_utils_1.Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            //Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         }
         else if (this.file_format == "raw") {
             parsing_utils_1.Utils.readRawFile(content, this.tuples);

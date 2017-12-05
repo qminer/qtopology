@@ -1,6 +1,6 @@
 import * as intf from "../topology_interfaces";
 import * as cp from "child_process";
-import { Utils } from "./parsing_utils";
+import { Utils, CsvParser } from "./parsing_utils";
 
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export class ProcessSpout implements intf.Spout {
@@ -8,9 +8,10 @@ export class ProcessSpout implements intf.Spout {
     private stream_id: string;
     private cmd_line: string;
     private file_format: string;
-    private csv_separator: string;
-    private csv_fields: string[];
-    private csv_has_header: boolean;
+    // private csv_separator: string;
+    // private csv_fields: string[];
+    // private csv_has_header: boolean;
+    private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
 
@@ -27,9 +28,11 @@ export class ProcessSpout implements intf.Spout {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ","
+            this.csv_parser = new CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
 
         this.runProcessAndCollectOutput(callback);
@@ -44,7 +47,8 @@ export class ProcessSpout implements intf.Spout {
         if (this.file_format == "json") {
             Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            //Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         } else if (this.file_format == "raw") {
             Utils.readRawFile(content, this.tuples);
         } else {
@@ -87,9 +91,10 @@ export class ProcessSpoutContinuous implements intf.Spout {
     private stream_id: string;
     private cmd_line: string;
     private file_format: string;
-    private csv_separator: string;
-    private csv_fields: string[];
-    private csv_has_header: boolean;
+    // private csv_separator: string;
+    // private csv_fields: string[];
+    // private csv_has_header: boolean;
+    private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
     private child_process: cp.ChildProcess;
@@ -109,9 +114,11 @@ export class ProcessSpoutContinuous implements intf.Spout {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ","
+            this.csv_parser = new CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
 
         let self = this;
@@ -129,7 +136,8 @@ export class ProcessSpoutContinuous implements intf.Spout {
         if (this.file_format == "json") {
             Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            //Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         } else if (this.file_format == "raw") {
             Utils.readRawFile(content, this.tuples);
         } else {
