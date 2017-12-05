@@ -38,6 +38,7 @@ export class TopologyNodeBase {
     private telemetry: tel.Telemetry;
     private telemetry_total: tel.Telemetry;
     protected isError: boolean;
+    protected firstErrorMessage: string;
     protected errorCallback: intf.SimpleCallback; // used for functions without callbacks
 
     constructor(name: string, telemetry_timeout: number) {
@@ -46,6 +47,7 @@ export class TopologyNodeBase {
         this.telemetry_total = new tel.Telemetry(name);
         this.telemetry_next_emit = Date.now();
         this.telemetry_timeout = telemetry_timeout || 60 * 1000;
+        this.firstErrorMessage = "";
     }
 
     /** This method checks if telemetry data should be emitted
@@ -76,7 +78,14 @@ export class TopologyNodeBase {
     protected wrapCallbackSetError(callback: intf.SimpleCallback): intf.SimpleCallback {
         let self = this;
         return (err?: Error) => {
-            if (err) { self.isError = true; }
+            if (err) {
+                self.isError = true;
+                if (self.firstErrorMessage == "") {
+                    self.firstErrorMessage = err.message;
+                }
+                log.logger().error("Internal error in " + self.name + ". Setting error flag.");
+                log.logger().exception(err);
+            }
             try {
                 callback(err);
             } catch (e) {
@@ -171,7 +180,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     shutdown(callback: intf.SimpleCallback) {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        if (this.isError) { return callback(new Error(`Spout (${this.name}) has error flag set. Shutdown refused.`)); }
+        if (this.isError) { return callback(new Error(`Spout (${this.name}) has error flag set. Shutdown refused. Last error: ${this.firstErrorMessage}`)); }
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
         if (this.isShuttingDown) { return callback(new Error(`Spout (${this.name}) is already shutting down.`)); }
         this.isShuttingDown = true;
@@ -188,7 +197,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     init(callback: intf.SimpleCallback) {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        if (this.isError) { return callback(new Error(`Spout (${this.name}) has error flag set. Init refused.`)); }
+        if (this.isError) { return callback(new Error(`Spout (${this.name}) has error flag set. Init refused. Last error: ${this.firstErrorMessage}`)); }
         if (this.initCalled) { return callback(new Error(`Init already called in spout (${this.name})`)); }
         this.initCalled = true;
         try {
@@ -391,7 +400,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     shutdown(callback: intf.SimpleCallback) {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        if (this.isError) { return callback(new Error(`Bolt (${this.name}) has error flag set. Shutdown refused.`)); }
+        if (this.isError) { return callback(new Error(`Bolt (${this.name}) has error flag set. Shutdown refused. Last error: ${this.firstErrorMessage}`)); }
         // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
         if (this.isShuttingDown) { return callback(new Error(`Bolt (${this.name}) is already shutting down.`)); }
         this.isShuttingDown = true;
@@ -410,7 +419,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     init(callback: intf.SimpleCallback) {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
-        if (this.isError) { return callback(new Error(`Bolt (${this.name}) has error flag set. Init refused.`)); }
+        if (this.isError) { return callback(new Error(`Bolt (${this.name}) has error flag set. Init refused. Last error: ${this.firstErrorMessage}`)); }
         if (this.initCalled) { return callback(new Error(`Bolt (${this.name}) init already called.`)); }
         this.initCalled = true;
         try {
@@ -427,7 +436,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         // wrap callback to set self.isError when an exception passed
         callback = this.wrapCallbackSetError(callback);
         let self = this;
-        if (self.isError) { return callback(new Error(`Bolt ${self.name} has error flag set.`)); }
+        if (self.isError) { return callback(new Error(`Bolt ${self.name} has error flag set. Last error: ${this.firstErrorMessage}`)); }
         let ts_start = Date.now();
         if (self.inSend > 0 && !self.allow_parallel) {
             self.pendingSendRequests.push({

@@ -95,6 +95,7 @@ class TopologyCoordinator {
     shutdown(callback) {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
+        // TODO check what happens when a topology is waiting
         clearInterval(self.pingIntervalId);
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
             if (err) {
@@ -270,7 +271,12 @@ class TopologyCoordinator {
         }
         // send ping to child in regular intervals
         self.pingIntervalId = setInterval(() => {
-            self.storage.pingWorker(self.name);
+            self.storage.pingWorker(self.name, (err) => {
+                if (err) {
+                    log.logger().error(self.log_prefix + "Error while sending worker ping:");
+                    log.logger().exception(err);
+                }
+            });
         }, self.pingInterval);
     }
 }
