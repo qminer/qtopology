@@ -1,57 +1,10 @@
 import * as intf from "../topology_interfaces";
 import * as cp from "child_process";
-
-
-export class Utils {
-
-    public static readJsonFile(content: string, tuples: any[]) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length == 0) continue;
-            tuples.push(JSON.parse(line));
-        }
-    }
-
-    public static readRawFile(content: string, tuples: any[]) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            tuples.push({ content: line });
-        }
-    }
-
-    public static readCsvFile(content: string, tuples: any[], csv_has_header: boolean, csv_separator: string, csv_fields: string[]) {
-        let lines = content.split("\n");
-
-        // if CSV file contains header, use it.
-        // otherwise, the first line already contains data
-        if (csv_has_header) {
-            // read first list and parse fields names
-            let header = lines[0].replace("\r", "");
-            csv_fields = header.split(csv_separator);
-            lines = lines.slice(1);
-        }
-
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            let values = line.split(csv_separator);
-            let result = {};
-            for (let i = 0; i < csv_fields.length; i++) {
-                result[csv_fields[i]] = values[i];
-            }
-            tuples.push(result);
-        }
-    }
-}
-
+import { Utils } from "./parsing_utils";
 
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export class ProcessSpout implements intf.Spout {
 
-    //private name: string;
     private stream_id: string;
     private cmd_line: string;
     private file_format: string;
@@ -62,7 +15,6 @@ export class ProcessSpout implements intf.Spout {
     private should_run: boolean;
 
     constructor() {
-        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
@@ -70,7 +22,6 @@ export class ProcessSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";

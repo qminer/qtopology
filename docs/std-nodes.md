@@ -8,6 +8,7 @@ List of standard spouts:
 
 - [File spout](#file-reader-spout)
 - [Process spout](#process-spout)
+- [Process spout continuous](#process-spout-continuous)
 - [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
 - [REST spout](#rest-spout)
@@ -62,7 +63,7 @@ Messages can be stored in several formats:
 
 `cmd="process"`
 
-This spout behaves the `file` spout - the difference is that it executes specified commandline, reads stdout and emits messages.
+This spout behaves like the `file` spout - the difference is that it executes specified command-line, reads stdout and emits messages.
 
 ```````````````````````````````json
 {
@@ -70,6 +71,27 @@ This spout behaves the `file` spout - the difference is that it executes specifi
     "working_dir": ".",
     "type": "sys",
     "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z",
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
+
+## Process spout continuous
+
+`cmd="process-continuous"`
+
+This spout behaves like the `process` spout - the difference is that it spawns child process, specified by the command-line, and reads its stdout as it is written (and emits the messages).
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process-continuous",
     "init": {
         "cmd_line": "my_executable -param1 -x -y -z",
         "file_format": "json"
