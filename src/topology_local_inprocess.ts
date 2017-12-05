@@ -291,6 +291,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
             case "dir": return new ds.DirWatcherSpout();
             case "file_reader": return new frs.FileReaderSpout();
             case "process": return new ps.ProcessSpout();
+            case "process-continuous": return new ps.ProcessSpoutContinuous();
             case "rss": return new rss.RssSpout();
             case "test": return new tss.TestSpout();
             default: throw new Error("Unknown sys spout type: " + spout_config.cmd);
