@@ -259,8 +259,8 @@ class TopologyLocalProxy {
      */
     kill(callback) {
         callback = callback_wrappers_1.tryCallback(callback);
-        if ((this.child == null) ||
-            this.child.killed ||
+        if ((this.child == null) || // not initialized
+            this.child.killed || // already sent SIGKILL
             this.has_exited) {
             return callback();
         }
