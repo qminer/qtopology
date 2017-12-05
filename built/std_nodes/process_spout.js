@@ -1,70 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cp = require("child_process");
-class Utils {
-    static readJsonFile(content, tuples) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length == 0)
-                continue;
-            tuples.push(JSON.parse(line));
-        }
-    }
-    static readRawFile(content, tuples) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0)
-                continue;
-            tuples.push({ content: line });
-        }
-    }
-    static readCsvFile(content, tuples, csv_has_header, csv_separator, csv_fields) {
-        let lines = content.split("\n");
-        // if CSV file contains header, use it.
-        // otherwise, the first line already contains data
-        if (csv_has_header) {
-            // read first list and parse fields names
-            let header = lines[0].replace("\r", "");
-            csv_fields = header.split(csv_separator);
-            lines = lines.slice(1);
-        }
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0)
-                continue;
-            let values = line.split(csv_separator);
-            let result = {};
-            for (let i = 0; i < csv_fields.length; i++) {
-                result[csv_fields[i]] = values[i];
-            }
-            tuples.push(result);
-        }
-    }
-}
-exports.Utils = Utils;
+const parsing_utils_1 = require("./parsing_utils");
+const index_1 = require("../index");
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 class ProcessSpout {
     constructor() {
-        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
         this.should_run = false;
     }
     init(name, config, context, callback) {
-        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ",";
+            this.csv_parser = new parsing_utils_1.CsvParser(config);
         }
-        this.runProcessAndCollectOutput(callback);
+        if (config.run_interval) {
+            // kick-off perpetual periodic execution
+            this.run_interval = config.run_interval;
+            this.next_run = Number.MIN_VALUE;
+            callback();
+        }
+        else {
+            // run only once - now
+            this.next_run = Number.MAX_VALUE;
+            this.runProcessAndCollectOutput(callback);
+        }
     }
     runProcessAndCollectOutput(callback) {
         let args = this.cmd_line.split(" ");
@@ -73,20 +39,31 @@ class ProcessSpout {
         let content2 = cp.spawnSync(cmd, args).output[1];
         let content = content2.toString();
         if (this.file_format == "json") {
-            Utils.readJsonFile(content, this.tuples);
+            parsing_utils_1.Utils.readJsonFile(content, this.tuples);
         }
         else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         }
         else if (this.file_format == "raw") {
-            Utils.readRawFile(content, this.tuples);
+            parsing_utils_1.Utils.readRawFile(content, this.tuples);
         }
         else {
             callback(new Error("Unsupported file format: " + this.file_format));
         }
         callback();
     }
-    heartbeat() { }
+    heartbeat() {
+        let d = Date.now();
+        if (d >= this.next_run) {
+            this.next_run = d + this.run_interval;
+            this.runProcessAndCollectOutput((err) => {
+                if (!err)
+                    return;
+                index_1.logger().error("Error while running child process");
+                index_1.logger().exception(err);
+            });
+        }
+    }
     shutdown(callback) {
         callback();
     }
@@ -112,22 +89,19 @@ exports.ProcessSpout = ProcessSpout;
 /** This spout spawns specified process and starts collecting its stdout, parsing it and emiting the tuples. */
 class ProcessSpoutContinuous {
     constructor() {
-        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
         this.should_run = false;
     }
     init(name, config, context, callback) {
-        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ",";
+            this.csv_parser = new parsing_utils_1.CsvParser(config);
         }
         let self = this;
         let args = this.cmd_line.split(" ");
@@ -141,13 +115,13 @@ class ProcessSpoutContinuous {
     }
     handleNewData(content) {
         if (this.file_format == "json") {
-            Utils.readJsonFile(content, this.tuples);
+            parsing_utils_1.Utils.readJsonFile(content, this.tuples);
         }
         else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         }
         else if (this.file_format == "raw") {
-            Utils.readRawFile(content, this.tuples);
+            parsing_utils_1.Utils.readRawFile(content, this.tuples);
         }
         else {
             throw new Error("Unsupported file format: " + this.file_format);

@@ -1,19 +1,14 @@
 import * as intf from "../topology_interfaces";
-export declare class Utils {
-    static readJsonFile(content: string, tuples: any[]): void;
-    static readRawFile(content: string, tuples: any[]): void;
-    static readCsvFile(content: string, tuples: any[], csv_has_header: boolean, csv_separator: string, csv_fields: string[]): void;
-}
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export declare class ProcessSpout implements intf.Spout {
     private stream_id;
     private cmd_line;
     private file_format;
-    private csv_separator;
-    private csv_fields;
-    private csv_has_header;
+    private csv_parser;
     private tuples;
     private should_run;
+    private next_run;
+    private run_interval;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
     private runProcessAndCollectOutput(callback);
@@ -28,9 +23,7 @@ export declare class ProcessSpoutContinuous implements intf.Spout {
     private stream_id;
     private cmd_line;
     private file_format;
-    private csv_separator;
-    private csv_fields;
-    private csv_has_header;
+    private csv_parser;
     private tuples;
     private should_run;
     private child_process;

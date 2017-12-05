@@ -1,68 +1,22 @@
 import * as intf from "../topology_interfaces";
 import * as cp from "child_process";
-
-
-export class Utils {
-
-    public static readJsonFile(content: string, tuples: any[]) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length == 0) continue;
-            tuples.push(JSON.parse(line));
-        }
-    }
-
-    public static readRawFile(content: string, tuples: any[]) {
-        let lines = content.split("\n");
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            tuples.push({ content: line });
-        }
-    }
-
-    public static readCsvFile(content: string, tuples: any[], csv_has_header: boolean, csv_separator: string, csv_fields: string[]) {
-        let lines = content.split("\n");
-
-        // if CSV file contains header, use it.
-        // otherwise, the first line already contains data
-        if (csv_has_header) {
-            // read first list and parse fields names
-            let header = lines[0].replace("\r", "");
-            csv_fields = header.split(csv_separator);
-            lines = lines.slice(1);
-        }
-
-        for (let line of lines) {
-            line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            let values = line.split(csv_separator);
-            let result = {};
-            for (let i = 0; i < csv_fields.length; i++) {
-                result[csv_fields[i]] = values[i];
-            }
-            tuples.push(result);
-        }
-    }
-}
-
+import { Utils, CsvParser } from "./parsing_utils";
+import { logger } from "../index";
 
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
 export class ProcessSpout implements intf.Spout {
 
-    //private name: string;
     private stream_id: string;
     private cmd_line: string;
     private file_format: string;
-    private csv_separator: string;
-    private csv_fields: string[];
-    private csv_has_header: boolean;
+    private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
 
+    private next_run: number;
+    private run_interval: number;
+
     constructor() {
-        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
@@ -70,18 +24,24 @@ export class ProcessSpout implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ","
+            this.csv_parser = new CsvParser(config);
         }
-
-        this.runProcessAndCollectOutput(callback);
+        if (config.run_interval) {
+            // kick-off perpetual periodic execution
+            this.run_interval = config.run_interval;
+            this.next_run = Number.MIN_VALUE;
+            callback();
+        } else {
+            // run only once - now
+            this.next_run = Number.MAX_VALUE;
+            this.runProcessAndCollectOutput(callback);
+        }
     }
 
     private runProcessAndCollectOutput(callback: intf.SimpleCallback) {
@@ -93,7 +53,7 @@ export class ProcessSpout implements intf.Spout {
         if (this.file_format == "json") {
             Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         } else if (this.file_format == "raw") {
             Utils.readRawFile(content, this.tuples);
         } else {
@@ -102,7 +62,17 @@ export class ProcessSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() { }
+    heartbeat() {
+        let d = Date.now();
+        if (d >= this.next_run) {
+            this.next_run = d + this.run_interval;
+            this.runProcessAndCollectOutput((err) => {
+                if (!err) return;
+                logger().error("Error while running child process");
+                logger().exception(err);
+            });
+        }
+    }
 
     shutdown(callback: intf.SimpleCallback) {
         callback();
@@ -132,19 +102,15 @@ export class ProcessSpout implements intf.Spout {
 /** This spout spawns specified process and starts collecting its stdout, parsing it and emiting the tuples. */
 export class ProcessSpoutContinuous implements intf.Spout {
 
-    //private name: string;
     private stream_id: string;
     private cmd_line: string;
     private file_format: string;
-    private csv_separator: string;
-    private csv_fields: string[];
-    private csv_has_header: boolean;
+    private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
     private child_process: cp.ChildProcess;
 
     constructor() {
-        //this.name = null;
         this.stream_id = null;
         this.file_format = null;
         this.tuples = null;
@@ -152,15 +118,13 @@ export class ProcessSpoutContinuous implements intf.Spout {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        //this.name = name;
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ","
+            this.csv_parser = new CsvParser(config);
         }
 
         let self = this;
@@ -178,7 +142,7 @@ export class ProcessSpoutContinuous implements intf.Spout {
         if (this.file_format == "json") {
             Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
-            Utils.readCsvFile(content, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+            this.csv_parser.process(content, this.tuples);
         } else if (this.file_format == "raw") {
             Utils.readRawFile(content, this.tuples);
         } else {
