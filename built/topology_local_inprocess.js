@@ -13,6 +13,7 @@ const fab = require("./std_nodes/file_append_bolt");
 const fab2 = require("./std_nodes/file_append_bolt_ex");
 const cntb = require("./std_nodes/counter_bolt");
 const dtb = require("./std_nodes/date_transform_bolt");
+const prb = require("./std_nodes/process_bolt");
 const frs = require("./std_nodes/file_reader_spout");
 const ps = require("./std_nodes/process_spout");
 const rs = require("./std_nodes/rest_spout");
@@ -447,6 +448,7 @@ class TopologyBoltWrapper extends TopologyNodeBase {
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
             case "post": return new pb.PostBolt();
+            case "process": return new prb.ProcessBoltContinuous();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();

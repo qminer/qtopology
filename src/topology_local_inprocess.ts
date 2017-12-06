@@ -14,6 +14,7 @@ import * as fab from "./std_nodes/file_append_bolt";
 import * as fab2 from "./std_nodes/file_append_bolt_ex";
 import * as cntb from "./std_nodes/counter_bolt";
 import * as dtb from "./std_nodes/date_transform_bolt";
+import * as prb from "./std_nodes/process_bolt";
 
 import * as frs from "./std_nodes/file_reader_spout";
 import * as ps from "./std_nodes/process_spout";
@@ -470,6 +471,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
             case "post": return new pb.PostBolt();
+            case "process": return new prb.ProcessBoltContinuous();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();
