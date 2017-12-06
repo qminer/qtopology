@@ -147,8 +147,7 @@ Optionally, a `stream_id` for the outgoing messages can be specified.
 
 `cmd="date_transform"`
 
-This bolt takes incoming messages and transforms predefined fields into `Date` objects, since
-this only type is the only one that cannot be properly serialized and deserialized from JSON.
+This bolt takes incoming messages and transforms predefined fields into `Date` objects, since this is the only one that cannot be properly serialized and deserialized from JSON.
 
 ```````````````````````````````json
 {
