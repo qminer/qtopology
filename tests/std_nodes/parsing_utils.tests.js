@@ -72,76 +72,129 @@ describe('ProcessSpoutUtils', function () {
             assert.equal(tuples.length, 0);
         });
     });
-    describe('readCsvFile', function () {
-        describe('no header line', function () {
-            it('should emit individual lines', function () {
-                let tuples = [];
-                let content = "1,2,3\n4,5,6\n7,8,9";
-                pu.Utils.readCsvFile(content, tuples, false, ",", ["x", "y", "z"]);
-                assert.deepEqual(
-                    tuples,
-                    [
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-            });
-            it('should handle empty lines', function () {
-                let tuples = [];
-                let content = "1,2,3\n\n\n4,5,6\n7,8,9";
-                pu.Utils.readCsvFile(content, tuples, false, ",", ["x", "y", "z"]);
-                assert.deepEqual(
-                    tuples,
-                    [
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-            });
-            it('should handle empty content', function () {
-                let tuples = [];
-                let content = "";
-                pu.Utils.readCsvFile(content, tuples, false, ",", ["x", "y", "z"]);
-                assert.equal(tuples.length, 0);
-            });
+});
+describe('CsvParser', function () {
+    describe('no header line', function () {
+        it('should emit individual lines', function () {
+            let tuples = [];
+            let content = "1,2,3\n4,5,6\n7,8,9";
+            let config = {
+                csv_separator: ",",
+                csv_fields: ["x", "y", "z"]
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.deepEqual(
+                tuples,
+                [
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
         });
-        describe('with header line', function () {
-            it('should emit individual lines', function () {
-                let tuples = [];
-                let content = "x,y,z\n1,2,3\n4,5,6\n7,8,9";
-                pu.Utils.readCsvFile(content, tuples, true, ",", null);
-                assert.deepEqual(
-                    tuples,
-                    [
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-            });
-            it('should handle empty lines', function () {
-                let tuples = [];
-                let content = "x,y,z\n1,2,3\n\n\n4,5,6\n7,8,9";
-                pu.Utils.readCsvFile(content, tuples, true, ",", null);
-                assert.deepEqual(
-                    tuples,
-                    [
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-            });
-            it('should handle empty content', function () {
-                let tuples = [];
-                let content = "";
-                pu.Utils.readCsvFile(content, tuples, true, ",", null);
-                assert.equal(tuples.length, 0);
-            });
-            it('should handle empty content - only header', function () {
-                let tuples = [];
-                let content = "x,y,z\n";
-                pu.Utils.readCsvFile(content, tuples, true, ",", null);
-                assert.equal(tuples.length, 0);
-            });
+        it('should handle non-standard separator', function () {
+            let tuples = [];
+            let content = "1#2#3\n4#5#6\n7#8#9";
+            let config = {
+                csv_separator: "#",
+                csv_fields: ["x", "y", "z"]
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.deepEqual(
+                tuples,
+                [
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
+        });
+        it('should handle empty lines', function () {
+            let tuples = [];
+            let content = "1,2,3\n\n\n4,5,6\n7,8,9";
+            let config = {
+                csv_separator: ",",
+                csv_fields: ["x", "y", "z"]
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.deepEqual(
+                tuples,
+                [
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
+        });
+        it('should handle empty content', function () {
+            let tuples = [];
+            let content = "";
+            let config = {
+                csv_separator: ",",
+                csv_fields: ["x", "y", "z"]
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.equal(tuples.length, 0);
+        });
+    });
+    describe('with header line', function () {
+        it('should emit individual lines', function () {
+            let tuples = [];
+            let content = "x,y,z\n1,2,3\n4,5,6\n7,8,9";
+            let config = {
+                csv_separator: ",",
+                csv_fields: null
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.deepEqual(
+                tuples,
+                [
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
+        });
+        it('should handle empty lines', function () {
+            let tuples = [];
+            let content = "x,y,z\n1,2,3\n\n\n4,5,6\n7,8,9";
+            let config = {
+                csv_separator: ",",
+                csv_fields: null
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.deepEqual(
+                tuples,
+                [
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
+        });
+        it('should handle empty content', function () {
+            let tuples = [];
+            let content = "";
+            let config = {
+                csv_separator: ",",
+                csv_fields: null
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.equal(tuples.length, 0);
+        });
+        it('should handle empty content - only header', function () {
+            let tuples = [];
+            let content = "x,y,z\n";
+            let config = {
+                csv_separator: ",",
+                csv_fields: null
+            };
+            let parser = new pu.CsvParser(config);
+            parser.process(content, tuples);
+            assert.equal(tuples.length, 0);
         });
     });
 });
+

@@ -21,9 +21,11 @@ class FileReaderSpout {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ",";
+            this.csv_parser = new parsing_utils_1.CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
         this.line_reader.on('line', (line) => {
@@ -31,7 +33,8 @@ class FileReaderSpout {
                 parsing_utils_1.Utils.readJsonFile(line, this.tuples);
             }
             else if (this.file_format == "csv") {
-                parsing_utils_1.Utils.readCsvFile(line, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+                //Utils.readCsvFile(line, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+                this.csv_parser.process(line, this.tuples);
             }
             else if (this.file_format == "raw") {
                 parsing_utils_1.Utils.readRawFile(line, this.tuples);

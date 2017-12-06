@@ -1,7 +1,7 @@
 import * as intf from "../topology_interfaces";
 import * as fs from "fs";
 import * as rl from "readline";
-import { Utils } from "./parsing_utils";
+import { Utils, CsvParser } from "./parsing_utils";
 
 const high_water = 5000;
 const low_water = 50;
@@ -12,9 +12,10 @@ export class FileReaderSpout implements intf.Spout {
     private stream_id: string;
     private file_format: string;
     private file_name: string;
-    private csv_separator: string;
-    private csv_fields: string[];
-    private csv_has_header: boolean;
+    // private csv_separator: string;
+    // private csv_fields: string[];
+    // private csv_has_header: boolean;
+    private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
     private line_reader: rl.ReadLine;
@@ -35,9 +36,11 @@ export class FileReaderSpout implements intf.Spout {
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            this.csv_separator = config.separator || ",";
-            this.csv_fields = config.fields;
-            this.csv_has_header = config.csv_has_header;
+            config.separator = config.separator || ","
+            this.csv_parser = new CsvParser(config);
+            // this.csv_separator = config.separator || ",";
+            // this.csv_fields = config.fields;
+            // this.csv_has_header = config.csv_has_header;
         }
 
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
@@ -45,7 +48,8 @@ export class FileReaderSpout implements intf.Spout {
             if (this.file_format == "json") {
                 Utils.readJsonFile(line, this.tuples);
             } else if (this.file_format == "csv") {
-                Utils.readCsvFile(line, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+                //Utils.readCsvFile(line, this.tuples, this.csv_has_header, this.csv_separator, this.csv_fields);
+                this.csv_parser.process(line, this.tuples);
             } else if (this.file_format == "raw") {
                 Utils.readRawFile(line, this.tuples);
             }

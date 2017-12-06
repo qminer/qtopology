@@ -52,10 +52,10 @@ Messages can be stored in several formats:
 
 - `raw` - reads text as lines and emits messages with a single field `content` that contains raw text line form the file.
 - `json` - each non-empty line of the file contains a JSON serialized object.
-- `csv` - the first line contains a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
+- `csv` - the first line can contain a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
     - All fields are emited as strings.
-    - Separator character by default is comma (","). This can, however, be changed with additional parameter `separator`.
-    - We can filter the emited fields inside messages by providing a list of allowed fields as `fields` paarmeter. This will result in messages that have only some of the fields from the CSV file present - this that are in this list. If there is a field in the list but it is not present in the CSV file, it will be ignored.
+    - Separator character by default is comma (","). This can, however, be changed with additional parameter `csv_separator`.
+    - Header line is optional. We can define a list of allowed fields with `csv_fields` parameter. If this setting is not present, the first line is assumed to be the header line that defines the fields of the emitted messages.
 
 > At the moment the implementation loads all data into memory first and then emits the messages. This is not suitable for larger files, so use this spout with care.
 
@@ -79,6 +79,26 @@ This spout behaves like the `file` spout - the difference is that it executes sp
 ```````````````````````````````
 
 For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
+
+> NOTE: This spout waits for the child process to finish, before it emits the data. This is not suitable for large outputs or long-running processes. See "Process spout continuous" for a version that reads thedata continuously.
+
+The child process can be run repeatedly by setting the `run_interval` settings to the number of milliseconds that we want the process to run.
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z",
+        "run_interval": 60000,
+        "file_format": "json"
+    }
+}
+```````````````````````````````
+
+The above example will run the child process each minute and collect the results.
 
 ## Process spout continuous
 
