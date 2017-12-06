@@ -23,6 +23,7 @@ List of standard bolts:
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
+- [Process bolt](#process-bolt)
 - [File-append bolt](#file-append-bolt)
 - [File-append bolt extended](#file-append-bolt-extended)
 - [Counter bolt](#counter-bolt)
@@ -120,6 +121,27 @@ This spout behaves like the `process` spout - the difference is that it spawns c
 ```````````````````````````````
 
 For definition of input parameters and explanation of the output handling, see [file spout](#file-spout).
+
+## Process bolt
+
+`cmd="process"`
+
+This bolt spawns a child process and communicates with it using `stdin` and `stdout`.
+Incoming messages are sent to the process as a JSON-serialized strings (single lines) via `stdin` and whenever a line is written to `stdout`, it is assumed to be JSON serialized object. The text is parsed and sent down the topology.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "process",
+    "init": {
+        "cmd_line": "my_executable -param1 -x -y -z"
+    }
+}
+```````````````````````````````
+
+Optionally, a `stream_id` for the outgoing messages can be specified.
 
 ## Date-transform bolt
 
