@@ -9,7 +9,6 @@ const REBALANCE_INTERVAL: number = 60 * 60 * 1000;
 const DEFAULT_LEADER_LOOP_INTERVAL: number = 5 * 1000;
 const MESSAGE_INTERVAL: number = 20 * 1000;
 const WORKER_IDLE_INTERVAL: number = 30 * 1000;
-const LEADER_IDLE_INTERVAL: number = 3 * DEFAULT_LEADER_LOOP_INTERVAL;
 
 interface RefreshStatusesResult {
     leadership_status: string;
@@ -431,15 +430,17 @@ export class TopologyLeader {
     /** Checks single worker record and de-activates it if needed. */
     private disableDefunctWorkerSingle(worker: intf.WorkerStatus, callback: intf.SimpleCallback) {
         let self = this;
-        let limit1 = Date.now() - WORKER_IDLE_INTERVAL;
-        let limit2 = Date.now() - LEADER_IDLE_INTERVAL;
+        let limit = Date.now() - WORKER_IDLE_INTERVAL;
 
         async.series(
             [
                 (xcallback) => {
-                    // handle status
-                    if (worker.status != intf.Consts.WorkerStatus.alive) return xcallback();
-                    if (worker.last_ping >= limit1) return xcallback();
+                    // nothing to do for dead and unloaded workers
+                    if (worker.status == intf.Consts.WorkerStatus.dead ||
+                        worker.status == intf.Consts.WorkerStatus.unloaded) { return xcallback(); }
+                    // nothing to do for workers that pinged recently
+                    if (worker.last_ping >= limit) { return xcallback(); }
+                    // unresponsive worker found
                     log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping)/1000})`);
                     worker.status = intf.Consts.WorkerStatus.dead;
                     // TODO what if worker just had an old PING when starting two servers simultaneously?
@@ -448,13 +449,9 @@ export class TopologyLeader {
                     self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
                 },
                 (xcallback) => {
-                    // handle lstatus
+                    // only alive workers can be leaders
                     if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.status != intf.Consts.WorkerStatus.alive) {
                         log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (before leadership was ${intf.Consts.WorkerLStatus[worker.lstatus]}, worker was ${intf.Consts.WorkerStatus[worker.status]})`);
-                        worker.lstatus = intf.Consts.WorkerLStatus.normal;
-                        self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
-                    } else if (worker.lstatus != intf.Consts.WorkerLStatus.normal && worker.last_ping < limit2) {
-                        log.logger().important(self.log_prefix + `Reporting worker ${worker.name} leadership as normal (sec since leader ping: ${(Date.now() - worker.last_ping)/1000}; before leadership was ${intf.Consts.WorkerLStatus[worker.lstatus]}, worker was ${intf.Consts.WorkerStatus[worker.status]})`);
                         worker.lstatus = intf.Consts.WorkerLStatus.normal;
                         self.storage.setWorkerLStatus(worker.name, worker.lstatus, xcallback);
                     } else {
