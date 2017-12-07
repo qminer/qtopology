@@ -435,8 +435,9 @@ export class TopologyLeader {
         async.series(
             [
                 (xcallback) => {
-                    // nothing to do for dead workers
-                    if (worker.status == intf.Consts.WorkerStatus.dead) { return xcallback(); }
+                    // nothing to do for dead and unloaded workers
+                    if (worker.status == intf.Consts.WorkerStatus.dead ||
+                        worker.status == intf.Consts.WorkerStatus.unloaded) { return xcallback(); }
                     // nothing to do for workers that pinged recently
                     if (worker.last_ping >= limit) { return xcallback(); }
                     // unresponsive worker found

@@ -368,8 +368,9 @@ class TopologyLeader {
         let limit = Date.now() - WORKER_IDLE_INTERVAL;
         async.series([
             (xcallback) => {
-                // nothing to do for dead workers
-                if (worker.status == intf.Consts.WorkerStatus.dead) {
+                // nothing to do for dead and unloaded workers
+                if (worker.status == intf.Consts.WorkerStatus.dead ||
+                    worker.status == intf.Consts.WorkerStatus.unloaded) {
                     return xcallback();
                 }
                 // nothing to do for workers that pinged recently
