@@ -49,6 +49,11 @@ cd std_nodes/process-continuous
 node demo_process_continuous.js
 cd ../..
 
+title "Running process-bolt demo"
+cd std_nodes/process-bolt
+node demo_process_bolt.js
+cd ../..
+
 title "Running file_reader demo"
 cd std_nodes/file_reader
 node demo_file_reader.js
