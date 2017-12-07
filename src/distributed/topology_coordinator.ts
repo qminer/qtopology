@@ -134,8 +134,8 @@ export class TopologyCoordinator {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
         // TODO check what happens when a topology is waiting
-        clearInterval(self.pingIntervalId);
         self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
+            clearInterval(self.pingIntervalId);
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
                 log.logger().exception(err);
