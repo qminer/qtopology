@@ -5,6 +5,9 @@ const qtopology = require("../../../");
 
 // demo configuration
 let config = require("./topology.json");
+// use this line instead to test C++ program
+//let config = require("./topology_cpp.json");
+
 qtopology.validate({ config: config, exitOnError: true });
 let topology = new qtopology.TopologyLocal();
 
