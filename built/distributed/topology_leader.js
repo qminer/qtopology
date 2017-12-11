@@ -8,7 +8,7 @@ const AFFINITY_FACTOR = 5;
 const REBALANCE_INTERVAL = 60 * 60 * 1000;
 const DEFAULT_LEADER_LOOP_INTERVAL = 5 * 1000;
 const MESSAGE_INTERVAL = 20 * 1000;
-const WORKER_IDLE_INTERVAL = 30 * 1000;
+const WORKER_IDLE_INTERVAL = 300 * 1000;
 /** This class handles leader-status determination and
  * performs leadership tasks if marked as leader.
  */
