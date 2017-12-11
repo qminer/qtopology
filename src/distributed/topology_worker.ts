@@ -282,8 +282,9 @@ export class TopologyWorker {
      */
     private shutDownTopologies(callback: intf.SimpleCallback) {
         let self = this;
+        let topologies_local = self.topologies.slice(0);
         async.each(
-            self.topologies,
+            topologies_local,
             (item: TopologyItem, xcallback) => {
                 self.shutDownTopologyInternal(item, false, (err) => {
                     if (err) { // reporting error
