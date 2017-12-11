@@ -156,6 +156,7 @@ export class TopologyWorker {
     private createInitAndRunProxy(rec: TopologyItem, callback: intf.SimpleCallback): void {
         let self = this;
         rec.proxy = new tlp.TopologyLocalProxy((err) => {
+            log.logger().important(this.log_prefix + "Topology " + rec.uuid + " onExit() called.");
             self.ensureExit(rec, err);
             if (err) {
                 self.removeAndReportError(rec, err, () => { }); // on exit with error
@@ -207,7 +208,7 @@ export class TopologyWorker {
         let self = this;
         if (self.hasTopology(uuid)) {
             log.logger().warn(self.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
-            return;
+            return callback(); // don't send an error and stop coordinator
         }
         try {
             self.injectOverrides(config);
@@ -221,6 +222,7 @@ export class TopologyWorker {
             rec.config = config;
             self.createInitAndRunProxy(rec, callback);
             // only change internal state when all other steps passed
+            log.logger().important(this.log_prefix + "Added topology " + uuid + " to internal list.");
             self.topologies.push(rec);
         } catch (err) {
             log.logger().error(this.log_prefix + "Error while creating topology proxy for " + uuid);
@@ -246,7 +248,12 @@ export class TopologyWorker {
     /** Remove specified topology from internal list */
     private removeTopology(uuid: string) {
         let top = this.topologies.find(x => x.uuid == uuid);
-        if (top) { this.ensureExit(top); }
+        if (top) {
+            let hasExited = "?";
+            if (top.proxy) { hasExited = top.proxy.hasExited().toString(); }
+            log.logger().important(this.log_prefix + "Removing topology " + uuid + " from internal list (has exited:" + hasExited + ")");
+            this.ensureExit(top);
+        }
         this.topologies = this.topologies.filter(x => x.uuid != uuid);
     }
 
@@ -324,7 +331,7 @@ export class TopologyWorker {
                 log.logger().exception(err);
                 self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
             } else {
-                log.logger().debug(self.log_prefix + "setting topology as unassigned: " + item.uuid);
+                log.logger().important(self.log_prefix + "setting topology as unassigned: " + item.uuid);
                 self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
             }
         }
