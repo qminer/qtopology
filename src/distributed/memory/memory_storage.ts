@@ -133,7 +133,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .map(x => { return { cmd: x.cmd, content: x.content, created: x.created }; });
         callback(null, res.filter(x => x));
     }
-    
+
     getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>) {
         this.pingWorker(name);
         let now = Date.now();
@@ -283,10 +283,10 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: intf.SimpleCallback) {
         let self = this;
         this.topologies
-            .filter(x => x.uuid == uuid)
+            .filter(x => x.uuid == uuid && (!worker || worker == x.worker))
             .forEach(x => {
                 x.status = status;
                 x.error = error;

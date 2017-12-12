@@ -7,7 +7,7 @@ import * as log from "../util/logger"
 const AFFINITY_FACTOR: number = 5;
 const REBALANCE_INTERVAL: number = 60 * 60 * 1000;
 const DEFAULT_LEADER_LOOP_INTERVAL: number = 5 * 1000;
-const MESSAGE_INTERVAL: number = 20 * 1000;
+const MESSAGE_INTERVAL: number = 120 * 1000;
 const WORKER_IDLE_INTERVAL: number = 300 * 1000;
 
 interface RefreshStatusesResult {
@@ -272,7 +272,7 @@ export class TopologyLeader {
             // strange, topology marked as enabled and running, but no worker specified
             // mark it as unassinged.
             log.logger().important(this.log_prefix + "Topology marked as running and enabled, but no worker specified: " + item.uuid);
-            self.storage.setTopologyStatus(item.uuid, intf.Consts.TopologyStatus.unassigned, null, (err) => {
+            self.storage.setTopologyStatus(item.uuid, null, intf.Consts.TopologyStatus.unassigned, null, (err) => {
                 if (err)
                     return xcallback(err);
                 // move the topology in internal arrays
@@ -385,7 +385,7 @@ export class TopologyLeader {
             rebalance_tasks,
             (rebalance_task, xcallback) => {
                 log.logger().important(self.log_prefix + `Rebalancing - moving topologies from worker ${rebalance_task.worker_old}` +
-                 `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
+                    `: ${rebalance_task.stop_topologies.map(x => x.uuid + ' -> ' + x.worker_new).join(', ')}`);
                 self.storage.sendMessageToWorker(
                     rebalance_task.worker_old,
                     intf.Consts.LeaderMessages.stop_topologies,
@@ -412,7 +412,7 @@ export class TopologyLeader {
                         // this status must stay as it is
                         xcallback();
                     } else {
-                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                        self.storage.setTopologyStatus(topology.uuid, null, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                     }
                 },
                 (err: Error) => {
@@ -441,7 +441,7 @@ export class TopologyLeader {
                     // nothing to do for workers that pinged recently
                     if (worker.last_ping >= limit) { return xcallback(); }
                     // unresponsive worker found
-                    log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping)/1000})`);
+                    log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping) / 1000})`);
                     worker.status = intf.Consts.WorkerStatus.dead;
                     // TODO what if worker just had an old PING when starting two servers simultaneously?
                     // TODO what if worker timed out, but comes back? Should we change it's status to live? 
@@ -488,11 +488,11 @@ export class TopologyLeader {
                 data,
                 (topology: intf.TopologyStatus, xcallback) => {
                     if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < limit) {
-                        log.logger().important(self.log_prefix + `Unassigning waiting topology ${topology.uuid} (sec since ping: ${(Date.now() - topology.last_ping)/1000})`);
-                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                        log.logger().important(self.log_prefix + `Unassigning waiting topology ${topology.uuid} (sec since ping: ${(Date.now() - topology.last_ping) / 1000})`);
+                        self.storage.setTopologyStatus(topology.uuid, null, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                     } else if (topology.status == intf.Consts.TopologyStatus.running && dead_workers.indexOf(topology.worker) >= 0) {
                         log.logger().important(self.log_prefix + `Unassigning running topology ${topology.uuid} on a dead worker ${topology.worker}`);
-                        self.storage.setTopologyStatus(topology.uuid, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                        self.storage.setTopologyStatus(topology.uuid, null, intf.Consts.TopologyStatus.unassigned, null, xcallback);
                     } else {
                         xcallback();
                     }

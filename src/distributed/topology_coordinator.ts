@@ -152,7 +152,7 @@ export class TopologyCoordinator {
     /** Set status on given topology */
     reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback) {
         let self = this;
-        this.storage.setTopologyStatus(uuid, status, error, (err) => {
+        this.storage.setTopologyStatus(uuid, this.name, status, error, (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Couldn't report topology status");
                 log.logger().error(self.log_prefix + `Topology: ${uuid}, status=${status}, error=${error}`);

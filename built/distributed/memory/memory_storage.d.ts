@@ -19,7 +19,7 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     assignTopology(uuid: string, worker: string, callback: intf.SimpleCallback): void;
     sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback): void;
     getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>): void;
-    setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback): void;
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: intf.SimpleCallback): void;
     setWorkerStatus(worker: string, status: string, callback: intf.SimpleCallback): void;
     setWorkerLStatus(worker: string, lstatus: string, callback: intf.SimpleCallback): void;
     registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback): void;
