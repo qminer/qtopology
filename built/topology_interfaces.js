@@ -57,7 +57,6 @@ exports.Consts = {
     },
     TopologyStatus: {
         running: "running",
-        paused: "paused",
         waiting: "waiting",
         error: "error",
         unassigned: "unassigned"

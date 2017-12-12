@@ -45,7 +45,8 @@ function initHttpServer(storage) {
         let uuid = data.uuid;
         let status = data.status;
         let error = data.error;
-        storage.setTopologyStatus(uuid, status, error, callback);
+        let worker = data.worker;
+        storage.setTopologyStatus(uuid, worker, status, error, callback);
     });
     http_server.addHandler('/set-topology-pid', (data, callback) => {
         let uuid = data.uuid;

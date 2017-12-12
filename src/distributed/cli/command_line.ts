@@ -122,7 +122,7 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 3 && params[0] == "set-topology-error") {
-            this.storage.setTopologyStatus(params[1], intf.Consts.TopologyStatus.error, params[2], (err) => {
+            this.storage.setTopologyStatus(params[1], null, intf.Consts.TopologyStatus.error, params[2], (err) => {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "shut-down-worker") {

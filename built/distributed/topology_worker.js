@@ -186,7 +186,7 @@ class TopologyWorker {
         let self = this;
         if (self.hasTopology(uuid)) {
             log.logger().warn(self.log_prefix + `Topology with uuid ${uuid} is already running on this worker`);
-            return callback(); // don't send an error and stop coordinator 
+            return callback(); // don't send an error and stop coordinator
         }
         try {
             self.injectOverrides(config);
@@ -260,7 +260,8 @@ class TopologyWorker {
      */
     shutDownTopologies(callback) {
         let self = this;
-        async.each(self.topologies, (item, xcallback) => {
+        let topologies_local = self.topologies.slice(0);
+        async.each(topologies_local, (item, xcallback) => {
             self.shutDownTopologyInternal(item, false, (err) => {
                 if (err) {
                     log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
