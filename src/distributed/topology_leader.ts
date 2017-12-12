@@ -8,7 +8,7 @@ const AFFINITY_FACTOR: number = 5;
 const REBALANCE_INTERVAL: number = 60 * 60 * 1000;
 const DEFAULT_LEADER_LOOP_INTERVAL: number = 5 * 1000;
 const MESSAGE_INTERVAL: number = 20 * 1000;
-const WORKER_IDLE_INTERVAL: number = 30 * 1000;
+const WORKER_IDLE_INTERVAL: number = 300 * 1000;
 
 interface RefreshStatusesResult {
     leadership_status: string;
