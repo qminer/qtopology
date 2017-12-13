@@ -45,6 +45,13 @@ export declare class TopologyCoordinator {
     reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback): void;
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);
+    /** This method checks current status for this worker.
+     * It might happen that leader marked it as dead (e.g. pings were not
+     * comming into db for some time), but this worker is actually still alive.
+     * The worker must announce that it is available. The leader will then
+     * handle the topologies appropriatelly.
+     */
+    private checkWorkerStatus(callback);
     /** This method checks if all topologies, assigned to this worker, actually run. */
     private checkAssignedTopologies(callback);
     private setPingInterval();
