@@ -83,8 +83,15 @@ export class TopologyCoordinator {
                             }, self.loop_timeout);
                         },
                         (ycallback) => {
-                            if (++check_counter % 5 == 0) {
+                            if (++check_counter % 5 == 1) {
                                 self.checkAssignedTopologies(ycallback);
+                            } else {
+                                ycallback();
+                            }
+                        },
+                        (ycallback) => {
+                            if (++check_counter % 5 == 0) {
+                                self.checkWorkerStatus(ycallback);
                             } else {
                                 ycallback();
                             }
@@ -273,6 +280,31 @@ export class TopologyCoordinator {
             } else {
                 // unknown message
                 return callback();
+            }
+        });
+    }
+
+    /** This method checks current status for this worker.
+     * It might happen that leader marked it as dead (e.g. pings were not 
+     * comming into db for some time), but this worker is actually still alive.
+     * The worker must announce that it is available. The leader will then 
+     * handle the topologies appropriatelly.
+     */
+    private checkWorkerStatus(callback: intf.SimpleCallback) {
+        let self = this;
+        self.storage.getWorkerStatus((err, workers) => {
+            if (err) return callback(err);
+            let curr_status = workers
+                .filter(x => x.name == self.name)
+                .map(x => x.status);
+            if (curr_status.length == 0) {
+                // current worker doesn't have a record
+                self.storage.registerWorker(self.name, callback);
+            } else if (curr_status[0] != intf.Consts.WorkerStatus.alive) {
+                // state was set to something else, but this worker is still running
+                self.storage.setWorkerStatus(self.name, intf.Consts.WorkerStatus.alive, callback);
+            } else {
+                callback();
             }
         });
     }
