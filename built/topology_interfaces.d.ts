@@ -129,7 +129,6 @@ export declare var Consts: {
     };
     TopologyStatus: {
         running: string;
-        paused: string;
         waiting: string;
         error: string;
         unassigned: string;
@@ -213,7 +212,7 @@ export interface CoordinationStorage {
     announceLeaderCandidacy(name: string, callback: SimpleCallback): any;
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): any;
     assignTopology(uuid: string, worker: string, callback: SimpleCallback): any;
-    setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback): any;
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: SimpleCallback): any;
     setTopologyPid(uuid: string, pid: number, callback: SimpleCallback): any;
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback): any;
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback): any;

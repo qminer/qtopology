@@ -64,8 +64,8 @@ export class HttpStorage implements intf.CoordinationStorage {
         this.call("send-message", { worker: worker, cmd: cmd, content: content, valid_msec: valid_msec }, callback);
     }
 
-    setTopologyStatus(uuid: string, status: string, error: string, callback: intf.SimpleCallback) {
-        this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: intf.SimpleCallback) {
+        this.call("set-topology-status", { uuid: uuid, status: status, error: error, worker: worker }, callback);
     }
     getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>) {
         this.call("get-msg-queue-content", {}, callback);

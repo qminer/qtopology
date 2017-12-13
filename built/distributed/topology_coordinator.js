@@ -114,7 +114,7 @@ class TopologyCoordinator {
     /** Set status on given topology */
     reportTopology(uuid, status, error, callback) {
         let self = this;
-        this.storage.setTopologyStatus(uuid, status, error, (err) => {
+        this.storage.setTopologyStatus(uuid, this.name, status, error, (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Couldn't report topology status");
                 log.logger().error(self.log_prefix + `Topology: ${uuid}, status=${status}, error=${error}`);
@@ -205,29 +205,31 @@ class TopologyCoordinator {
                 });
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                self.client.stopTopology(msg.content.uuid, () => {
-                    // errors will be reported to storage and prevent starting new topologies
-                    if (msg.content.worker_new) {
-                        // ok, we got an instruction to explicitly re-assign topology to new worker
-                        self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
-                    }
-                    else {
-                        return callback();
-                    }
-                });
+                self.client.stopTopology(msg.content.uuid, callback);
+                //// TODO: remove (2017-12-11)
+                // self.client.stopTopology(msg.content.uuid, () => {
+                //     // errors will be reported to storage and prevent starting new topologies
+                //     if (msg.content.worker_new) {
+                //         // ok, we got an instruction to explicitly re-assign topology to new worker
+                //         self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
+                //     } else {
+                //         return callback();
+                //     }
+                // });
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies, (stop_topology, xcallback) => {
-                    self.client.stopTopology(stop_topology.uuid, () => {
-                        // errors will be reported to storage and prevent starting new topologies
-                        if (stop_topology.worker_new) {
-                            // ok, we got an instruction to explicitly re-assign topology to new worker
-                            self.leadership.assignTopologyToWorker(stop_topology.worker_new, stop_topology.uuid, xcallback);
-                        }
-                        else {
-                            return xcallback();
-                        }
-                    });
+                    self.client.stopTopology(stop_topology.uuid, xcallback);
+                    //// TODO: remove (2017-12-11)
+                    // self.client.stopTopology(stop_topology.uuid, () => {
+                    //     // errors will be reported to storage and prevent starting new topologies
+                    //     if (stop_topology.worker_new) {
+                    //         // ok, we got an instruction to explicitly re-assign topology to new worker
+                    //         self.leadership.assignTopologyToWorker(stop_topology.worker_new, stop_topology.uuid, xcallback);
+                    //     } else {
+                    //         return xcallback();
+                    //     }
+                    // });
                 }, callback);
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
