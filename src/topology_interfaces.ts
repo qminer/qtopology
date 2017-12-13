@@ -124,17 +124,17 @@ export enum ChildMsgCode {
 }
 
 export enum ChildExitCode {
-    exit_ok=0,
-    parent_disconnect=1,
-    parent_ping_timeout=2,
-    init_error=10,
-    pause_error=20,
-    run_error=25,
-    shutdown_notinit_error=30,
-    shutdown_internal_error=40,
-    shutdown_unlikely_error=41,
-    internal_error=110,
-    unhandeled_error=999
+    exit_ok = 0,
+    parent_disconnect = 1,
+    parent_ping_timeout = 2,
+    init_error = 10,
+    pause_error = 20,
+    run_error = 25,
+    shutdown_notinit_error = 30,
+    shutdown_internal_error = 40,
+    shutdown_unlikely_error = 41,
+    internal_error = 110,
+    unhandeled_error = 999
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -162,7 +162,6 @@ export var Consts = {
     },
     TopologyStatus: {
         running: "running",
-        paused: "paused",
         waiting: "waiting",
         error: "error",
         unassigned: "unassigned"
@@ -252,7 +251,7 @@ export interface CoordinationStorage {
     checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>);
 
     assignTopology(uuid: string, worker: string, callback: SimpleCallback);
-    setTopologyStatus(uuid: string, status: string, error: string, callback: SimpleCallback);
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: SimpleCallback);
     setTopologyPid(uuid: string, pid: number, callback: SimpleCallback);
     setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
     setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);

@@ -53,8 +53,8 @@ class HttpStorage {
     sendMessageToWorker(worker, cmd, content, valid_msec, callback) {
         this.call("send-message", { worker: worker, cmd: cmd, content: content, valid_msec: valid_msec }, callback);
     }
-    setTopologyStatus(uuid, status, error, callback) {
-        this.call("set-topology-status", { uuid: uuid, status: status, error: error }, callback);
+    setTopologyStatus(uuid, worker, status, error, callback) {
+        this.call("set-topology-status", { uuid: uuid, status: status, error: error, worker: worker }, callback);
     }
     getMsgQueueContent(callback) {
         this.call("get-msg-queue-content", {}, callback);

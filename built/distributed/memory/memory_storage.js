@@ -237,10 +237,10 @@ class MemoryStorage {
         });
         callback(null, res);
     }
-    setTopologyStatus(uuid, status, error, callback) {
+    setTopologyStatus(uuid, worker, status, error, callback) {
         let self = this;
         this.topologies
-            .filter(x => x.uuid == uuid)
+            .filter(x => x.uuid == uuid && (!worker || worker == x.worker))
             .forEach(x => {
             x.status = status;
             x.error = error;
