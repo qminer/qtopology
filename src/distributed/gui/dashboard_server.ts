@@ -3,6 +3,7 @@ import * as http from "http";
 
 import * as intf from "../../topology_interfaces";
 import * as http_server from "../../util/http_server";
+import * as leader from "../topology_leader";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -78,7 +79,7 @@ export class DashboardServer {
             self.storage.registerTopology(data.uuid, data.config, callback);
         });
         self.server.addHandler("clear-topology-error", (data, callback) => {
-            self.storage.clearTopologyError(data.uuid, callback);
+            leader.TopologyLeader.clearTopologyError(data.uuid, self.storage, callback);
         });
         self.server.addHandler("disable-topology", (data, callback) => {
             self.storage.disableTopology(data.uuid, callback);

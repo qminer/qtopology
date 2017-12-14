@@ -4,6 +4,7 @@ import * as intf from "../../topology_interfaces";
 import * as vld from "../../topology_validation";
 import * as log from "../../util/logger";
 import * as cmdline from "../../util/cmdline";
+import * as leader from "../topology_leader";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -118,7 +119,7 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "clear-topology-error") {
-            this.storage.clearTopologyError(params[1], (err) => {
+            leader.TopologyLeader.clearTopologyError(params[1], this.storage, (err) => {
                 handleError(err, callback);
             });
         } else if (params.length == 3 && params[0] == "set-topology-error") {

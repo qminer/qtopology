@@ -61,4 +61,8 @@ export declare class TopologyLeader {
     private unassignWaitingTopologies(data_workers, callback);
     /** Gets and refreshes worker statuses */
     private refreshStatuses(callback);
+    /** Utility function that resembles leadership - removes error flag for topology.
+     * But it is not called within leader object.
+     */
+    static clearTopologyError(uuid: string, storage: intf.CoordinationStorage, callback: intf.SimpleCallback): void;
 }
