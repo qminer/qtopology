@@ -370,7 +370,15 @@ class MemoryStorage {
         }
         hit.status = intf.Consts.TopologyStatus.unassigned;
         this.notifyTopologyHistory(hit);
-        callback();
+        let worker = this.workers
+            .filter(x => x.name == hit.worker)
+            .map(x => x.status);
+        if (worker.length > 0 && worker[0] == intf.Consts.WorkerStatus.alive) {
+            this.assignTopology(uuid, hit.worker, callback);
+        }
+        else {
+            callback();
+        }
     }
     deleteWorker(name, callback) {
         let hits = this.workers.filter(x => x.name == name);
