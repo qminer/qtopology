@@ -2,12 +2,19 @@
 export class Utils {
 
     /** Reads and parses JSON data, one object per line. */
-    public static readJsonFile(content: string, tuples: any[]) {
+    public static readJsonFile(content: string, tuples: any[], pushError: boolean = true) {
         let lines = content.split("\n");
         for (let line of lines) {
             line = line.trim();
             if (line.length == 0) continue;
-            tuples.push(JSON.parse(line));
+            try {
+                let json = JSON.parse(line);
+                tuples.push(json);
+            } catch (e) {
+                if (pushError) { 
+                    tuples.push(e);
+                }
+            }
         }
     }
 
