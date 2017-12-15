@@ -265,8 +265,7 @@ export interface CoordinationStorage {
     stopTopology(uuid: string, callback: SimpleCallback);
     killTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
-    clearTopologyError(uuid: string, callback: SimpleCallback);
-
+    
     deleteWorker(name: string, callback: SimpleCallback);
     shutDownWorker(name: string, callback: SimpleCallback);
 

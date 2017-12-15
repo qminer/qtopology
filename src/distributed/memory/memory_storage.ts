@@ -416,21 +416,6 @@ export class MemoryStorage implements intf.CoordinationStorage {
         }
     }
 
-    clearTopologyError(uuid: string, callback: intf.SimpleCallback) {
-        let hits = this.topologies
-            .filter(x => x.uuid == uuid);
-        if (hits.length == 0) {
-            return callback(new Error("Specified topology not found: " + uuid));
-        }
-        let hit = hits[0];
-        if (hit.status != intf.Consts.TopologyStatus.error) {
-            return callback(new Error("Specified topology is not marked as error: " + uuid));
-        }
-        hit.status = intf.Consts.TopologyStatus.unassigned;
-        this.notifyTopologyHistory(hit);
-        callback();
-    }
-
     deleteWorker(name: string, callback: intf.SimpleCallback) {
         let hits = this.workers.filter(x => x.name == name);
         if (hits.length > 0) {

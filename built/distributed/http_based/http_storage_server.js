@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hs = require("../../util/http_server");
+const leader = require("../topology_leader");
 const mem = require("../memory/memory_storage");
 ////////////////////////////////////////////////////////////////////
 // Initialize simple REST server
@@ -86,7 +87,7 @@ function initHttpServer(storage) {
         storage.deleteTopology(data.uuid, callback);
     });
     http_server.addHandler('/clear-topology-error', (data, callback) => {
-        storage.clearTopologyError(data.uuid, callback);
+        leader.TopologyLeader.clearTopologyError(data.uuid, storage, callback);
     });
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);

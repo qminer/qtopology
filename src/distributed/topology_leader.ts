@@ -543,4 +543,53 @@ export class TopologyLeader {
             }
         );
     }
+
+    /** Utility function that resembles leadership - removes error flag for topology.
+     * But it is not called within leader object.
+     */
+    public static clearTopologyError(uuid: string, storage: intf.CoordinationStorage, callback: intf.SimpleCallback): void {
+        let topology_data: intf.TopologyInfoResponse = null;
+        let do_assign = false;
+        async.series(
+            [
+                (xcallback) => {
+                    storage.getTopologyInfo(uuid, (err, data) => {
+                        if (err) return callback(err);
+                        topology_data = data;
+                        if (topology_data.status != intf.Consts.TopologyStatus.error) {
+                            return xcallback(new Error("Specified topology is not marked as error: " + uuid));
+                        }
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    storage.getWorkerStatus((err, data) => {
+                        if (err) return xcallback(err);
+                        let worker = data
+                            .filter(x => x.name == topology_data.worker)
+                            .map(x => x.status);
+                        // automatically assign to the same server - this will make sure that
+                        // any local data is processed again.
+                        do_assign = (worker.length > 0 && worker[0] == intf.Consts.WorkerStatus.alive);
+                        xcallback();
+                    });
+                },
+                (xcallback) => {
+                    if (do_assign) {
+                        storage.assignTopology(uuid, topology_data.worker, xcallback);
+                    } else {
+                        storage.setTopologyStatus(uuid, null, intf.Consts.TopologyStatus.unassigned, null, xcallback);
+                    }
+                },
+                (xcallback) => {
+                    if (do_assign) {
+                        storage.sendMessageToWorker(topology_data.worker, intf.Consts.LeaderMessages.start_topology, { uuid: uuid }, MESSAGE_INTERVAL, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                }
+            ],
+            callback
+        );
+    }
 }

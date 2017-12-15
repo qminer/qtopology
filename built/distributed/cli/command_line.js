@@ -6,6 +6,7 @@ const intf = require("../../topology_interfaces");
 const vld = require("../../topology_validation");
 const log = require("../../util/logger");
 const cmdline = require("../../util/cmdline");
+const leader = require("../topology_leader");
 //////////////////////////////////////////////////////////////////////
 /**
  * This utility method handles/displays captured error
@@ -130,7 +131,7 @@ class CommandLineHandler {
             });
         }
         else if (params.length == 2 && params[0] == "clear-topology-error") {
-            this.storage.clearTopologyError(params[1], (err) => {
+            leader.TopologyLeader.clearTopologyError(params[1], this.storage, (err) => {
                 handleError(err, callback);
             });
         }
