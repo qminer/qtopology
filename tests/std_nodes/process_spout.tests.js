@@ -5,7 +5,9 @@
 const assert = require("assert");
 const ps = require("../../built/std_nodes/process_spout");
 
-describe('ProcessContinuousSpout', function () {
+const WAIT_FOR_CHILD_PROCESS = 500;
+
+describe.only('ProcessContinuousSpout', function () {
     it('constructable', function () {
         let target = new ps.ProcessSpoutContinuous();
     });
@@ -43,7 +45,7 @@ describe('ProcessContinuousSpout', function () {
                     assert.equal(stream_id, null);
                     done();
                 });
-            }, 300);
+            }, WAIT_FOR_CHILD_PROCESS);
         });
     });
     it('emits a parse error', function (done) {
@@ -61,6 +63,9 @@ describe('ProcessContinuousSpout', function () {
             target.run();
             setTimeout(() => {
                 target.next((err, data, stream_id) => {
+                    assert.equal(err, null);
+                    assert.deepEqual(data, { a: 5 });
+                    assert.equal(stream_id, null);
                     target.next((err, data, stream_id) => {
                         assert.notEqual(err, null);
                         assert.equal(data, null);
@@ -68,7 +73,7 @@ describe('ProcessContinuousSpout', function () {
                         done();
                     });
                 });
-            }, 300);
+            }, WAIT_FOR_CHILD_PROCESS);
         });
     });
     it('emits a stderr error', function (done) {
@@ -91,7 +96,7 @@ describe('ProcessContinuousSpout', function () {
                     assert.equal(stream_id, null);
                     done();
                 });
-            }, 300);
+            }, WAIT_FOR_CHILD_PROCESS);
         });
     });
     it('emits an error on exit', function (done) {
@@ -114,7 +119,7 @@ describe('ProcessContinuousSpout', function () {
                     assert.equal(stream_id, null);
                     done();
                 });
-            }, 300);
+            }, WAIT_FOR_CHILD_PROCESS);
         });
     });
 });
