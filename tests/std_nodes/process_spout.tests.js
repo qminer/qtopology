@@ -117,4 +117,28 @@ describe('ProcessContinuousSpout', function () {
             }, 300);
         });
     });
+    it('uses cwd parameter', function (done) {
+        let name = "spouty_mcspoutface";
+        let config = {
+            cwd: './tests/std_nodes',
+            cmd_line: "node simple_proc.js",
+            file_format: "json",
+            emit_parse_errors: false,
+            emit_stderr_errors: false,
+            emit_error_on_exit: false,
+        };
+        let target = new ps.ProcessSpoutContinuous();
+        target.init(name, config, null, (err) => {
+            assert.ok(!err);
+            target.run();
+            setTimeout(() => {
+                target.next((err, data, stream_id) => {
+                    assert.equal(err, null);
+                    assert.deepEqual(data, { a: 5 });
+                    assert.equal(stream_id, null);
+                    done();
+                });
+            }, 300);
+        });
+    });
 });

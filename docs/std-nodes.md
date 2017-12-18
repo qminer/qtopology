@@ -106,6 +106,8 @@ The above example will run the child process each minute and collect the results
 `cmd="process-continuous"`
 
 This spout behaves like the `process` spout - the difference is that it spawns child process, specified by the command-line, and reads its stdout as it is written (and emits the messages).
+The two most important config parameters are `cmd_line` - the command to be executed and `cwd` - 
+the current working directory.
 
 ### Error handling
 
@@ -120,6 +122,7 @@ If `emit_error_on_exit` flag (false by default) is set to true, the spout will e
     "cmd": "process-continuous",
     "init": {
         "cmd_line": "my_executable -param1 -x -y -z",
+        "cwd": "./",
         "emit_parse_errors" : true,
         "emit_stderr_errors": false,
         "emit_error_on_exit" : false,

@@ -97,6 +97,7 @@ class ProcessSpoutContinuous {
     init(name, config, context, callback) {
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
+        this.cwd = config.cwd || null;
         this.file_format = config.file_format || "json";
         this.emit_parse_errors = config.emit_parse_errors != null ? config.emit_parse_errors : true;
         this.emit_stderr_errors = config.emit_stderr_errors != null ? config.emit_stderr_errors : false;
@@ -110,7 +111,7 @@ class ProcessSpoutContinuous {
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
         args = args.slice(1);
-        this.child_process = cp.spawn(cmd, args);
+        this.child_process = cp.spawn(cmd, args, { cwd: this.cwd });
         this.child_process.stdout.on("data", (data) => {
             // errors will be pushed to tuples if emit_parse_errors is true
             self.handleNewData(data.toString());
