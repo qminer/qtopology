@@ -143,7 +143,7 @@ describe.only('ProcessContinuousSpout', function () {
                     assert.equal(stream_id, null);
                     done();
                 });
-            }, 300);
+            }, WAIT_FOR_CHILD_PROCESS);
         });
     });
 });
