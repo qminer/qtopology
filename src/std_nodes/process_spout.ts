@@ -104,7 +104,11 @@ export class ProcessSpoutContinuous implements intf.Spout {
 
     private stream_id: string;
     private cmd_line: string;
+    private cwd: string;
     private file_format: string;
+    private emit_parse_errors: boolean;
+    private emit_stderr_errors: boolean;
+    private emit_error_on_exit: boolean;
     private csv_parser: CsvParser;
     private tuples: any[];
     private should_run: boolean;
@@ -120,7 +124,11 @@ export class ProcessSpoutContinuous implements intf.Spout {
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
+        this.cwd = config.cwd || null;
         this.file_format = config.file_format || "json";
+        this.emit_parse_errors = config.emit_parse_errors != null ? config.emit_parse_errors : true;
+        this.emit_stderr_errors = config.emit_stderr_errors != null ? config.emit_stderr_errors : false;
+        this.emit_error_on_exit = config.emit_error_on_exit != null ? config.emit_error_on_exit : false;
         this.tuples = [];
         if (this.file_format == "csv") {
             config.separator = config.separator || ","
@@ -131,16 +139,35 @@ export class ProcessSpoutContinuous implements intf.Spout {
         let args = this.cmd_line.split(" ");
         let cmd = args[0];
         args = args.slice(1);
-        this.child_process = cp.spawn(cmd, args);
+        this.child_process = cp.spawn(cmd, args, { cwd: this.cwd });
         this.child_process.stdout.on("data", (data) => {
+            // errors will be pushed to tuples if emit_parse_errors is true
             self.handleNewData(data.toString());
+        });
+        this.child_process.stderr.on("data", (data) => {
+            // errors will be pushed to tuples if emit_parse_errors is true
+            if (self.emit_stderr_errors) {
+                self.tuples = [new Error(data.toString())];
+            }
+        });
+        this.child_process.on("error", (error) => {
+            self.tuples = [error];
+        });
+        this.child_process.on("close", (code, signal) => {
+            if (self.emit_error_on_exit) {
+                if (code != null) {
+                    self.tuples = [new Error("Child process exited with code " + code)];
+                } else {
+                    self.tuples = [new Error("Child process exited, got signal " + signal)];
+                }
+            }
         });
         callback();
     }
 
     private handleNewData(content: string) {
         if (this.file_format == "json") {
-            Utils.readJsonFile(content, this.tuples);
+            Utils.readJsonFile(content, this.tuples, this.emit_parse_errors);
         } else if (this.file_format == "csv") {
             this.csv_parser.process(content, this.tuples);
         } else if (this.file_format == "raw") {
@@ -174,6 +201,10 @@ export class ProcessSpoutContinuous implements intf.Spout {
         }
         let data = this.tuples[0];
         this.tuples = this.tuples.slice(1);
-        callback(null, data, this.stream_id);
+        if (data instanceof Error) {
+            callback(data, null, this.stream_id);
+        } else {
+            callback(null, data, this.stream_id);
+        }
     }
 }

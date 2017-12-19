@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const intf = require("../../topology_interfaces");
 const http_server = require("../../util/http_server");
+const leader = require("../topology_leader");
 /**
  * Class for handling QTopology dashboard, either as stand-alone web server or
  * via injection into Express application.
@@ -38,7 +39,7 @@ class DashboardServer {
             self.storage.registerTopology(data.uuid, data.config, callback);
         });
         self.server.addHandler("clear-topology-error", (data, callback) => {
-            self.storage.clearTopologyError(data.uuid, callback);
+            leader.TopologyLeader.clearTopologyError(data.uuid, self.storage, callback);
         });
         self.server.addHandler("disable-topology", (data, callback) => {
             self.storage.disableTopology(data.uuid, callback);

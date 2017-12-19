@@ -22,7 +22,11 @@ export declare class ProcessSpout implements intf.Spout {
 export declare class ProcessSpoutContinuous implements intf.Spout {
     private stream_id;
     private cmd_line;
+    private cwd;
     private file_format;
+    private emit_parse_errors;
+    private emit_stderr_errors;
+    private emit_error_on_exit;
     private csv_parser;
     private tuples;
     private should_run;
