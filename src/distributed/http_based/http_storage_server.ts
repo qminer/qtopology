@@ -1,5 +1,6 @@
 import * as hs from "../../util/http_server";
 import * as intf from "../../topology_interfaces";
+import * as leader from "../topology_leader";
 import * as mem from "../memory/memory_storage";
 
 ////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         storage.deleteTopology(data.uuid, callback);
     });
     http_server.addHandler('/clear-topology-error', (data, callback) => {
-        storage.clearTopologyError(data.uuid, callback);
+        leader.TopologyLeader.clearTopologyError(data.uuid, storage, callback);
     });
     http_server.addHandler('/stop-topology', (data, callback) => {
         storage.stopTopology(data.uuid, callback);

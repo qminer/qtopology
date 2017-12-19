@@ -12,6 +12,7 @@ if (type == "json") {
     content.push([2550, JSON.stringify({ a: 8, b: false })]);
     content.push([4550, JSON.stringify({ a: 4, b: true })]);
     content.push([4650, JSON.stringify({ a: 55, b: true })]);
+    content.push([4750, "fufeta"]);
 } else if (type == "csv") {
     content.push([70, "1,2,3"]);
     content.push([80, "1,2,5"]);
@@ -35,4 +36,6 @@ if (type == "json") {
 content.forEach(x => {
     setTimeout(() => { console.log(x[1]); }, x[0]);
 });
+setTimeout(() => { console.error('testin stderr')}, 5000);
+
 

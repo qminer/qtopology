@@ -92,11 +92,18 @@ describe('CommandLineHandler', function () {
         let tuuid = "some-topology-uuid";
         let method_called = false;
         let dummy_storage = {
-            clearTopologyError: (uuid, cb) => {
+            getTopologyInfo: (uuid, cb) => {
                 assert.equal(uuid, tuuid);
                 method_called = true;
-                cb();
-            }
+                cb(null, { status: "error" });
+            },
+            getWorkerStatus: (cb) => {
+                cb(null, []);
+            },
+            setTopologyStatus:
+                (uuid, worker, status, error, cb) => {
+                    cb();
+                }
         };
         let target = new cmdl.CommandLineHandler(dummy_storage, ["clear-topology-error", tuuid]);
         target.run((err) => {
