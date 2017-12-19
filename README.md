@@ -10,6 +10,8 @@ NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/pac
 
 Documentation [https://qminer.github.io/qtopology](https://qminer.github.io/qtopology)
 
+Travis CI: [https://travis-ci.org/qminer/qtopology](https://travis-ci.org/qminer/qtopology)
+
 ## Installation
 
 `````````````bash
