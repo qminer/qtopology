@@ -37,7 +37,7 @@ class Utils {
 }
 
 /** Single-bucket handling class */
-class BucketHandler {
+export class BucketHandler {
 
     private file_name_template: string;
     private log_prefix: string;
@@ -48,6 +48,7 @@ class BucketHandler {
     private file_name_current: string;
     private curr_file_contains_data: boolean;
 
+
     /** Constructor that intializes this object */
     constructor(log_prefix: string, file_name_template: string, field_value: string, ts_start: number, split_period: number) {
         this.log_prefix = log_prefix;
@@ -56,6 +57,7 @@ class BucketHandler {
         this.split_period = split_period;
         this.data = [];
         this.setTsFields(ts_start);
+
     }
 
     /** Given arbitrary timestamp, calculates and sets the start
@@ -72,6 +74,9 @@ class BucketHandler {
     /** Perform low-level zipping */
     private zipFile(fname: string, callback: intf.SimpleCallback) {
         const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback();
+        }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
         while (fs.existsSync(gzFilePath)) {

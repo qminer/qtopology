@@ -54,6 +54,9 @@ class BucketHandler {
     /** Perform low-level zipping */
     zipFile(fname, callback) {
         const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback();
+        }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
         while (fs.existsSync(gzFilePath)) {
@@ -138,6 +141,7 @@ class BucketHandler {
         }
     }
 }
+exports.BucketHandler = BucketHandler;
 /** This bolt writes incoming messages to file. Data is split into
  * several files/buckets, based on the value of a specific field.
  * Also, data is grouped into files based on timestamp field.
