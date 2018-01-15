@@ -30,51 +30,65 @@ const abe = require("../../built/std_nodes/file_append_bolt_ex");
 //     });
 // });
 
-// describe('FileAppendBoltEx - bucket handler', function () {
-//     describe('test 1', function () {
-//         let bh_factory = () => {
-//             return new abe.BucketHandler("", "out.txt", "server", Date.now(), 1000);
-//         };
-//         it('creatable', function () {
-//             let target = bh_factory();
-//         });
+describe('FileAppendBoltEx - bucket handler', function () {
+    describe('test 1', function () {
+        let bh_factory = () => {
+            return new abe.BucketHandler("", "out.txt", "server", Date.now(), 1000);
+        };
+        it('creatable', function () {
+            let target = bh_factory();
+        });
+        it('should handle zip errors', function (done) {
+            let target = bh_factory();
+            target.zipFile("tex.txt", (e) => {
+                assert(e != null);
+                done();
+            });
+        });
+        it('should handle closing uninitialized', function (done) {
+            let target = bh_factory();
+            target.closeCurrentFile((e) => {
+                assert(e == null);
+                done();
+            });
+        });
 
-//         it('flush with no data', function (done) {
-//             let target = bh_factory();
-//             target.flush(done);
-//         });
+        // it('flush with no data', function (done) {
+        //     let target = bh_factory();
+        //     target.flush(done);
+        // });
 
-//         it('add 1 and close', function (done) {
-//             let target = bh_factory();
-//             async.series(
-//                 [
-//                     (cb) => {
-//                         target.receive(Date.now(), "a", cb);
-//                     },
-//                     (cb) => {
-//                         target.close(cb);
-//                     },
-//                 ],
-//                 done
-//             );
-//         });
+        // it('add 1 and close', function (done) {
+        //     let target = bh_factory();
+        //     async.series(
+        //         [
+        //             (cb) => {
+        //                 target.receive(Date.now(), "a", cb);
+        //             },
+        //             (cb) => {
+        //                 target.close(cb);
+        //             },
+        //         ],
+        //         done
+        //     );
+        // });
 
-//         it('add 1, flush and close', function (done) {
-//             let target = bh_factory();
-//             async.series(
-//                 [
-//                     (cb) => {
-//                         target.receive(Date.now(), "a", cb);
-//                     },
-//                     (cb) => {
-//                         target.flush(cb);
-//                     },
-//                     (cb) => {
-//                         target.close(cb);
-//                     },
-//                 ],
-//                 done
-//             );
-//         });
-//     });
-// });
+        // it('add 1, flush and close', function (done) {
+        //     let target = bh_factory();
+        //     async.series(
+        //         [
+        //             (cb) => {
+        //                 target.receive(Date.now(), "a", cb);
+        //             },
+        //             (cb) => {
+        //                 target.flush(cb);
+        //             },
+        //             (cb) => {
+        //                 target.close(cb);
+        //             },
+        //         ],
+        //         done
+        //     );
+        // });
+    });
+});
