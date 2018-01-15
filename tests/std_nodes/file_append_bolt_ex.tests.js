@@ -41,7 +41,7 @@ describe('FileAppendBoltEx - bucket handler', function () {
         it('should handle zip errors', function (done) {
             let target = bh_factory();
             target.zipFile("tex.txt", (e) => {
-                assert(e == null);
+                assert(e != null);
                 done();
             });
         });

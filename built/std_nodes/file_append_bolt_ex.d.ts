@@ -40,6 +40,7 @@ export declare class FileAppendBoltEx implements intf.Bolt {
     private split_by_field;
     private timestamp_field;
     private buckets;
+    private propagate_errors;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
     heartbeat(): void;

@@ -75,7 +75,7 @@ export class BucketHandler {
     private zipFile(fname: string, callback: intf.SimpleCallback) {
         const filePath = path.resolve(fname);
         if (!fs.existsSync(filePath)) {
-            return callback();
+            return callback(new Error("Cannot zip, filename is missing: " + filePath));
         }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
@@ -175,6 +175,7 @@ export class FileAppendBoltEx implements intf.Bolt {
     private split_by_field: string[];
     private timestamp_field: string[];
     private buckets: Map<string, BucketHandler>;
+    private propagate_errors: boolean;
 
     constructor() {
         this.name = null;
@@ -182,6 +183,7 @@ export class FileAppendBoltEx implements intf.Bolt {
         this.buckets = new Map<string, BucketHandler>();
         this.split_by_field = null;
         this.timestamp_field = null;
+        this.propagate_errors = true;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
@@ -191,6 +193,7 @@ export class FileAppendBoltEx implements intf.Bolt {
         this.split_period = config.split_period || 60 * 60 * 1000;
         this.split_by_field = config.split_by_field.split(".");
         this.timestamp_field = config.timestamp_field.split(".");
+        this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
 
         // prepare filename template for injection
         let ext = path.extname(this.file_name_template);
@@ -207,7 +210,7 @@ export class FileAppendBoltEx implements intf.Bolt {
         for (let bh of this.buckets.values()) {
             bh.flush((err) => {
                 if (err) {
-                    log.logger().error("Error in flushing file-append");
+                    log.logger().error(this.log_prefix + "Error in flushing file-append");
                     log.logger().exception(err);
                 }
             });
@@ -219,13 +222,24 @@ export class FileAppendBoltEx implements intf.Bolt {
         async.each(
             Array.from(self.buckets.values()),
             (bh: BucketHandler, xcallback) => {
-                bh.close(xcallback);
+                bh.close((err) => {
+                    if (err) {
+                        log.logger().error(this.log_prefix + "Error in shutdown");
+                        log.logger().exception(err);
+                    }
+                    if (err && self.propagate_errors) {
+                        return xcallback(err);
+                    } else {
+                        return xcallback();
+                    }
+                });
             },
             callback
         );
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        let self = this;
         let s = "";
         s += JSON.stringify(data);
         let obj = data;
@@ -241,6 +255,16 @@ export class FileAppendBoltEx implements intf.Bolt {
             );
             this.buckets.set(key, bh);
         }
-        this.buckets.get(key).receive(ts, s + "\n", callback);
+        this.buckets.get(key).receive(ts, s + "\n", (err) => {
+            if (err) {
+                log.logger().error(this.log_prefix + "Error in receive");
+                log.logger().exception(err);
+            }
+            if (err && self.propagate_errors) {
+                return callback(err);
+            } else {
+                return callback();
+            }
+        });
     }
 }
