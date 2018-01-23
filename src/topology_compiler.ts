@@ -94,6 +94,13 @@ export class TopologyCompiler {
             if (bolt.disabled && typeof bolt.disabled == "string") {
                 bolt.disabled = (injectVars(bolt.disabled, vars) == "true");
             }
+            if (bolt.inputs) {
+                for (let input of bolt.inputs){
+                    if (input.disabled && typeof input.disabled == "string") {
+                        input.disabled = (injectVars(input.disabled, vars) == "true");
+                    }
+                }
+            }
         }
 
         // check bolt inputs
