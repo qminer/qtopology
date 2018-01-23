@@ -277,7 +277,7 @@ describe('TopologyCompiler', function () {
                     }
                 });
             });
-            it.only('1 spout, 1 bolt, disabled bolt', function () {
+            it('1 spout, 1 bolt, disabled bolt', function () {
                 let config = {
                     general: { heartbeat: 1000 },
                     spouts: [
