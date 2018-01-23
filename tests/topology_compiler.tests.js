@@ -5,7 +5,7 @@
 const assert = require("assert");
 const tc = require("../built/topology_compiler");
 
-describe.only('TopologyCompiler', function () {
+describe('TopologyCompiler', function () {
     describe('Ok configs', function () {
         it('empty arrays', function () {
             let config = {
