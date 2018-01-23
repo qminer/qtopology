@@ -3,13 +3,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /** Utility class with static methods for parsing */
 class Utils {
     /** Reads and parses JSON data, one object per line. */
-    static readJsonFile(content, tuples) {
+    static readJsonFile(content, tuples, pushError = true) {
         let lines = content.split("\n");
         for (let line of lines) {
             line = line.trim();
             if (line.length == 0)
                 continue;
-            tuples.push(JSON.parse(line));
+            try {
+                let json = JSON.parse(line);
+                tuples.push(json);
+            }
+            catch (e) {
+                if (pushError) {
+                    tuples.push(e);
+                }
+            }
         }
     }
     /** Reads raw text data, one line at the time. */

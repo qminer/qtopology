@@ -11,6 +11,9 @@
             "init": {
                 "cmd_line": "node emitter.js json",
                 "stream_id": "stream1",
+                "emit_parse_errors" : false,
+                "emit_stderr_errors": false,
+                "emit_error_on_exit" : false,
                 "date_transform_fields": ["ts"]
             }
         },

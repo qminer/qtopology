@@ -106,6 +106,13 @@ The above example will run the child process each minute and collect the results
 `cmd="process-continuous"`
 
 This spout behaves like the `process` spout - the difference is that it spawns child process, specified by the command-line, and reads its stdout as it is written (and emits the messages).
+The two most important config parameters are `cmd_line` - the command to be executed and `cwd` - 
+the current working directory.
+
+### Error handling
+
+If `emit_error_on_exit` flag (false by default) is set to true, the spout will emit an exception when the child process exits. Setting
+`emit_stderr_errors` to true (false by default) will emit any data read from stderr as an exception. Setting `emit_parse_errors` to true (default) will emit parse exceptions, otherwise they will be silently ignored if set to false. 
 
 ```````````````````````````````json
 {
@@ -115,6 +122,10 @@ This spout behaves like the `process` spout - the difference is that it spawns c
     "cmd": "process-continuous",
     "init": {
         "cmd_line": "my_executable -param1 -x -y -z",
+        "cwd": "./",
+        "emit_parse_errors" : true,
+        "emit_stderr_errors": false,
+        "emit_error_on_exit" : false,
         "file_format": "json"
     }
 }
