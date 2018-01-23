@@ -277,8 +277,62 @@ describe('TopologyCompiler', function () {
                     }
                 });
             });
+            it.only('1 spout, 1 bolt, disabled bolt', function () {
+                let config = {
+                    general: { heartbeat: 1000 },
+                    spouts: [
+                        {
+                            name: "spout1",
+                            type: "inproc",
+                            working_dir: ".",
+                            cmd: "spout.js",
+                            init: {}
+                        }
+                    ],
+                    bolts: [
+                        {
+                            name: "bolt1",
+                            type: "inproc",
+                            working_dir: ".",
+                            cmd: "bolt.js",
+                            inputs: [{ source: "spout1", disabled: "${XYZ}" }],
+                            init: {}
+                        }
+                    ],
+                    variables: {
+                        XYZ: "true"
+                    }
+                };
+                let tcc = new tc.TopologyCompiler(config);
+                tcc.compile();
+                assert.deepEqual(tcc.getWholeConfig(), {
+                    general: { heartbeat: 1000 },
+                    spouts: [
+                        {
+                            name: "spout1",
+                            type: "inproc",
+                            working_dir: ".",
+                            cmd: "spout.js",
+                            init: {}
+                        }
+                    ],
+                    bolts: [
+                        {
+                            name: "bolt1",
+                            type: "inproc",
+                            working_dir: ".",
+                            cmd: "bolt.js",
+                            inputs: [{ source: "spout1", disabled: true }],
+                            init: {}
+                        }
+                    ],
+                    variables: {
+                        XYZ: "true"
+                    }
+                });
+            });
 
-            it('1 spout, 1 bolt + variables', function () {
+            it('init + shutdown + variables', function () {
                 let config = {
                     general: {
                         heartbeat: 1000,
