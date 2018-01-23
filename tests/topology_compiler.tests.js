@@ -5,7 +5,6 @@
 const assert = require("assert");
 const tc = require("../built/topology_compiler");
 
-
 describe('TopologyCompiler', function () {
     describe('Ok configs', function () {
         it('empty arrays', function () {
@@ -198,7 +197,141 @@ describe('TopologyCompiler', function () {
                     MY_VAR2: "my_var2"
                 }
             });
-            //assert.throws(() => { tcc.compile() }, Error, "Should throw an error");
+        });
+        describe("injectable disabled", function () {
+            it('1 spout, injectable disabled', function () {
+                let config = {
+                    general: { heartbeat: 1000 },
+                    spouts: [
+                        {
+                            name: "spout1",
+                            type: "inproc",
+                            working_dir: ".",
+                            disabled: "${XYZ}",
+                            cmd: "spout.js",
+                            init: {}
+                        }
+                    ],
+                    bolts: [],
+                    variables: {
+                        XYZ: "true"
+                    }
+                };
+                let tcc = new tc.TopologyCompiler(config);
+                tcc.compile();
+                assert.deepEqual(tcc.getWholeConfig(), {
+                    general: { heartbeat: 1000 },
+                    spouts: [
+                        {
+                            name: "spout1",
+                            type: "inproc",
+                            working_dir: ".",
+                            disabled: true,
+                            cmd: "spout.js",
+                            init: {}
+                        }
+                    ],
+                    bolts: [],
+                    variables: {
+                        XYZ: "true"
+                    }
+                });
+            });
+            it('1 bolt', function () {
+                let config = {
+                    general: { heartbeat: 1000 },
+                    spouts: [],
+                    bolts: [
+                        {
+                            name: "bolt1",
+                            type: "inproc",
+                            working_dir: ".",
+                            cmd: "bolt.js",
+                            disabled: "${XYZ}",
+                            inputs: [],
+                            init: {}
+                        }
+                    ],
+                    variables: {
+                        XYZ: "true"
+                    }
+                };
+                let tcc = new tc.TopologyCompiler(config);
+                tcc.compile();
+                assert.deepEqual(tcc.getWholeConfig(), {
+                    general: { heartbeat: 1000 },
+                    spouts: [],
+                    bolts: [
+                        {
+                            name: "bolt1",
+                            type: "inproc",
+                            working_dir: ".",
+                            disabled: true,
+                            cmd: "bolt.js",
+                            inputs: [],
+                            init: {}
+                        }
+                    ],
+                    variables: {
+                        XYZ: "true"
+                    }
+                });
+            });
+
+            it('1 spout, 1 bolt + variables', function () {
+                let config = {
+                    general: {
+                        heartbeat: 1000,
+                        initialization: [
+                            {
+                                working_dir: "/${MY_VAR}/dir1",
+                                cmd: "a",
+                                disabled: "${MY_VAR}",
+                                init: {}
+                            }],
+                        shutdown: [
+                            {
+                                working_dir: "/${MY_VAR}/dir1",
+                                cmd: "a",
+                                disabled: "${MY_VAR2}",
+                                init: {}
+                            }]
+                    },
+                    spouts: [],
+                    bolts: [],
+                    variables: {
+                        MY_VAR: "true",
+                        MY_VAR2: "false"
+                    }
+                };
+                let tcc = new tc.TopologyCompiler(config);
+                tcc.compile();
+                assert.deepEqual(tcc.getWholeConfig(), {
+                    general: {
+                        heartbeat: 1000,
+                        initialization: [
+                            {
+                                working_dir: "/true/dir1",
+                                cmd: "a",
+                                disabled: true,
+                                init: {}
+                            }],
+                        shutdown: [
+                            {
+                                working_dir: "/true/dir1",
+                                cmd: "a",
+                                disabled: false,
+                                init: {}
+                            }]
+                    },
+                    spouts: [],
+                    bolts: [],
+                    variables: {
+                        MY_VAR: "true",
+                        MY_VAR2: "false"
+                    }
+                });
+            });
         });
     });
 

@@ -556,9 +556,9 @@ This bolt is in essence very similar to the `file_append` bolt type, but with th
 
 ## Router bolt
 
-`cmd="filter"`
+`cmd="router"`
 
-This bolt routes incoming messages to separate stream ids, depending on the filters.
+This bolt routes incoming messages to separate stream ids, depending on the route filters.
 If filters for several routes succeed, the message is sent to all stream ids.
 
 ```````````````````````````````json
@@ -566,7 +566,7 @@ If filters for several routes succeed, the message is sent to all stream ids.
     "name": "bolt1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "filter",
+    "cmd": "router",
     "inputs": [
         { "source": "pump1" }
     ],

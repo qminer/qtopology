@@ -50,6 +50,9 @@ export class TopologyCompiler {
                 if (init_top.init) {
                     init_top.init = injectVars(init_top.init, vars);
                 }
+                if (init_top.disabled && typeof init_top.disabled == "string") {
+                    init_top.disabled = (injectVars(init_top.disabled, vars) == "true");
+                }
             }
         }
         if (this.config.general.shutdown) {
@@ -57,6 +60,9 @@ export class TopologyCompiler {
                 shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
                 if (shutdown_top.init) {
                     shutdown_top.init = injectVars(shutdown_top.init, vars);
+                }
+                if (shutdown_top.disabled && typeof shutdown_top.disabled == "string") {
+                    shutdown_top.disabled = (injectVars(shutdown_top.disabled, vars) == "true");
                 }
             }
         }
@@ -71,6 +77,9 @@ export class TopologyCompiler {
             spout.working_dir = injectVars(spout.working_dir, vars);
             spout.cmd = injectVars(spout.cmd, vars);
             spout.init = injectVars(spout.init, vars);
+            if (spout.disabled && typeof spout.disabled == "string") {
+                spout.disabled = (injectVars(spout.disabled, vars) == "true");
+            }
         }
 
         for (let bolt of this.config.bolts) {
@@ -82,6 +91,9 @@ export class TopologyCompiler {
             bolt.working_dir = injectVars(bolt.working_dir, vars);
             bolt.cmd = injectVars(bolt.cmd, vars);
             bolt.init = injectVars(bolt.init, vars);
+            if (bolt.disabled && typeof bolt.disabled == "string") {
+                bolt.disabled = (injectVars(bolt.disabled, vars) == "true");
+            }
         }
 
         // check bolt inputs
