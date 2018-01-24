@@ -54,6 +54,9 @@ class BucketHandler {
     /** Perform low-level zipping */
     zipFile(fname, callback) {
         const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback(new Error("Cannot zip, filename is missing: " + filePath));
+        }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
         while (fs.existsSync(gzFilePath)) {
@@ -138,6 +141,7 @@ class BucketHandler {
         }
     }
 }
+exports.BucketHandler = BucketHandler;
 /** This bolt writes incoming messages to file. Data is split into
  * several files/buckets, based on the value of a specific field.
  * Also, data is grouped into files based on timestamp field.
@@ -150,6 +154,7 @@ class FileAppendBoltEx {
         this.buckets = new Map();
         this.split_by_field = null;
         this.timestamp_field = null;
+        this.propagate_errors = true;
     }
     init(name, config, context, callback) {
         this.name = name;
@@ -158,6 +163,7 @@ class FileAppendBoltEx {
         this.split_period = config.split_period || 60 * 60 * 1000;
         this.split_by_field = config.split_by_field.split(".");
         this.timestamp_field = config.timestamp_field.split(".");
+        this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
         // prepare filename template for injection
         let ext = path.extname(this.file_name_template);
         this.file_name_template =
@@ -171,7 +177,7 @@ class FileAppendBoltEx {
         for (let bh of this.buckets.values()) {
             bh.flush((err) => {
                 if (err) {
-                    log.logger().error("Error in flushing file-append");
+                    log.logger().error(this.log_prefix + "Error in flushing file-append");
                     log.logger().exception(err);
                 }
             });
@@ -180,10 +186,22 @@ class FileAppendBoltEx {
     shutdown(callback) {
         let self = this;
         async.each(Array.from(self.buckets.values()), (bh, xcallback) => {
-            bh.close(xcallback);
+            bh.close((err) => {
+                if (err) {
+                    log.logger().error(this.log_prefix + "Error in shutdown");
+                    log.logger().exception(err);
+                }
+                if (err && self.propagate_errors) {
+                    return xcallback(err);
+                }
+                else {
+                    return xcallback();
+                }
+            });
         }, callback);
     }
     receive(data, stream_id, callback) {
+        let self = this;
         let s = "";
         s += JSON.stringify(data);
         let obj = data;
@@ -195,7 +213,18 @@ class FileAppendBoltEx {
             let bh = new BucketHandler(this.log_prefix, this.file_name_template, key, ts, this.split_period);
             this.buckets.set(key, bh);
         }
-        this.buckets.get(key).receive(ts, s + "\n", callback);
+        this.buckets.get(key).receive(ts, s + "\n", (err) => {
+            if (err) {
+                log.logger().error(this.log_prefix + "Error in receive");
+                log.logger().exception(err);
+            }
+            if (err && self.propagate_errors) {
+                return callback(err);
+            }
+            else {
+                return callback();
+            }
+        });
     }
 }
 exports.FileAppendBoltEx = FileAppendBoltEx;

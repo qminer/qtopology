@@ -128,6 +128,9 @@ class FileAppendBolt {
     /** Perform low-level zipping */
     zipFile(fname, callback) {
         const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback();
+        }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
         while (fs.existsSync(gzFilePath)) {
