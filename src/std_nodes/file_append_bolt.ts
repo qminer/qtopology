@@ -157,6 +157,9 @@ export class FileAppendBolt implements intf.Bolt {
     /** Perform low-level zipping */
     private zipFile(fname: string, callback: intf.SimpleCallback) {
         const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback();
+        }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
         while (fs.existsSync(gzFilePath)) {
