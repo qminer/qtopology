@@ -17,6 +17,7 @@ class FileAppendBolt {
         this.split_value = new Set();
         this.current_file_contains_data = false;
         this.split_by_field = null;
+        this.propagate_errors = true;
     }
     init(name, config, context, callback) {
         this.name = name;
@@ -29,6 +30,7 @@ class FileAppendBolt {
             this.split_by_field = config.split_by_field.split(".");
         }
         this.compress = config.compress;
+        this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
         // prepare filename template for injection
         if (this.split_over_time) {
             let ext = path.extname(this.file_name_template);
@@ -129,7 +131,7 @@ class FileAppendBolt {
     zipFile(fname, callback) {
         const filePath = path.resolve(fname);
         if (!fs.existsSync(filePath)) {
-            return callback();
+            return callback(new Error("Cannot zip, filename is missing: " + filePath));
         }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
@@ -164,36 +166,60 @@ class FileAppendBolt {
     }
     shutdown(callback) {
         let self = this;
-        this.writeToFile((err) => {
-            if (err)
+        let cb = (err) => {
+            if (err) {
+                log.logger().error(this.log_prefix + "Error in shutdown");
+                log.logger().exception(err);
+            }
+            if (err && self.propagate_errors) {
                 return callback(err);
-            if (self.compress && self.current_file_contains_data) {
-                self.zipCurrentFile(callback);
             }
             else {
-                callback();
+                return callback();
+            }
+        };
+        this.writeToFile((err) => {
+            if (err)
+                return cb(err);
+            if (self.compress && self.current_file_contains_data) {
+                self.zipCurrentFile(cb);
+            }
+            else {
+                cb(null);
             }
         });
     }
     receive(data, stream_id, callback) {
         let s = "";
-        if (this.prepend_timestamp) {
-            s += this.toISOFormatLocal(Date.now()) + " ";
-        }
-        s += JSON.stringify(data);
-        let key = "";
-        if (this.split_by_field) {
-            let obj = data;
-            for (let i = 0; i < this.split_by_field.length - 1; i++) {
-                obj = obj[this.split_by_field[i]];
+        try {
+            if (this.prepend_timestamp) {
+                s += this.toISOFormatLocal(Date.now()) + " ";
             }
-            key = obj[this.split_by_field[this.split_by_field.length - 1]];
+            s += JSON.stringify(data);
+            let key = "";
+            if (this.split_by_field) {
+                let obj = data;
+                for (let i = 0; i < this.split_by_field.length - 1; i++) {
+                    obj = obj[this.split_by_field[i]];
+                }
+                key = obj[this.split_by_field[this.split_by_field.length - 1]];
+            }
+            if (!this.current_data.has(key)) {
+                this.current_data.set(key, []);
+            }
+            this.current_data.get(key).push(s + "\n");
+            callback();
         }
-        if (!this.current_data.has(key)) {
-            this.current_data.set(key, []);
+        catch (e) {
+            log.logger().error(this.log_prefix + "Error in receive");
+            log.logger().exception(e);
+            if (this.propagate_errors) {
+                return callback(e);
+            }
+            else {
+                return callback();
+            }
         }
-        this.current_data.get(key).push(s + "\n");
-        callback();
     }
 }
 exports.FileAppendBolt = FileAppendBolt;
