@@ -14,6 +14,7 @@ export declare class FileAppendBolt implements intf.Bolt {
     private split_by_field;
     private next_split_after;
     private compress;
+    private propagate_errors;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
     private toISOFormatLocal(d);

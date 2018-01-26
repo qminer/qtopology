@@ -29,6 +29,7 @@ export class FileAppendBolt implements intf.Bolt {
     private split_by_field: string[];
     private next_split_after: number;
     private compress: boolean;
+    private propagate_errors: boolean;
 
     constructor() {
         this.name = null;
@@ -37,6 +38,7 @@ export class FileAppendBolt implements intf.Bolt {
         this.split_value = new Set<string>();
         this.current_file_contains_data = false;
         this.split_by_field = null;
+        this.propagate_errors = true;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
@@ -50,6 +52,7 @@ export class FileAppendBolt implements intf.Bolt {
             this.split_by_field = config.split_by_field.split(".");
         }
         this.compress = config.compress;
+        this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
 
         // prepare filename template for injection
         if (this.split_over_time) {
@@ -158,7 +161,7 @@ export class FileAppendBolt implements intf.Bolt {
     private zipFile(fname: string, callback: intf.SimpleCallback) {
         const filePath = path.resolve(fname);
         if (!fs.existsSync(filePath)) {
-            return callback();
+            return callback(new Error("Cannot zip, filename is missing: " + filePath));
         }
         let counter = 0;
         let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
@@ -193,34 +196,55 @@ export class FileAppendBolt implements intf.Bolt {
 
     shutdown(callback: intf.SimpleCallback) {
         let self = this;
-        this.writeToFile((err) => {
-            if (err) return callback(err);
-            if (self.compress && self.current_file_contains_data) {
-                self.zipCurrentFile(callback);
+        let cb = (err) => {
+            if (err) {
+                log.logger().error(this.log_prefix + "Error in shutdown");
+                log.logger().exception(err);
+            }
+            if (err && self.propagate_errors) {
+                return callback(err);
             } else {
-                callback();
+                return callback();
+            }
+        }
+        this.writeToFile((err) => {
+            if (err) return cb(err);
+            if (self.compress && self.current_file_contains_data) {
+                self.zipCurrentFile(cb);
+            } else {
+                cb(null);
             }
         });
     }
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let s = "";
-        if (this.prepend_timestamp) {
-            s += this.toISOFormatLocal(Date.now()) + " ";
-        }
-        s += JSON.stringify(data);
-        let key: string = "";
-        if (this.split_by_field) {
-            let obj = data;
-            for (let i = 0; i < this.split_by_field.length - 1; i++) {
-                obj = obj[this.split_by_field[i]];
+        try {
+            if (this.prepend_timestamp) {
+                s += this.toISOFormatLocal(Date.now()) + " ";
             }
-            key = obj[this.split_by_field[this.split_by_field.length - 1]];
+            s += JSON.stringify(data);
+            let key: string = "";
+            if (this.split_by_field) {
+                let obj = data;
+                for (let i = 0; i < this.split_by_field.length - 1; i++) {
+                    obj = obj[this.split_by_field[i]];
+                }
+                key = obj[this.split_by_field[this.split_by_field.length - 1]];
+            }
+            if (!this.current_data.has(key)) {
+                this.current_data.set(key, []);
+            }
+            this.current_data.get(key).push(s + "\n");
+            callback();
+        } catch (e) {
+            log.logger().error(this.log_prefix + "Error in receive");
+            log.logger().exception(e);
+            if (this.propagate_errors) {
+                return callback(e);
+            } else {
+                return callback();
+            }
         }
-        if (!this.current_data.has(key)) {
-            this.current_data.set(key, []);
-        }
-        this.current_data.get(key).push(s + "\n");
-        callback();
     }
 }
