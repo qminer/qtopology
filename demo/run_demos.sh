@@ -86,6 +86,11 @@ cd std_nodes/counter
 node demo_counter.js
 cd ../..
 
+title "Running custom_task_base demo"
+cd std_nodes/task_bolt_base
+node demo_task_bolt_base.js
+cd ../..
+
 title "Running quick start demo"
 cd quick_start
 node top.js
