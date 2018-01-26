@@ -56,6 +56,13 @@ describe('FileAppendBolt', function () {
     it('constructable', function () {
         let target = new ab.FileAppendBolt();
     });
+    it('error in zip', function (done) {
+        let target = new ab.FileAppendBolt();
+        target.zipFile(fname + "x", (err) => {
+            assert.ok(err != null);
+            done();
+        });
+    });
     it('init', function (done) {
         let emited = [];
         let name = "some_name";
