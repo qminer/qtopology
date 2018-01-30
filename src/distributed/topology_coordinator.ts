@@ -3,6 +3,8 @@ import * as leader from "./topology_leader";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
+const MAX_ERR_MSG_LENGTH: number = 1000;
+
 /** Interface for objects that coordinator needs to communicate with. */
 export interface TopologyCoordinatorClient {
     /** Obejct needs to start given topology */
@@ -120,7 +122,7 @@ export class TopologyCoordinator {
     preShutdown(callback: intf.SimpleCallback) {
         let self = this;
         self.is_shutting_down = true;
-        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err: Error) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, (err: Error) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
@@ -141,7 +143,7 @@ export class TopologyCoordinator {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
         // TODO check what happens when a topology is waiting
-        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, (err) => {
             clearInterval(self.pingIntervalId);
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
@@ -159,6 +161,9 @@ export class TopologyCoordinator {
     /** Set status on given topology */
     reportTopology(uuid: string, status: string, error: string, callback?: intf.SimpleCallback) {
         let self = this;
+        if (error.length > MAX_ERR_MSG_LENGTH) {
+            error = error.substring(0, MAX_ERR_MSG_LENGTH);
+        }
         this.storage.setTopologyStatus(uuid, this.name, status, error, (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Couldn't report topology status");
@@ -186,7 +191,7 @@ export class TopologyCoordinator {
     }
 
     /** Set status on given worker */
-    reportWorker(name: string, status: string, error: string, callback?: intf.SimpleCallback) {
+    reportWorker(name: string, status: string, callback?: intf.SimpleCallback) {
         let self = this;
         this.storage.setWorkerStatus(name, status, (err) => {
             if (err) {
@@ -240,30 +245,10 @@ export class TopologyCoordinator {
                 });
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                 self.client.stopTopology(msg.content.uuid, callback);
-                //// TODO: remove (2017-12-11)
-                // self.client.stopTopology(msg.content.uuid, () => {
-                //     // errors will be reported to storage and prevent starting new topologies
-                //     if (msg.content.worker_new) {
-                //         // ok, we got an instruction to explicitly re-assign topology to new worker
-                //         self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
-                //     } else {
-                //         return callback();
-                //     }
-                // });
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies,
                     (stop_topology: any, xcallback) => {
                         self.client.stopTopology(stop_topology.uuid, xcallback);
-                        //// TODO: remove (2017-12-11)
-                        // self.client.stopTopology(stop_topology.uuid, () => {
-                        //     // errors will be reported to storage and prevent starting new topologies
-                        //     if (stop_topology.worker_new) {
-                        //         // ok, we got an instruction to explicitly re-assign topology to new worker
-                        //         self.leadership.assignTopologyToWorker(stop_topology.worker_new, stop_topology.uuid, xcallback);
-                        //     } else {
-                        //         return xcallback();
-                        //     }
-                        // });
                     }, callback);
             } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
                 self.client.killTopology(msg.content.uuid, callback);
