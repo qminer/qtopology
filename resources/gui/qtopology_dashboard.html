@@ -356,6 +356,14 @@
                 </div>
                 <div class="panel">
                     <div class="panel-header">
+                        <div class="title">Visualization</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="panel-viz" data-bind="html: viz_html"></div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
                         <div class="title">Configuration</div>
                     </div>
                     <div class="panel-body">
@@ -583,11 +591,26 @@
         </div>
     </div>
 </body>
+<script src="viz.js"></script>
 <script language="javascript" type="text/javascript">
+
     $(function () {
         var model = new QTopologyDashboardViewModel();
         ko.applyBindings(model);
-        model.init();
+        model.init(function () {
+
+            // result = Viz("digraph { a -> b; }", { format: "svg", engine: "dot" });
+            // alert($('.blade .panel-body').length)
+            // $('.blade .panel-body').text(result);
+
+            //image = Viz("digraph g { a -> b; }", { format: "png-image-element" });
+            //document.body.appendChild(image);
+            //document.getElementById("para").innerHTML = result;
+            //document.getElementById("divVizJs").appendChild(image);
+
+            //console.log(result);
+
+        });
     });
 
 </script>

@@ -7,7 +7,7 @@ const ps = require("../../built/std_nodes/process_spout");
 
 const WAIT_FOR_CHILD_PROCESS = 500;
 
-describe.only('ProcessContinuousSpout', function () {
+describe('ProcessContinuousSpout', function () {
     it('constructable', function () {
         let target = new ps.ProcessSpoutContinuous();
     });

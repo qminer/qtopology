@@ -232,10 +232,15 @@ QTopologyDashboardViewModel.prototype.showWorkerInfo = function (name) {
 QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
     var self = this;
     var topology = self.topologies().filter(function (x) { return x.uuid() == uuid; })[0];
+    topology.viz_html = ko.observable();
     self.selected_topology(topology);
     self.showBlade(self.bladeTopology);
     self.post("topology-info", { uuid: uuid }, function (data) {
         topology.config(data.config);
+        // draw topology
+        //$('.panel-viz').html(drawGraph(data.config));
+        var conf = data.config;//JSON.parse(data.config);
+        topology.viz_html(drawGraph(conf));
     });
     self.post("topology-history", { uuid: uuid }, function (data) {
         topology.history.removeAll();
@@ -253,6 +258,24 @@ QTopologyDashboardViewModel.prototype.showTopologyInfo = function (uuid) {
             return (a.ts_d < b.ts_d ? 1 : (a.ts_d > b.ts_d ? -1 : 0));
         });
     });
+}
+
+function drawGraph(config){
+    config.bolts = config.bolts || [];
+    config.spouts = config.spouts || [];
+    var cmds = [];
+    for (var spout of config.spouts) {
+        cmds.push(spout.name + " [shape=rectangle];")
+    }
+    for (var bolt of config.bolts) {
+        cmds.push(bolt.name + " [shape=ellipse];")
+        bolt.inputs = bolt.inputs || [];
+        for (var parent of bolt.inputs) {
+            cmds.push(parent.source + "->" + bolt.name + ";");
+        }
+    }
+    var result = Viz("digraph { " + cmds.join("")+" }", { format: "svg", engine: "dot" });
+    return result;
 }
 
 QTopologyDashboardViewModel.prototype.closeBlade = function () {

@@ -37,11 +37,11 @@ storage.assignTopology("topology.test.1", "worker1", () => { });
 storage.assignTopology("topology.test.2", "worker2", () => { });
 storage.assignTopology("topology.test.z", "worker1", () => { });
 
-storage.setTopologyStatus("topology.test.1", "waiting", "", () => { });
-storage.setTopologyStatus("topology.test.2", "running", "", () => { });
-storage.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
-storage.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
-storage.setTopologyStatus("topology.test.z", "running", "", () => { });
+storage.setTopologyStatus("topology.test.1", "worker1", "waiting", "", () => { });
+storage.setTopologyStatus("topology.test.2", "worker2", "running", "", () => { });
+storage.setTopologyStatus("topology.test.x", "", "unassigned", "", () => { });
+storage.setTopologyStatus("topology.test.y", "", "error", "Stopped manually", () => { });
+storage.setTopologyStatus("topology.test.z", "worker1", "running", "", () => { });
 
 ////////////////////////////////////////////////////////
 

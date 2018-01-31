@@ -8,6 +8,46 @@ let dummy_topology_config = {
     bolts: [],
     variables: {}
 };
+let dummy_topology_config2 = {
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {
+                "extra_fields": { "field1": "a" }
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "boltp",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "process",
+            "inputs": [
+                { "source": "pump1" }
+            ],
+            "init": { "stream_id": "streamx", "cmd_line": "node child.js" }
+        },
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                { "source": "boltp", "stream_id": "streamx" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+};
+
 
 let storage = new qtopology.MemoryStorage();
 
@@ -22,7 +62,7 @@ storage.announceLeaderCandidacy("worker1", () => {
 storage.setWorkerStatus("worker3", "dead", () => { });
 storage.setWorkerStatus("worker4", "unloaded", () => { });
 
-storage.registerTopology("topology.test.1", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.1", dummy_topology_config2, () => { });
 storage.registerTopology("topology.test.2", dummy_topology_config, () => { });
 storage.registerTopology("topology.test.x", dummy_topology_config, () => { });
 storage.registerTopology("topology.test.y", dummy_topology_config, () => { });
@@ -38,12 +78,12 @@ storage.assignTopology("topology.test.1", "worker1", () => { });
 storage.assignTopology("topology.test.2", "worker2", () => { });
 storage.assignTopology("topology.test.z", "worker1", () => { });
 
-storage.setTopologyStatus("topology.test.1", "waiting", "", () => { });
-storage.setTopologyStatus("topology.test.2", "running", "", () => { });
+storage.setTopologyStatus("topology.test.1", "worker1", "waiting", "", () => { });
+storage.setTopologyStatus("topology.test.2", "worker2", "running", "", () => { });
 storage.setTopologyPid("topology.test.2", 3212, () => { });
-storage.setTopologyStatus("topology.test.x", "unassigned", "", () => { });
-storage.setTopologyStatus("topology.test.y", "error", "Stopped manually", () => { });
-storage.setTopologyStatus("topology.test.z", "running", "", () => { });
+storage.setTopologyStatus("topology.test.x", "", "unassigned", "", () => { });
+storage.setTopologyStatus("topology.test.y", "", "error", "Stopped manually", () => { });
+storage.setTopologyStatus("topology.test.z", "worker1", "running", "", () => { });
 storage.setTopologyPid("topology.test.z", 16343, () => { });
 
 let server = new qtopology.DashboardServer();
