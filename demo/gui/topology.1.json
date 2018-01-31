@@ -6,12 +6,7 @@
             {
                 "working_dir": "${CODE_DIR}",
                 "cmd": "custom_init_and_shutdown.js",
-                "init": {
-                    "main_config": "${MAIN_CONFIG}",
-                    "tmp_root_dir": "${TMP_ROOT_DIR}",
-                    "gdr_root_dir": "${GDR_ROOT_DIR}",
-                    "fresh_start": "${FRESH_START}"
-                }
+                "init": { }
             }
         ],
         "shutdown": [
@@ -61,113 +56,88 @@
             "cmd": "bolt_enricher.js",
             "inputs": [
                 {
-                    "source": " pumpdsa_gdr"
+                    "source": "my_custom_spout"
                 }
             ],
             "init": {}
         },
         {
-            "name": " bolt_pipeline",
+            "name": "bolt_pipeline",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_pipeline_wrapper.js",
             "inputs": [
                 {
-                    "source": " bolt_enricher"
+                    "source": "bolt_enricher"
                 },
                 {
-                    "source": " bolt_pipeline_flush",
+                    "source": "bolt_pipeline_flush",
                     "stream_id": "sys_flush"
                 }
             ],
             "init": {}
         },
         {
-            "name": " bolt_gdr2",
+            "name": "bolt_data_insert",
             "disabled": "${DISABLE_GDR_FILES}",
             "type": "sys",
             "working_dir": ".",
             "cmd": "file_append_ex",
             "inputs": [
                 {
-                    "source": " bolt_enricher"
+                    "source": "bolt_enricher"
                 }
             ],
             "init": {}
         },
         {
-            "name": " bolt_gts",
+            "name": "bolt_data_insert_1",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_gts_insert.js",
             "inputs": [
                 {
-                    "source": " bolt_pipeline",
+                    "source": "bolt_pipeline",
                     "stream_id": "gts"
                 }
             ],
             "init": {}
         },
         {
-            "name": " bolt_gts_sym",
+            "name": "bolt_data_insert_2",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_gts_symbolic_insert.js",
             "inputs": [
                 {
-                    "source": " bolt_pipeline",
+                    "source": "bolt_pipeline",
                     "stream_id": "gsts"
                 }
             ],
             "init": { }
         },
         {
-            "name": " bolt_complex_db",
+            "name": "bolt_data_insert_3",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_complex_db.js",
             "inputs": [
                 {
-                    "source": " bolt_pipeline",
+                    "source": "bolt_pipeline",
                     "stream_id": "complex_db"
                 }
             ],
             "init": {}
         },
         {
-            "name": " bolt_alert_insert",
+            "name": "bolt_data_insert_4",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_alert_insert.js",
             "inputs": [
                 {
-                    "source": " bolt_pipeline",
+                    "source": "bolt_pipeline",
                     "stream_id": "alert"
-                }
-            ],
-            "init": {}
-        },
-        {
-            "name": "bolt_console",
-            "type": "sys",
-            "working_dir": "${CODE_DIR}",
-            "cmd": "console",
-            "inputs": [
-                {
-                    "source": " bolt_pipeline",
-                    "stream_id": "xalert"
-                },
-                {
-                    "source": " bolt_pipeline",
-                    "stream_id": "xgts"
-                },
-                {
-                    "source": " bolt_pipeline",
-                    "stream_id": "xgsts"
-                },
-                {
-                    "source": " bolt_pipeline",
-                    "stream_id": "xcomplex_db"
                 }
             ],
             "init": {}
@@ -179,10 +149,10 @@
             "cmd": "counter",
             "inputs": [
                 {
-                    "source": " pumpdsa_gdr"
+                    "source": "my_custom_spout"
                 }
             ],
-            "init": }
+            "init": {}
         }
     ],
     "variables": {

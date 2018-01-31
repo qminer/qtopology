@@ -346,79 +346,84 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-4">
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="title">Run-time info</div>
-                    </div>
-                    <div class="panel-body">
-                    </div>
-                </div>
+            <div class="cell-10">
                 <div class="panel">
                     <div class="panel-header">
                         <div class="title">Visualization</div>
                     </div>
                     <div class="panel-body">
-                        <div class="panel-viz" data-bind="html: viz_html"></div>
+                        <img data-bind="attr: {src: viz_html}" style="max-width: 100%">
                     </div>
                 </div>
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="title">Configuration</div>
+
+                <div>
+                    <div class="cell-6">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="title">Run-time info</div>
+                            </div>
+                            <div class="panel-body">
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="title">Configuration</div>
+                            </div>
+                            <div class="panel-body">
+                                <pre data-bind="text: JSON.stringify(config(), null, 4)">
+                            </pre>
+                            </div>
+                        </div>
                     </div>
-                    <div class="panel-body">
-                        <pre data-bind="text: JSON.stringify(config(), null, 4)">
-                        </pre>
-                    </div>
-                </div>
-            </div>
-            <div class="cell-6">
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="title">History</div>
-                    </div>
-                    <div class="panel-body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="td-datetime">When</th>
-                                    <th>Enabled</th>
-                                    <th>Status</th>
-                                    <th>Worker</th>
-                                    <th>Pid</th>
-                                    <th>Error</th>
-                                </tr>
-                            </thead>
-                            <tbody data-bind="foreach: history">
-                                <tr>
-                                    <td class="td-datetime" data-bind="text: ts_s"></td>
-                                    <td>
-                                        <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
-                                        <span class="badge " data-bind="visible: enabled==false">Disabled</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
-                                        <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
-                                        <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
-                                        <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
-                                    </td>
-                                    <td data-bind="text: worker"></td>
-                                    <td data-bind="text: pid"></td>
-                                    <td>
-                                        <div data-bind="visible: error != null && error.length > 0">
-                                            <a href="#" data-bind="click: click">Show &raquo;</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td colspan="4" data-bind="visible: expanded" class="td-error">
-                                        <h3>Error message</h3>
-                                        <span data-bind="text: error"></span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="cell-6">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="title">History</div>
+                            </div>
+                            <div class="panel-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="td-datetime">When</th>
+                                            <th>Enabled</th>
+                                            <th>Status</th>
+                                            <th>Worker</th>
+                                            <th>Pid</th>
+                                            <th>Error</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: history">
+                                        <tr>
+                                            <td class="td-datetime" data-bind="text: ts_s"></td>
+                                            <td>
+                                                <span class="badge badge-green" data-bind="visible: enabled==true">Enabled</span>
+                                                <span class="badge " data-bind="visible: enabled==false">Disabled</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-green" data-bind="visible: status=='running'">Running</span>
+                                                <span class="badge badge-red" data-bind="visible: status=='error'">Error</span>
+                                                <span class="badge" data-bind="visible: status=='unassigned'">Unassigned</span>
+                                                <span class="badge badge-orange" data-bind="visible: status=='waiting'">Waiting</span>
+                                            </td>
+                                            <td data-bind="text: worker"></td>
+                                            <td data-bind="text: pid"></td>
+                                            <td>
+                                                <div data-bind="visible: error != null && error.length > 0">
+                                                    <a href="#" data-bind="click: click">Show &raquo;</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td colspan="4" data-bind="visible: expanded" class="td-error">
+                                                <h3>Error message</h3>
+                                                <span data-bind="text: error"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

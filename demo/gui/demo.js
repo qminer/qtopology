@@ -1,5 +1,6 @@
 "use strict";
 
+let fs = require("fs");
 let qtopology = require("../..");
 
 let dummy_topology_config = {
@@ -8,46 +9,8 @@ let dummy_topology_config = {
     bolts: [],
     variables: {}
 };
-let dummy_topology_config2 = {
-    "general": {
-        "heartbeat": 1000
-    },
-    "spouts": [
-        {
-            "name": "pump1",
-            "type": "sys",
-            "working_dir": "",
-            "cmd": "timer",
-            "init": {
-                "extra_fields": { "field1": "a" }
-            }
-        }
-    ],
-    "bolts": [
-        {
-            "name": "boltp",
-            "working_dir": ".",
-            "type": "sys",
-            "cmd": "process",
-            "inputs": [
-                { "source": "pump1" }
-            ],
-            "init": { "stream_id": "streamx", "cmd_line": "node child.js" }
-        },
-        {
-            "name": "bolt1",
-            "working_dir": ".",
-            "type": "sys",
-            "cmd": "console",
-            "inputs": [
-                { "source": "boltp", "stream_id": "streamx" }
-            ],
-            "init": {}
-        }
-    ],
-    "variables": {}
-};
-
+let dummy_topology_config2 = JSON.parse(fs.readFileSync("topology.1.json", {encoding: "utf8"}));
+let dummy_topology_config3 = JSON.parse(fs.readFileSync("topology.2.json", {encoding: "utf8"}));
 
 let storage = new qtopology.MemoryStorage();
 
@@ -63,7 +26,7 @@ storage.setWorkerStatus("worker3", "dead", () => { });
 storage.setWorkerStatus("worker4", "unloaded", () => { });
 
 storage.registerTopology("topology.test.1", dummy_topology_config2, () => { });
-storage.registerTopology("topology.test.2", dummy_topology_config, () => { });
+storage.registerTopology("topology.test.2", dummy_topology_config3, () => { });
 storage.registerTopology("topology.test.x", dummy_topology_config, () => { });
 storage.registerTopology("topology.test.y", dummy_topology_config, () => { });
 storage.registerTopology("topology.test.z", dummy_topology_config, () => { });
