@@ -1,0 +1,198 @@
+{
+    "general": {
+        "heartbeat": 1000,
+        "pass_binary_messages": true,
+        "initialization": [
+            {
+                "working_dir": "${CODE_DIR}",
+                "cmd": "custom_init_and_shutdown.js",
+                "init": {
+                    "main_config": "${MAIN_CONFIG}",
+                    "tmp_root_dir": "${TMP_ROOT_DIR}",
+                    "gdr_root_dir": "${GDR_ROOT_DIR}",
+                    "fresh_start": "${FRESH_START}"
+                }
+            }
+        ],
+        "shutdown": [
+            {
+                "working_dir": "${CODE_DIR}",
+                "cmd": "custom_init_and_shutdown.js"
+            }
+        ],
+        "wrapper": {
+            "ping_child_timeout": 120000,
+            "ping_parent_timeout": 120000
+        }
+    },
+    "spouts": [
+        {
+            "name": "my_custom_spout",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "my_spout.js",
+            "init": {
+                "data_source": "bas",
+                "batch_size": 1000
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt_pipeline_flush",
+            "working_dir": "${CODE_DIR}",
+            "type": "inproc",
+            "cmd": "pipeline_flush.js",
+            "inputs": [],
+            "init": {}
+        },
+        {
+            "name": "bolt_live_import_status",
+            "working_dir": "${CODE_DIR}",
+            "type": "inproc",
+            "cmd": "bolt_live_import_status.js",
+            "inputs": [],
+            "init": {}
+        },
+        {
+            "name": "bolt_enricher",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_enricher.js",
+            "inputs": [
+                {
+                    "source": " pumpdsa_gdr"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": " bolt_pipeline",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_pipeline_wrapper.js",
+            "inputs": [
+                {
+                    "source": " bolt_enricher"
+                },
+                {
+                    "source": " bolt_pipeline_flush",
+                    "stream_id": "sys_flush"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": " bolt_gdr2",
+            "disabled": "${DISABLE_GDR_FILES}",
+            "type": "sys",
+            "working_dir": ".",
+            "cmd": "file_append_ex",
+            "inputs": [
+                {
+                    "source": " bolt_enricher"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": " bolt_gts",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_gts_insert.js",
+            "inputs": [
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "gts"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": " bolt_gts_sym",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_gts_symbolic_insert.js",
+            "inputs": [
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "gsts"
+                }
+            ],
+            "init": { }
+        },
+        {
+            "name": " bolt_complex_db",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_complex_db.js",
+            "inputs": [
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "complex_db"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": " bolt_alert_insert",
+            "type": "inproc",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "bolt_alert_insert.js",
+            "inputs": [
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "alert"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt_console",
+            "type": "sys",
+            "working_dir": "${CODE_DIR}",
+            "cmd": "console",
+            "inputs": [
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "xalert"
+                },
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "xgts"
+                },
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "xgsts"
+                },
+                {
+                    "source": " bolt_pipeline",
+                    "stream_id": "xcomplex_db"
+                }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt_counter",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "counter",
+            "inputs": [
+                {
+                    "source": " pumpdsa_gdr"
+                }
+            ],
+            "init": }
+        }
+    ],
+    "variables": {
+        "CODE_DIR": "./lib/topology",
+        "CONFIG_DIR": "../../configs",
+        "MAIN_CONFIG": "${CONFIG_DIR}/main_config_dev.json",
+        "PIPELINES_DIR": "${CONFIG_DIR}/pipelines",
+        "TMP_ROOT_DIR": "${TMP_ROOT_DIR}",
+        "GDR_ROOT_DIR": "${GDR_ROOT_DIR}",
+        "FRESH_START": "false",
+        "DISABLE_GDR_FILES": "${DISABLE_GDR_FILES}"
+    }
+}

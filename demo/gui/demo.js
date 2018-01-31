@@ -16,7 +16,7 @@ storage.registerWorker("worker2", () => { });
 storage.registerWorker("worker3", () => { });
 storage.registerWorker("worker4", () => { });
 
-storage.announceLeaderCandidacy("worker1", () => { 
+storage.announceLeaderCandidacy("worker1", () => {
     storage.checkLeaderCandidacy("worker1", () => { });
 });
 storage.setWorkerStatus("worker3", "dead", () => { });
