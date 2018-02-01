@@ -178,6 +178,11 @@ class TopologyCoordinator {
             if (!msg) {
                 return callback();
             }
+            let simple_callback = ((err) => {
+                if (err) {
+                    log.logger().exception(err);
+                }
+            });
             if (msg.created < self.start_time) {
                 // just ignore, it was sent before this coordinator was started
                 return callback();
@@ -190,7 +195,8 @@ class TopologyCoordinator {
                     if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                         // topology is still assigned to this worker
                         // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                        self.client.startTopology(msg.content.uuid, res.config, callback);
+                        self.client.startTopology(msg.content.uuid, res.config, simple_callback);
+                        callback();
                     }
                     else {
                         return callback();
@@ -206,7 +212,8 @@ class TopologyCoordinator {
                         if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                             // topology is still assigned to this worker
                             // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                            self.client.startTopology(uuid, res.config, xcallback);
+                            self.client.startTopology(uuid, res.config, simple_callback);
+                            xcallback();
                         }
                         else {
                             return xcallback();
@@ -217,15 +224,18 @@ class TopologyCoordinator {
                 });
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                self.client.stopTopology(msg.content.uuid, callback);
+                self.client.stopTopology(msg.content.uuid, simple_callback);
+                callback();
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies, (stop_topology, xcallback) => {
-                    self.client.stopTopology(stop_topology.uuid, xcallback);
+                    self.client.stopTopology(stop_topology.uuid, simple_callback);
+                    xcallback();
                 }, callback);
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
-                self.client.killTopology(msg.content.uuid, callback);
+                self.client.killTopology(msg.content.uuid, simple_callback);
+                callback();
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                 // shutdown only logs exceptions

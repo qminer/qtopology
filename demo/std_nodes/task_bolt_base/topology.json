@@ -1,0 +1,20 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [],
+    "bolts": [
+        {
+            "name": "task_bolt",
+            "working_dir": ".",
+            "type": "inproc",
+            "cmd": "custom_task.js",
+            "inputs": [],
+            "init": {
+                "repeat_after": 5000,
+                "text": "Some custom text from config"
+            }
+        }
+    ],
+    "variables": {}
+}

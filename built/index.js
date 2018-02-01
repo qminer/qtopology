@@ -19,4 +19,5 @@ __export(require("./util/cmdline"));
 __export(require("./util/pattern_matcher"));
 __export(require("./util/child_proc_restarter"));
 __export(require("./util/http_server"));
+__export(require("./std_nodes/task_bolt_base"));
 //# sourceMappingURL=index.js.map
