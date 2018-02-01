@@ -1,0 +1,37 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "timer",
+            "init": {}
+        }
+    ],
+    "bolts": [
+        {
+            "name": "boltp",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "process",
+            "inputs": [
+                { "source": "pump1" }
+            ],
+            "init": {}
+        },
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "console",
+            "inputs": [
+                { "source": "boltp", "stream_id": "streamx" }
+            ],
+            "init": {}
+        }
+    ],
+    "variables": {}
+}

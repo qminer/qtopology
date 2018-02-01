@@ -17,6 +17,19 @@
     ],
     "bolts": [
         {
+            "name": "bolt_counter",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "counter",
+            "inputs": [
+                { "source": "pump1" }
+            ],
+            "init": {
+                "timeout": 3500,
+                "prefix": "Demo topology"
+            }
+        },
+        {
             "name": "bolt1",
             "working_dir": ".",
             "type": "sys",
@@ -29,17 +42,16 @@
             "init": {}
         },
         {
-            "name": "bolt_counter",
+            "name": "bolt2",
             "working_dir": ".",
             "type": "sys",
-            "cmd": "counter",
+            "cmd": "console",
             "inputs": [
-                { "source": "pump1" }
+                {
+                    "source": "bolt_counter"
+                }
             ],
-            "init": {
-                "timeout": 3500,
-                "prefix": "Demo topology"
-            }
+            "init": {}
         }
     ],
     "variables": {}

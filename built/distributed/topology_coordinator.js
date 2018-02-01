@@ -4,6 +4,7 @@ const async = require("async");
 const leader = require("./topology_leader");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
+const MAX_ERR_MSG_LENGTH = 1000;
 /** This class handles communication with topology coordination storage.
  */
 class TopologyCoordinator {
@@ -85,7 +86,7 @@ class TopologyCoordinator {
     preShutdown(callback) {
         let self = this;
         self.is_shutting_down = true;
-        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.closing, (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'closing':");
                 log.logger().exception(err);
@@ -104,7 +105,7 @@ class TopologyCoordinator {
         let self = this;
         log.logger().important(self.log_prefix + "Shutting down coordinator");
         // TODO check what happens when a topology is waiting
-        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, "", (err) => {
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.dead, (err) => {
             clearInterval(self.pingIntervalId);
             if (err) {
                 log.logger().error(self.log_prefix + "Error while reporting worker status as 'dead':");
@@ -122,6 +123,9 @@ class TopologyCoordinator {
     /** Set status on given topology */
     reportTopology(uuid, status, error, callback) {
         let self = this;
+        if (error.length > MAX_ERR_MSG_LENGTH) {
+            error = error.substring(0, MAX_ERR_MSG_LENGTH);
+        }
         this.storage.setTopologyStatus(uuid, this.name, status, error, (err) => {
             if (err) {
                 log.logger().error(self.log_prefix + "Couldn't report topology status");
@@ -148,7 +152,7 @@ class TopologyCoordinator {
         });
     }
     /** Set status on given worker */
-    reportWorker(name, status, error, callback) {
+    reportWorker(name, status, callback) {
         let self = this;
         this.storage.setWorkerStatus(name, status, (err) => {
             if (err) {
@@ -174,6 +178,11 @@ class TopologyCoordinator {
             if (!msg) {
                 return callback();
             }
+            let simple_callback = ((err) => {
+                if (err) {
+                    log.logger().exception(err);
+                }
+            });
             if (msg.created < self.start_time) {
                 // just ignore, it was sent before this coordinator was started
                 return callback();
@@ -186,7 +195,8 @@ class TopologyCoordinator {
                     if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                         // topology is still assigned to this worker
                         // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                        self.client.startTopology(msg.content.uuid, res.config, callback);
+                        self.client.startTopology(msg.content.uuid, res.config, simple_callback);
+                        callback();
                     }
                     else {
                         return callback();
@@ -202,7 +212,8 @@ class TopologyCoordinator {
                         if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
                             // topology is still assigned to this worker
                             // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                            self.client.startTopology(uuid, res.config, xcallback);
+                            self.client.startTopology(uuid, res.config, simple_callback);
+                            xcallback();
                         }
                         else {
                             return xcallback();
@@ -213,35 +224,18 @@ class TopologyCoordinator {
                 });
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                self.client.stopTopology(msg.content.uuid, callback);
-                //// TODO: remove (2017-12-11)
-                // self.client.stopTopology(msg.content.uuid, () => {
-                //     // errors will be reported to storage and prevent starting new topologies
-                //     if (msg.content.worker_new) {
-                //         // ok, we got an instruction to explicitly re-assign topology to new worker
-                //         self.leadership.assignTopologyToWorker(msg.content.worker_new, msg.content.uuid, callback);
-                //     } else {
-                //         return callback();
-                //     }
-                // });
+                self.client.stopTopology(msg.content.uuid, simple_callback);
+                callback();
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies, (stop_topology, xcallback) => {
-                    self.client.stopTopology(stop_topology.uuid, xcallback);
-                    //// TODO: remove (2017-12-11)
-                    // self.client.stopTopology(stop_topology.uuid, () => {
-                    //     // errors will be reported to storage and prevent starting new topologies
-                    //     if (stop_topology.worker_new) {
-                    //         // ok, we got an instruction to explicitly re-assign topology to new worker
-                    //         self.leadership.assignTopologyToWorker(stop_topology.worker_new, stop_topology.uuid, xcallback);
-                    //     } else {
-                    //         return xcallback();
-                    //     }
-                    // });
+                    self.client.stopTopology(stop_topology.uuid, simple_callback);
+                    xcallback();
                 }, callback);
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
-                self.client.killTopology(msg.content.uuid, callback);
+                self.client.killTopology(msg.content.uuid, simple_callback);
+                callback();
             }
             else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
                 // shutdown only logs exceptions

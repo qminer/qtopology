@@ -30,6 +30,10 @@ List of standard bolts:
 - [Date-transform bolt](#date-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
 
+Base classes that can be extended with custom logic:
+
+- [Task-bolt base](#task-bolt-base)
+
 ## File-reader spout
 
 `cmd="file_reader"`
@@ -752,3 +756,57 @@ It causes an exception that propagates to the root of the process after predefin
 This bolt will cause an exception after 10 seconds after it's `init` method was called.
 
 Bolt can have inputs and it will just forward the data on to listeners, preserving the `stream_id`.
+
+## Task-bolt base
+
+This bolt-base is used for bolts that need to execute some functionality on predefioned intervals (similar to CRON jobs). Developer needs to overwrite `runInternal` method to execute the custom functionality, other features aretaken care of by the base class - e.g. parsing of settings, calling the custom code in predefined intervals, shutdown handling etc.
+
+Custom code:
+
+```````````````````````````````javascript
+const qt = require("qtopology");
+
+class CustomTaskBolt extends qt.TaskBoltBase {
+
+    constructor() {
+        super();
+        this.custom_text = null;
+    }
+
+    init(name, config, context, callback) {
+        let self = this;
+        super.init(name, config, context, (err) => {
+            if (err) return callback(err);
+            self.custom_text = config.text;
+            callback();
+        })
+    }
+
+    runInternal(callback) {
+        let self = this;
+        console.log("Custom output from task bolt (1): " + self.custom_text);
+        callback();
+    }
+}
+
+/////////////////////////////////////////////////////////
+exports.create = function () {
+    return new CustomTaskBolt();
+};
+```````````````````````````````
+
+Bolt configuration inside the topology:
+
+```json
+{
+    "name": "task_bolt",
+    "working_dir": ".",
+    "type": "inproc",
+    "cmd": "custom_task.js",
+    "inputs": [],
+    "init": {
+        "repeat_after": 5000,
+        "text": "Some custom text from config"
+    }
+}
+```
