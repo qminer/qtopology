@@ -556,6 +556,17 @@
             </div>
         </div>
         <div class="cell-3">
+            <div class="panel" data-bind="visible: show_custom_props">
+                <div class="panel-header">
+                    <div class="title">Custom properties</div>
+                </div>
+                <div class="panel-body props">
+                    <div data-bind="foreach: custom_props">
+                        <dt data-bind="text: key"></dt>
+                        <dd data-bind="text: value"></dd>
+                    </div>
+                </div>
+            </div>
             <div class="panel">
                 <div class="panel-header">
                     <div class="title">Coordination storage</div>

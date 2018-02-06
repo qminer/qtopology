@@ -17,6 +17,7 @@ class DashboardServer {
         this.back_title = null;
         this.back_url = null;
         this.title = null;
+        this.custom_props = [];
     }
     /** Internal initialization step */
     initCommon(storage, callback) {
@@ -73,7 +74,10 @@ class DashboardServer {
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
-                callback(err, { data: props });
+                callback(err, {
+                    storage: props,
+                    custom: self.custom_props
+                });
             });
         });
         self.server.addHandler("display-data", (data, callback) => {
@@ -96,11 +100,6 @@ class DashboardServer {
                         valid_until: x.valid_until.getTime()
                     };
                 });
-                // let now = Date.now();
-                // let res = [
-                //     { ts: now, cmd: "start_topology", worker: "w1", content: { a: true }, valid_until: now + 30 * 60 * 1000 },
-                //     { ts: now, cmd: "start_topology", worker: "w2", content: { uuid: "nji" }, valid_until: now + 8 * 1000 }
-                // ];
                 callback(null, { data: res });
             });
         });
@@ -117,6 +116,7 @@ class DashboardServer {
         self.back_title = options.back_title;
         self.back_url = options.back_url;
         self.title = options.title;
+        self.custom_props = options.custom_props || [];
         self.initCommon(options.storage, (err) => {
             if (err)
                 return callback(err);

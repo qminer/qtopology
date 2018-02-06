@@ -10,6 +10,8 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.topologies_not_enabled = ko.observableArray();
     this.topologies_not_enabled_expanded = ko.observable(true);
     this.storage_props = ko.observableArray();
+    this.show_custom_props = ko.observable(false);
+    this.custom_props = ko.observableArray();
     this.msg_queue_current = ko.observableArray();
     this.msg_queue_history = ko.observableArray();
     this.active_blade = null;
@@ -83,8 +85,13 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     self.post("storage-info", {}, function (props) {
         // here, it is OK to just overwrite stuff
         self.storage_props.removeAll();
-        for (var prop of props.data) {
+        for (var prop of props.storage) {
             self.storage_props.push(prop);
+        }
+        props.custom = props.custom || [];
+        self.show_custom_props(props.custom.length > 0);
+        for (var prop of props.custom) {
+            self.custom_props.push(prop);
         }
     });
 }

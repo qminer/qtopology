@@ -9,8 +9,8 @@ let dummy_topology_config = {
     bolts: [],
     variables: {}
 };
-let dummy_topology_config2 = JSON.parse(fs.readFileSync("topology.1.json", {encoding: "utf8"}));
-let dummy_topology_config3 = JSON.parse(fs.readFileSync("topology.2.json", {encoding: "utf8"}));
+let dummy_topology_config2 = JSON.parse(fs.readFileSync("topology.1.json", { encoding: "utf8" }));
+let dummy_topology_config3 = JSON.parse(fs.readFileSync("topology.2.json", { encoding: "utf8" }));
 
 let storage = new qtopology.MemoryStorage();
 
@@ -57,7 +57,12 @@ server.initComplex(
         back_title: "Back to main page",
         back_url: "/abc",
         storage: storage,
-        title: "Custom dashboard title"
+        title: "Custom dashboard title",
+        custom_props: [
+            { key: "Custom property 1", value: true },
+            { key: "Custom property 2", value: "Some value" },
+            { key: "Custom property 3", value: 542312 }
+        ]
     },
     function () {
         server.run();
