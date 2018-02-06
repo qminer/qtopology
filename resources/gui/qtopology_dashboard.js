@@ -383,7 +383,7 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
         });
     });
 }
-QTopologyDashboardViewModel.prototype.disableDownWorker = function (name) {
+QTopologyDashboardViewModel.prototype.disableWorker = function (name) {
     var self = this;
     self.post("disable-worker", { name: name }, function () {
         self.loadData(function () {
@@ -393,7 +393,7 @@ QTopologyDashboardViewModel.prototype.disableDownWorker = function (name) {
         });
     });
 }
-QTopologyDashboardViewModel.prototype.enableDownWorker = function (name) {
+QTopologyDashboardViewModel.prototype.enableWorker = function (name) {
     var self = this;
     self.post("enable-worker", { name: name }, function () {
         self.loadData(function () {
@@ -428,6 +428,8 @@ function QTopologyDashboardViewModelWorker(d, parent) {
     this.history = ko.observableArray();
     this.open = function () { self.parent.showWorkerInfo(self.name()); };
     this.shut_down = function () { self.parent.shutDownWorker(self.name()); };
+    this.enable = function () { self.parent.enableWorker(self.name()); };
+    this.disable = function () { self.parent.disableWorker(self.name()); };
     this.rebalance = function () { self.parent.rebalanceLeader(self.name()); };
     this.remove = function () { self.parent.deleteWorker(self.name()); };
     this.last_ping_s = ko.computed(function () {

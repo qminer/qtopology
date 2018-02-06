@@ -18,12 +18,14 @@ storage.registerWorker("worker1", () => { });
 storage.registerWorker("worker2", () => { });
 storage.registerWorker("worker3", () => { });
 storage.registerWorker("worker4", () => { });
+storage.registerWorker("worker5", () => { });
 
 storage.announceLeaderCandidacy("worker1", () => {
     storage.checkLeaderCandidacy("worker1", () => { });
 });
 storage.setWorkerStatus("worker3", "dead", () => { });
 storage.setWorkerStatus("worker4", "unloaded", () => { });
+storage.setWorkerStatus("worker4", "disabled", () => { });
 
 storage.registerTopology("topology.test.1", dummy_topology_config2, () => { });
 storage.registerTopology("topology.test.2", dummy_topology_config3, () => { });

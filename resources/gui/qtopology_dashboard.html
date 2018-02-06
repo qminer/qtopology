@@ -92,6 +92,7 @@
                                 <span class="badge badge-green" data-bind="visible: status()=='alive'">Alive</span>
                                 <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
                                 <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
+                                <span class="badge" data-bind="visible: status()=='disabled'">Disabled</span>
                                 <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
                             </dd>
 
@@ -130,6 +131,28 @@
                                 </div>
                                 <div class="action-btn">
                                     <button data-bind="click: shut_down">Shutdown</button>
+                                </div>
+                            </div>
+                            <div class="action-panel" data-bind="visible: status() == 'alive'">
+                                <div class="action-title">
+                                   Disable
+                                </div>
+                                <div class="action-desc">
+                                    Disables this worker. All topologies on this worker are stopped and no new one is assigned.
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: disable">Disable</button>
+                                </div>
+                            </div>
+                            <div class="action-panel" data-bind="visible: status() == 'disabled'">
+                                <div class="action-title">
+                                   Enable
+                                </div>
+                                <div class="action-desc">
+                                    Enables this worker. It becomes ready to accept new topology assignments.
+                                </div>
+                                <div class="action-btn">
+                                    <button data-bind="click: enable">Enable</button>
                                 </div>
                             </div>
 
@@ -205,6 +228,7 @@
                                             <span class="badge badge-red" data-bind="visible: status=='dead'">Dead</span>
                                             <span class="badge badge-orange" data-bind="visible: status=='closing'">Closing</span>
                                             <span class="badge" data-bind="visible: status=='unloaded'">Unloaded</span>
+                                            <span class="badge" data-bind="visible: status=='disabled'">Disabled</span>
                                         </td>
                                         <td>
                                             <span class="badge badge-gold" data-bind="visible: lstatus=='leader'">Leader</span>
@@ -448,6 +472,7 @@
                                     <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                     <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                                    <span class="badge" data-bind="visible: status()=='disabled'">Disabled</span>
                                 </div>
                                 <label data-bind="text: name()"></label>
                                 <div>
@@ -479,6 +504,7 @@
                                     <span class="badge badge-red" data-bind="visible: status()=='dead'">Dead</span>
                                     <span class="badge badge-orange" data-bind="visible: status()=='closing'">Closing</span>
                                     <span class="badge" data-bind="visible: status()=='unloaded'">Unloaded</span>
+                                    <span class="badge" data-bind="visible: status()=='disabled'">Disabled</span>
                                 </div>
                                 <label data-bind="text: name()"></label>
                                 <div>
