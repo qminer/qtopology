@@ -46,6 +46,9 @@ class TopologyWorker {
             },
             exit: (code) => {
                 self.exit(code);
+            },
+            stopAllTopologies: (callback) => {
+                self.shutDownTopologies(callback);
             }
         });
         process.on('uncaughtException', (err) => {

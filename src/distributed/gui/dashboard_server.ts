@@ -111,7 +111,13 @@ export class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.shutDownWorker(data.name, callback);
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
+        });
+        self.server.addHandler("enable-worker", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
+        });
+        self.server.addHandler("disable-worker", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
             self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);

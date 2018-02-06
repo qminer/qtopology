@@ -55,6 +55,9 @@ export class TopologyWorker {
             },
             exit: (code: number) => {
                 self.exit(code);
+            },
+            stopAllTopologies: (callback: intf.SimpleCallback) => {
+                self.shutDownTopologies(callback);
             }
         });
 

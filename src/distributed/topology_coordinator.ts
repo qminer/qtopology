@@ -11,6 +11,8 @@ export interface TopologyCoordinatorClient {
     startTopology(uuid: string, config: any, callback: intf.SimpleCallback);
     /** Object needs to stop given topology */
     stopTopology(uuid: string, callback: intf.SimpleCallback);
+    /** Object should stop all topologies */
+    stopAllTopologies(callback: intf.SimpleCallback);
     /** Object needs to kill given topology */
     killTopology(uuid: string, callback: intf.SimpleCallback);
     /** Object should resolve differences between running topologies and the given list. */
@@ -254,6 +256,15 @@ export class TopologyCoordinator {
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
                 self.client.stopTopology(msg.content.uuid, simple_callback);
                 callback();
+            } else if (msg.cmd === intf.Consts.LeaderMessages.set_disabled) {
+                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, (err: Error) => {
+                    if (err) return simple_callback(err);
+                    self.client.stopAllTopologies(simple_callback);
+                });
+                callback();
+            } else if (msg.cmd === intf.Consts.LeaderMessages.set_enabled) {
+                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, simple_callback);
+                callback();
             } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies,
                     (stop_topology: any, xcallback) => {
@@ -278,6 +289,12 @@ export class TopologyCoordinator {
                 return callback();
             }
         });
+    }
+
+    /** This method marks this worker as disabled. */
+    public setAsDisabled(callback: intf.SimpleCallback) {
+        let self = this;
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.disabled, callback);
     }
 
     /** This method checks current status for this worker.

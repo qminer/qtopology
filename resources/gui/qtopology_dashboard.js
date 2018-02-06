@@ -383,6 +383,26 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
         });
     });
 }
+QTopologyDashboardViewModel.prototype.disableDownWorker = function (name) {
+    var self = this;
+    self.post("disable-worker", { name: name }, function () {
+        self.loadData(function () {
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
+        });
+    });
+}
+QTopologyDashboardViewModel.prototype.enableDownWorker = function (name) {
+    var self = this;
+    self.post("enable-worker", { name: name }, function () {
+        self.loadData(function () {
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
+        });
+    });
+}
 QTopologyDashboardViewModel.prototype.rebalanceLeader = function (name) {
     var self = this;
     self.post("rebalance-leader", { name: name }, function () {

@@ -227,6 +227,18 @@ class TopologyCoordinator {
                 self.client.stopTopology(msg.content.uuid, simple_callback);
                 callback();
             }
+            else if (msg.cmd === intf.Consts.LeaderMessages.set_disabled) {
+                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, (err) => {
+                    if (err)
+                        return simple_callback(err);
+                    self.client.stopAllTopologies(simple_callback);
+                });
+                callback();
+            }
+            else if (msg.cmd === intf.Consts.LeaderMessages.set_enabled) {
+                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, simple_callback);
+                callback();
+            }
             else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
                 async.each(msg.content.stop_topologies, (stop_topology, xcallback) => {
                     self.client.stopTopology(stop_topology.uuid, simple_callback);
@@ -254,6 +266,11 @@ class TopologyCoordinator {
                 return callback();
             }
         });
+    }
+    /** This method marks this worker as disabled. */
+    setAsDisabled(callback) {
+        let self = this;
+        self.reportWorker(self.name, intf.Consts.WorkerStatus.disabled, callback);
     }
     /** This method checks current status for this worker.
      * It might happen that leader marked it as dead (e.g. pings were not

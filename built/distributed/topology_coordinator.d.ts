@@ -5,6 +5,8 @@ export interface TopologyCoordinatorClient {
     startTopology(uuid: string, config: any, callback: intf.SimpleCallback): any;
     /** Object needs to stop given topology */
     stopTopology(uuid: string, callback: intf.SimpleCallback): any;
+    /** Object should stop all topologies */
+    stopAllTopologies(callback: intf.SimpleCallback): any;
     /** Object needs to kill given topology */
     killTopology(uuid: string, callback: intf.SimpleCallback): any;
     /** Object should resolve differences between running topologies and the given list. */
@@ -45,6 +47,8 @@ export declare class TopologyCoordinator {
     reportWorker(name: string, status: string, callback?: intf.SimpleCallback): void;
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);
+    /** This method marks this worker as disabled. */
+    setAsDisabled(callback: intf.SimpleCallback): void;
     /** This method checks current status for this worker.
      * It might happen that leader marked it as dead (e.g. pings were not
      * comming into db for some time), but this worker is actually still alive.

@@ -127,7 +127,7 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "shut-down-worker") {
-            this.storage.shutDownWorker(params[1], (err) => {
+            this.storage.sendMessageToWorker(params[1], intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, (err) => {
                 handleError(err, callback);
             });
         } else {
