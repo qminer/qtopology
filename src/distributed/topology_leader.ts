@@ -192,6 +192,11 @@ export class TopologyLeader {
         async.series(
             [
                 (xcallback) => {
+                    self.refreshStatuses((err, data) => {
+                        xcallback(err);
+                    });
+                },
+                (xcallback) => {
                     self.storage.getWorkerStatus((err, workers) => {
                         if (err) return xcallback(err);
                         let this_worker_lstatus = workers

@@ -7,20 +7,22 @@ const MAX_ERR_MSG_LENGTH: number = 1000;
 
 /** Interface for objects that coordinator needs to communicate with. */
 export interface TopologyCoordinatorClient {
-    /** Obejct needs to start given topology */
-    startTopology(uuid: string, config: any, callback: intf.SimpleCallback);
+    /** Object needs to start given topology */
+    startTopology(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Object needs to stop given topology */
-    stopTopology(uuid: string, callback: intf.SimpleCallback);
+    stopTopology(uuid: string, callback: intf.SimpleCallback): void;
     /** Object should stop all topologies */
-    stopAllTopologies(callback: intf.SimpleCallback);
+    stopAllTopologies(callback: intf.SimpleCallback): void;
     /** Object needs to kill given topology */
-    killTopology(uuid: string, callback: intf.SimpleCallback);
+    killTopology(uuid: string, callback: intf.SimpleCallback): void;
     /** Object should resolve differences between running topologies and the given list. */
-    resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback);
+    resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): void;
     /** Object should shut down */
-    shutdown(callback: intf.SimpleCallback);
+    shutdown(callback: intf.SimpleCallback): void;
     /** Process exit wrapper */
-    exit(code: number);
+    exit(code: number): void;
+    /** Check if current time is in dormancy period */
+    is_dormant_period(): boolean;
 }
 
 /** This class handles communication with topology coordination storage.
@@ -39,6 +41,7 @@ export class TopologyCoordinator {
     private log_prefix: string;
     private pingIntervalId: NodeJS.Timer;
     private pingInterval: number;
+    private current_dormancy_state: boolean;
 
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient) {
@@ -54,6 +57,7 @@ export class TopologyCoordinator {
         this.log_prefix = "[Coordinator] ";
         this.pingIntervalId = null;
         this.pingInterval = 1000;
+        this.current_dormancy_state = false;
     }
 
     /** Runs main loop */
@@ -207,6 +211,81 @@ export class TopologyCoordinator {
         });
     }
 
+    private handleSingleRequest(msg: intf.StorageResultMessage, callback: intf.SimpleCallback) {
+        let self = this;
+        let simple_callback = ((err: Error) => {
+            if (err) {
+                log.logger().exception(err);
+            }
+        });
+        if (msg.created < self.start_time) {
+            // just ignore, it was sent before this coordinator was started
+            return callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
+            self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
+                if (err) { return callback(err); }
+                if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
+                    // topology is still assigned to this worker
+                    // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
+                    self.client.startTopology(msg.content.uuid, res.config, simple_callback);
+                    callback();
+                } else {
+                    return callback();
+                }
+            });
+        } else if (msg.cmd === intf.Consts.LeaderMessages.start_topologies) {
+            async.each(msg.content.uuids, (uuid: string, xcallback) => {
+                self.storage.getTopologyInfo(uuid, (err, res) => {
+                    if (err) { return xcallback(err); }
+                    if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
+                        // topology is still assigned to this worker
+                        // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
+                        self.client.startTopology(uuid, res.config, simple_callback);
+                        xcallback();
+                    } else {
+                        return xcallback();
+                    }
+                });
+            }, (err: Error) => {
+                return callback(err);
+            });
+        } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
+            self.client.stopTopology(msg.content.uuid, simple_callback);
+            callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.set_disabled) {
+            self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, (err: Error) => {
+                if (err) return simple_callback(err);
+                self.client.stopAllTopologies(simple_callback);
+            });
+            callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.set_enabled) {
+            self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, simple_callback);
+            callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
+            async.each(msg.content.stop_topologies,
+                (stop_topology: any, xcallback) => {
+                    self.client.stopTopology(stop_topology.uuid, simple_callback);
+                    xcallback();
+                }, callback);
+        } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
+            self.client.killTopology(msg.content.uuid, simple_callback);
+            callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
+            // shutdown only logs exceptions
+            self.client.shutdown(() => {
+                log.logger().important(this.log_prefix + "Exiting with code 0");
+                self.client.exit(0);
+            });
+            return callback();
+        } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
+            self.leadership.forceRebalance();
+            return callback();
+        } else {
+            // unknown message
+            return callback();
+        }
+    }
+
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback: intf.SimpleCallback) {
         let self = this;
@@ -215,79 +294,23 @@ export class TopologyCoordinator {
         }
         self.storage.getMessage(self.name, (err, msg) => {
             if (err) { return callback(err); }
-            if (!msg) { return callback(); }
-
-            let simple_callback = ((err: Error) => {
-                if (err) {
-                    log.logger().exception(err);
+            if (!msg) {
+console.log("!!!!!!!!")
+                let new_dormancy_state = self.client.is_dormant_period();
+                if (new_dormancy_state != self.current_dormancy_state) {
+                    // dormancy state changed, create new message and send into handler
+                    msg = {
+                        cmd: (new_dormancy_state ? intf.Consts.LeaderMessages.set_disabled : intf.Consts.LeaderMessages.set_enabled),
+                        content: {},
+                        created: new Date()
+                    };
+                } else {
+console.log("!!!%%%%")
+                    return callback();
                 }
-            });
-            if (msg.created < self.start_time) {
-                // just ignore, it was sent before this coordinator was started
-                return callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.start_topology) {
-                self.storage.getTopologyInfo(msg.content.uuid, (err, res) => {
-                    if (err) { return callback(err); }
-                    if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
-                        // topology is still assigned to this worker
-                        // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                        self.client.startTopology(msg.content.uuid, res.config, simple_callback);
-                        callback();
-                    } else {
-                        return callback();
-                    }
-                });
-            } else if (msg.cmd === intf.Consts.LeaderMessages.start_topologies) {
-                async.each(msg.content.uuids, (uuid: string, xcallback) => {
-                    self.storage.getTopologyInfo(uuid, (err, res) => {
-                        if (err) { return xcallback(err); }
-                        if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
-                            // topology is still assigned to this worker
-                            // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                            self.client.startTopology(uuid, res.config, simple_callback);
-                            xcallback();
-                        } else {
-                            return xcallback();
-                        }
-                    });
-                }, (err: Error) => {
-                    return callback(err);
-                });
-            } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topology) {
-                self.client.stopTopology(msg.content.uuid, simple_callback);
-                callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.set_disabled) {
-                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, (err: Error) => {
-                    if (err) return simple_callback(err);
-                    self.client.stopAllTopologies(simple_callback);
-                });
-                callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.set_enabled) {
-                self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, simple_callback);
-                callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
-                async.each(msg.content.stop_topologies,
-                    (stop_topology: any, xcallback) => {
-                        self.client.stopTopology(stop_topology.uuid, simple_callback);
-                        xcallback();
-                    }, callback);
-            } else if (msg.cmd === intf.Consts.LeaderMessages.kill_topology) {
-                self.client.killTopology(msg.content.uuid, simple_callback);
-                callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.shutdown) {
-                // shutdown only logs exceptions
-                self.client.shutdown(() => {
-                    log.logger().important(this.log_prefix + "Exiting with code 0");
-                    self.client.exit(0);
-                });
-                return callback();
-            } else if (msg.cmd === intf.Consts.LeaderMessages.rebalance) {
-                self.leadership.forceRebalance();
-                return callback();
-            } else {
-                // unknown message
-                return callback();
             }
+console.log("!--", msg.cmd)
+            self.handleSingleRequest(msg, callback);
         });
     }
 

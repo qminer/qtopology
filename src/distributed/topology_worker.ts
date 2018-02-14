@@ -12,6 +12,14 @@ class TopologyItem {
     proxy: tlp.TopologyLocalProxy;
 }
 
+/** Definition of parameters for creatio0n of new worker object */
+export interface TopologyWorkerParams {
+    name: string;
+    storage: intf.CoordinationStorage;
+    overrides?: object;
+    is_dormant_period?: () => boolean;
+}
+
 /** This class handles topology worker - singleton instance on
  * that registers with coordination storage, receives instructions from
  * it and runs assigned topologies as subprocesses.
@@ -22,16 +30,19 @@ export class TopologyWorker {
     private coordinator: coord.TopologyCoordinator;
     private topologies: TopologyItem[];
     private waiting_for_shutdown: boolean;
+    private is_dormant_period: () => boolean;
 
     /** Initializes this object */
-    constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
-        this.log_prefix = `[Worker ${name}] `;
-        this.overrides = overrides || {};
+    //constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
+    constructor(options: TopologyWorkerParams) {
+        this.log_prefix = `[Worker ${options.name}] `;
+        this.overrides = options.overrides || {};
+        this.is_dormant_period = options.is_dormant_period || (() => false);
         this.waiting_for_shutdown = false;
         this.topologies = [];
 
         let self = this;
-        this.coordinator = new coord.TopologyCoordinator(name, storage, {
+        this.coordinator = new coord.TopologyCoordinator(options.name, options.storage, {
             startTopology: (uuid: string, config: any, callback: intf.SimpleCallback) => {
                 log.logger().important(self.log_prefix + "Received start instruction from coordinator: " + uuid);
                 self.start(uuid, config, callback);
@@ -58,6 +69,9 @@ export class TopologyWorker {
             },
             stopAllTopologies: (callback: intf.SimpleCallback) => {
                 self.shutDownTopologies(callback);
+            },
+            is_dormant_period: (): boolean => {
+                return self.is_dormant_period();
             }
         });
 

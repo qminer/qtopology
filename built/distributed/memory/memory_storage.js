@@ -98,7 +98,8 @@ class MemoryStorage {
     getMessage(name, callback) {
         this.pingWorker(name);
         let now = Date.now();
-        let mIndex = this.messages.findIndex(x => x != undefined && x.name == name && x.valid_until > now);
+        let mIndex = this.messages
+            .findIndex(x => x != undefined && x.name == name && x.valid_until > now);
         if (mIndex > -1) {
             let m = this.messages[mIndex];
             let message = { cmd: m.cmd, content: m.content, created: m.created };
@@ -106,6 +107,9 @@ class MemoryStorage {
             callback(null, message);
         }
         else {
+            if (this.messages.length > 0) {
+                this.messages = [];
+            }
             callback(null, null);
         }
     }

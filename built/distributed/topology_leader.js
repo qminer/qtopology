@@ -167,6 +167,11 @@ class TopologyLeader {
         let topologies_enabled = [];
         async.series([
             (xcallback) => {
+                self.refreshStatuses((err, data) => {
+                    xcallback(err);
+                });
+            },
+            (xcallback) => {
                 self.storage.getWorkerStatus((err, workers) => {
                     if (err)
                         return xcallback(err);
