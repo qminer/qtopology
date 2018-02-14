@@ -1,5 +1,6 @@
 function QTopologyDashboardViewModel(divIdTarget) {
     this.target_div = divIdTarget;
+    this.show_content = ko.observable(false);
 
     this.workers = ko.observableArray();
     this.workers_alive = ko.observableArray();
@@ -168,6 +169,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
+    this.show_content(true);
     this.loadDisplayData();
     this.loadData(callback);
     this.periodicRefresh();
