@@ -90,6 +90,7 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
             self.storage_props.push(prop);
         }
         props.custom = props.custom || [];
+        self.custom_props.removeAll();
         self.show_custom_props(props.custom.length > 0);
         for (var prop of props.custom) {
             self.custom_props.push(prop);
