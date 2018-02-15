@@ -48,6 +48,7 @@ export declare class TopologyCoordinator {
     reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback): void;
     /** Set status on given worker */
     reportWorker(name: string, status: string, callback?: intf.SimpleCallback): void;
+    /** Handle single request */
     private handleSingleRequest(msg, callback);
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);

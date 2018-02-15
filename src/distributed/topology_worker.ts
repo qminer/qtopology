@@ -185,7 +185,6 @@ export class TopologyWorker {
         // report topology as running, then try to start it.
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
         self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, ""); // TODO: why no callback?
-
         rec.proxy.init(rec.uuid, rec.config, (err) => {
             if (err) {
                 // Three types of errors possible:

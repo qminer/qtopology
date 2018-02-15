@@ -211,6 +211,7 @@ export class TopologyCoordinator {
         });
     }
 
+    /** Handle single request */
     private handleSingleRequest(msg: intf.StorageResultMessage, callback: intf.SimpleCallback) {
         let self = this;
         let simple_callback = ((err: Error) => {
@@ -235,17 +236,12 @@ export class TopologyCoordinator {
             });
         } else if (msg.cmd === intf.Consts.LeaderMessages.start_topologies) {
             async.each(msg.content.uuids, (uuid: string, xcallback) => {
-                self.storage.getTopologyInfo(uuid, (err, res) => {
-                    if (err) { return xcallback(err); }
-                    if (self.name == res.worker && res.status == intf.Consts.TopologyStatus.waiting) {
-                        // topology is still assigned to this worker
-                        // otherwise the message could be old and stale, the toplogy was re-assigned to another worker
-                        self.client.startTopology(uuid, res.config, simple_callback);
-                        xcallback();
-                    } else {
-                        return xcallback();
-                    }
-                });
+                self.handleSingleRequest(
+                    {
+                        cmd: intf.Consts.LeaderMessages.start_topology,
+                        content: { uuid: uuid },
+                        created: new Date()
+                    }, xcallback);
             }, (err: Error) => {
                 return callback(err);
             });
@@ -253,12 +249,17 @@ export class TopologyCoordinator {
             self.client.stopTopology(msg.content.uuid, simple_callback);
             callback();
         } else if (msg.cmd === intf.Consts.LeaderMessages.set_disabled) {
-            self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, (err: Error) => {
+            log.logger().important("Setting worker as disabled: " + self.name);
+            self.leadership.releaseLeadership((err: Error) => {
                 if (err) return simple_callback(err);
-                self.client.stopAllTopologies(simple_callback);
+                self.reportWorker(self.name, intf.Consts.WorkerStatus.disabled, (err: Error) => {
+                    if (err) return simple_callback(err);
+                    self.client.stopAllTopologies(simple_callback);
+                });
             });
             callback();
         } else if (msg.cmd === intf.Consts.LeaderMessages.set_enabled) {
+            log.logger().important("Setting worker as enabled: " + self.name);
             self.reportWorker(self.name, intf.Consts.WorkerStatus.alive, simple_callback);
             callback();
         } else if (msg.cmd === intf.Consts.LeaderMessages.stop_topologies) {
@@ -295,9 +296,9 @@ export class TopologyCoordinator {
         self.storage.getMessage(self.name, (err, msg) => {
             if (err) { return callback(err); }
             if (!msg) {
-console.log("!!!!!!!!")
                 let new_dormancy_state = self.client.is_dormant_period();
                 if (new_dormancy_state != self.current_dormancy_state) {
+                    self.current_dormancy_state = new_dormancy_state;
                     // dormancy state changed, create new message and send into handler
                     msg = {
                         cmd: (new_dormancy_state ? intf.Consts.LeaderMessages.set_disabled : intf.Consts.LeaderMessages.set_enabled),
@@ -305,11 +306,9 @@ console.log("!!!!!!!!")
                         created: new Date()
                     };
                 } else {
-console.log("!!!%%%%")
                     return callback();
                 }
             }
-console.log("!--", msg.cmd)
             self.handleSingleRequest(msg, callback);
         });
     }
@@ -336,7 +335,7 @@ console.log("!--", msg.cmd)
             if (curr_status.length == 0) {
                 // current worker doesn't have a record
                 self.storage.registerWorker(self.name, callback);
-            } else if (curr_status[0] != intf.Consts.WorkerStatus.alive) {
+            } else if (curr_status[0] != intf.Consts.WorkerStatus.alive && curr_status[0] != intf.Consts.WorkerStatus.disabled) {
                 // state was set to something else, but this worker is still running
                 self.storage.setWorkerStatus(self.name, intf.Consts.WorkerStatus.alive, callback);
             } else {

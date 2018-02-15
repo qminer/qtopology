@@ -145,7 +145,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
             this.messages.splice(mIndex, 1);
             callback(null, message);
         } else {
-            if (this.messages.length>0){
+            if (this.messages.length > 0) {
                 this.messages = [];
             }
             callback(null, null);
@@ -262,6 +262,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .forEach(x => {
                 if (x.uuid == uuid) {
                     x.worker = worker;
+                    x.status = intf.Consts.TopologyStatus.waiting;
+                    x.last_ping = Date.now();
                     self.notifyTopologyHistory(x);
                 }
             });

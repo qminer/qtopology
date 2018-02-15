@@ -219,6 +219,8 @@ class MemoryStorage {
             .forEach(x => {
             if (x.uuid == uuid) {
                 x.worker = worker;
+                x.status = intf.Consts.TopologyStatus.waiting;
+                x.last_ping = Date.now();
                 self.notifyTopologyHistory(x);
             }
         });
