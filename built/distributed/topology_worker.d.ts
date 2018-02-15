@@ -1,9 +1,13 @@
 import * as intf from "../topology_interfaces";
 /** Definition of parameters for creatio0n of new worker object */
 export interface TopologyWorkerParams {
+    /** Worker name */
     name: string;
+    /** Storage object to use */
     storage: intf.CoordinationStorage;
+    /** Additional data inside an object that is injected into each topology definition. Optional. */
     overrides?: object;
+    /** Optional function that tests if the worker should be dormant. */
     is_dormant_period?: () => boolean;
 }
 /** This class handles topology worker - singleton instance on
