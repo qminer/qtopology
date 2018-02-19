@@ -11,7 +11,10 @@ let opts = cmdln.process(process.argv);
 qtopology.logger().setLevel("debug");
 
 let storage = new qtopology.HttpStorage();
-let w = new qtopology.TopologyWorker(opts.name, storage);
+let w = new qtopology.TopologyWorker({
+    name: opts.name, 
+    storage: storage
+});
 w.run();
 
 // after 5sec register new topology

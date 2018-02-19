@@ -113,6 +113,10 @@ class TopologyLeader {
             self.storage.sendMessageToWorker(target, intf.Consts.LeaderMessages.start_topologies, { uuids: uuids }, MESSAGE_INTERVAL, callback);
         });
     }
+    /** This method sets status of this object to normal */
+    releaseLeadership(callback) {
+        this.storage.setWorkerLStatus(this.name, intf.Consts.WorkerLStatus.normal, callback);
+    }
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
@@ -124,7 +128,7 @@ class TopologyLeader {
                 self.refreshStatuses((err, data) => {
                     if (err)
                         return xcallback(err); // TODO: err leads to candidacy!
-                    should_announce = (data.leadership_status != intf.Consts.LeadershipStatus.ok);
+                    should_announce = (data.leadership_status != intf.Consts.LeadershipStatus.ok && data.own_status == intf.Consts.WorkerStatus.alive);
                     xcallback();
                 });
             },
@@ -167,6 +171,11 @@ class TopologyLeader {
         let topologies_enabled = [];
         async.series([
             (xcallback) => {
+                self.refreshStatuses((err, data) => {
+                    xcallback(err);
+                });
+            },
+            (xcallback) => {
                 self.storage.getWorkerStatus((err, workers) => {
                     if (err)
                         return xcallback(err);
@@ -178,6 +187,15 @@ class TopologyLeader {
                         perform_loop = false;
                         self.is_leader = false;
                         return xcallback();
+                    }
+                    let this_worker_status = workers
+                        .filter(x => x.name === self.name)
+                        .map(x => x.status)[0];
+                    if (this_worker_status != intf.Consts.WorkerStatus.alive) {
+                        // this worker is not marked as alive, abort leadership
+                        perform_loop = false;
+                        self.is_leader = false;
+                        return self.storage.setWorkerLStatus(self.name, intf.Consts.WorkerLStatus.normal, xcallback);
                     }
                     alive_workers = workers
                         .filter(x => x.status === intf.Consts.WorkerStatus.alive);
@@ -435,7 +453,9 @@ class TopologyLeader {
         let self = this;
         let workers = null;
         let res = {
-            leadership_status: intf.Consts.LeadershipStatus.vacant
+            leadership_status: intf.Consts.LeadershipStatus.vacant,
+            own_status: null,
+            own_lstatus: null
         };
         async.series([
             (xcallback) => {
@@ -443,6 +463,12 @@ class TopologyLeader {
                     if (err)
                         return xcallback(err);
                     workers = data;
+                    let own_data = workers
+                        .filter(x => x.name == self.name);
+                    if (own_data.length > 0) {
+                        res.own_status = own_data[0].status;
+                        res.own_lstatus = own_data[0].lstatus;
+                    }
                     xcallback();
                 });
             },

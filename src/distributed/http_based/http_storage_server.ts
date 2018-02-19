@@ -104,8 +104,15 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         storage.deleteWorker(data.name, callback);
     });
     http_server.addHandler('/shut-down-worker', (data, callback) => {
-        storage.shutDownWorker(data.name, callback);
+        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, callback);
     });
+    http_server.addHandler('/enable-worker', (data, callback) => {
+        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, 60 * 1000, callback);
+    });
+    http_server.addHandler('/disable-worker', (data, callback) => {
+        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, 60 * 1000, callback);
+    });
+
     http_server.addHandler('/topology-history', (data, callback) => {
         storage.getTopologyHistory(data.uuid, callback);
     });

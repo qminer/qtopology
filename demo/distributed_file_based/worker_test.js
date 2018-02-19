@@ -11,7 +11,15 @@ let opts = cmdln.process(process.argv);
 qtopology.logger().setLevel("debug");
 let storage = new qtopology.FileStorage("./topologies", "*.json");
 
-let w = new qtopology.TopologyWorker(opts.name, storage);
+qtopology.logger().warn("***********************************************************************");
+qtopology.logger().warn("** This worker will become dormant on each even minute (0, 2, 4, ...)");
+qtopology.logger().warn("***********************************************************************");
+
+let w = new qtopology.TopologyWorker({
+    name: opts.name, 
+    storage: storage,
+    is_dormant_period: () => (new Date()).getMinutes() % 2 == 0 // alive only on odd minutes
+});
 w.run();
 
 function shutdown() {

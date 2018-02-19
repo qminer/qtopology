@@ -115,8 +115,10 @@ describe('CommandLineHandler', function () {
         let tname = "some-worker-name";
         let method_called = false;
         let dummy_storage = {
-            shutDownWorker: (name, cb) => {
-                assert.equal(name, tname);
+            sendMessageToWorker: (worker, cmd, content, valid_msec, cb) => {
+                assert.equal(worker, tname);
+                assert.equal(cmd, "shutdown");
+                assert.deepEqual(content, {});
                 method_called = true;
                 cb();
             }
