@@ -9,8 +9,8 @@ let dummy_topology_config = {
     bolts: [],
     variables: {}
 };
-let dummy_topology_config2 = JSON.parse(fs.readFileSync("topology.1.json", {encoding: "utf8"}));
-let dummy_topology_config3 = JSON.parse(fs.readFileSync("topology.2.json", {encoding: "utf8"}));
+let dummy_topology_config2 = JSON.parse(fs.readFileSync("topology.1.json", { encoding: "utf8" }));
+let dummy_topology_config3 = JSON.parse(fs.readFileSync("topology.2.json", { encoding: "utf8" }));
 
 let storage = new qtopology.MemoryStorage();
 
@@ -18,12 +18,14 @@ storage.registerWorker("worker1", () => { });
 storage.registerWorker("worker2", () => { });
 storage.registerWorker("worker3", () => { });
 storage.registerWorker("worker4", () => { });
+storage.registerWorker("worker5", () => { });
 
 storage.announceLeaderCandidacy("worker1", () => {
     storage.checkLeaderCandidacy("worker1", () => { });
 });
 storage.setWorkerStatus("worker3", "dead", () => { });
 storage.setWorkerStatus("worker4", "unloaded", () => { });
+storage.setWorkerStatus("worker4", "disabled", () => { });
 
 storage.registerTopology("topology.test.1", dummy_topology_config2, () => { });
 storage.registerTopology("topology.test.2", dummy_topology_config3, () => { });
@@ -57,7 +59,12 @@ server.initComplex(
         back_title: "Back to main page",
         back_url: "/abc",
         storage: storage,
-        title: "Custom dashboard title"
+        title: "Custom dashboard title",
+        custom_props: [
+            { key: "Custom property 1", value: true },
+            { key: "Custom property 2", value: "Some value" },
+            { key: "Custom property 3", value: 542312 }
+        ]
     },
     function () {
         server.run();

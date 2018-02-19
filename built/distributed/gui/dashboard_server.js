@@ -17,6 +17,7 @@ class DashboardServer {
         this.back_title = null;
         this.back_url = null;
         this.title = null;
+        this.custom_props = [];
     }
     /** Internal initialization step */
     initCommon(storage, callback) {
@@ -66,14 +67,23 @@ class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.shutDownWorker(data.name, callback);
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
+        });
+        self.server.addHandler("enable-worker", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
+        });
+        self.server.addHandler("disable-worker", (data, callback) => {
+            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
             self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
-                callback(err, { data: props });
+                callback(err, {
+                    storage: props,
+                    custom: self.custom_props
+                });
             });
         });
         self.server.addHandler("display-data", (data, callback) => {
@@ -96,11 +106,6 @@ class DashboardServer {
                         valid_until: x.valid_until.getTime()
                     };
                 });
-                // let now = Date.now();
-                // let res = [
-                //     { ts: now, cmd: "start_topology", worker: "w1", content: { a: true }, valid_until: now + 30 * 60 * 1000 },
-                //     { ts: now, cmd: "start_topology", worker: "w2", content: { uuid: "nji" }, valid_until: now + 8 * 1000 }
-                // ];
                 callback(null, { data: res });
             });
         });
@@ -117,6 +122,7 @@ class DashboardServer {
         self.back_title = options.back_title;
         self.back_url = options.back_url;
         self.title = options.title;
+        self.custom_props = options.custom_props || [];
         self.initCommon(options.storage, (err) => {
             if (err)
                 return callback(err);

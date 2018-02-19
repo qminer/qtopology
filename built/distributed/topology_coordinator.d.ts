@@ -1,18 +1,22 @@
 import * as intf from "../topology_interfaces";
 /** Interface for objects that coordinator needs to communicate with. */
 export interface TopologyCoordinatorClient {
-    /** Obejct needs to start given topology */
-    startTopology(uuid: string, config: any, callback: intf.SimpleCallback): any;
+    /** Object needs to start given topology */
+    startTopology(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Object needs to stop given topology */
-    stopTopology(uuid: string, callback: intf.SimpleCallback): any;
+    stopTopology(uuid: string, callback: intf.SimpleCallback): void;
+    /** Object should stop all topologies */
+    stopAllTopologies(callback: intf.SimpleCallback): void;
     /** Object needs to kill given topology */
-    killTopology(uuid: string, callback: intf.SimpleCallback): any;
+    killTopology(uuid: string, callback: intf.SimpleCallback): void;
     /** Object should resolve differences between running topologies and the given list. */
-    resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): any;
+    resolveTopologyMismatches(uuids: string[], callback: intf.SimpleCallback): void;
     /** Object should shut down */
-    shutdown(callback: intf.SimpleCallback): any;
+    shutdown(callback: intf.SimpleCallback): void;
     /** Process exit wrapper */
-    exit(code: number): any;
+    exit(code: number): void;
+    /** Check if current time is in dormancy period */
+    is_dormant_period(): boolean;
 }
 /** This class handles communication with topology coordination storage.
  */
@@ -29,6 +33,7 @@ export declare class TopologyCoordinator {
     private log_prefix;
     private pingIntervalId;
     private pingInterval;
+    private current_dormancy_state;
     /** Simple constructor */
     constructor(name: string, storage: intf.CoordinationStorage, client: TopologyCoordinatorClient);
     /** Runs main loop */
@@ -43,8 +48,12 @@ export declare class TopologyCoordinator {
     reportTopologyPid(uuid: string, pid: number, callback?: intf.SimpleCallback): void;
     /** Set status on given worker */
     reportWorker(name: string, status: string, callback?: intf.SimpleCallback): void;
+    /** Handle single request */
+    private handleSingleRequest(msg, callback);
     /** This method checks for new messages from coordination storage. */
     private handleIncommingRequests(callback);
+    /** This method marks this worker as disabled. */
+    setAsDisabled(callback: intf.SimpleCallback): void;
     /** This method checks current status for this worker.
      * It might happen that leader marked it as dead (e.g. pings were not
      * comming into db for some time), but this worker is actually still alive.

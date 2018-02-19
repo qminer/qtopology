@@ -31,6 +31,8 @@ export declare class TopologyLeader {
     assignTopologyToWorker(target: string, uuid: string, callback: intf.SimpleCallback): void;
     /** Sometimes outside code gets instruction to assign topologies to specific worker. */
     assignTopologiesToWorker(target: string, uuids: string[], callback: intf.SimpleCallback): void;
+    /** This method sets status of this object to normal */
+    releaseLeadership(callback: intf.SimpleCallback): void;
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/

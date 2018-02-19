@@ -45,7 +45,13 @@ describe('TopologyLeader', function () {
                 cb(null, { isLeader: true });
             },
             getWorkerStatus: (cb) => {
-                cb(null, []);
+                cb(null,
+                    [{ name: target_name, status: "alive", lstatus: "normal" }]
+                );
+            },
+            setWorkerStatus: (name, status, cb)=> {
+                assert(name, target_name);
+                cb();
             }
         };
         let target = new tl.TopologyLeader(target_name, mock_storage, 100);
@@ -173,7 +179,7 @@ describe('TopologyLeader', function () {
             sendMessageToWorker: (wrkr, cmd, content, valid_msec, cb) => {
                 assert.equal(wrkr, worker_name);
                 assert.equal(cmd, "start_topologies");
-                assert.deepEqual(content, { uuids: [ topology_record.uuid ] });
+                assert.deepEqual(content, { uuids: [topology_record.uuid] });
                 cb();
             }
         };

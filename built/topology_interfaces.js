@@ -47,6 +47,7 @@ exports.Consts = {
     WorkerStatus: {
         alive: "alive",
         closing: "closing",
+        disabled: "disabled",
         dead: "dead",
         unloaded: "unloaded"
     },
@@ -63,6 +64,8 @@ exports.Consts = {
     },
     LeaderMessages: {
         rebalance: "rebalance",
+        set_enabled: "set_enabled",
+        set_disabled: "set_disabled",
         start_topology: "start_topology",
         start_topologies: "start_topologies",
         stop_topology: "stop_topology",

@@ -15,13 +15,15 @@ class TopologyItem {
 */
 class TopologyWorker {
     /** Initializes this object */
-    constructor(name, storage, overrides) {
-        this.log_prefix = `[Worker ${name}] `;
-        this.overrides = overrides || {};
+    //constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
+    constructor(options) {
+        this.log_prefix = `[Worker ${options.name}] `;
+        this.overrides = options.overrides || {};
+        this.is_dormant_period = options.is_dormant_period || (() => false);
         this.waiting_for_shutdown = false;
         this.topologies = [];
         let self = this;
-        this.coordinator = new coord.TopologyCoordinator(name, storage, {
+        this.coordinator = new coord.TopologyCoordinator(options.name, options.storage, {
             startTopology: (uuid, config, callback) => {
                 log.logger().important(self.log_prefix + "Received start instruction from coordinator: " + uuid);
                 self.start(uuid, config, callback);
@@ -46,6 +48,12 @@ class TopologyWorker {
             },
             exit: (code) => {
                 self.exit(code);
+            },
+            stopAllTopologies: (callback) => {
+                self.shutDownTopologies(callback);
+            },
+            is_dormant_period: () => {
+                return self.is_dormant_period();
             }
         });
         process.on('uncaughtException', (err) => {
