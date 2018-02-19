@@ -152,6 +152,7 @@ export var Consts = {
     WorkerStatus: {
         alive: "alive",
         closing: "closing",
+        disabled: "disabled",
         dead: "dead",
         unloaded: "unloaded"
     },
@@ -168,6 +169,8 @@ export var Consts = {
     },
     LeaderMessages: {
         rebalance: "rebalance",
+        set_enabled: "set_enabled",
+        set_disabled: "set_disabled",
         start_topology: "start_topology",
         start_topologies: "start_topologies",
         stop_topology: "stop_topology",
@@ -265,9 +268,8 @@ export interface CoordinationStorage {
     stopTopology(uuid: string, callback: SimpleCallback);
     killTopology(uuid: string, callback: SimpleCallback);
     deleteTopology(uuid: string, callback: SimpleCallback);
-    
+
     deleteWorker(name: string, callback: SimpleCallback);
-    shutDownWorker(name: string, callback: SimpleCallback);
 
     getProperties(callback: SimpleResultCallback<StorageProperty[]>);
 }

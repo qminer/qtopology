@@ -19,6 +19,8 @@ export interface DashboardServerOptions {
     back_url?: string;
     /** Link text to parent page. Optional */
     back_title?: string;
+    /** Custom properties to present in GUI */
+    custom_props?: intf.StorageProperty[];
 }
 /**
  * Class for handling QTopology dashboard, either as stand-alone web server or
@@ -37,6 +39,8 @@ export declare class DashboardServer {
     private storage;
     /** Stand-alone web server */
     private server;
+    /** Custom properties to present in GUI */
+    custom_props: intf.StorageProperty[];
     /** Simple constructor */
     constructor();
     /** Internal initialization step */

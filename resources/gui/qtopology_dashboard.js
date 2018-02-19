@@ -1,5 +1,6 @@
 function QTopologyDashboardViewModel(divIdTarget) {
     this.target_div = divIdTarget;
+    this.show_content = ko.observable(false);
 
     this.workers = ko.observableArray();
     this.workers_alive = ko.observableArray();
@@ -10,6 +11,8 @@ function QTopologyDashboardViewModel(divIdTarget) {
     this.topologies_not_enabled = ko.observableArray();
     this.topologies_not_enabled_expanded = ko.observable(true);
     this.storage_props = ko.observableArray();
+    this.show_custom_props = ko.observable(false);
+    this.custom_props = ko.observableArray();
     this.msg_queue_current = ko.observableArray();
     this.msg_queue_history = ko.observableArray();
     this.active_blade = null;
@@ -83,8 +86,14 @@ QTopologyDashboardViewModel.prototype.loadData = function (callback) {
     self.post("storage-info", {}, function (props) {
         // here, it is OK to just overwrite stuff
         self.storage_props.removeAll();
-        for (var prop of props.data) {
+        for (var prop of props.storage) {
             self.storage_props.push(prop);
+        }
+        props.custom = props.custom || [];
+        self.custom_props.removeAll();
+        self.show_custom_props(props.custom.length > 0);
+        for (var prop of props.custom) {
+            self.custom_props.push(prop);
         }
     });
 }
@@ -161,6 +170,7 @@ QTopologyDashboardViewModel.prototype.mergeWorkers = function (new_data) {
     });
 }
 QTopologyDashboardViewModel.prototype.init = function (callback) {
+    this.show_content(true);
     this.loadDisplayData();
     this.loadData(callback);
     this.periodicRefresh();
@@ -376,6 +386,26 @@ QTopologyDashboardViewModel.prototype.shutDownWorker = function (name) {
         });
     });
 }
+QTopologyDashboardViewModel.prototype.disableWorker = function (name) {
+    var self = this;
+    self.post("disable-worker", { name: name }, function () {
+        self.loadData(function () {
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
+        });
+    });
+}
+QTopologyDashboardViewModel.prototype.enableWorker = function (name) {
+    var self = this;
+    self.post("enable-worker", { name: name }, function () {
+        self.loadData(function () {
+            if (self.active_blade == this.bladeWorker) {
+                self.showWorkerInfo(name);
+            }
+        });
+    });
+}
 QTopologyDashboardViewModel.prototype.rebalanceLeader = function (name) {
     var self = this;
     self.post("rebalance-leader", { name: name }, function () {
@@ -401,6 +431,8 @@ function QTopologyDashboardViewModelWorker(d, parent) {
     this.history = ko.observableArray();
     this.open = function () { self.parent.showWorkerInfo(self.name()); };
     this.shut_down = function () { self.parent.shutDownWorker(self.name()); };
+    this.enable = function () { self.parent.enableWorker(self.name()); };
+    this.disable = function () { self.parent.disableWorker(self.name()); };
     this.rebalance = function () { self.parent.rebalanceLeader(self.name()); };
     this.remove = function () { self.parent.deleteWorker(self.name()); };
     this.last_ping_s = ko.computed(function () {

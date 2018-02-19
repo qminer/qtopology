@@ -137,13 +137,17 @@ export class MemoryStorage implements intf.CoordinationStorage {
     getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>) {
         this.pingWorker(name);
         let now = Date.now();
-        let mIndex = this.messages.findIndex(x => x != undefined && x.name == name && x.valid_until > now);
+        let mIndex = this.messages
+            .findIndex(x => x != undefined && x.name == name && x.valid_until > now);
         if (mIndex > -1) {
             let m = this.messages[mIndex];
             let message = { cmd: m.cmd, content: m.content, created: m.created };
             this.messages.splice(mIndex, 1);
             callback(null, message);
         } else {
+            if (this.messages.length > 0) {
+                this.messages = [];
+            }
             callback(null, null);
         }
     }
@@ -258,6 +262,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .forEach(x => {
                 if (x.uuid == uuid) {
                     x.worker = worker;
+                    x.status = intf.Consts.TopologyStatus.waiting;
+                    x.last_ping = Date.now();
                     self.notifyTopologyHistory(x);
                 }
             });
