@@ -4,6 +4,7 @@ import * as coord from "./topology_coordinator";
 import * as comp from "../topology_compiler";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
+import * as ctp from "../util/crontab_parser";
 
 /** Utility class for holding data about single topology */
 class TopologyItem {
@@ -20,8 +21,8 @@ export interface TopologyWorkerParams {
     storage: intf.CoordinationStorage;
     /** Additional data inside an object that is injected into each topology definition. Optional. */
     overrides?: object;
-    /** Optional function that tests if the worker should be dormant. */
-    is_dormant_period?: () => boolean;
+    /** Optional. Either CRON-like expression or a function that tests if the worker should be dormant. */
+    is_dormant_period?: string | (() => boolean);
 }
 
 /** This class handles topology worker - singleton instance on
@@ -35,13 +36,23 @@ export class TopologyWorker {
     private topologies: TopologyItem[];
     private waiting_for_shutdown: boolean;
     private is_dormant_period: () => boolean;
+    private cron_tester: ctp.CronTabParser;
 
     /** Initializes this object */
-    //constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
     constructor(options: TopologyWorkerParams) {
         this.log_prefix = `[Worker ${options.name}] `;
         this.overrides = options.overrides || {};
-        this.is_dormant_period = options.is_dormant_period || (() => false);
+        this.is_dormant_period = (() => false);
+        if (options.is_dormant_period) {
+            if (typeof options.is_dormant_period === "string") {
+                this.cron_tester = new ctp.CronTabParser(options.is_dormant_period);
+                this.is_dormant_period = (() => {
+                    return this.cron_tester.isIncluded(new Date());
+                });
+            } else {
+                this.is_dormant_period = options.is_dormant_period;
+            }
+        }
         this.waiting_for_shutdown = false;
         this.topologies = [];
 
