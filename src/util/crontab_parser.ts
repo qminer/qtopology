@@ -2,12 +2,10 @@
 export class CronTabParser {
 
     private parts: number[][];
-    private simple_regex: RegExp;
-    private dow_regex: RegExp;
-
+    
     constructor(s: string) {
-        this.simple_regex = /^\*|\d\d?(\-\d\d?)?$/;
-        this.dow_regex = /^(sun|mon|tue|wed|thu|fri|sat)(\-(sun|mon|tue|wed|thu|fri|sat))?$/;
+        let simple_regex = /^\*|\d\d?(\-\d\d?)?$/;
+        let dow_regex = /^(sun|mon|tue|wed|thu|fri|sat)(\-(sun|mon|tue|wed|thu|fri|sat))?$/;
         let parts = s.split(" ");
         if (parts.length != 6) {
             throw new Error(`Invalid CRON string: ${s} - ${JSON.stringify(parts)}`);
@@ -15,7 +13,7 @@ export class CronTabParser {
         this.parts = [];
         for (let i = 0; i < parts.length; i++) {
             let p = parts[i].toLowerCase();
-            if (i == 5 && this.dow_regex.test(p)) {
+            if (i == 5 && dow_regex.test(p)) {
                 // support for day-of-week enumeration
                 ["sun", "mon", "tue", "wed", "thu", "fri", "sat"].forEach((x, index) => {
                     p = p
@@ -23,7 +21,7 @@ export class CronTabParser {
                         .replace(x, "" + index); // do this twice, just in case someone sent in same-day- range, e.g. wed-wed
                 });
             }
-            if (!this.simple_regex.test(p)) {
+            if (!simple_regex.test(p)) {
                 throw new Error(`Invalid CRON string: ${p}`);
             }
             if (p == "*") {
