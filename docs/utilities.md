@@ -7,6 +7,7 @@ QTopology exports several utility classes that are used internally, but can be u
 - [pattern matcher](#pattern-matcher)
 - [child process restarter](#child-process-restarter)
 - [minimal HTTP server](#minimal-http-server)
+- [CRON-like expression parser](#cron-like-expression-parser)
 
 ## logger
 
@@ -158,3 +159,49 @@ This utility class represents minimal HTTP server that serves simple REST reques
 - server-side rendering
 - complex routing
 - route parameter parsing
+
+## CRON-like expression parser
+
+This utility object support a subset of CRON expressions
+
+```
+*    *    *    *    *    *
+┬    ┬    ┬    ┬    ┬    ┬
+│    │    │    │    │    |
+│    │    │    │    │    └ day of week (0 - 6) (also supports )
+│    │    │    │    └───── month (1 - 12)
+│    │    │    └────────── day of month (1 - 31)
+│    │    └─────────────── hour (0 - 23)
+│    └──────────────────── minute (0 - 59)
+└───────────────────────── second (0 - 59)
+```
+
+Each spot can contain one of the following:
+
+- `*` - means any value
+- `<number>` - means exact values
+- `<number>-<number>` - means value range (including the boundaries)
+- `<weekday>-<weekday>` - means day-of-week range (including the boundaries), e.g. `mon-fri`. Day-of-week part only. Valid values: `sun`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`.
+
+### Examples
+
+- `* * * * * *` - any date and time
+- `* * 10 * * *` - any date between 10:00:00 and 10:59:59
+- `* * 10-15 * * *` - any date between 10:00:00 and 15:59:59
+- `* * 10-15 * * 5` - any Friday between 10:00:00 and 15:59:59
+- `* * 10-15 * * fri` - any Friday between 10:00:00 and 15:59:59
+
+### Usage
+
+```javascript
+// import library
+const parser = require('qtopology').CronTabParser;
+
+// create instance
+let target = new parser('* * * * * 4'); // allow only Thursdays
+
+// query instance
+console.log(target.isIncluded(new Date(2018, 0, 31, 6, 45, 13))); // false
+console.log(target.isIncluded(new Date(2018, 1, 1, 6, 45, 12)));  // true
+console.log(target.isIncluded(new Date(2018, 1, 2, 6, 45, 11)));  // false
+```
