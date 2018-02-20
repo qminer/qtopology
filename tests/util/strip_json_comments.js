@@ -29,5 +29,18 @@ describe('strip_json_comments', function () {
         let s_stripped = qtopology.strip_json_comments(s);
         assert.deepEqual(JSON.parse(s_stripped), { a: 12});
     });
+    
+    describe('Comments inside a string', function () {
+        it('single-line comment', function () {
+            let s = "{ \"a\": \"as//d\" \n }";
+            let s_stripped = qtopology.strip_json_comments(s);
+            assert.deepEqual(JSON.parse(s_stripped), { a: "as//d"});
+        });
+        it('open-close comment', function () {
+            let s = "{ \"a\": \"as/*ww*/d\" \n }";
+            let s_stripped = qtopology.strip_json_comments(s);
+            assert.deepEqual(JSON.parse(s_stripped), { a: "as/*ww*/d"});
+        });
+    });    
 });
 
