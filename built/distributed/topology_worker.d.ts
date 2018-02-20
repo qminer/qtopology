@@ -7,8 +7,8 @@ export interface TopologyWorkerParams {
     storage: intf.CoordinationStorage;
     /** Additional data inside an object that is injected into each topology definition. Optional. */
     overrides?: object;
-    /** Optional function that tests if the worker should be dormant. */
-    is_dormant_period?: () => boolean;
+    /** Optional. Either CRON-like expression or a function that tests if the worker should be dormant. */
+    is_dormant_period?: string | (() => boolean);
 }
 /** This class handles topology worker - singleton instance on
  * that registers with coordination storage, receives instructions from
@@ -21,6 +21,7 @@ export declare class TopologyWorker {
     private topologies;
     private waiting_for_shutdown;
     private is_dormant_period;
+    private cron_tester;
     /** Initializes this object */
     constructor(options: TopologyWorkerParams);
     /** Internal wrapper around process.exit */
