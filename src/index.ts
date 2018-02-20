@@ -17,5 +17,6 @@ export * from "./util/pattern_matcher";
 export * from "./util/child_proc_restarter";
 export * from "./util/http_server";
 export * from "./util/crontab_parser";
+export * from "./util/strip_json_comments";
 
 export * from "./std_nodes/task_bolt_base";

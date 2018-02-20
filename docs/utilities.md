@@ -8,6 +8,7 @@ QTopology exports several utility classes that are used internally, but can be u
 - [child process restarter](#child-process-restarter)
 - [minimal HTTP server](#minimal-http-server)
 - [CRON-like expression parser](#cron-like-expression-parser)
+- [Strip-JSON-comments function](#strip-json-comments)
 
 ## logger
 
@@ -204,4 +205,38 @@ let target = new parser('* * * * * 4'); // allow only Thursdays
 console.log(target.isIncluded(new Date(2018, 0, 31, 6, 45, 13))); // false
 console.log(target.isIncluded(new Date(2018, 1, 1, 6, 45, 12)));  // true
 console.log(target.isIncluded(new Date(2018, 1, 2, 6, 45, 11)));  // false
+```
+
+## Strip-json-comments
+
+This utility function takes string containing `JSON` with non-standard comments
+and removes the comments. Very useful for processing the configuration files.
+
+Supports both single-line (`//`) and start-end (`/*` and `*/`) comments.
+
+If your input string or file looks like this:
+
+```JSON
+{
+    // This is a comment
+    "a": 12,
+    /* This is another comment */
+    "b": 45
+}
+```
+
+Send this string through the utility function:
+
+```javascript
+let qtopology = require("qtopology");
+let output = qtopology.strip_json_comments(input_string);
+```
+
+The `output` will look like this:
+
+```JSON
+{
+    "a": 12,
+    "b": 45
+}
 ```

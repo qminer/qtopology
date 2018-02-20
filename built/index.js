@@ -20,5 +20,6 @@ __export(require("./util/pattern_matcher"));
 __export(require("./util/child_proc_restarter"));
 __export(require("./util/http_server"));
 __export(require("./util/crontab_parser"));
+__export(require("./util/strip_json_comments"));
 __export(require("./std_nodes/task_bolt_base"));
 //# sourceMappingURL=index.js.map
