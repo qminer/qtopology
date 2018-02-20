@@ -64,7 +64,7 @@ The result is the following:
 }
 ```````````````
 
-This way you can
+This way you can add shortcut names for longer names (e.g. `-a` for `--append`).
 
 ### CmdLineParser object
 
