@@ -1,10 +1,11 @@
 "use strict";
 
 const async = require("async");
+const fs = require("fs");
 const qtopology = require("../../../");
 
 // demo configuration
-let config = require("./topology.json");
+let config = qtopology.readJsonFileSync("./topology.json");
 qtopology.validate({ config: config, exitOnError: true });
 let topology = new qtopology.TopologyLocal();
 

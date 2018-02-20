@@ -4,16 +4,33 @@
     in config files.
 
     Code taken and adopted from:
-    
+
     https://github.com/sindresorhus/strip-json-comments
 */
+
+import * as fs from "fs";
 
 const singleComment = 1;
 const multiComment = 2;
 const stripWithoutWhitespace = () => '';
 const stripWithWhitespace = (str, start?, end?) => str.slice(start, end).replace(/\S/g, ' ');
 
-export function strip_json_comments(str: string, opts?: any): string {
+/**
+ * Reads given file and transforms it into object.
+ * It allows non-standard JSON comments.
+ */
+export function readJsonFileSync(fname: string): any {
+    let s = fs.readFileSync(fname, "utf8");
+    return JSON.parse(stripJsonComments(s));
+}
+
+/**
+ * Utility function that removes comments from given JSON. Non-standard feature.
+ * @param str - string containing JSON data with comments
+ * @param opts - optional options object
+ * @param opts.whitespace - should whitespaces also be removed
+ */
+export function stripJsonComments(str: string, opts?: any): string {
     opts = opts || {};
 
     const strip = opts.whitespace === false ? stripWithoutWhitespace : stripWithWhitespace;
