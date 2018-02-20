@@ -6,6 +6,7 @@ const coord = require("./topology_coordinator");
 const comp = require("../topology_compiler");
 const intf = require("../topology_interfaces");
 const log = require("../util/logger");
+const ctp = require("../util/crontab_parser");
 /** Utility class for holding data about single topology */
 class TopologyItem {
 }
@@ -15,11 +16,21 @@ class TopologyItem {
 */
 class TopologyWorker {
     /** Initializes this object */
-    //constructor(name: string, storage: intf.CoordinationStorage, overrides?: object) {
     constructor(options) {
         this.log_prefix = `[Worker ${options.name}] `;
         this.overrides = options.overrides || {};
-        this.is_dormant_period = options.is_dormant_period || (() => false);
+        this.is_dormant_period = (() => false);
+        if (options.is_dormant_period) {
+            if (typeof options.is_dormant_period === "string") {
+                this.cron_tester = new ctp.CronTabParser(options.is_dormant_period);
+                this.is_dormant_period = (() => {
+                    return this.cron_tester.isIncluded(new Date());
+                });
+            }
+            else {
+                this.is_dormant_period = options.is_dormant_period;
+            }
+        }
         this.waiting_for_shutdown = false;
         this.topologies = [];
         let self = this;
