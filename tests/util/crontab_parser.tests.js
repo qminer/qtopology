@@ -5,7 +5,7 @@
 const assert = require("assert");
 const qtopology = require("../..");
 
-describe.only('CronTabParser', function () {
+describe('CronTabParser', function () {
     it('empty filter', function () {
         let target = new qtopology.CronTabParser("* * * * * *");
         assert.ok(target.isIncluded(new Date(2018, 1, 1, 6, 45, 12)));
