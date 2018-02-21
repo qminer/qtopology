@@ -8,7 +8,8 @@ QTopology exports several utility classes that are used internally, but can be u
 - [child process restarter](#child-process-restarter)
 - [minimal HTTP server](#minimal-http-server)
 - [CRON-like expression parser](#cron-like-expression-parser)
-- [Strip-JSON-comments function](#strip-json-comments)
+- [stripJsonComments function](#stripjsoncomments-function)
+- [readJsonFileSync function](#readjsonfilesync-function)
 
 ## logger
 
@@ -63,7 +64,7 @@ The result is the following:
 }
 ```````````````
 
-This way you can 
+This way you can add shortcut names for longer names (e.g. `-a` for `--append`).
 
 ### CmdLineParser object
 
@@ -85,7 +86,7 @@ node main.js -n my_name
 node main.js --name my_name
 `````````````
 
-The result would be 
+The result would be
 
 ``````````javascript
 {
@@ -207,16 +208,16 @@ console.log(target.isIncluded(new Date(2018, 1, 1, 6, 45, 12)));  // true
 console.log(target.isIncluded(new Date(2018, 1, 2, 6, 45, 11)));  // false
 ```
 
-## Strip-json-comments
+## stripJsonComments function
 
 This utility function takes string containing `JSON` with non-standard comments
 and removes the comments. Very useful for processing the configuration files.
 
 Supports both single-line (`//`) and start-end (`/*` and `*/`) comments.
 
-If your input string or file looks like this:
+If your input string looks like this:
 
-```JSON
+```
 {
     // This is a comment
     "a": 12,
@@ -229,7 +230,7 @@ Send this string through the utility function:
 
 ```javascript
 let qtopology = require("qtopology");
-let output = qtopology.strip_json_comments(input_string);
+let output = qtopology.stripJsonComments(input_string);
 ```
 
 The `output` will look like this:
@@ -240,3 +241,11 @@ The `output` will look like this:
     "b": 45
 }
 ```
+
+## readJsonFileSync function
+
+Utility function that:
+
+- reads the specified file
+- performs `stripJsonComments` on the text
+- parses the `JSON` and return the object
