@@ -287,11 +287,15 @@ function drawGraph(config) {
             cmds.push(parent.source + "->" + bolt.name + ";");
         }
     }
+    var dot_definition = "digraph { rankdir=\"LR\"; " + cmds.join("") + " }";
     if (cmds.length == 0) return '<?xml version="1.0" encoding="iso-8859-1"?><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g></g></svg>';
-    var result = Viz("digraph { rankdir=\"LR\"; " + cmds.join("") + " }", { format: "svg", engine: "dot", scale: 0.5 });
+    var result = Viz(dot_definition, { format: "svg", engine: "dot", scale: 1 });
+
+    var result_txt = Viz(dot_definition, { format: "plain", engine: "dot", scale: 1 });
+    var logical_width = +result_txt.split("\n")[0].split(" ")[2];
 
     result = result
-        .replace(/width=\"(\d)*(\w)*\"/gi, "width=\"100%\"")
+        .replace(/width=\"(\d)*(\w)*\"/gi, "width=\"" + (logical_width * 100) + "px\"")
         .replace(/height=\"(\d)*(\w)*\"/gi, "");
     return result;
 }
