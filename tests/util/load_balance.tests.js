@@ -489,7 +489,7 @@ describe('LoadBalancerEx', function () {
             });
         });
     });
-    describe.only('Rebalancing', function () {
+    describe('Rebalancing', function () {
         describe('2 workers', function () {
 
             function performChanges(workers, topologies, changes) {
