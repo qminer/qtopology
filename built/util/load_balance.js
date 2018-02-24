@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/** This class represents needed change for rebalancing */
+/** This class represents a single needed change for rebalancing */
 class RebalanceChange {
 }
 exports.RebalanceChange = RebalanceChange;
@@ -19,7 +19,7 @@ class LoadBalancer {
         if (wrkrs.length == 0) {
             throw new Error("Cannot perform load-balancing on empty list of workers");
         }
-        this.workers = wrkrs.slice(0); // creat a copy
+        this.workers = wrkrs.slice(0); // create a copy
         this.sort();
     }
     /** Returns next worker to receive new load */
@@ -128,40 +128,65 @@ class LoadBalancerEx {
             }
         }
         // compare current state and "near-ideal" one
-        let gold = inner.getCurrentStats();
+        let semi_ideal = inner.getCurrentStats();
         let current = this.getCurrentStats();
-        let score = this.compareScore(gold, current);
+        let score = compareScore(semi_ideal, current);
         // if score is below 1.5, then the current load is not severely uneven.
         if (score < 1.5) {
             changes = [];
         }
         return { score: score, changes: changes };
     }
-    /** Calculates deviation score - how bad is the current load
-     * in comparison to the near-optimal one.
-    */
-    compareScore(near_optimal, current) {
-        let result = 0;
-        for (let xa of near_optimal) {
-            let found = false;
-            for (let xb of current) {
-                if (xa.name == xb.name) {
-                    found = true;
-                    if (xa.weight < xb.weight) {
-                        result += (xa.weight == 0 ? 100 : xb.weight / xa.weight);
-                    }
-                    else if (xa.weight > xb.weight) {
-                        result += (xb.weight == 0 ? 100 : xa.weight / xb.weight);
-                    }
-                    break;
-                }
-            }
-            if (!found) {
-                result += 100;
-            }
-        }
-        return result / near_optimal.length; // average score per server
-    }
 }
 exports.LoadBalancerEx = LoadBalancerEx;
+/** Calculates deviation score - how bad is the current load
+* in comparison to the near-optimal one.
+*/
+function compareScore(near_optimal, current) {
+    let result = 0;
+    for (let xa of near_optimal) {
+        let found = false;
+        for (let xb of current) {
+            if (xa.name == xb.name) {
+                found = true;
+                if (xa.weight < xb.weight) {
+                    result += (xa.weight == 0 ? 100 : xb.weight / xa.weight);
+                }
+                else if (xa.weight > xb.weight) {
+                    result += (xb.weight == 0 ? 100 : xa.weight / xb.weight);
+                }
+                break;
+            }
+        }
+        if (!found) {
+            result += 100;
+        }
+    }
+    return result / near_optimal.length; // average score per server
+}
+function deepClone(x) {
+    return JSON.parse(JSON.stringify(x));
+}
+/** Utility function that performs local, greedy rebalance */
+function performLocalRebalance(workers, affinity_factor, topologies) {
+    let res = new RebalanceResult();
+    let workers_tmp = workers.map(x => deepClone(x));
+    let topologies_tmp = topologies.map(x => deepClone(x));
+    while (true) {
+        let best = Number.MAX_VALUE;
+        for (let t of topologies_tmp) {
+            for (let w of workers_tmp) {
+                if (t.worker == w.name)
+                    continue;
+            }
+        }
+        if (best < Number.MAX_VALUE) {
+        }
+        else {
+            break;
+        }
+    }
+    return res;
+}
+exports.performLocalRebalance = performLocalRebalance;
 //# sourceMappingURL=load_balance.js.map

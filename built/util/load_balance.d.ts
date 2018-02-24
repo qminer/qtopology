@@ -9,8 +9,9 @@ export interface Topology {
     worker: string;
     weight: number;
     affinity: string[];
+    forced_affinity: string[];
 }
-/** This class represents needed change for rebalancing */
+/** This class represents a single needed change for rebalancing */
 export declare class RebalanceChange {
     uuid: string;
     worker_old: string;
@@ -56,8 +57,6 @@ export declare class LoadBalancerEx {
      * is too different, it creates rebalancing instructions.
      */
     rebalance(topologies: Topology[]): RebalanceResult;
-    /** Calculates deviation score - how bad is the current load
-     * in comparison to the near-optimal one.
-    */
-    private compareScore(near_optimal, current);
 }
+/** Utility function that performs local, greedy rebalance */
+export declare function performLocalRebalance(workers: Worker[], affinity_factor: number, topologies: Topology[]): RebalanceResult;
