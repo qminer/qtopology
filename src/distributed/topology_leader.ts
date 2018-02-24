@@ -392,7 +392,13 @@ export class TopologyLeader {
         }
         let load_balancer = new lb.LoadBalancerEx(
             workers.map(x => {
-                return { name: x.name, weight: 0 };
+                return {
+                    name: x.name,
+                    weight: topologies
+                        .filter(y => y.worker == x.name) // running on this worker
+                        .map(y => y.weight)              // get their weights
+                        .reduce((prev, curr) => prev + curr) // sum the weights
+                };
             }),
             AFFINITY_FACTOR
         );
