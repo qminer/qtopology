@@ -489,8 +489,20 @@ describe('LoadBalancerEx', function () {
             });
         });
     });
-    describe('Rebalancing', function () {
+    describe.only('Rebalancing', function () {
         describe('2 workers', function () {
+
+            function performChanges(workers, topologies, changes) {
+                for (let change of changes){
+                    let t = topologies.filter(x =>x.uuid == change.uuid)[0];
+                    let w1 = workers.filter(x => x.name == change.worker_old)[0];
+                    let w2 = workers.filter(x => x.name == change.worker_new)[0];
+                    t.worker = w2.name;
+                    w1.weight -= t.weight;
+                    w2.weight += t.weight;
+                }
+            }
+
             it('same initial load, no weights, no affinity', function () {
                 let data = [
                     { name: "wrkr1", weight: 1 },
@@ -503,6 +515,10 @@ describe('LoadBalancerEx', function () {
                 let target = new lb.LoadBalancerEx(data);
                 let res = target.rebalance(topologies);
                 assert.equal(res.score, 0);
+                assert.equal(res.changes.length, 0);
+                // another rebalance produces no changes
+                performChanges(data, topologies, res.changes);
+                res = target.rebalance(topologies);
                 assert.equal(res.changes.length, 0);
             });
             it('different initial load, no weights, no affinity', function () {
@@ -519,6 +535,10 @@ describe('LoadBalancerEx', function () {
                 assert.equal(res.changes.length, 1);
                 assert.deepEqual(res.changes[0], { uuid: "b", worker_old: "wrkr1", worker_new: "wrkr2" });
                 assert.equal(res.score, 51);
+                // another rebalance produces no changes
+                performChanges(data, topologies, res.changes);
+                res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 0);
             });
             it('different initial load, with weights, no affinity', function () {
                 let data = [
@@ -534,6 +554,10 @@ describe('LoadBalancerEx', function () {
                 assert.equal(res.changes.length, 1);
                 assert.deepEqual(res.changes[0], { uuid: "a", worker_old: "wrkr1", worker_new: "wrkr2" });
                 assert.equal(res.score, (101 + 1 / 6) / 2);
+                // another rebalance produces no changes
+                performChanges(data, topologies, res.changes);
+                res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 0);
             });
             it('different initial load, no weights, with affinity', function () {
                 let data = [
@@ -549,6 +573,10 @@ describe('LoadBalancerEx', function () {
                 assert.equal(res.changes.length, 1);
                 assert.deepEqual(res.changes[0], { uuid: "a", worker_old: "wrkr1", worker_new: "wrkr2" });
                 assert.equal(res.score, 51);
+                // another rebalance produces no changes
+                performChanges(data, topologies, res.changes);
+                res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 0);
             });
         });
     });

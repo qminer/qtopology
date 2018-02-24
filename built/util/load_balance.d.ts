@@ -58,5 +58,3 @@ export declare class LoadBalancerEx {
      */
     rebalance(topologies: Topology[]): RebalanceResult;
 }
-/** Utility function that performs local, greedy rebalance */
-export declare function performLocalRebalance(workers: Worker[], affinity_factor: number, topologies: Topology[]): RebalanceResult;

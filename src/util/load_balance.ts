@@ -79,7 +79,9 @@ export class LoadBalancerEx {
         if (!wrkrs || wrkrs.length == 0) {
             throw new Error("Cannot perform load-balancing on empty list of workers");
         }
-        this.workers = wrkrs.slice(0); // create a copy
+        this.workers = wrkrs
+            .slice(0) // create a copy
+            .sort((a, b) => a.name.localeCompare(b.name)); // sort by name
         this.affinity_factor = affinity_factor || 5;
     }
 
@@ -139,13 +141,17 @@ export class LoadBalancerEx {
             } else {
                 if (b.affinity.length > 0) {
                     return 1;
-                } else {
+                } else if (b.weight != a.weight) {
                     // sort by descending weight
                     return b.weight - a.weight;
+                } else {
+                    return a.uuid.localeCompare(b.uuid);
                 }
             }
         };
-        let topologies_tmp = topologies.slice(0).sort(sorter); // shallow-copy and sort
+        let topologies_tmp = topologies
+            .slice(0)
+            .sort(sorter); // shallow-copy and sort
 
         // loop greedily over topologies and insert them into load-balancer
         let changes: RebalanceChange[] = [];
@@ -197,28 +203,28 @@ function compareScore(near_optimal: Worker[], current: Worker[]): number {
     return result / near_optimal.length; // average score per server
 }
 
-function deepClone(x: any): any {
-    return JSON.parse(JSON.stringify(x));
-}
+// function deepClone(x: any): any {
+//     return JSON.parse(JSON.stringify(x));
+// }
 
-/** Utility function that performs local, greedy rebalance */
-export function performLocalRebalance(workers: Worker[], affinity_factor: number, topologies: Topology[]): RebalanceResult {
-    let res = new RebalanceResult();
-    let workers_tmp:Worker[] = workers.map(x => deepClone(x));
-    let topologies_tmp:Topology[] = topologies.map(x => deepClone(x));
-    while (true) {
-        let best = Number.MAX_VALUE;
-        for (let t of topologies_tmp) {
-            for (let w of workers_tmp) {
-                if (t.worker == w.name) continue;
+// /** Utility function that performs local, greedy rebalance */
+// export function performLocalRebalance(workers: Worker[], affinity_factor: number, topologies: Topology[]): RebalanceResult {
+//     let res = new RebalanceResult();
+//     let workers_tmp: Worker[] = workers.map(x => deepClone(x));
+//     let topologies_tmp: Topology[] = topologies.map(x => deepClone(x));
+//     while (true) {
+//         let best = Number.MAX_VALUE;
+//         for (let t of topologies_tmp) {
+//             for (let w of workers_tmp) {
+//                 if (t.worker == w.name) continue;
 
-            }
-        }
-        if (best < Number.MAX_VALUE) {
+//             }
+//         }
+//         if (best < Number.MAX_VALUE) {
 
-        } else {
-            break;
-        }
-    }
-    return res;
-}
+//         } else {
+//             break;
+//         }
+//     }
+//     return res;
+// }
