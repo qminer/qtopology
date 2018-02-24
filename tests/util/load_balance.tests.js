@@ -578,6 +578,38 @@ describe('LoadBalancerEx', function () {
                 res = target.rebalance(topologies);
                 assert.equal(res.changes.length, 0);
             });
+            it('same initial load, many topologies, no weights, no affinity', function () {
+                let data = [
+                    { name: "wrkr1", weight: 7 },
+                    { name: "wrkr2", weight: 8 }
+                ];
+                let topologies = [
+                    { uuid: "t1", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t2", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t3", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t4", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t5", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t6", worker: "wrkr1", weight: 1, affinity: [] },
+                    { uuid: "t7", worker: "wrkr1", weight: 1, affinity: [] },
+
+                    { uuid: "t21", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t22", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t23", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t24", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t25", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t26", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t27", worker: "wrkr2", weight: 1, affinity: [] },
+                    { uuid: "t28", worker: "wrkr2", weight: 1, affinity: [] }
+                ];
+                let target = new lb.LoadBalancerEx(data);
+                let res = target.rebalance(topologies);
+                //assert.equal(res.score, 0);
+                assert.equal(res.changes.length, 0);
+                // another rebalance produces no changes
+                performChanges(data, topologies, res.changes);
+                res = target.rebalance(topologies);
+                assert.equal(res.changes.length, 0);
+            });
         });
     });
 });
