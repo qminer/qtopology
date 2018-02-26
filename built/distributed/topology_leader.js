@@ -289,7 +289,8 @@ class TopologyLeader {
                 uuid: x.uuid,
                 weight: x.weight,
                 worker: x.worker,
-                affinity: x.worker_affinity
+                affinity: x.worker_affinity,
+                forced_affinity: []
             });
         });
         let unassigned_topologies = topologies_enabled
@@ -337,7 +338,13 @@ class TopologyLeader {
             return callback();
         }
         let load_balancer = new lb.LoadBalancerEx(workers.map(x => {
-            return { name: x.name, weight: 0 };
+            return {
+                name: x.name,
+                weight: topologies
+                    .filter(y => y.worker == x.name) // running on this worker
+                    .map(y => y.weight) // get their weights
+                    .reduce((prev, curr) => prev + curr) // sum the weights
+            };
         }), AFFINITY_FACTOR);
         let steps = load_balancer.rebalance(topologies);
         // group rebalancing by old worker
@@ -399,7 +406,7 @@ class TopologyLeader {
                 log.logger().important(self.log_prefix + `Reporting live worker ${worker.name} as dead (sec since ping: ${(Date.now() - worker.last_ping) / 1000})`);
                 worker.status = intf.Consts.WorkerStatus.dead;
                 // TODO what if worker just had an old PING when starting two servers simultaneously?
-                // TODO what if worker timed out, but comes back? Should we change it's status to live? 
+                // TODO what if worker timed out, but comes back? Should we change it's status to live?
                 // TODO how can leadership loop run when worker is dead?
                 self.storage.setWorkerStatus(worker.name, worker.status, xcallback);
             },
