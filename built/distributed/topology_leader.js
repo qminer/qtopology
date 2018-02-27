@@ -343,7 +343,7 @@ class TopologyLeader {
                 weight: topologies
                     .filter(y => y.worker == x.name) // running on this worker
                     .map(y => y.weight) // get their weights
-                    .reduce((prev, curr) => prev + curr) // sum the weights
+                    .reduce((prev, curr) => prev + curr, 0) // sum the weights
             };
         }), AFFINITY_FACTOR);
         let steps = load_balancer.rebalance(topologies);
