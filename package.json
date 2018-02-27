@@ -5,7 +5,7 @@
   "main": "./built/index.js",
   "typings": "./built/index",
   "scripts": {
-    "test": "mocha tests --recursive && cd demo && bash run_demos.sh"
+    "test": "mocha tests --recursive --timeout 10000 && cd demo && bash run_demos.sh"
   },
   "repository": "https://github.com/qminer/qtopology.git",
   "keywords": [
