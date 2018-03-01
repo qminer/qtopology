@@ -248,4 +248,4 @@ Utility function that:
 
 - reads the specified file
 - performs `stripJsonComments` on the text
-- parses the `JSON` and return the object
+- parses the `JSON` and returns the object
