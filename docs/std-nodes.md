@@ -29,6 +29,7 @@ List of standard bolts:
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
+- [Console bolt](#console-bolt)
 
 Base classes that can be extended with custom logic:
 
