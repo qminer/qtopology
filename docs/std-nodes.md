@@ -225,7 +225,7 @@ This spout emits pre-defined records. The records need to be defined in the conf
     "name": "pump1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "timer",
+    "cmd": "test",
     "init": {
         "tuples": [
             { "ts": "2017-03-16T12:34:33.942Z", "a": 12 },
