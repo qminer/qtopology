@@ -223,7 +223,7 @@ export class TopologyLocal {
 
         let shutdownTasks = () => {
             let tasks = [];
-            self.spouts.forEach((spout) => {
+            for (let spout of self.spouts) {
                 tasks.push((xcallback) => {
                     try {
                         spout.shutdown(xcallback);
@@ -231,8 +231,8 @@ export class TopologyLocal {
                         xcallback(e);
                     }
                 });
-            });
-            self.bolts.forEach((bolt) => {
+            };
+            for (let bolt of self.bolts) {
                 tasks.push((xcallback) => {
                     try {
                         bolt.shutdown(xcallback);
@@ -240,7 +240,7 @@ export class TopologyLocal {
                         xcallback(e);
                     }
                 });
-            });
+            };
             if (self.config.general.shutdown) {
                 let factory = (module_path) => {
                     return (xcallback) => {
@@ -283,7 +283,7 @@ export class TopologyLocal {
             });
         } else {
             shutdownTasks();
-        }        
+        }
     }
 
     /** Runs hard-core shutdown sequence */
@@ -374,7 +374,7 @@ export class TopologyLocal {
                 try {
                     bolt.receive(data_clone, stream_id, xcallback);
                 } catch (e) {
-                     return xcallback(e);
+                    return xcallback(e);
                 }
             },
             callback

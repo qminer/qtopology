@@ -252,7 +252,7 @@ Optionally, one can use parameters `delay_start` (delay before the first tuple i
 
 `cmd="timer"`
 
-This spout emits new record on every heartbeat. The record contains title (`title`) and and timestamp (`ts`) fields. Additional constant fields can be defined via configuration - these fields are simply attached to the message.
+This spout emits new record on every heartbeat. The record contains title (`title`) and timestamp (`ts`) fields. Additional constant fields can be defined via configuration - these fields are simply attached to the message.
 
 ```````````````````````````````json
 {
