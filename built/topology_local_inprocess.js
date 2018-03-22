@@ -95,7 +95,7 @@ class TopologySpoutWrapper extends TopologyNodeBase {
         let self = this;
         try {
             if (config.type == "sys") {
-                this.spout = this.createSysSpout(config);
+                this.spout = createSysSpout(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
@@ -271,7 +271,7 @@ class TopologySpoutWrapper extends TopologyNodeBase {
         }
     }
     /** Factory method for sys spouts */
-    createSysSpout(spout_config) {
+    static createSysSpout(spout_config) {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();
@@ -316,7 +316,7 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         this.pendingShutdownCallback = null;
         try {
             if (config.type == "sys") {
-                this.bolt = this.createSysBolt(config);
+                this.bolt = createSysBolt(config);
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
@@ -448,7 +448,7 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         }
     }
     /** Factory method for sys bolts */
-    createSysBolt(bolt_config) {
+    static createSysBolt(bolt_config) {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
@@ -467,4 +467,8 @@ class TopologyBoltWrapper extends TopologyNodeBase {
     }
 }
 exports.TopologyBoltWrapper = TopologyBoltWrapper;
+function createSysSpout(config) { return TopologySpoutWrapper.createSysSpout(config); }
+exports.createSysSpout = createSysSpout;
+function createSysBolt(config) { return TopologyBoltWrapper.createSysBolt(config); }
+exports.createSysBolt = createSysBolt;
 //# sourceMappingURL=topology_local_inprocess.js.map
