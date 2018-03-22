@@ -29,6 +29,7 @@ List of standard bolts:
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
+- [Console bolt](#console-bolt)
 
 Base classes that can be extended with custom logic:
 
@@ -224,7 +225,7 @@ This spout emits pre-defined records. The records need to be defined in the conf
     "name": "pump1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "timer",
+    "cmd": "test",
     "init": {
         "tuples": [
             { "ts": "2017-03-16T12:34:33.942Z", "a": 12 },
@@ -251,7 +252,7 @@ Optionally, one can use parameters `delay_start` (delay before the first tuple i
 
 `cmd="timer"`
 
-This spout emits new record on every heartbeat. The record contains title (`title`) and and timestamp (`ts`) fields. Additional constant fields can be defined via configuration - these fields are simply attached to the message.
+This spout emits new record on every heartbeat. The record contains title (`title`) and timestamp (`ts`) fields. Additional constant fields can be defined via configuration - these fields are simply attached to the message.
 
 ```````````````````````````````json
 {

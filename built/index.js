@@ -5,6 +5,9 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./topology_compiler"));
 __export(require("./topology_local"));
+var topology_local_inprocess_1 = require("./topology_local_inprocess");
+exports.createSysBolt = topology_local_inprocess_1.createSysBolt;
+exports.createSysSpout = topology_local_inprocess_1.createSysSpout;
 __export(require("./topology_validation"));
 __export(require("./topology_interfaces"));
 __export(require("./distributed/topology_worker"));

@@ -199,7 +199,7 @@ class TopologyLocal {
         }
         let shutdownTasks = () => {
             let tasks = [];
-            self.spouts.forEach((spout) => {
+            for (let spout of self.spouts) {
                 tasks.push((xcallback) => {
                     try {
                         spout.shutdown(xcallback);
@@ -208,8 +208,9 @@ class TopologyLocal {
                         xcallback(e);
                     }
                 });
-            });
-            self.bolts.forEach((bolt) => {
+            }
+            ;
+            for (let bolt of self.bolts) {
                 tasks.push((xcallback) => {
                     try {
                         bolt.shutdown(xcallback);
@@ -218,7 +219,8 @@ class TopologyLocal {
                         xcallback(e);
                     }
                 });
-            });
+            }
+            ;
             if (self.config.general.shutdown) {
                 let factory = (module_path) => {
                     return (xcallback) => {
