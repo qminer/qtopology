@@ -293,7 +293,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     }
 
     /** Factory method for sys spouts */
-    static createSysSpout(spout_config: any): intf.Spout {
+    static createSysSpout(spout_config: any) {
         switch (spout_config.cmd) {
             case "timer": return new ts.TimerSpout();
             case "get": return new gs.GetSpout();

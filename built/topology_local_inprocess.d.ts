@@ -11,6 +11,14 @@ import * as fab2 from "./std_nodes/file_append_bolt_ex";
 import * as cntb from "./std_nodes/counter_bolt";
 import * as dtb from "./std_nodes/date_transform_bolt";
 import * as prb from "./std_nodes/process_bolt";
+import * as frs from "./std_nodes/file_reader_spout";
+import * as ps from "./std_nodes/process_spout";
+import * as rs from "./std_nodes/rest_spout";
+import * as ts from "./std_nodes/timer_spout";
+import * as gs from "./std_nodes/get_spout";
+import * as rss from "./std_nodes/rss_spout";
+import * as tss from "./std_nodes/test_spout";
+import * as ds from "./std_nodes/dir_watcher_spout";
 /** Base class for spouts and bolts - contains telemetry support */
 export declare class TopologyNodeBase {
     protected name: string;
@@ -63,7 +71,7 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     /** Sends pause signal to child */
     pause(): void;
     /** Factory method for sys spouts */
-    static createSysSpout(spout_config: any): intf.Spout;
+    static createSysSpout(spout_config: any): frs.FileReaderSpout | ps.ProcessSpout | ps.ProcessSpoutContinuous | rs.RestSpout | ts.TimerSpout | gs.GetSpout | rss.RssSpout | tss.TestSpout | ds.DirWatcherSpout;
 }
 /** Wrapper for bolt */
 export declare class TopologyBoltWrapper extends TopologyNodeBase {
@@ -97,5 +105,5 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     /** Factory method for sys bolts */
     static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
 }
-export declare function createSysSpout(config: any): intf.Spout;
+export declare function createSysSpout(config: any): frs.FileReaderSpout | ps.ProcessSpout | ps.ProcessSpoutContinuous | rs.RestSpout | ts.TimerSpout | gs.GetSpout | rss.RssSpout | tss.TestSpout | ds.DirWatcherSpout;
 export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
