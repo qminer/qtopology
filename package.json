@@ -1,11 +1,11 @@
 {
   "name": "qtopology",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",
   "scripts": {
-    "test": "mocha tests --recursive && cd demo && bash run_demos.sh"
+    "test": "mocha tests --recursive --timeout 10000 && cd demo && bash run_demos.sh"
   },
   "repository": "https://github.com/qminer/qtopology.git",
   "keywords": [
