@@ -1,4 +1,16 @@
 import * as intf from "./topology_interfaces";
+import * as fb from "./std_nodes/filter_bolt";
+import * as pb from "./std_nodes/post_bolt";
+import * as cb from "./std_nodes/console_bolt";
+import * as ab from "./std_nodes/attacher_bolt";
+import * as gb from "./std_nodes/get_bolt";
+import * as rb from "./std_nodes/router_bolt";
+import * as bb from "./std_nodes/bomb_bolt";
+import * as fab from "./std_nodes/file_append_bolt";
+import * as fab2 from "./std_nodes/file_append_bolt_ex";
+import * as cntb from "./std_nodes/counter_bolt";
+import * as dtb from "./std_nodes/date_transform_bolt";
+import * as prb from "./std_nodes/process_bolt";
 /** Base class for spouts and bolts - contains telemetry support */
 export declare class TopologyNodeBase {
     protected name: string;
@@ -51,7 +63,7 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     /** Sends pause signal to child */
     pause(): void;
     /** Factory method for sys spouts */
-    private createSysSpout(spout_config);
+    static createSysSpout(spout_config: any): intf.Spout;
 }
 /** Wrapper for bolt */
 export declare class TopologyBoltWrapper extends TopologyNodeBase {
@@ -83,5 +95,7 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     /** Sends data to child object. */
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
     /** Factory method for sys bolts */
-    private createSysBolt(bolt_config);
+    static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
 }
+export declare function createSysSpout(config: any): intf.Spout;
+export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
