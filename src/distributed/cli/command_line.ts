@@ -5,6 +5,7 @@ import * as vld from "../../topology_validation";
 import * as log from "../../util/logger";
 import * as cmdline from "../../util/cmdline";
 import * as leader from "../topology_leader";
+import * as strpc from "../../util/strip_json_comments";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -44,9 +45,8 @@ export class CommandLineHandler {
             CommandLineHandler.showHelp();
             callback();
         } else if (params.length == 3 && params[0] == "register") {
-            fs.readFile(params[2], "utf8", (err, content) => {
-                if (err) return handleError(err, callback);
-                let config = JSON.parse(content);
+            try {
+                let config = strpc.readJsonFileSync(params[2]);
                 try {
                     vld.validate({ config: config, exitOnError: false, throwOnError: true });
                 } catch (e) {
@@ -55,7 +55,9 @@ export class CommandLineHandler {
                 this.storage.registerTopology(params[1], config, (err) => {
                     handleError(err, callback);
                 });
-            });
+            } catch (e) {
+                return handleError(e, callback);
+            }
         } else if (params.length == 2 && params[0] == "enable") {
             this.storage.enableTopology(params[1], (err) => {
                 handleError(err, callback);

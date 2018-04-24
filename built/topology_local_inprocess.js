@@ -322,6 +322,9 @@ class TopologyBoltWrapper extends TopologyNodeBase {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.bolt = require(module_path).create(this.subtype);
+                if (!this.bolt) {
+                    throw new Error(`Bolt factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
             }
         }
         catch (e) {
