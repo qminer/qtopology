@@ -491,7 +491,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "file_append": return new fab.FileAppendBolt();
             case "file_append_ex": return new fab2.FileAppendBoltEx();
             case "date_transform": return new ttb.TypeTransformBolt();
-            case "data_transform": return new ttb.TypeTransformBolt();
+            case "type_transform": return new ttb.TypeTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);

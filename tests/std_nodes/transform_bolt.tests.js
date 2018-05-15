@@ -31,7 +31,7 @@ function test(input, output, template, done) {
     });
 }
 
-describe.only('TransformBolt', function () {
+describe('TransformBolt', function () {
     it('constructable', function () {
         let target = new tb.TransformBolt();
     });

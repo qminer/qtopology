@@ -29,6 +29,7 @@ List of standard bolts:
 - [File-append bolt extended](#file-append-bolt-extended)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
+- [Type-transform bolt](#type-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
 - [Console bolt](#console-bolt)
 
@@ -174,6 +175,31 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
     "cmd": "date_transform",
     "init": {
         "date_transform_fields": ["field1", "field2"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
+
+> Using this bolt only makes sense when messages are passed in binary form.
+
+> **NOTE:** This bolt is obsolete, use `type_transform` bolt in the future.
+
+## Type-transform bolt
+
+`cmd="type_transform"`
+
+This bolt takes incoming messages and transforms predefined fields into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "date_transform",
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "numeric_transform_fields": ["field3"],
+        "bool_transform_fields": ["field4"],
         "reuse_stream_id": true
     }
 }
