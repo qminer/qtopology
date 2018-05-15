@@ -6,7 +6,7 @@ const assert = require("assert");
 const ttb = require("../../built/std_nodes/type_transform_bolt");
 
 
-describe.only('TypeTransformBolt', function () {
+describe('TypeTransformBolt', function () {
     it('constructable', function () {
         let target = new ttb.TypeTransformBolt();
     });
