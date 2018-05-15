@@ -10,7 +10,7 @@ import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
 import * as fab2 from "./std_nodes/file_append_bolt_ex";
 import * as cntb from "./std_nodes/counter_bolt";
-import * as dtb from "./std_nodes/date_transform_bolt";
+import * as ttb from "./std_nodes/type_transform_bolt";
 import * as prb from "./std_nodes/process_bolt";
 import * as frs from "./std_nodes/file_reader_spout";
 import * as ps from "./std_nodes/process_spout";
@@ -104,7 +104,7 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     /** Sends data to child object. */
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
     /** Factory method for sys bolts */
-    static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
+    static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;
 }
 export declare function createSysSpout(config: any): frs.FileReaderSpout | ps.ProcessSpout | ps.ProcessSpoutContinuous | rs.RestSpout | ts.TimerSpout | gs.GetSpout | rss.RssSpout | tss.TestSpout | ds.DirWatcherSpout;
-export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | dtb.DateTransformBolt | prb.ProcessBoltContinuous;
+export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;

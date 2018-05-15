@@ -13,7 +13,7 @@ const bb = require("./std_nodes/bomb_bolt");
 const fab = require("./std_nodes/file_append_bolt");
 const fab2 = require("./std_nodes/file_append_bolt_ex");
 const cntb = require("./std_nodes/counter_bolt");
-const dtb = require("./std_nodes/date_transform_bolt");
+const ttb = require("./std_nodes/type_transform_bolt");
 const prb = require("./std_nodes/process_bolt");
 const frs = require("./std_nodes/file_reader_spout");
 const ps = require("./std_nodes/process_spout");
@@ -464,7 +464,8 @@ class TopologyBoltWrapper extends TopologyNodeBase {
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();
             case "file_append_ex": return new fab2.FileAppendBoltEx();
-            case "date_transform": return new dtb.DateTransformBolt();
+            case "date_transform": return new ttb.TypeTransformBolt();
+            case "data_transform": return new ttb.TypeTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
