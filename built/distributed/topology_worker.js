@@ -282,7 +282,7 @@ class TopologyWorker {
         let topologies_local = self.topologies.slice(0);
         async.each(topologies_local, (item, xcallback) => {
             self.shutDownTopologyInternal(item, false, (err) => {
-                if (err) {
+                if (err) { // reporting error
                     log.logger().error(self.log_prefix + "Error while shutting down topology: " + item.uuid);
                     log.logger().exception(err);
                 }
@@ -296,7 +296,7 @@ class TopologyWorker {
         let top = self.topologies.find(top => top.uuid == uuid);
         if (top) {
             self.shutDownTopologyInternal(top, do_kill, (err) => {
-                if (err) {
+                if (err) { // reporting error
                     log.logger().error(self.log_prefix + "Error while shutting down topology: " + uuid);
                     log.logger().exception(err);
                 }

@@ -19,6 +19,7 @@ List of standard spouts:
 List of standard bolts:
 
 - [Attacher bolt](#attacher-bolt)
+- [Transform bolt](#transform-bolt)
 - [Filter bolt](#filter-bolt)
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
@@ -333,6 +334,70 @@ Emit a new message like this:
 
 ``````````````````````````````json
 { "previous_data": "some text", "field1": "a" }
+``````````````````````````````
+
+## Transform bolt
+
+`cmd="transform"`
+
+This bolt transforms incoming data object according to `output_template` and forwards it on to listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "output_template": {
+            "ts": "ts",
+            "tags": {
+                "country": "country",
+                "browser": "user.browser"
+            },
+            "values": {
+                "amount": "amount",
+                "duration": "duration"
+            }
+        }
+    }
+}
+```````````````````````````````
+
+> The structure of output object is the same as template.
+>
+> The values of output data are retrieved from the source object, by using property names. Nested properties are referenced by `parent.child.child...` notation.
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{ 
+    "ts": "2017-10-01",
+    "country": "SI",
+    "user": {
+        "browser": "Chrome",
+    },
+    "amount": 123.45,
+    "duration": 432 }
+``````````````````````````````
+
+Emit a new message like this:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "tags": {
+        "country": "SI",
+        "browser": "Chrome"
+    },
+    "values": {
+        "amount": 123.45,
+        "duration": 432
+    }
+}
 ``````````````````````````````
 
 ## Console bolt
