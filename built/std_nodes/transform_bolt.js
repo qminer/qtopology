@@ -5,13 +5,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class TransformBolt {
     constructor() {
         this.onEmit = null;
-        this.output_template = null;
         this.compiled = [];
     }
     init(name, config, context, callback) {
         this.onEmit = config.onEmit;
-        this.output_template = JSON.parse(JSON.stringify(config.output_template || {}));
-        this.precompile(this.output_template, []);
+        var output_template = JSON.parse(JSON.stringify(config.output_template || {}));
+        this.precompile(output_template, []);
         callback();
     }
     heartbeat() { }

@@ -4,20 +4,18 @@ import * as intf from "../topology_interfaces";
  * into predefined format. */
 export class TransformBolt implements intf.Bolt {
 
-    private output_template: any;
     private onEmit: intf.BoltEmitCallback;
     private compiled: string[][];
 
     constructor() {
         this.onEmit = null;
-        this.output_template = null;
         this.compiled = [];
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
-        this.output_template = JSON.parse(JSON.stringify(config.output_template || {}));
-        this.precompile(this.output_template, []);
+        var output_template = JSON.parse(JSON.stringify(config.output_template || {}));
+        this.precompile(output_template, []);
         callback();
     }
 

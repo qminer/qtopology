@@ -2,7 +2,6 @@ import * as intf from "../topology_interfaces";
 /** This bolt transforms incoming messages
  * into predefined format. */
 export declare class TransformBolt implements intf.Bolt {
-    private output_template;
     private onEmit;
     private compiled;
     constructor();
