@@ -53,6 +53,6 @@ export class CounterBolt implements intf.Bolt {
 
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         this.counter++;
-        callback();
+        this.onEmit(data, stream_id, callback);
     }
 }
