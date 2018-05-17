@@ -99,6 +99,10 @@ export class Accumulator {
         this.map.report("", result);
         return result;
     }
+
+    reset() {
+        this.map.reset();
+    }
 }
 
 /** This bolt processes incoming data by counting and keeping various statistics
@@ -178,12 +182,13 @@ export class AccumulatorBolt implements intf.Bolt {
             () => { return Math.floor(ts / this.granularity) != this.last_ts; },
             (xcallback) => {
                 this.sendAggregates(xcallback);
-            }
+            },
+            callback
         );
-        while (Math.floor(ts / this.granularity) != this.last_ts) {
-            this.sendAggregates
-            this.last_ts += this.granularity;
-        }
+        // while (Math.floor(ts / this.granularity) != this.last_ts) {
+        //     this.sendAggregates
+        //     this.last_ts += this.granularity;
+        // }
     }
 
     sendAggregates(callback) {
@@ -204,8 +209,9 @@ export class AccumulatorBolt implements intf.Bolt {
                                 }
                             );
                         }
+                        acc.reset();
                     }
-                    // prepare
+                    // emit data
                     async.each(
                         report,
                         (item, xxcallback) => {

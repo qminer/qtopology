@@ -32,6 +32,7 @@ export declare class Accumulator {
     constructor(name: string);
     add(val: number, tags: string[]): void;
     report(): any[];
+    reset(): void;
 }
 /** This bolt processes incoming data by counting and keeping various statistics
  * about it, and then publishing them at regular intervals. */

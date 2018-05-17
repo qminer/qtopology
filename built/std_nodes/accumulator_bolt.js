@@ -77,6 +77,9 @@ class Accumulator {
         this.map.report("", result);
         return result;
     }
+    reset() {
+        this.map.reset();
+    }
 }
 exports.Accumulator = Accumulator;
 /** This bolt processes incoming data by counting and keeping various statistics
@@ -139,11 +142,11 @@ class AccumulatorBolt {
     catchUpTimestamp(ts, callback) {
         async.whilst(() => { return Math.floor(ts / this.granularity) != this.last_ts; }, (xcallback) => {
             this.sendAggregates(xcallback);
-        });
-        while (Math.floor(ts / this.granularity) != this.last_ts) {
-            this.sendAggregates;
-            this.last_ts += this.granularity;
-        }
+        }, callback);
+        // while (Math.floor(ts / this.granularity) != this.last_ts) {
+        //     this.sendAggregates
+        //     this.last_ts += this.granularity;
+        // }
     }
     sendAggregates(callback) {
         async.series([
@@ -160,8 +163,9 @@ class AccumulatorBolt {
                             stats: stat
                         });
                     }
+                    acc.reset();
                 }
-                // prepare
+                // emit data
                 async.each(report, (item, xxcallback) => {
                     this.onEmit(item, null, xxcallback);
                 }, xcallback);
