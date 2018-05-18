@@ -3,6 +3,7 @@
 /*global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require("assert");
+const async = require("async");
 const ab = require("../../built/std_nodes/accumulator_bolt");
 
 describe('accumulator_bolt - Rec', function () {
@@ -22,7 +23,7 @@ describe('accumulator_bolt - Rec', function () {
         assert.deepEqual(target.report(), { min: 34, max: 38, avg: 36, count: 2 });
     });
 });
-describe.only('accumulator_bolt - Accumulator', function () {
+describe('accumulator_bolt - Accumulator', function () {
     it('no data', function () {
         let target = new ab.Accumulator();
         assert.deepEqual(target.report(),
@@ -124,6 +125,145 @@ describe.only('accumulator_bolt - Accumulator', function () {
                     ["country=US", { min: 30, max: 30, avg: 30, count: 1 }],
                     ["country=US.server=s1", { min: 30, max: 30, avg: 30, count: 1 }]
                 ]);
+        });
+    });
+});
+describe.only('accumulator_bolt - AccumulatorBolt', function () {
+    it('', function (done) {
+        let target = new ab.AccumulatorBolt();
+        let emitted_msgs = [];
+        let onEmit = (data, stream_id, cb) => {
+            emitted_msgs.push({ data, stream_id });
+            cb();
+        };
+        async.series(
+            [
+                (xcallback) => {
+                    target.init("bolt1", { onEmit: onEmit, granularity: 10000 }, {}, xcallback);
+                },
+                (xcallback) => {
+                    assert.equal(emitted_msgs.length, 0);
+                    xcallback();
+                }
+            ],
+            done
+        );
+    });
+    describe('accumulator_bolt - simple tags', function (done) {
+        it('1 data point', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: 10000 }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: 12345678, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 0);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+        it('2 data points - single batch', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: 10000 }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: 12345678, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: 12345678 + 1, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 0);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+        it('2 data points - separate batch', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: 10000 }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: 12345678, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: 12345678 + 5000, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 2);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=\"SI",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                }
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
         });
     });
 });

@@ -117,7 +117,7 @@ class AccumulatorBolt {
                 // transform tags
                 let tags = [];
                 for (let f of Object.getOwnPropertyNames(data.tags)) {
-                    tags.push(`${f}="{data.tags[f]}`);
+                    tags.push(`${f}="${data.tags[f]}`);
                 }
                 // process each metric
                 for (let f of Object.getOwnPropertyNames(data.values)) {
@@ -140,13 +140,11 @@ class AccumulatorBolt {
         ], callback);
     }
     catchUpTimestamp(ts, callback) {
-        async.whilst(() => { return Math.floor(ts / this.granularity) != this.last_ts; }, (xcallback) => {
+        async.whilst(() => {
+            return Math.floor(ts / this.granularity) != this.last_ts;
+        }, (xcallback) => {
             this.sendAggregates(xcallback);
         }, callback);
-        // while (Math.floor(ts / this.granularity) != this.last_ts) {
-        //     this.sendAggregates
-        //     this.last_ts += this.granularity;
-        // }
     }
     sendAggregates(callback) {
         async.series([
@@ -158,9 +156,9 @@ class AccumulatorBolt {
                     for (let stat of stats) {
                         let name = acc.name + (stat[0].length > 0 ? "." : "") + stat[0];
                         report.push({
-                            ts: this.last_ts + this.granularity,
+                            ts: this.last_ts * this.granularity,
                             name: name,
-                            stats: stat
+                            stats: stat[1]
                         });
                     }
                     acc.reset();
@@ -171,7 +169,7 @@ class AccumulatorBolt {
                 }, xcallback);
             },
             (xcallback) => {
-                this.last_ts += this.granularity;
+                this.last_ts++; // += this.granularity;
                 xcallback();
             }
         ], callback);

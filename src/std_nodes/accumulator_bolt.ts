@@ -152,7 +152,7 @@ export class AccumulatorBolt implements intf.Bolt {
                     // transform tags
                     let tags = [];
                     for (let f of Object.getOwnPropertyNames(data.tags)) {
-                        tags.push(`${f}="{data.tags[f]}`);
+                        tags.push(`${f}="${data.tags[f]}`);
                     }
 
                     // process each metric
@@ -179,16 +179,14 @@ export class AccumulatorBolt implements intf.Bolt {
 
     catchUpTimestamp(ts, callback) {
         async.whilst(
-            () => { return Math.floor(ts / this.granularity) != this.last_ts; },
+            () => { 
+                return Math.floor(ts / this.granularity) != this.last_ts;
+            },
             (xcallback) => {
                 this.sendAggregates(xcallback);
             },
             callback
         );
-        // while (Math.floor(ts / this.granularity) != this.last_ts) {
-        //     this.sendAggregates
-        //     this.last_ts += this.granularity;
-        // }
     }
 
     sendAggregates(callback) {
@@ -203,9 +201,9 @@ export class AccumulatorBolt implements intf.Bolt {
                             let name = acc.name + (stat[0].length > 0 ? "." : "") + stat[0];
                             report.push(
                                 {
-                                    ts: this.last_ts + this.granularity,
+                                    ts: this.last_ts * this.granularity,
                                     name: name,
-                                    stats: stat
+                                    stats: stat[1]
                                 }
                             );
                         }
@@ -221,7 +219,7 @@ export class AccumulatorBolt implements intf.Bolt {
                     );
                 },
                 (xcallback) => {
-                    this.last_ts += this.granularity;
+                    this.last_ts++; // += this.granularity;
                     xcallback();
                 }
             ],
