@@ -128,7 +128,7 @@ describe('accumulator_bolt - Accumulator', function () {
         });
     });
 });
-describe.only('accumulator_bolt - AccumulatorBolt', function () {
+describe('accumulator_bolt - AccumulatorBolt', function () {
     it('init', function (done) {
         let target = new ab.AccumulatorBolt();
         let emitted_msgs = [];
