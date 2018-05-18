@@ -61,8 +61,10 @@ class Node {
         }
     }
     reset() {
-        this.data = new Rec();
-        this.children = {};
+        this.data.reset();
+        for (let c of Object.getOwnPropertyNames(this.children)) {
+            this.children[c].reset();
+        }
     }
 }
 exports.Node = Node;
@@ -92,6 +94,7 @@ exports.Accumulator = Accumulator;
  * about it, and then publishing them at regular intervals. */
 class AccumulatorBolt {
     constructor() {
+        this.emit_zero_counts = false;
         this.last_ts = Number.MIN_VALUE;
         this.granularity = 10 * 60 * 1000;
         this.onEmit = null;
@@ -99,6 +102,7 @@ class AccumulatorBolt {
     }
     init(name, config, context, callback) {
         this.onEmit = config.onEmit;
+        this.emit_zero_counts = config.emit_zero_counts;
         this.granularity = config.granularity || this.granularity;
         callback();
     }
@@ -167,7 +171,6 @@ class AccumulatorBolt {
                             stats: stat[1]
                         });
                     }
-                    acc.reset();
                 }
                 // emit data
                 async.each(report, (item, xxcallback) => {
@@ -175,7 +178,15 @@ class AccumulatorBolt {
                 }, xcallback);
             },
             (xcallback) => {
-                this.last_ts++; // += this.granularity;
+                if (this.emit_zero_counts) {
+                    this.accumulators.forEach(acc => {
+                        acc.reset();
+                    });
+                }
+                else {
+                    this.accumulators = [];
+                }
+                this.last_ts++;
                 xcallback();
             }
         ], callback);

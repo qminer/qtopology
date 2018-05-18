@@ -75,8 +75,10 @@ export class Node {
     }
 
     reset() {
-        this.data = new Rec();
-        this.children = {};
+        this.data.reset();
+        for (let c of Object.getOwnPropertyNames(this.children)) {
+            this.children[c].reset();
+        }
     }
 }
 
@@ -117,11 +119,13 @@ export class Accumulator {
 export class AccumulatorBolt implements intf.Bolt {
 
     private last_ts: number;
+    private emit_zero_counts: boolean;
     private granularity: number;
     private onEmit: intf.BoltEmitCallback;
     private accumulators: Accumulator[];
 
     constructor() {
+        this.emit_zero_counts = false;
         this.last_ts = Number.MIN_VALUE;
         this.granularity = 10 * 60 * 1000;
         this.onEmit = null;
@@ -130,6 +134,7 @@ export class AccumulatorBolt implements intf.Bolt {
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
+        this.emit_zero_counts = config.emit_zero_counts;
         this.granularity = config.granularity || this.granularity;
         callback();
     }
@@ -213,7 +218,6 @@ export class AccumulatorBolt implements intf.Bolt {
                                 }
                             );
                         }
-                        acc.reset();
                     }
                     // emit data
                     async.each(
@@ -225,7 +229,14 @@ export class AccumulatorBolt implements intf.Bolt {
                     );
                 },
                 (xcallback) => {
-                    this.last_ts++; // += this.granularity;
+                    if (this.emit_zero_counts) {
+                        this.accumulators.forEach(acc => {
+                            acc.reset();
+                        });
+                    } else {
+                        this.accumulators = [];
+                    }
+                    this.last_ts++;
                     xcallback();
                 }
             ],

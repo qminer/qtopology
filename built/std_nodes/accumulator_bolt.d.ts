@@ -38,6 +38,7 @@ export declare class Accumulator {
  * about it, and then publishing them at regular intervals. */
 export declare class AccumulatorBolt implements intf.Bolt {
     private last_ts;
+    private emit_zero_counts;
     private granularity;
     private onEmit;
     private accumulators;
