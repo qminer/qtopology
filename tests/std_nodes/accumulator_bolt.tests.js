@@ -9,7 +9,7 @@ const ab = require("../../built/std_nodes/accumulator_bolt");
 describe('accumulator_bolt - Rec', function () {
     it('no data', function () {
         let target = new ab.Rec();
-        assert.deepEqual(target.report(), { min: Number.MAX_VALUE, max: Number.MIN_VALUE, avg: 0, count: 0 });
+        assert.deepEqual(target.report(), { min: null, max: null, avg: null, count: 0 });
     });
     it('1 data point', function () {
         let target = new ab.Rec();
@@ -28,7 +28,7 @@ describe('accumulator_bolt - Accumulator', function () {
         let target = new ab.Accumulator();
         assert.deepEqual(target.report(),
             [
-                ["", { min: Number.MAX_VALUE, max: Number.MIN_VALUE, avg: 0, count: 0 }]
+                ["", { min: null, max: null, avg: null, count: 0 }]
             ]);
     });
     describe('accumulator_bolt - no tags', function () {
