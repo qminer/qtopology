@@ -9,10 +9,10 @@ export declare class Rec {
     reset(): void;
     add(val: number): void;
     report(): {
-        min: number;
-        max: number;
-        avg: number;
         count: number;
+        avg: any;
+        min: any;
+        max: any;
     };
 }
 /** Internal class that lives in a tree structure */

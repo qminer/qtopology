@@ -232,7 +232,7 @@ class TopologyLocalProxy {
     /** Sends shutdown signal to underlaying process */
     shutdown(callback) {
         callback = callback_wrappers_1.tryCallback(callback);
-        if (this.shutdown_cb) { // this proxy is in the process of shutdown
+        if (this.shutdown_cb) {
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
         }
         // the child might have ALREADY sent shutdown response (SIGINT, SIGTERM)
@@ -261,7 +261,7 @@ class TopologyLocalProxy {
         callback = callback_wrappers_1.tryCallback(callback);
         if ((this.child == null) || // not initialized
             this.child.killed || // already sent SIGKILL
-            this.has_exited) { // exited by signal or exit (shutdown or error)
+            this.has_exited) {
             return callback();
         }
         log.logger().important(this.log_prefix + "Sending SIGKILL to child process");

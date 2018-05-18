@@ -22,12 +22,18 @@ class Rec {
         this.max = (this.max < val ? val : this.max);
     }
     report() {
-        return {
-            min: this.min,
-            max: this.max,
-            avg: this.avg,
+        let res = {
             count: this.count,
+            avg: null,
+            min: null,
+            max: null
         };
+        if (res.count > 0) {
+            res.min = this.min;
+            res.max = this.max;
+            res.avg = this.avg;
+        }
+        return res;
     }
 }
 exports.Rec = Rec;

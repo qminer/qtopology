@@ -129,7 +129,7 @@ describe('accumulator_bolt - Accumulator', function () {
     });
 });
 describe.only('accumulator_bolt - AccumulatorBolt', function () {
-    it('', function (done) {
+    it('init', function (done) {
         let target = new ab.AccumulatorBolt();
         let emitted_msgs = [];
         let onEmit = (data, stream_id, cb) => {
@@ -214,6 +214,8 @@ describe.only('accumulator_bolt - AccumulatorBolt', function () {
         it('2 data points - separate batch', function (done) {
             let target = new ab.AccumulatorBolt();
             let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
             let onEmit = (data, stream_id, cb) => {
                 emitted_msgs.push({ data, stream_id });
                 cb();
@@ -221,18 +223,18 @@ describe.only('accumulator_bolt - AccumulatorBolt', function () {
             async.series(
                 [
                     (xcallback) => {
-                        target.init("bolt1", { onEmit: onEmit, granularity: 10000 }, {}, xcallback);
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity }, {}, xcallback);
                     },
                     (xcallback) => {
                         target.receive(
-                            { ts: 12345678, tags: { country: "SI" }, values: { amount: 123 } },
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 123 } },
                             null,
                             xcallback
                         );
                     },
                     (xcallback) => {
                         target.receive(
-                            { ts: 12345678 + 5000, tags: { country: "SI" }, values: { amount: 125 } },
+                            { ts: ts_start + 0.5*granularity, tags: { country: "SI" }, values: { amount: 125 } },
                             null,
                             xcallback
                         );
@@ -258,6 +260,184 @@ describe.only('accumulator_bolt - AccumulatorBolt', function () {
                                     },
                                     "stream_id": null
                                 }
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+
+        it('2 data points - separate batch, with 2 empty batches', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 2.5 * granularity, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 4);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=\"SI",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12350000,
+                                        "name": "amount",
+                                        "stats": { "min": null, "max": null, "avg": null, "count": 0 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12360000,
+                                        "name": "amount",
+                                        "stats": { "min": null, "max": null, "avg": null, "count": 0 }
+                                    },
+                                    "stream_id": null
+                                },
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+
+
+        it('3 data points - separate batch, with 2x2 empty batches', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 2.5 * granularity, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 5.1 * granularity, tags: { country: "SI" }, values: { amount: 130 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 7);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=\"SI",
+                                        "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12350000,
+                                        "name": "amount",
+                                        "stats": { "min": null, "max": null, "avg": null, "count": 0 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12360000,
+                                        "name": "amount",
+                                        "stats": { "min": null, "max": null, "avg": null, "count": 0 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12370000,
+                                        "name": "amount",
+                                        "stats": { "min": 125, "max": 125, "avg": 125, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12370000,
+                                        "name": "amount.country=\"SI",
+                                        "stats": { "min": 125, "max": 125, "avg": 125, "count": 1 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12380000,
+                                        "name": "amount",
+                                        "stats": { "min": null, "max": null, "avg": null, "count": 0 }
+                                    },
+                                    "stream_id": null
+                                },
                             ]);
                         xcallback();
                     }
