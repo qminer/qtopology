@@ -18,6 +18,7 @@ List of standard spouts:
 
 List of standard bolts:
 
+- [Accumulator bolt](#accumulator-bolt)
 - [Attacher bolt](#attacher-bolt)
 - [Transform bolt](#transform-bolt)
 - [Filter bolt](#filter-bolt)
@@ -113,13 +114,13 @@ The above example will run the child process each minute and collect the results
 `cmd="process-continuous"`
 
 This spout behaves like the `process` spout - the difference is that it spawns child process, specified by the command-line, and reads its stdout as it is written (and emits the messages).
-The two most important config parameters are `cmd_line` - the command to be executed and `cwd` - 
+The two most important config parameters are `cmd_line` - the command to be executed and `cwd` -
 the current working directory.
 
 ### Error handling
 
 If `emit_error_on_exit` flag (false by default) is set to true, the spout will emit an exception when the child process exits. Setting
-`emit_stderr_errors` to true (false by default) will emit any data read from stderr as an exception. Setting `emit_parse_errors` to true (default) will emit parse exceptions, otherwise they will be silently ignored if set to false. 
+`emit_stderr_errors` to true (false by default) will emit any data read from stderr as an exception. Setting `emit_parse_errors` to true (default) will emit parse exceptions, otherwise they will be silently ignored if set to false.
 
 ```````````````````````````````json
 {
@@ -206,6 +207,54 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 ```````````````````````````````
 
 > Using this bolt only makes sense when messages are passed in binary form.
+
+## Accumulator bolt
+
+`cmd="accumulator"`
+
+This bolt takes incoming messages in GDR format and emits periodic statistics.
+
+GDR record format is:
+
+```json
+{
+    "ts": "2018-05-20T12:34:56",
+    "tags": {
+        "field1": "val1",
+        "field2": "val2"
+    },
+    "values": {
+        "metric1": 433,
+        "metric2": 676.343
+    }
+}
+```
+
+The bolt that would emit statistics once per minute can be defined as:
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "accumulator",
+    "init": {
+        "granularity": 60000
+    }
+}
+```````````````````````````````
+
+The result would be something like:
+
+```````````````````````````````json
+{
+    "ts": 12340000,
+    "name": "amount",
+    "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+}
+```````````````````````````````
+
+By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
 
 ## Dir spout
 
@@ -400,7 +449,7 @@ This bolt transforms incoming data object according to `output_template` and for
 This bolt will, upon receiving a new message like this one:
 
 ``````````````````````````````json
-{ 
+{
     "ts": "2017-10-01",
     "country": "SI",
     "user": {
