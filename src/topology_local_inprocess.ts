@@ -7,6 +7,7 @@ import * as fb from "./std_nodes/filter_bolt";
 import * as pb from "./std_nodes/post_bolt";
 import * as cb from "./std_nodes/console_bolt";
 import * as ab from "./std_nodes/attacher_bolt";
+import * as ac from "./std_nodes/accumulator_bolt";
 import * as tb from "./std_nodes/transform_bolt";
 import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
@@ -483,6 +484,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
+            case "accumulator": return new ac.AccumulatorBolt();
             case "transform": return new tb.TransformBolt();
             case "post": return new pb.PostBolt();
             case "process": return new prb.ProcessBoltContinuous();

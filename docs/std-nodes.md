@@ -193,10 +193,11 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 
 ```````````````````````````````json
 {
-    "name": "pump1",
+    "name": "bolt1",
     "working_dir": ".",
     "type": "sys",
-    "cmd": "date_transform",
+    "cmd": "type_transform",
+    "inputs": [{ "source": "pump" }],
     "init": {
         "date_transform_fields": ["field1", "field2"],
         "numeric_transform_fields": ["field3"],
@@ -234,10 +235,11 @@ The bolt that would emit statistics once per minute can be defined as:
 
 ```````````````````````````````json
 {
-    "name": "pump1",
+    "name": "bolt1",
     "working_dir": ".",
     "type": "sys",
     "cmd": "accumulator",
+    "inputs": [{ "source": "pump" }],
     "init": {
         "granularity": 60000
     }

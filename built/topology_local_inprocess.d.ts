@@ -3,6 +3,7 @@ import * as fb from "./std_nodes/filter_bolt";
 import * as pb from "./std_nodes/post_bolt";
 import * as cb from "./std_nodes/console_bolt";
 import * as ab from "./std_nodes/attacher_bolt";
+import * as ac from "./std_nodes/accumulator_bolt";
 import * as tb from "./std_nodes/transform_bolt";
 import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
@@ -104,7 +105,7 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     /** Sends data to child object. */
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
     /** Factory method for sys bolts */
-    static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;
+    static createSysBolt(bolt_config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | ac.AccumulatorBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;
 }
 export declare function createSysSpout(config: any): frs.FileReaderSpout | ps.ProcessSpout | ps.ProcessSpoutContinuous | rs.RestSpout | ts.TimerSpout | gs.GetSpout | rss.RssSpout | tss.TestSpout | ds.DirWatcherSpout;
-export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;
+export declare function createSysBolt(config: any): fb.FilterBolt | pb.PostBolt | cb.ConsoleBolt | ab.AttacherBolt | ac.AccumulatorBolt | tb.TransformBolt | gb.GetBolt | rb.RouterBolt | bb.BombBolt | fab.FileAppendBolt | fab2.FileAppendBoltEx | cntb.CounterBolt | ttb.TypeTransformBolt | prb.ProcessBoltContinuous;

@@ -127,7 +127,7 @@ class AccumulatorBolt {
                 // transform tags
                 let tags = [];
                 for (let f of Object.getOwnPropertyNames(data.tags)) {
-                    tags.push(`${f}="${data.tags[f]}`);
+                    tags.push(`${f}=${data.tags[f]}`);
                 }
                 // process each metric
                 for (let f of Object.getOwnPropertyNames(data.values)) {

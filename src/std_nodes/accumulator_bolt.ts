@@ -82,7 +82,6 @@ export class Node {
     }
 }
 
-
 /** This class processes incoming single-metric data by counting and keeping various statistics
  * about it, and then publishing it when requested. */
 
@@ -163,7 +162,7 @@ export class AccumulatorBolt implements intf.Bolt {
                     // transform tags
                     let tags = [];
                     for (let f of Object.getOwnPropertyNames(data.tags)) {
-                        tags.push(`${f}="${data.tags[f]}`);
+                        tags.push(`${f}=${data.tags[f]}`);
                     }
 
                     // process each metric

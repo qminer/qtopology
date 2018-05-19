@@ -6,6 +6,7 @@ const fb = require("./std_nodes/filter_bolt");
 const pb = require("./std_nodes/post_bolt");
 const cb = require("./std_nodes/console_bolt");
 const ab = require("./std_nodes/attacher_bolt");
+const ac = require("./std_nodes/accumulator_bolt");
 const tb = require("./std_nodes/transform_bolt");
 const gb = require("./std_nodes/get_bolt");
 const rb = require("./std_nodes/router_bolt");
@@ -457,6 +458,7 @@ class TopologyBoltWrapper extends TopologyNodeBase {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
+            case "accumulator": return new ac.AccumulatorBolt();
             case "transform": return new tb.TransformBolt();
             case "post": return new pb.PostBolt();
             case "process": return new prb.ProcessBoltContinuous();
