@@ -256,7 +256,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12340000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
                                         },
                                         "stream_id": null
@@ -313,7 +313,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12340000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
                                         },
                                         "stream_id": null
@@ -374,7 +374,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12340000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
                                         },
                                         "stream_id": null
@@ -390,7 +390,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12350000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": null, "max": null, "avg": null, "count": 0 }
                                         },
                                         "stream_id": null
@@ -406,7 +406,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12360000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": null, "max": null, "avg": null, "count": 0 }
                                         },
                                         "stream_id": null
@@ -470,7 +470,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12340000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
                                         },
                                         "stream_id": null
@@ -486,7 +486,7 @@ describe('accumulator_bolt', function () {
                                     {
                                         "data": {
                                             "ts": 12370000,
-                                            "name": "amount.country=\"SI",
+                                            "name": "amount.country=SI",
                                             "stats": { "min": 125, "max": 125, "avg": 125, "count": 1 }
                                         },
                                         "stream_id": null
@@ -554,7 +554,7 @@ describe('accumulator_bolt', function () {
                                 {
                                     "data": {
                                         "ts": 12340000,
-                                        "name": "amount.country=\"SI",
+                                        "name": "amount.country=SI",
                                         "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
                                     },
                                     "stream_id": null
@@ -570,7 +570,7 @@ describe('accumulator_bolt', function () {
                                 {
                                     "data": {
                                         "ts": 12350000,
-                                        "name": "amount.country=\"SI",
+                                        "name": "amount.country=SI",
                                         "stats": { "min": null, "max": null, "avg": null, "count": 0 }
                                     },
                                     "stream_id": null
@@ -586,7 +586,7 @@ describe('accumulator_bolt', function () {
                                 {
                                     "data": {
                                         "ts": 12360000,
-                                        "name": "amount.country=\"SI",
+                                        "name": "amount.country=SI",
                                         "stats": { "min": null, "max": null, "avg": null, "count": 0 }
                                     },
                                     "stream_id": null
@@ -602,7 +602,7 @@ describe('accumulator_bolt', function () {
                                 {
                                     "data": {
                                         "ts": 12370000,
-                                        "name": "amount.country=\"SI",
+                                        "name": "amount.country=SI",
                                         "stats": { "min": 125, "max": 125, "avg": 125, "count": 1 }
                                     },
                                     "stream_id": null
@@ -618,7 +618,7 @@ describe('accumulator_bolt', function () {
                                 {
                                     "data": {
                                         "ts": 12380000,
-                                        "name": "amount.country=\"SI",
+                                        "name": "amount.country=SI",
                                         "stats": { "min": null, "max": null, "avg": null, "count": 0 }
                                     },
                                     "stream_id": null
