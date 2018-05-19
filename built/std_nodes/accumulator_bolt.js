@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
+const logger_1 = require("../util/logger");
 /** Internal class for storing statistics */
 class Rec {
     constructor() {
@@ -172,6 +173,7 @@ class AccumulatorBolt {
                         });
                     }
                 }
+                logger_1.logger().log("Emitting accumulated data for " + (new Date(this.last_ts * this.granularity)));
                 // emit data
                 async.each(report, (item, xxcallback) => {
                     this.onEmit(item, null, xxcallback);

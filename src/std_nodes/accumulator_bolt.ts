@@ -1,5 +1,6 @@
 import * as intf from "../topology_interfaces";
 import * as async from "async";
+import { logger } from "../util/logger";
 
 /** Internal class for storing statistics */
 export class Rec {
@@ -218,6 +219,8 @@ export class AccumulatorBolt implements intf.Bolt {
                             );
                         }
                     }
+
+                    logger().log("Emitting accumulated data for " + (new Date(this.last_ts * this.granularity)));
                     // emit data
                     async.each(
                         report,
