@@ -99,10 +99,24 @@ class TopologySpoutWrapper extends TopologyNodeBase {
             if (config.type == "sys") {
                 this.spout = createSysSpout(config);
             }
+            else if (config.type == "module_class") {
+                let module = require(this.working_dir);
+                this.spout = new module[this.cmd](this.subtype);
+            }
+            else if (config.type == "module_method") {
+                let module = require(this.working_dir);
+                this.spout = module[this.cmd](this.subtype);
+                if (!this.spout) {
+                    throw new Error(`Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+            }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.spout = require(module_path).create(this.subtype);
+                if (!this.spout) {
+                    throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
             }
         }
         catch (e) {
@@ -319,6 +333,17 @@ class TopologyBoltWrapper extends TopologyNodeBase {
         try {
             if (config.type == "sys") {
                 this.bolt = createSysBolt(config);
+            }
+            else if (config.type == "module_class") {
+                let module = require(this.working_dir);
+                this.bolt = new module[this.cmd](this.subtype);
+            }
+            else if (config.type == "module_method") {
+                let module = require(this.working_dir);
+                this.bolt = module[this.cmd](this.subtype);
+                if (!this.bolt) {
+                    throw new Error(`Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
             }
             else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir

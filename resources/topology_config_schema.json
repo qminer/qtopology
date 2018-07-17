@@ -145,7 +145,8 @@
                     },
                     "type": {
                         "enum": [
-                            "subproc",
+                            "module_class",
+                            "module_method",
                             "inproc",
                             "sys"
                         ]
