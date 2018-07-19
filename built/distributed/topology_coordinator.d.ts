@@ -49,9 +49,9 @@ export declare class TopologyCoordinator {
     /** Set status on given worker */
     reportWorker(name: string, status: string, callback?: intf.SimpleCallback): void;
     /** Handle single request */
-    private handleSingleRequest(msg, callback);
+    private handleSingleRequest;
     /** This method checks for new messages from coordination storage. */
-    private handleIncommingRequests(callback);
+    private handleIncommingRequests;
     /** This method marks this worker as disabled. */
     setAsDisabled(callback: intf.SimpleCallback): void;
     /** This method checks current status for this worker.
@@ -60,8 +60,8 @@ export declare class TopologyCoordinator {
      * The worker must announce that it is available. The leader will then
      * handle the topologies appropriatelly.
      */
-    private checkWorkerStatus(callback);
+    private checkWorkerStatus;
     /** This method checks if all topologies, assigned to this worker, actually run. */
-    private checkAssignedTopologies(callback);
-    private setPingInterval();
+    private checkAssignedTopologies;
+    private setPingInterval;
 }

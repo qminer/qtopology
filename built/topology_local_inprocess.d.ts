@@ -69,7 +69,7 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     /** Sends run signal and starts the "pump" */
     run(): void;
     /** Requests next data message */
-    private next(callback);
+    private next;
     /** Sends pause signal to child */
     pause(): void;
     /** Factory method for sys spouts */
