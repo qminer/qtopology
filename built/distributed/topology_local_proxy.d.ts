@@ -22,8 +22,8 @@ export declare class TopologyLocalProxy {
     /** Constructor that sets up call routing */
     constructor(child_exit_callback: intf.SimpleCallback, child_process?: any);
     /** Starts child process and sets up all event handlers */
-    private setUpChildProcess(uuid);
-    private setPingInterval();
+    private setUpChildProcess;
+    private setPingInterval;
     /** Check if this object has exited */
     hasExited(): boolean;
     /** Check if this object has exited */
@@ -35,7 +35,7 @@ export declare class TopologyLocalProxy {
      * forwards the given error to child_exit_callback.
      * Also clears ping interval.
      */
-    private onExit(e);
+    private onExit;
     /** Sends initialization signal to underlaying process */
     init(uuid: string, config: any, callback: intf.SimpleCallback): void;
     /** Sends run signal to underlaying process */
@@ -50,5 +50,5 @@ export declare class TopologyLocalProxy {
      */
     kill(callback: intf.SimpleCallback): void;
     /** Internal method for sending messages to child process */
-    private send(code, data);
+    private send;
 }

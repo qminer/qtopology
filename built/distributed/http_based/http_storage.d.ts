@@ -33,5 +33,5 @@ export declare class HttpStorage implements intf.CoordinationStorage {
     shutDownWorker(name: string, callback: intf.SimpleCallback): void;
     getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>): void;
     getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>): void;
-    private call(addr, req_data, callback);
+    private call;
 }

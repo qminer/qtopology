@@ -9,5 +9,5 @@ export declare class TransformBolt implements intf.Bolt {
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
-    private precompile(template, prefix_array);
+    private precompile;
 }
