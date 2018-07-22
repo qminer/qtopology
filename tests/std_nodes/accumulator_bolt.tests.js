@@ -24,27 +24,24 @@ describe.only('accumulator_bolt', function () {
             assert.deepEqual(target.report(), { min: 34, max: 38, avg: 36, count: 2 });
         });
     });
-    describe('accumulator_bolt - Accumulator', function () {
+    describe('accumulator_bolt - SingleMetricAccumulator', function () {
         it('no data', function () {
-            let target = new ab.Accumulator();
-            assert.deepEqual(target.report(),
-                [
-                    ["", { min: null, max: null, avg: null, count: 0 }]
-                ]);
+            let target = new ab.SingleMetricAccumulator();
+            assert.deepEqual(target.report(), []);
         });
         describe('accumulator_bolt - no tags', function () {
             it('1 data point', function () {
-                let target = new ab.Accumulator();
-                target.add(34, []);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], []);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 34, avg: 34, count: 1 }]
                     ]);
             });
             it('2 data points', function () {
-                let target = new ab.Accumulator();
-                target.add(34, []);
-                target.add(38, []);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], []);
+                target.add(38, [], []);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 38, avg: 36, count: 2 }]
@@ -53,8 +50,8 @@ describe.only('accumulator_bolt', function () {
         });
         describe('accumulator_bolt - 1 tag', function () {
             it('1 data point', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 34, avg: 34, count: 1 }],
@@ -62,9 +59,9 @@ describe.only('accumulator_bolt', function () {
                     ]);
             });
             it('2 data points', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI"]);
-                target.add(38, ["country=SI"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI"]);
+                target.add(38, [], ["country=SI"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 38, avg: 36, count: 2 }],
@@ -74,8 +71,8 @@ describe.only('accumulator_bolt', function () {
         });
         describe('accumulator_bolt - 2 tags', function () {
             it('1 data point', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI", "server=s1"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI", "server=s1"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 34, avg: 34, count: 1 }],
@@ -85,9 +82,9 @@ describe.only('accumulator_bolt', function () {
                     ]);
             });
             it('2 data points', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI", "server=s1"]);
-                target.add(38, ["country=SI", "server=s1"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI", "server=s1"]);
+                target.add(38, [], ["country=SI", "server=s1"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 38, avg: 36, count: 2 }],
@@ -97,9 +94,9 @@ describe.only('accumulator_bolt', function () {
                     ]);
             });
             it('2 data points, different tag values', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI", "server=s1"]);
-                target.add(38, ["country=SI", "server=s2"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI", "server=s1"]);
+                target.add(38, [], ["country=SI", "server=s2"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 34, max: 38, avg: 36, count: 2 }],
@@ -111,10 +108,10 @@ describe.only('accumulator_bolt', function () {
                     ]);
             });
             it('3 data points, different tag values', function () {
-                let target = new ab.Accumulator();
-                target.add(34, ["country=SI", "server=s1"]);
-                target.add(38, ["country=SI", "server=s2"]);
-                target.add(30, ["country=US", "server=s1"]);
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, [], ["country=SI", "server=s1"]);
+                target.add(38, [], ["country=SI", "server=s2"]);
+                target.add(30, [], ["country=US", "server=s1"]);
                 assert.deepEqual(target.report(),
                     [
                         ["", { min: 30, max: 38, avg: 34, count: 3 }],
@@ -124,6 +121,32 @@ describe.only('accumulator_bolt', function () {
                         ["server=s1", { min: 30, max: 34, avg: 32, count: 2 }],
                         ["server=s2", { min: 38, max: 38, avg: 38, count: 1 }],
                         ["country=US", { min: 30, max: 30, avg: 30, count: 1 }],
+                        ["country=US.server=s1", { min: 30, max: 30, avg: 30, count: 1 }]
+                    ]);
+            });
+            it('3 data points, different tag values - 1 partition tag', function () {
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, ["country=SI"], ["server=s1"]);
+                target.add(38, ["country=SI"], ["server=s2"]);
+                target.add(30, ["country=US"], ["server=s1"]);
+                assert.deepEqual(target.report(),
+                    [
+                        ["country=SI", { min: 34, max: 38, avg: 36, count: 2 }],
+                        ["country=SI.server=s1", { min: 34, max: 34, avg: 34, count: 1 }],
+                        ["country=SI.server=s2", { min: 38, max: 38, avg: 38, count: 1 }],
+                        ["country=US", { min: 30, max: 30, avg: 30, count: 1 }],
+                        ["country=US.server=s1", { min: 30, max: 30, avg: 30, count: 1 }]
+                    ]);
+            });
+            it('3 data points, different tag values - 2 partition tag', function () {
+                let target = new ab.SingleMetricAccumulator();
+                target.add(34, ["country=SI", "server=s1"], []);
+                target.add(38, ["country=SI", "server=s2"], []);
+                target.add(30, ["country=US", "server=s1"], []);
+                assert.deepEqual(target.report(),
+                    [
+                        ["country=SI.server=s1", { min: 34, max: 34, avg: 34, count: 1 }],
+                        ["country=SI.server=s2", { min: 38, max: 38, avg: 38, count: 1 }],
                         ["country=US.server=s1", { min: 30, max: 30, avg: 30, count: 1 }]
                     ]);
             });
@@ -750,6 +773,84 @@ describe.only('accumulator_bolt', function () {
                                     },
                                     "stream_id": null
                                 },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=SI",
+                                        "stats": { "min": 123, "max": 125, "avg": 124, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=HR",
+                                        "stats": { "min": 11, "max": 13, "avg": 12, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                }
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+        it('5 data points - separate batch - with partition tags', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
+            let partition_tags = ["country"];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity, partition_tags: partition_tags }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "HR" }, values: { amount: 11 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "HR" }, values: { amount: 13 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 1 * granularity, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 2);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
                                 {
                                     "data": {
                                         "ts": 12340000,

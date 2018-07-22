@@ -256,7 +256,11 @@ The result would be something like:
 }
 ```````````````````````````````
 
-By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
+Other options:
+
+- `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
+- `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
+- `partition_tags` - list of tag names (string) that are mandatory and will always bepresent in metric statistics. No statistics will be tracked for tag partitions without these metrics.
 
 ## Dir spout
 

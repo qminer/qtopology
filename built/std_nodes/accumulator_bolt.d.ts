@@ -18,19 +18,30 @@ export declare class Rec {
 /** Internal class that lives in a tree structure */
 export declare class Node {
     data: Rec;
-    children: any;
+    children: Map<string, Node>;
     constructor();
     add(val: number, tags: string[], tag_index: number): void;
     report(prefix: string, result: any): void;
     reset(): void;
 }
-/** This class processes incoming single-metric data by counting and keeping various statistics
+/** Internal class that lives in a tree structure */
+export declare class PartitionNode {
+    child: Node;
+    pchildren: Map<string, PartitionNode>;
+    constructor();
+    add(val: number, ptags: string[], tags: string[]): void;
+    report(prefix: string, result: any): void;
+    reset(): void;
+}
+/**
+ * This class processes incoming single-metric data
+ * by counting and keeping various statistics
  * about it, and then publishing it when requested. */
-export declare class Accumulator {
+export declare class SingleMetricAccumulator {
     private map;
     name: string;
     constructor(name: string);
-    add(val: number, tags: string[]): void;
+    add(val: number, ptags: string[], tags: string[]): void;
     report(): any[];
     reset(): void;
 }
@@ -41,6 +52,7 @@ export declare class AccumulatorBolt implements intf.Bolt {
     private emit_zero_counts;
     private granularity;
     private ignore_tags;
+    private partition_tags;
     private onEmit;
     private accumulators;
     constructor();
@@ -48,6 +60,9 @@ export declare class AccumulatorBolt implements intf.Bolt {
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
+    /** Repeatedly sends aggregates until aggregation watermark
+     * reaches given timestamp.
+      */
     catchUpTimestamp(ts: any, callback: any): void;
     sendAggregates(callback: any): void;
 }

@@ -42,44 +42,89 @@ exports.Rec = Rec;
 class Node {
     constructor() {
         this.data = new Rec();
-        this.children = {};
+        this.children = new Map();
     }
     add(val, tags, tag_index) {
         this.data.add(val);
         for (let tag_index2 = tag_index; tag_index2 < tags.length; tag_index2++) {
             let tag = tags[tag_index2];
-            if (!this.children[tag]) {
-                this.children[tag] = new Node();
+            if (!this.children.has(tag)) {
+                this.children.set(tag, new Node());
             }
-            this.children[tag].add(val, tags, tag_index2 + 1);
+            this.children.get(tag).add(val, tags, tag_index2 + 1);
         }
     }
     report(prefix, result) {
         result.push([prefix, this.data.report()]);
         prefix = prefix + (prefix.length > 0 ? "." : "");
-        for (let c of Object.getOwnPropertyNames(this.children)) {
-            this.children[c].report(prefix + c, result);
+        for (let c of this.children.keys()) {
+            this.children.get(c).report(prefix + c, result);
         }
     }
     reset() {
         this.data.reset();
-        for (let c of Object.getOwnPropertyNames(this.children)) {
-            this.children[c].reset();
+        for (let c of this.children.keys()) {
+            this.children.get(c).reset();
         }
     }
 }
 exports.Node = Node;
-/** This class processes incoming single-metric data by counting and keeping various statistics
+/** Internal class that lives in a tree structure */
+class PartitionNode {
+    constructor() {
+        this.child = null;
+        this.pchildren = new Map();
+    }
+    add(val, ptags, tags) {
+        if (ptags.length == 0) {
+            if (!this.child) {
+                this.child = new Node();
+            }
+            this.child.add(val, tags, 0);
+        }
+        else {
+            let ptag = ptags[0];
+            ptags = ptags.slice(1);
+            if (!this.pchildren.has(ptag)) {
+                this.pchildren.set(ptag, new PartitionNode());
+            }
+            this.pchildren.get(ptag).add(val, ptags, tags);
+        }
+    }
+    report(prefix, result) {
+        if (this.child) {
+            this.child.report(prefix, result);
+        }
+        else {
+            prefix = prefix + (prefix.length > 0 ? "." : "");
+            for (let c of this.pchildren.keys()) {
+                this.pchildren.get(c).report(prefix + c, result);
+            }
+        }
+    }
+    reset() {
+        if (this.child) {
+            this.child.reset();
+        }
+        for (let pc of this.pchildren.keys()) {
+            this.pchildren[pc].reset();
+        }
+    }
+}
+exports.PartitionNode = PartitionNode;
+/**
+ * This class processes incoming single-metric data
+ * by counting and keeping various statistics
  * about it, and then publishing it when requested. */
-class Accumulator {
+class SingleMetricAccumulator {
     constructor(name) {
         this.name = name;
-        this.map = new Node();
+        this.map = new PartitionNode();
     }
-    add(val, tags) {
+    add(val, ptags, tags) {
         let ttags = tags.slice(0);
         ttags.sort();
-        this.map.add(val, ttags, 0);
+        this.map.add(val, ptags, ttags);
     }
     report() {
         let result = [];
@@ -90,7 +135,7 @@ class Accumulator {
         this.map.reset();
     }
 }
-exports.Accumulator = Accumulator;
+exports.SingleMetricAccumulator = SingleMetricAccumulator;
 /** This bolt processes incoming data by counting and keeping various statistics
  * about it, and then publishing them at regular intervals. */
 class AccumulatorBolt {
@@ -105,6 +150,7 @@ class AccumulatorBolt {
         this.onEmit = config.onEmit;
         this.emit_zero_counts = config.emit_zero_counts;
         this.ignore_tags = (config.ignore_tags || []).slice();
+        this.partition_tags = (config.partition_tags || []).slice();
         this.granularity = config.granularity || this.granularity;
         callback();
     }
@@ -127,18 +173,22 @@ class AccumulatorBolt {
             },
             (xcallback) => {
                 // transform tags
+                let partition_tags = [];
                 let tags = [];
                 for (let f of Object.getOwnPropertyNames(data.tags)) {
                     if (this.ignore_tags.indexOf(f) >= 0) {
                         continue;
                     }
-                    tags.push(`${f}=${data.tags[f]}`);
+                    let s = `${f}=${data.tags[f]}`;
+                    if (this.partition_tags.indexOf(f) >= 0) {
+                        partition_tags.push(s);
+                    }
+                    else {
+                        tags.push(s);
+                    }
                 }
                 // process each metric
                 for (let f of Object.getOwnPropertyNames(data.values)) {
-                    if (this.ignore_tags.indexOf(f) >= 0) {
-                        continue;
-                    }
                     let acc_match = null;
                     for (let acc of this.accumulators) {
                         if (acc.name == f) {
@@ -147,15 +197,18 @@ class AccumulatorBolt {
                         }
                     }
                     if (!acc_match) {
-                        acc_match = new Accumulator(f);
+                        acc_match = new SingleMetricAccumulator(f);
                         this.accumulators.push(acc_match);
                     }
-                    acc_match.add(data.values[f], tags);
+                    acc_match.add(data.values[f], partition_tags, tags);
                 }
                 xcallback();
             }
         ], callback);
     }
+    /** Repeatedly sends aggregates until aggregation watermark
+     * reaches given timestamp.
+      */
     catchUpTimestamp(ts, callback) {
         async.whilst(() => {
             return Math.floor(ts / this.granularity) != this.last_ts;
