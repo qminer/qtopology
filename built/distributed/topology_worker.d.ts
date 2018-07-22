@@ -25,24 +25,24 @@ export declare class TopologyWorker {
     /** Initializes this object */
     constructor(options: TopologyWorkerParams);
     /** Internal wrapper around process.exit */
-    private exit;
+    private exit(code);
     /** Starts this worker */
     run(): void;
     /** This method verifies that all topologies are running and properly registered */
-    private resolveTopologyMismatches;
+    private resolveTopologyMismatches(uuids, callback);
     /** Internal method ensures that a topology exits. */
-    private ensureExit;
+    private ensureExit(rec, err?);
     /** Internal method that creates proxy for given topology item */
-    private createInitAndRunProxy;
+    private createInitAndRunProxy(rec, callback);
     /** Starts single topology.
      * Guards itself from duplicated calls.
      */
-    private start;
-    private hasTopology;
+    private start(uuid, config, callback);
+    private hasTopology(uuid);
     /** This method injects override values into variables section of the configuration. */
-    private injectOverrides;
+    private injectOverrides(config);
     /** Remove specified topology from internal list */
-    private removeTopology;
+    private removeTopology(uuid);
     /** Shuts down the worker and all its subprocesses.
      * Does not pass any exceptions, only logs them.
      */
@@ -50,11 +50,11 @@ export declare class TopologyWorker {
     /** Sends shutdown signals to all topologies. Will try to shutdown
      * all topologies and log any failures.
      */
-    private shutDownTopologies;
+    private shutDownTopologies(callback);
     /** Sends shut down signal to single topology */
-    private shutDownTopology;
+    private shutDownTopology(uuid, do_kill, callback);
     /** Internal method that contains common steps for kill and shutdown sequence */
-    private shutDownTopologyInternal;
+    private shutDownTopologyInternal(item, do_kill, callback);
     /** Remove given topology from internal list and report an error */
-    private removeAndReportError;
+    private removeAndReportError(rec, err, callback);
 }

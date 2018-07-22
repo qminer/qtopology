@@ -6,7 +6,7 @@ const assert = require("assert");
 const async = require("async");
 const ab = require("../../built/std_nodes/accumulator_bolt");
 
-describe('accumulator_bolt', function () {
+describe.only('accumulator_bolt', function () {
     describe('accumulator_bolt - Rec', function () {
         it('no data', function () {
             let target = new ab.Rec();
@@ -236,6 +236,63 @@ describe('accumulator_bolt', function () {
                         (xcallback) => {
                             target.receive(
                                 { ts: ts_start + 0.5 * granularity, tags: { country: "SI" }, values: { amount: 125 } },
+                                null,
+                                xcallback
+                            );
+                        },
+                        (xcallback) => {
+                            assert.equal(emitted_msgs.length, 2);
+                            assert.deepEqual(
+                                emitted_msgs,
+                                [
+                                    {
+                                        "data": {
+                                            "ts": 12340000,
+                                            "name": "amount",
+                                            "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                        },
+                                        "stream_id": null
+                                    },
+                                    {
+                                        "data": {
+                                            "ts": 12340000,
+                                            "name": "amount.country=SI",
+                                            "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+                                        },
+                                        "stream_id": null
+                                    }
+                                ]);
+                            xcallback();
+                        }
+                    ],
+                    done
+                );
+            });
+            it('2 data points - separate batch - with ignored tags', function (done) {
+                let target = new ab.AccumulatorBolt();
+                let emitted_msgs = [];
+                let granularity = 10000;
+                let ts_start = 12345678;
+                let ignore_tags = ["bad_tag"];
+                let onEmit = (data, stream_id, cb) => {
+                    emitted_msgs.push({ data, stream_id });
+                    cb();
+                };
+                async.series(
+                    [
+                        (xcallback) => {
+                            target.init("bolt1", { onEmit: onEmit, granularity: granularity, ignore_tags: ignore_tags }, {}, xcallback);
+                        },
+                        (xcallback) => {
+                            target.receive(
+                                { ts: ts_start, tags: { bad_tag: "a", country: "SI" }, values: { amount: 123 } },
+                                null,
+                                xcallback
+                            );
+                        },
+                        (xcallback) => {
+                            target.receive(
+                                { ts: ts_start + 0.5 * granularity, tags: { bad_tag: "a", country: "SI" }, values: { amount: 125 } },
                                 null,
                                 xcallback
                             );
@@ -623,6 +680,92 @@ describe('accumulator_bolt', function () {
                                     },
                                     "stream_id": null
                                 },
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
+        it('5 data points - separate batch - with ignored tags', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
+            let ignore_tags = ["bad_tag"];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity, ignore_tags: ignore_tags }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { bad_tag: "a", country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { bad_tag: "a", country: "HR" }, values: { amount: 11 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { bad_tag: "b", country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { bad_tag: "b", country: "HR" }, values: { amount: 13 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 1 * granularity, tags: { bad_tag: "a", country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 3);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount",
+                                        "stats": { "min": 11, "max": 125, "avg": 68, "count": 4 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=SI",
+                                        "stats": { "min": 123, "max": 125, "avg": 124, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "name": "amount.country=HR",
+                                        "stats": { "min": 11, "max": 13, "avg": 12, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                }
                             ]);
                         xcallback();
                     }

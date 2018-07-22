@@ -17,13 +17,13 @@ export declare class FileAppendBolt implements intf.Bolt {
     private propagate_errors;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
-    private toISOFormatLocal;
-    private fileNameTimestampValue;
-    private writeToFile;
+    private toISOFormatLocal(d);
+    private fileNameTimestampValue();
+    private writeToFile(callback);
     /** Zip current file if it exists  */
-    private zipCurrentFile;
+    private zipCurrentFile(callback);
     /** Perform low-level zipping */
-    private zipFile;
+    private zipFile(fname, callback);
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;

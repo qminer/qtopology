@@ -35,7 +35,7 @@ export declare class TopologyLocal {
     /** Constructor prepares the object before any information is received. */
     constructor(onError?: intf.SimpleCallback);
     /** Handler for all internal errors */
-    private onInternalError;
+    private onInternalError(e);
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
@@ -51,9 +51,9 @@ export declare class TopologyLocal {
     /** Returns uuid of the topology that is running. */
     getUuid(): string;
     /** Runs heartbeat pump until this object shuts down */
-    private runHeartbeat;
+    private runHeartbeat();
     /** Sends heartbeat signal to all child processes */
-    private heartbeat;
+    private heartbeat();
     /** This method redirects/broadcasts message from source to other nodes.
      * It is done in async/parallel manner.
      * @param {string} source - Name of the source that emitted this data
@@ -61,14 +61,14 @@ export declare class TopologyLocal {
      * @param {string} stream_id - Name of the stream that this data belongs to
      * @param {Function} callback - standard callback
      */
-    private redirect;
+    private redirect(source, data, stream_id, callback);
     /** Find bolt with given name.
      * @param {string} name - Name of the bolt that we need to find
      */
-    private getBolt;
+    private getBolt(name);
     /** This method optionally runs context initialization code
      * and returns the context object.
      * @param {Function} callback - standard callback
      */
-    private initContext;
+    private initContext(callback);
 }

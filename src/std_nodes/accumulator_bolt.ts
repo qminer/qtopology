@@ -121,6 +121,7 @@ export class AccumulatorBolt implements intf.Bolt {
     private last_ts: number;
     private emit_zero_counts: boolean;
     private granularity: number;
+    private ignore_tags: string[];
     private onEmit: intf.BoltEmitCallback;
     private accumulators: Accumulator[];
 
@@ -135,6 +136,7 @@ export class AccumulatorBolt implements intf.Bolt {
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.emit_zero_counts = config.emit_zero_counts;
+        this.ignore_tags = (config.ignore_tags || []).slice();
         this.granularity = config.granularity || this.granularity;
         callback();
     }
@@ -163,12 +165,18 @@ export class AccumulatorBolt implements intf.Bolt {
                     // transform tags
                     let tags = [];
                     for (let f of Object.getOwnPropertyNames(data.tags)) {
+                        if (this.ignore_tags.indexOf(f)>=0){
+                            continue;
+                        }
                         tags.push(`${f}=${data.tags[f]}`);
                     }
 
                     // process each metric
                     for (let f of Object.getOwnPropertyNames(data.values)) {
-                        let acc_match = null;;
+                        if (this.ignore_tags.indexOf(f)>=0){
+                            continue;
+                        }
+                        let acc_match = null;
                         for (let acc of this.accumulators) {
                             if (acc.name == f) {
                                 acc_match = acc;
@@ -232,9 +240,9 @@ export class AccumulatorBolt implements intf.Bolt {
                 },
                 (xcallback) => {
                     if (this.emit_zero_counts) {
-                        this.accumulators.forEach(acc => {
+                        for (let acc of this.accumulators) {
                             acc.reset();
-                        });
+                        };
                     } else {
                         this.accumulators = [];
                     }

@@ -9,7 +9,7 @@ export declare class ProcessBoltContinuous implements intf.Bolt {
     private child_process;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
-    private handleNewData;
+    private handleNewData(content);
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;

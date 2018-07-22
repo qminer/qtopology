@@ -29,7 +29,7 @@ export declare class ChildProcRestarter {
     /** Simple constructor */
     constructor(options: ChildProcRestarterOptions);
     /** Internal method for starting the child process */
-    private _start;
+    private _start();
     /** Starts child process */
     start(): void;
     /** Stops child process and doesn't restart it. */

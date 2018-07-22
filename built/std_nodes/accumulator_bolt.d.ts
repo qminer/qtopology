@@ -40,6 +40,7 @@ export declare class AccumulatorBolt implements intf.Bolt {
     private last_ts;
     private emit_zero_counts;
     private granularity;
+    private ignore_tags;
     private onEmit;
     private accumulators;
     constructor();

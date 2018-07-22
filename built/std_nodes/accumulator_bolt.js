@@ -104,6 +104,7 @@ class AccumulatorBolt {
     init(name, config, context, callback) {
         this.onEmit = config.onEmit;
         this.emit_zero_counts = config.emit_zero_counts;
+        this.ignore_tags = (config.ignore_tags || []).slice();
         this.granularity = config.granularity || this.granularity;
         callback();
     }
@@ -128,12 +129,17 @@ class AccumulatorBolt {
                 // transform tags
                 let tags = [];
                 for (let f of Object.getOwnPropertyNames(data.tags)) {
+                    if (this.ignore_tags.indexOf(f) >= 0) {
+                        continue;
+                    }
                     tags.push(`${f}=${data.tags[f]}`);
                 }
                 // process each metric
                 for (let f of Object.getOwnPropertyNames(data.values)) {
+                    if (this.ignore_tags.indexOf(f) >= 0) {
+                        continue;
+                    }
                     let acc_match = null;
-                    ;
                     for (let acc of this.accumulators) {
                         if (acc.name == f) {
                             acc_match = acc;
@@ -181,9 +187,10 @@ class AccumulatorBolt {
             },
             (xcallback) => {
                 if (this.emit_zero_counts) {
-                    this.accumulators.forEach(acc => {
+                    for (let acc of this.accumulators) {
                         acc.reset();
-                    });
+                    }
+                    ;
                 }
                 else {
                     this.accumulators = [];

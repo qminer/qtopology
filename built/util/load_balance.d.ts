@@ -34,7 +34,7 @@ export declare class LoadBalancer {
     /** Returns next worker to receive new load */
     next(): string;
     /** Internal utility method */
-    private sort;
+    private sort();
 }
 /** This class calculates an advanced version load-balancing across workers.
  * Given list of workers and their current load, it returns a new worker

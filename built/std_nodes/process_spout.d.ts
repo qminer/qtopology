@@ -11,7 +11,7 @@ export declare class ProcessSpout implements intf.Spout {
     private run_interval;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
-    private runProcessAndCollectOutput;
+    private runProcessAndCollectOutput(callback);
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     run(): void;
@@ -33,7 +33,7 @@ export declare class ProcessSpoutContinuous implements intf.Spout {
     private child_process;
     constructor();
     init(name: string, config: any, context: any, callback: intf.SimpleCallback): void;
-    private handleNewData;
+    private handleNewData(content);
     heartbeat(): void;
     shutdown(callback: intf.SimpleCallback): void;
     run(): void;
