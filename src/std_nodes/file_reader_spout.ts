@@ -1,6 +1,7 @@
 import * as intf from "../topology_interfaces";
 import * as fs from "fs";
 import * as rl from "readline";
+import * as log from "../util/logger";
 import { Utils, CsvParser } from "./parsing_utils";
 
 const high_water = 5000;
@@ -37,6 +38,7 @@ export class FileReaderSpout implements intf.Spout {
             this.csv_parser = new CsvParser(config);
         }
 
+        log.logger().log(`Reading file ${this.file_name}`);
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
         this.line_reader.on('line', (line) => {
             if (this.file_format == "json") {
@@ -50,6 +52,9 @@ export class FileReaderSpout implements intf.Spout {
                 this.line_reader.pause();
                 this.line_reader_paused = true;
             }
+        });
+        this.line_reader.on("close", ()=>{
+            log.logger().log(`Reached the end of file ${this.file_name}`);
         });
 
         callback();

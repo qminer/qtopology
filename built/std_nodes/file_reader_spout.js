@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const rl = require("readline");
+const log = require("../util/logger");
 const parsing_utils_1 = require("./parsing_utils");
 const high_water = 5000;
 const low_water = 50;
@@ -24,6 +25,7 @@ class FileReaderSpout {
             config.separator = config.separator || ",";
             this.csv_parser = new parsing_utils_1.CsvParser(config);
         }
+        log.logger().log(`Reading file ${this.file_name}`);
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
         this.line_reader.on('line', (line) => {
             if (this.file_format == "json") {
@@ -39,6 +41,9 @@ class FileReaderSpout {
                 this.line_reader.pause();
                 this.line_reader_paused = true;
             }
+        });
+        this.line_reader.on("close", () => {
+            log.logger().log(`Reached the end of file ${this.file_name}`);
         });
         callback();
     }

@@ -1,6 +1,6 @@
 export declare class CronTabParser {
     private parts;
     constructor(s: string);
-    private miniTest(val, bounds);
+    private miniTest;
     isIncluded(target: Date): boolean;
 }

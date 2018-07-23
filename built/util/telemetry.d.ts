@@ -15,5 +15,6 @@ export declare class Telemetry {
     } | {
         cnt: number;
         avg: number;
+        name?: undefined;
     };
 }

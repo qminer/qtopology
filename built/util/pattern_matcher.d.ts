@@ -4,7 +4,7 @@ export declare class PaternMatcher {
     private filters;
     /** Constructor that receives pattern as object */
     constructor(pattern: any);
-    private matchSingleFilter(item, filter);
+    private matchSingleFilter;
     /** Simple procedure for checking if given item
      *  matches the pattern.
      */
