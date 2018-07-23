@@ -1,10 +1,11 @@
 {
   "name": "qtopology",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",
   "scripts": {
+    "build": "tsc",
     "test": "mocha tests --recursive --timeout 10000 && cd demo && bash run_demos.sh"
   },
   "repository": "https://github.com/qminer/qtopology.git",
@@ -26,18 +27,18 @@
   "readmeFilename": "README.md",
   "devDependencies": {
     "@types/async": "^2.0.45",
-    "@types/colors": "^1.1.0",
+    "@types/colors": "^1.2.1",
     "@types/node": "^8.0.47",
-    "mocha": "^3.2.0"
+    "mocha": "^5.1.1"
   },
   "dependencies": {
     "async": "^1.5.2",
-    "body-parser": "^1.17.2",
-    "colors": "^1.1.0",
+    "body-parser": "^1.18.3",
+    "colors": "1.2.1",
     "deserialize-error": "0.0.3",
-    "express": "^4.15.4",
+    "express": "^4.16.3",
     "jsonschema": "^1.1.1",
-    "node-rest-client": "^3.0.7",
+    "node-rest-client": "^3.1.0",
     "serialize-error": "^2.1.0"
   }
 }

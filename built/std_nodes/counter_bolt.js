@@ -41,7 +41,7 @@ class CounterBolt {
     }
     receive(data, stream_id, callback) {
         this.counter++;
-        callback();
+        this.onEmit(data, stream_id, callback);
     }
 }
 exports.CounterBolt = CounterBolt;

@@ -18,7 +18,7 @@ Topology is defined via `JSON`. It follows this structure:
             - `disabled`: optional flag that this step is disabled. This means that it wont be run.
 - `spouts`: array of spout definitions
     - `name`: spout name
-    - `type`: `inproc` (in-process) or `sys` (standard)
+    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), or `sys` (standard)
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
@@ -27,14 +27,14 @@ Topology is defined via `JSON`. It follows this structure:
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
-    - `type`: `inproc` (in-process) or `sys` (standard)
+    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), or `sys` (standard)
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.
     - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
     - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple bolts inside single source file.
     - `inputs`: array of input nodes (spouts and bolts) for this bolt
-        - `name`: logical namo of input node
+        - `name`: logical name of the input node
         - `stream_id`: (optional) id of stream that this bolt will read. Empty means default stream.
         - `disabled`: optional flag that this input is disabled. This means that no data will flow here.
     - `init`: initialization object that is sent to bolt in `init()` method
@@ -63,9 +63,9 @@ An example:
         },
         {
             "name": "pump2",
-            "type": "inproc",
-            "working_dir": ".",
-            "cmd": "spout_inproc.js",
+            "type": "module_class",
+            "working_dir": "some-module",
+            "cmd": "TargetClass",
             "init": {}
         }
     ],
@@ -101,6 +101,17 @@ An example:
             "init": {
                 "forward": false
             }
+        },
+        {
+            "name": "bolt4",
+            "working_dir": "some-module",
+            "type": "module_method",
+            "cmd": "methodName",
+            "subtype": "some-name",
+            "inputs": [{ "source": "bolt2" }],
+            "init": {
+                "forward": false
+            }
         }
     ],
     "variables": {}
@@ -123,13 +134,12 @@ validator.validate({ config: config, exitOnError: true });
 
 ### Passing binary messages or not?
 
-Use this option at your own risk. You have to explicitely enable it.
+Use this option at your own risk. You have to explicitly enable it.
 
 If messages are passed in binary form, there is a chance that one of the subsequent nodes changes the messages and this change will be visible to all other nodes. There is no isolation between the siblings. Also, there is no guarantied order of execution between siblings and their children.
 
-So, when should we use it? When the following assumptions are true:
+So, when should we use it? When all of the following assumptions are true:
 
 - You want performance / you want to pass fields that are binary classes (e.g. `Date` type).
 - Data fields of the message never changes. Only new fields are added.
 - There is no expectation of the order of execution between peer nodes and their children. Any dependency is purely upstream.
-

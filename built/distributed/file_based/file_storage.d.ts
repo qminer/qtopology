@@ -6,5 +6,5 @@ export declare class FileStorage extends mem.MemoryStorage {
     private file_patterns_regex;
     constructor(dir_name: string, file_pattern: string | string[]);
     getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>): void;
-    private createRegexpForPattern(str);
+    private createRegexpForPattern;
 }

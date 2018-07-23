@@ -18,7 +18,9 @@ List of standard spouts:
 
 List of standard bolts:
 
+- [Accumulator bolt](#accumulator-bolt)
 - [Attacher bolt](#attacher-bolt)
+- [Transform bolt](#transform-bolt)
 - [Filter bolt](#filter-bolt)
 - [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
@@ -28,6 +30,7 @@ List of standard bolts:
 - [File-append bolt extended](#file-append-bolt-extended)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
+- [Type-transform bolt](#type-transform-bolt)
 - [Bomb bolt](#bomb-bolt)
 - [Console bolt](#console-bolt)
 
@@ -111,13 +114,13 @@ The above example will run the child process each minute and collect the results
 `cmd="process-continuous"`
 
 This spout behaves like the `process` spout - the difference is that it spawns child process, specified by the command-line, and reads its stdout as it is written (and emits the messages).
-The two most important config parameters are `cmd_line` - the command to be executed and `cwd` - 
+The two most important config parameters are `cmd_line` - the command to be executed and `cwd` -
 the current working directory.
 
 ### Error handling
 
 If `emit_error_on_exit` flag (false by default) is set to true, the spout will emit an exception when the child process exits. Setting
-`emit_stderr_errors` to true (false by default) will emit any data read from stderr as an exception. Setting `emit_parse_errors` to true (default) will emit parse exceptions, otherwise they will be silently ignored if set to false. 
+`emit_stderr_errors` to true (false by default) will emit any data read from stderr as an exception. Setting `emit_parse_errors` to true (default) will emit parse exceptions, otherwise they will be silently ignored if set to false.
 
 ```````````````````````````````json
 {
@@ -179,6 +182,85 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 ```````````````````````````````
 
 > Using this bolt only makes sense when messages are passed in binary form.
+
+> **NOTE:** This bolt is obsolete, use `type_transform` bolt in the future.
+
+## Type-transform bolt
+
+`cmd="type_transform"`
+
+This bolt takes incoming messages and transforms predefined fields into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "type_transform",
+    "inputs": [{ "source": "pump" }],
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "numeric_transform_fields": ["field3"],
+        "bool_transform_fields": ["field4"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
+
+> Using this bolt only makes sense when messages are passed in binary form.
+
+## Accumulator bolt
+
+`cmd="accumulator"`
+
+This bolt takes incoming messages in GDR format and emits periodic statistics.
+
+GDR record format is:
+
+```json
+{
+    "ts": "2018-05-20T12:34:56",
+    "tags": {
+        "field1": "val1",
+        "field2": "val2"
+    },
+    "values": {
+        "metric1": 433,
+        "metric2": 676.343
+    }
+}
+```
+
+The bolt that would emit statistics once per minute can be defined as:
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "accumulator",
+    "inputs": [{ "source": "pump" }],
+    "init": {
+        "granularity": 60000
+    }
+}
+```````````````````````````````
+
+The result would be something like:
+
+```````````````````````````````json
+{
+    "ts": 12340000,
+    "name": "amount",
+    "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+}
+```````````````````````````````
+
+Other options:
+
+- `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
+- `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
+- `partition_tags` - list of tag names (string) that are mandatory and will always bepresent in metric statistics. No statistics will be tracked for tag partitions without these metrics.
 
 ## Dir spout
 
@@ -333,6 +415,104 @@ Emit a new message like this:
 
 ``````````````````````````````json
 { "previous_data": "some text", "field1": "a" }
+``````````````````````````````
+
+## Transform bolt
+
+`cmd="transform"`
+
+This bolt transforms incoming data object according to `output_template` and forwards it on to listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "output_template": {
+            "ts": "ts",
+            "tags": {
+                "country": "country",
+                "browser": "user.browser"
+            },
+            "values": {
+                "amount": "amount",
+                "duration": "duration"
+            }
+        }
+    }
+}
+```````````````````````````````
+
+> The structure of output object is the same as template.
+
+> The values of output data are retrieved from the source object, by using property names. Nested properties are referenced by `parent.child.child...` notation.
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "country": "SI",
+    "user": {
+        "browser": "Chrome",
+    },
+    "amount": 123.45,
+    "duration": 432
+}
+``````````````````````````````
+
+Emit a new message like this:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "tags": {
+        "country": "SI",
+        "browser": "Chrome"
+    },
+    "values": {
+        "amount": 123.45,
+        "duration": 432
+    }
+}
+``````````````````````````````
+
+Multiple emits are supported. Just pass an array of templates as input of initialization
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "output_template": [
+            { "ts": "ts" },
+            { "a": "ts", "b": "name" }
+        ]
+    }
+}
+```````````````````````````````
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{ "ts": "2017-10-01", "name": "SI" }
+``````````````````````````````
+
+Emit 2 new messages like this:
+
+``````````````````````````````json
+{ "ts": "2017-10-01" }
+{ "a": "2017-10-01", "b": "SI" }
 ``````````````````````````````
 
 ## Console bolt

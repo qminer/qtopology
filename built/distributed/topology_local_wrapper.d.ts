@@ -15,25 +15,25 @@ export declare class TopologyLocalWrapper {
     /** Constructor that sets up call routing */
     constructor(proc?: any);
     /** sets ping interval */
-    private setPingInterval();
+    private setPingInterval;
     /** clears ping interval */
-    private clearPingInterval();
+    private clearPingInterval;
     /** exit logic when not initialized */
-    private exitNonInit(fun, msgCode, exitCode);
+    private exitNonInit;
     /** Starts infinite loop by reading messages from parent or console */
     start(): void;
     /** Internal main handler for incoming messages */
-    private handle(msg);
+    private handle;
     /** Kill this process the hard way. */
-    private killProcess(exit_code?, err?);
+    private killProcess;
     /** This method shuts down the local topology.
      * Any bolt/spout shutdown exception `err` will be propagated
      * to this method and will result in calling self.killProcess(shutdown_internal_error, err)
      */
-    private shutdown();
+    private shutdown;
     /** Sends command to parent process.
      * @param {string} cmd - command to send
      * @param {Object} data - data to send
      */
-    private sendToParent(cmd, data, callback?);
+    private sendToParent;
 }
