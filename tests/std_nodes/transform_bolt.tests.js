@@ -47,7 +47,7 @@ function test_helper(input, output, template) {
     assert.deepEqual(result, output);
 }
 
-describe.only('TransformBolt', function () {
+describe('TransformBolt', function () {
     describe('TransformHelper', function () {
         it('constructable', function () {
             let target = new tb.TransformHelper({ b: "a" });
