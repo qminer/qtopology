@@ -20,7 +20,7 @@ Github also contains two additional branches, used for versioning and patching:
 These steps must be taken for **major or minor version**. When code is not under heavy concurrent development, these steps can **also** be taken for **patch version**.
 
 1. Commit and merge all relevant code into `master` branch on Github.
-1. Increase version number, either manually or using `npm version` command. This mustalso  be done on `master` branch.
+1. Increase version number, either manually or using `npm version` command. This must also  be done on `master` branch.
 1. Merge `master` branch into `frozen` branch
 1. Merge `frozen` branch into `release` branch
 1. Enter new release into Github - using the version number created in the first step. Tag name should be `vX.Y.Z` and release name should be `X.Y.Z`.
