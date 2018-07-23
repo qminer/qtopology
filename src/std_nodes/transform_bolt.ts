@@ -1,31 +1,24 @@
+import * as async from "async";
+
 import * as intf from "../topology_interfaces";
 
-/** This bolt transforms incoming messages
- * into predefined format. */
-export class TransformBolt implements intf.Bolt {
+/** This class transforms input object
+ * into predefined format for export. Single transformation. */
+export class TransformHelper {
 
-    private onEmit: intf.BoltEmitCallback;
     private compiled: string[][];
 
-    constructor() {
-        this.onEmit = null;
+    constructor(output_template: string) {
         this.compiled = [];
-    }
-
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.onEmit = config.onEmit;
-        var output_template = JSON.parse(JSON.stringify(config.output_template || {}));
         this.precompile(output_template, []);
-        callback();
     }
 
-    heartbeat() { }
-
-    shutdown(callback: intf.SimpleCallback) {
-        callback();
-    }
-
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback): void {
+    /**
+     * Main method, transforms given object into result
+     * using predefined transformation.
+     * @param data Input data
+     */
+    transform(data: any): any {
         let result = {};
         // execute precompiled parsing and transformation
         for (let r of this.compiled) {
@@ -52,9 +45,14 @@ export class TransformBolt implements intf.Bolt {
             }
         }
 
-        this.onEmit(result, stream_id, callback);
+        return result;
     }
 
+    /**
+     * Precompiles template into executable steps
+     * @param template Template definition
+     * @param prefix_array List of transformation steps
+     */
     private precompile(template: any, prefix_array: string[]): void {
         let fields = Object.getOwnPropertyNames(template);
         for (let field of fields) {
@@ -68,5 +66,49 @@ export class TransformBolt implements intf.Bolt {
                 this.compiled.push([loc, parts]);
             }
         }
+    }
+}
+
+
+/** This bolt transforms incoming messages
+ * into predefined format. */
+export class TransformBolt implements intf.Bolt {
+
+    private onEmit: intf.BoltEmitCallback;
+    private transform: TransformHelper[];
+
+    constructor() {
+        this.onEmit = null;
+        this.transform = null;
+    }
+
+    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+        this.onEmit = config.onEmit;
+        let output_template = JSON.parse(JSON.stringify(config.output_template || {}));
+        if (!Array.isArray(output_template)) {
+            output_template = [output_template];
+        }
+        this.transform = [];
+        for (let ot of output_template) {
+            this.transform.push(new TransformHelper(ot));
+        }
+        callback();
+    }
+
+    heartbeat() { }
+
+    shutdown(callback: intf.SimpleCallback) {
+        callback();
+    }
+
+    receive(data: any, stream_id: string, callback: intf.SimpleCallback): void {
+        async.each(
+            this.transform,
+            (item: TransformHelper, xcallback) => {
+                let result = item.transform(data);
+                this.onEmit(result, stream_id, xcallback);
+            },
+            callback
+        );
     }
 }

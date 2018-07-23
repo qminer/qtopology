@@ -80,7 +80,7 @@ export declare enum ParentMsgCode {
     run = 1,
     pause = 2,
     ping = 3,
-    shutdown = 4,
+    shutdown = 4
 }
 export interface ChildMsg {
     cmd: ChildMsgCode;
@@ -92,7 +92,7 @@ export declare enum ChildMsgCode {
     response_pause = 2,
     response_ping = 3,
     response_shutdown = 4,
-    error = 5,
+    error = 5
 }
 export declare enum ChildExitCode {
     exit_ok = 0,
@@ -105,7 +105,7 @@ export declare enum ChildExitCode {
     shutdown_internal_error = 40,
     shutdown_unlikely_error = 41,
     internal_error = 110,
-    unhandeled_error = 999,
+    unhandeled_error = 999
 }
 /**
  * Constants for using distributed functionality.

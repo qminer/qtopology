@@ -449,7 +449,7 @@ This bolt transforms incoming data object according to `output_template` and for
 ```````````````````````````````
 
 > The structure of output object is the same as template.
->
+
 > The values of output data are retrieved from the source object, by using property names. Nested properties are referenced by `parent.child.child...` notation.
 
 This bolt will, upon receiving a new message like this one:
@@ -462,7 +462,8 @@ This bolt will, upon receiving a new message like this one:
         "browser": "Chrome",
     },
     "amount": 123.45,
-    "duration": 432 }
+    "duration": 432
+}
 ``````````````````````````````
 
 Emit a new message like this:
@@ -479,6 +480,39 @@ Emit a new message like this:
         "duration": 432
     }
 }
+``````````````````````````````
+
+Multiple emits are supported. Just pass an array of templates as input of initialization
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "output_template": [
+            { "ts": "ts" },
+            { "a": "ts", "b": "name" }
+        ]
+    }
+}
+```````````````````````````````
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{ "ts": "2017-10-01", "name": "SI" }
+``````````````````````````````
+
+Emit 2 new messages like this:
+
+``````````````````````````````json
+{ "ts": "2017-10-01" }
+{ "a": "2017-10-01", "b": "SI" }
 ``````````````````````````````
 
 ## Console bolt

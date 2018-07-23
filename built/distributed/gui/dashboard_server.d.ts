@@ -44,7 +44,7 @@ export declare class DashboardServer {
     /** Simple constructor */
     constructor();
     /** Internal initialization step */
-    private initCommon(storage, callback);
+    private initCommon;
     /**
      * The most flexible initialization method
      * @param options - object containing options for dashboard

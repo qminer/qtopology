@@ -6,7 +6,7 @@ const assert = require("assert");
 const async = require("async");
 const ab = require("../../built/std_nodes/accumulator_bolt");
 
-describe.only('accumulator_bolt', function () {
+describe('accumulator_bolt', function () {
     describe('accumulator_bolt - Rec', function () {
         it('no data', function () {
             let target = new ab.Rec();
