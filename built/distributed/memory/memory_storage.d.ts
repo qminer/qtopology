@@ -34,9 +34,9 @@ export declare class MemoryStorage implements intf.CoordinationStorage {
     getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>): void;
     setTopologyPid(uuid: string, pid: number, callback: intf.SimpleCallback): void;
     pingWorker(name: string, callback?: intf.SimpleCallback): void;
-    private unassignWaitingTopologies();
-    private disableDefunctWorkers();
-    private disableDefunctLeaders();
-    private notifyTopologyHistory(top);
-    private notifyWorkerHistory(w);
+    private unassignWaitingTopologies;
+    private disableDefunctWorkers;
+    private disableDefunctLeaders;
+    private notifyTopologyHistory;
+    private notifyWorkerHistory;
 }

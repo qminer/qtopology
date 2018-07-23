@@ -14,9 +14,9 @@ export declare class MinimalHttpServer {
     private routes;
     private log_prefix;
     constructor(log_prefix?: string);
-    private withBody(handler);
-    private handleResponse(result, response);
-    private handleError(error, response);
+    private withBody;
+    private handleResponse;
+    private handleError;
     /** For registering simple handlers */
     addHandler(addr: string, callback: ProcessingHandler): void;
     /** For registering simple static paths */

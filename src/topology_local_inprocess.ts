@@ -7,13 +7,15 @@ import * as fb from "./std_nodes/filter_bolt";
 import * as pb from "./std_nodes/post_bolt";
 import * as cb from "./std_nodes/console_bolt";
 import * as ab from "./std_nodes/attacher_bolt";
+import * as ac from "./std_nodes/accumulator_bolt";
+import * as tb from "./std_nodes/transform_bolt";
 import * as gb from "./std_nodes/get_bolt";
 import * as rb from "./std_nodes/router_bolt";
 import * as bb from "./std_nodes/bomb_bolt";
 import * as fab from "./std_nodes/file_append_bolt";
 import * as fab2 from "./std_nodes/file_append_bolt_ex";
 import * as cntb from "./std_nodes/counter_bolt";
-import * as dtb from "./std_nodes/date_transform_bolt";
+import * as ttb from "./std_nodes/type_transform_bolt";
 import * as prb from "./std_nodes/process_bolt";
 
 import * as frs from "./std_nodes/file_reader_spout";
@@ -129,10 +131,22 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         try {
             if (config.type == "sys") {
                 this.spout = createSysSpout(config);
+            } else if (config.type == "module_class") {
+                let module = require(this.working_dir);
+                this.spout = new module[this.cmd](this.subtype);
+            } else if (config.type == "module_method") {
+                let module = require(this.working_dir);
+                this.spout = module[this.cmd](this.subtype);
+                if (!this.spout) {
+                    throw new Error(`Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
                 this.spout = require(module_path).create(this.subtype);
+                if (!this.spout) {
+                    throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
             }
         } catch (e) {
             log.logger().error(`Error while creating an inproc spout (${this.name})`);
@@ -358,6 +372,15 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         try {
             if (config.type == "sys") {
                 this.bolt = createSysBolt(config);
+            } else if (config.type == "module_class") {
+                let module = require(this.working_dir);
+                this.bolt = new module[this.cmd](this.subtype);
+            } else if (config.type == "module_method") {
+                let module = require(this.working_dir);
+                this.bolt = module[this.cmd](this.subtype);
+                if (!this.bolt) {
+                    throw new Error(`Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 let module_path = path.join(this.working_dir, this.cmd);
@@ -482,13 +505,16 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
             case "attacher": return new ab.AttacherBolt();
+            case "accumulator": return new ac.AccumulatorBolt();
+            case "transform": return new tb.TransformBolt();
             case "post": return new pb.PostBolt();
             case "process": return new prb.ProcessBoltContinuous();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
             case "file_append": return new fab.FileAppendBolt();
             case "file_append_ex": return new fab2.FileAppendBoltEx();
-            case "date_transform": return new dtb.DateTransformBolt();
+            case "date_transform": return new ttb.TypeTransformBolt();
+            case "type_transform": return new ttb.TypeTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);

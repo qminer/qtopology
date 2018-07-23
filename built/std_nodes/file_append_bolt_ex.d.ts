@@ -13,13 +13,13 @@ export declare class BucketHandler {
     constructor(log_prefix: string, file_name_template: string, field_value: string, ts_start: number, split_period: number);
     /** Given arbitrary timestamp, calculates and sets the start
      * and the end timestamps in internal members. */
-    private setTsFields(ts_start);
+    private setTsFields;
     /** Perform low-level zipping */
-    private zipFile(fname, callback);
+    private zipFile;
     /** Writes pending data to file */
-    private writeFile(fname, callback);
+    private writeFile;
     /** Flushes all data and closes the object */
-    private closeCurrentFile(callback);
+    private closeCurrentFile;
     /** Closes this object */
     flush(callback: intf.SimpleCallback): void;
     /** Closes this object */

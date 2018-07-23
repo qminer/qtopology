@@ -36,33 +36,33 @@ export declare class TopologyLeader {
     /** Single step in checking if current node should be
      * promoted into leadership role.
      **/
-    private checkIfLeaderDetermined(callback);
+    private checkIfLeaderDetermined;
     /** Single step in performing leadership role.
      * Checks work statuses and redistributes topologies for dead
      * to alive workers.
      */
-    private performLeaderLoop(callback);
+    private performLeaderLoop;
     /** Check enabled topologies - if they are marked as running, they must be assigned to worker */
-    private handleSuspiciousTopologies(topologies_enabled, topologies_disabled, callback);
+    private handleSuspiciousTopologies;
     /** go through all enabled topologies and calculate current loads for workers.
      * Then assign unassigned topologies to appropiate workers.
      */
-    private assignUnassignedTopologies(topologies_enabled, topologies_for_rebalance, alive_workers, worker_weights, callback);
+    private assignUnassignedTopologies;
     /** This method will perform rebalance of topologies on workers if needed.
      */
-    private performRebalanceIfNeeded(workers, topologies, callback);
+    private performRebalanceIfNeeded;
     /** Handles situation when there is a dead worker and its
      * topologies need to be re-assigned to other servers.
      */
-    private handleDeadWorker(dead_worker, callback);
+    private handleDeadWorker;
     /** Checks single worker record and de-activates it if needed. */
-    private disableDefunctWorkerSingle(worker, callback);
+    private disableDefunctWorkerSingle;
     /** checks all worker records if any of them is not active anymore. */
-    private disableDefunctWorkers(data_workers, callback);
+    private disableDefunctWorkers;
     /** Detaches toplogies from inactive workers */
-    private unassignWaitingTopologies(data_workers, callback);
+    private unassignWaitingTopologies;
     /** Gets and refreshes worker statuses */
-    private refreshStatuses(callback);
+    private refreshStatuses;
     /** Utility function that resembles leadership - removes error flag for topology.
      * But it is not called within leader object.
      */
