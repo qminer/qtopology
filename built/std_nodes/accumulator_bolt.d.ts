@@ -51,6 +51,7 @@ export declare class AccumulatorBolt implements intf.Bolt {
     private last_ts;
     private emit_zero_counts;
     private granularity;
+    private emit_gdr;
     private ignore_tags;
     private partition_tags;
     private onEmit;
@@ -64,5 +65,7 @@ export declare class AccumulatorBolt implements intf.Bolt {
      * reaches given timestamp.
       */
     catchUpTimestamp(ts: any, callback: any): void;
+    /** Internal utility function that parses name into tag values */
+    name2tags(name: string): any;
     sendAggregates(callback: any): void;
 }

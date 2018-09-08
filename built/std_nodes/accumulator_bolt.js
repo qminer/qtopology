@@ -141,6 +141,7 @@ exports.SingleMetricAccumulator = SingleMetricAccumulator;
 class AccumulatorBolt {
     constructor() {
         this.emit_zero_counts = false;
+        this.emit_gdr = false;
         this.last_ts = Number.MIN_VALUE;
         this.granularity = 10 * 60 * 1000;
         this.onEmit = null;
@@ -149,6 +150,7 @@ class AccumulatorBolt {
     init(name, config, context, callback) {
         this.onEmit = config.onEmit;
         this.emit_zero_counts = config.emit_zero_counts;
+        this.emit_gdr = !!(config.emit_gdr);
         this.ignore_tags = (config.ignore_tags || []).slice();
         this.partition_tags = (config.partition_tags || []).slice();
         this.granularity = config.granularity || this.granularity;
@@ -216,6 +218,18 @@ class AccumulatorBolt {
             this.sendAggregates(xcallback);
         }, callback);
     }
+    /** Internal utility function that parses name into tag values */
+    name2tags(name) {
+        let res = {};
+        name
+            .split(".")
+            .slice(1)
+            .forEach(x => {
+            let [n, v] = x.split("=");
+            res[n] = v;
+        });
+        return res;
+    }
     sendAggregates(callback) {
         async.series([
             (xcallback) => {
@@ -225,11 +239,20 @@ class AccumulatorBolt {
                     let stats = acc.report();
                     for (let stat of stats) {
                         let name = acc.name + (stat[0].length > 0 ? "." : "") + stat[0];
-                        report.push({
-                            ts: this.last_ts * this.granularity,
-                            name: name,
-                            stats: stat[1]
-                        });
+                        if (this.emit_gdr) {
+                            let tags = this.name2tags(name);
+                            tags["$name"] = name;
+                            tags["$metric"] = acc.name;
+                            report.push({
+                                ts: this.last_ts * this.granularity,
+                                tags: tags,
+                                values: stat[1]
+                            });
+                        }
+                        else {
+                            report.push({ ts: this.last_ts * this.granularity, name: name, stats: stat[1] });
+                        }
+                        ;
                     }
                 }
                 logger_1.logger().log("Emitting accumulated data for " + (new Date(this.last_ts * this.granularity)));
