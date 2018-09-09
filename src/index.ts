@@ -21,3 +21,4 @@ export * from "./util/crontab_parser";
 export * from "./util/strip_json_comments";
 
 export * from "./std_nodes/task_bolt_base";
+export { TransformHelper } from "./std_nodes/transform_bolt";
