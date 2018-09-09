@@ -72,3 +72,4 @@ export declare class TopologyLocal {
      */
     private initContext;
 }
+export declare function runLocalTopologyFromFile(file_name: string): void;
