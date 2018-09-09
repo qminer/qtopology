@@ -132,9 +132,11 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
             if (config.type == "sys") {
                 this.spout = createSysSpout(config);
             } else if (config.type == "module_class") {
+                this.makeWorkingDirAbsolute();
                 let module = require(this.working_dir);
                 this.spout = new module[this.cmd](this.subtype);
             } else if (config.type == "module_method") {
+                this.makeWorkingDirAbsolute();
                 let module = require(this.working_dir);
                 this.spout = module[this.cmd](this.subtype);
                 if (!this.spout) {
@@ -162,6 +164,13 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         self.isPaused = true;
         self.isShuttingDown = false;
         self.nextTs = Date.now();
+    }
+
+    /** Utility function for making working dir absolute - used to avoid some problematic situations */
+    private makeWorkingDirAbsolute() {
+        if (!path.isAbsolute(this.working_dir)){
+            this.working_dir = path.resolve(this.working_dir);
+        }
     }
 
     /** Returns name of this node */
@@ -373,9 +382,11 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             if (config.type == "sys") {
                 this.bolt = createSysBolt(config);
             } else if (config.type == "module_class") {
+                this.makeWorkingDirAbsolute();
                 let module = require(this.working_dir);
                 this.bolt = new module[this.cmd](this.subtype);
             } else if (config.type == "module_method") {
+                this.makeWorkingDirAbsolute();
                 let module = require(this.working_dir);
                 this.bolt = module[this.cmd](this.subtype);
                 if (!this.bolt) {
@@ -393,6 +404,13 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             log.logger().error(`Error while creating an inproc bolt (${this.name})`);
             log.logger().exception(e);
             throw e;
+        }
+    }
+
+    /** Utility function for making working dir absolute - used to avoid some problematic situations */
+    private makeWorkingDirAbsolute() {
+        if (!path.isAbsolute(this.working_dir)){
+            this.working_dir = path.resolve(this.working_dir);
         }
     }
 
