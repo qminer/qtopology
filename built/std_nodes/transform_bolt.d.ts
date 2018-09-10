@@ -3,7 +3,7 @@ import * as intf from "../topology_interfaces";
  * into predefined format for export. Single transformation. */
 export declare class TransformHelper {
     private compiled;
-    constructor(output_template: string);
+    constructor(output_template: any);
     /**
      * Main method, transforms given object into result
      * using predefined transformation.

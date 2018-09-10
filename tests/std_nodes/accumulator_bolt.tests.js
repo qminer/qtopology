@@ -874,5 +874,92 @@ describe('accumulator_bolt', function () {
                 done
             );
         });
+
+        it('5 data points - separate batch - with partition tags - GDR format', function (done) {
+            let target = new ab.AccumulatorBolt();
+            let emitted_msgs = [];
+            let granularity = 10000;
+            let ts_start = 12345678;
+            let partition_tags = ["country"];
+            let onEmit = (data, stream_id, cb) => {
+                emitted_msgs.push({ data, stream_id });
+                cb();
+            };
+            async.series(
+                [
+                    (xcallback) => {
+                        target.init("bolt1", { onEmit: onEmit, granularity: granularity, partition_tags: partition_tags, emit_gdr: true }, {}, xcallback);
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 123 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "HR" }, values: { amount: 11 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start, tags: { country: "HR" }, values: { amount: 13 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        target.receive(
+                            { ts: ts_start + 1 * granularity, tags: { country: "SI" }, values: { amount: 125 } },
+                            null,
+                            xcallback
+                        );
+                    },
+                    (xcallback) => {
+                        assert.equal(emitted_msgs.length, 2);
+                        assert.deepEqual(
+                            emitted_msgs,
+                            [
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "tags": {
+                                            "$name": "amount.country=SI",
+                                            "$metric": "amount",
+                                            "country": "SI"
+                                        },
+                                        "values": { "min": 123, "max": 125, "avg": 124, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                },
+                                {
+                                    "data": {
+                                        "ts": 12340000,
+                                        "tags": {
+                                            "$name": "amount.country=HR",
+                                            "$metric": "amount",
+                                            "country": "HR"
+                                        },
+                                        "values": { "min": 11, "max": 13, "avg": 12, "count": 2 }
+                                    },
+                                    "stream_id": null
+                                }
+                            ]);
+                        xcallback();
+                    }
+                ],
+                done
+            );
+        });
     });
 });

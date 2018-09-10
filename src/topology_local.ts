@@ -4,6 +4,9 @@ import * as path from "path";
 import * as top_inproc from "./topology_local_inprocess";
 import * as log from "./util/logger";
 import { tryCallback } from "./util/callback_wrappers";
+import { readJsonFileSync } from "./util/strip_json_comments";
+import { validate } from "./topology_validation";
+import { TopologyCompiler } from "./topology_compiler";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -425,4 +428,61 @@ export class TopologyLocal {
             callback(null, null);
         }
     }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function runLocalTopologyFromFile(file_name: string) {
+    let config = readJsonFileSync(file_name);
+    validate({ config: config, exitOnError: true });
+
+    let comp = new TopologyCompiler(config);
+    comp.compile();
+    config = comp.getWholeConfig();
+    let topology = new TopologyLocal();
+
+    async.series(
+        [
+            (xcallback) => {
+                topology.init("topology.1", config, xcallback);
+            },
+            (xcallback) => {
+                console.log("Init done");
+                topology.run(xcallback);
+            }
+        ],
+        (err) => {
+            if (err) {
+                console.log("Error in shutdown", err);
+            }
+            console.log("Running");
+        }
+    );
+
+    function shutdown() {
+        if (topology) {
+            topology.shutdown((err) => {
+                if (err) {
+                    console.log("Error", err);
+                }
+                process.exit(1);
+            });
+            topology = null;
+        }
+    }
+
+    //do something when app is closing
+    process.on('exit', shutdown);
+
+    //catches ctrl+c event
+    process.on('SIGINT', shutdown);
+
+    //catches uncaught exceptions
+    process.on('uncaughtException',
+        (e) => {
+            console.log(e);
+            process.exit(1);
+        }
+        //shutdown
+    );
 }

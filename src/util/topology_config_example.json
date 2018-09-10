@@ -4,7 +4,7 @@
         "initialization": [
             {
                 "working_dir": "${CODE_DIR}",
-                "cmd": "topology_init_and_shutdown.js",
+                "cmd": "custom_init_and_shutdown.js",
                 "init": {
                     "main_config": "${CONFIG_DIR}/main_config_dev.json"
                 }
@@ -13,18 +13,19 @@
         "shutdown": [
             {
                 "working_dir": "${CODE_DIR}",
-                "cmd": "topology_init_and_shutdown.js"
+                "cmd": "custom_init_and_shutdown.js"
             }
         ]
     },
     "spouts": [
         {
-            "name": "pumpdsa_gdr",
+            "name": "custom_spout",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
-            "cmd": "spout_dsa_gdr.js",
+            "cmd": "custom_spout.js",
             "init": {
-                "data_source": "events"
+                "field1": "normal",
+                "field2": "normal"
             }
         }
     ],
@@ -35,22 +36,22 @@
             "working_dir": "${CODE_DIR}",
             "cmd": "bolt_enricher.js",
             "inputs": [
-                { "source": "pumpdsa_gdr" }
+                { "source": "custom_spout" }
             ],
             "init": {
-                "preserve_stream_id": true
+                "fieldx": true
             }
         },
         {
-            "name": "bolt_pipeline",
+            "name": "bolt_processor",
             "type": "inproc",
             "working_dir": "${CODE_DIR}",
-            "cmd": "bolt_pipeline_wrapper.js",
+            "cmd": "bolt_processor.js",
             "inputs": [
                 { "source": "bolt_enricher" }
             ],
             "init": {
-                "pipeline_config": "${PIPELINES_DIR}/events_pipeline_set.json"
+                "field1": "${SOME_DIR}/some.file.json"
             }
         },
         {
@@ -59,18 +60,15 @@
             "working_dir": ".",
             "cmd": "console",
             "inputs": [
-                { "source": "bolt_pipeline", "stream_id": "alert" },
-                { "source": "bolt_pipeline", "stream_id": "gdr" },
-                { "source": "bolt_pipeline", "stream_id": "gts" },
-                { "source": "bolt_pipeline", "stream_id": "gsts" },
-                { "source": "bolt_pipeline", "stream_id": "complex_db" }
+                { "source": "bolt_processor" },
+                { "source": "bolt_processor", "stream_id": "errors" }
             ],
             "init": {}
         }
     ],
     "variables": {
-        "CODE_DIR": "./lib/topology",
+        "CODE_DIR": "/path/to/custom/bolts",
         "CONFIG_DIR": "../../configs",
-        "PIPELINES_DIR": "../../configs/pipelines"
+        "SOME_DIR": "../../configs/pipelines"
     }
 }

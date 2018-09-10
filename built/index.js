@@ -25,4 +25,6 @@ __export(require("./util/http_server"));
 __export(require("./util/crontab_parser"));
 __export(require("./util/strip_json_comments"));
 __export(require("./std_nodes/task_bolt_base"));
+var transform_bolt_1 = require("./std_nodes/transform_bolt");
+exports.TransformHelper = transform_bolt_1.TransformHelper;
 //# sourceMappingURL=index.js.map
