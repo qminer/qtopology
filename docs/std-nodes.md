@@ -251,7 +251,7 @@ The result would be something like:
 ```````````````````````````````json
 {
     "ts": 12340000,
-    "name": "amount",
+    "name": "amount.field1=val1.field2=val2",
     "stats": { "min": 123, "max": 123, "avg": 123, "count": 1 }
 }
 ```````````````````````````````
@@ -260,7 +260,22 @@ Other options:
 
 - `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
 - `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
-- `partition_tags` - list of tag names (string) that are mandatory and will always bepresent in metric statistics. No statistics will be tracked for tag partitions without these metrics.
+- `partition_tags` - list of tag names (string) that are mandatory and will always be present in metric statistics. No statistics will be tracked for tag partitions without these metrics.
+- `emit_gdr` - (default=false) this option makes the bolt emit its data in GDR format. The result would be something like:
+
+```````````````````````````````json
+{
+    "ts": 12340000,
+    "tags": {
+        "$name": "amount.field1=val1.field2=val2",
+        "$metric": "amount",
+        "field1": "val1",
+        "field2": "val2"
+    },
+    "values": { "min": 123, "max": 123, "avg": 123, "count": 1 }
+}
+```````````````````````````````
+
 
 ## Dir spout
 

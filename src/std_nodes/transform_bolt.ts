@@ -8,7 +8,7 @@ export class TransformHelper {
 
     private compiled: string[][];
 
-    constructor(output_template: string) {
+    constructor(output_template: any) {
         this.compiled = [];
         this.precompile(output_template, []);
     }

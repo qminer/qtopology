@@ -56,6 +56,8 @@ export declare class TopologySpoutWrapper extends TopologyNodeBase {
     private emitCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
+    /** Utility function for making working dir absolute - used to avoid some problematic situations */
+    private makeWorkingDirAbsolute;
     /** Returns name of this node */
     getName(): string;
     /** Returns inner spout object */
@@ -92,6 +94,8 @@ export declare class TopologyBoltWrapper extends TopologyNodeBase {
     private emitCallback;
     /** Constructor needs to receive all data */
     constructor(config: any, context: any);
+    /** Utility function for making working dir absolute - used to avoid some problematic situations */
+    private makeWorkingDirAbsolute;
     /** Returns name of this node */
     getName(): string;
     /** Returns inner bolt object */
