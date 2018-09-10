@@ -5,6 +5,9 @@ const path = require("path");
 const top_inproc = require("./topology_local_inprocess");
 const log = require("./util/logger");
 const callback_wrappers_1 = require("./util/callback_wrappers");
+const strip_json_comments_1 = require("./util/strip_json_comments");
+const topology_validation_1 = require("./topology_validation");
+const topology_compiler_1 = require("./topology_compiler");
 ////////////////////////////////////////////////////////////////////
 /** Internal record for router mapping */
 class OutputRouterDestination {
@@ -403,4 +406,50 @@ class TopologyLocal {
     }
 }
 exports.TopologyLocal = TopologyLocal;
+//////////////////////////////////////////////////////////////////////////////////////////////////
+function runLocalTopologyFromFile(file_name) {
+    let config = strip_json_comments_1.readJsonFileSync(file_name);
+    topology_validation_1.validate({ config: config, exitOnError: true });
+    let comp = new topology_compiler_1.TopologyCompiler(config);
+    comp.compile();
+    config = comp.getWholeConfig();
+    let topology = new TopologyLocal();
+    async.series([
+        (xcallback) => {
+            topology.init("topology.1", config, xcallback);
+        },
+        (xcallback) => {
+            console.log("Init done");
+            topology.run(xcallback);
+        }
+    ], (err) => {
+        if (err) {
+            console.log("Error in shutdown", err);
+        }
+        console.log("Running");
+    });
+    function shutdown() {
+        if (topology) {
+            topology.shutdown((err) => {
+                if (err) {
+                    console.log("Error", err);
+                }
+                process.exit(1);
+            });
+            topology = null;
+        }
+    }
+    //do something when app is closing
+    process.on('exit', shutdown);
+    //catches ctrl+c event
+    process.on('SIGINT', shutdown);
+    //catches uncaught exceptions
+    process.on('uncaughtException', (e) => {
+        console.log(e);
+        process.exit(1);
+    }
+    //shutdown
+    );
+}
+exports.runLocalTopologyFromFile = runLocalTopologyFromFile;
 //# sourceMappingURL=topology_local.js.map

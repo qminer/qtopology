@@ -15,8 +15,8 @@ export interface SpoutNextCallback {
 }
 export interface ValidationOptions {
     config: any;
-    exitOnError: boolean;
-    throwOnError: boolean;
+    exitOnError?: boolean;
+    throwOnError?: boolean;
 }
 export interface TopologyDefinition {
     general: TopologyDefinitionGeneral;
