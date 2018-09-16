@@ -307,6 +307,7 @@ export class CsvFileAppendBolt implements intf.Bolt {
     receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         try {
             // transform data into CSV
+            data = JSON.parse(JSON.stringify(data));
             let result = this.transform.transform(data);
             let line = Object.keys(result)
                 .map(x => "" + result[x])

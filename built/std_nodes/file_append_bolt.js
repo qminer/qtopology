@@ -268,6 +268,7 @@ class CsvFileAppendBolt {
     receive(data, stream_id, callback) {
         try {
             // transform data into CSV
+            data = JSON.parse(JSON.stringify(data));
             let result = this.transform.transform(data);
             let line = Object.keys(result)
                 .map(x => "" + result[x])
