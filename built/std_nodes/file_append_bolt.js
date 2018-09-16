@@ -5,6 +5,7 @@ const path = require("path");
 const log = require("../util/logger");
 const zlib = require("zlib");
 const async = require("async");
+const transform_bolt_1 = require("./transform_bolt");
 /////////////////////////////////////////////////////////////////////////////
 const injection_placeholder = "##INJECT##";
 const injection_placeholder_field = "##INJECT2##";
@@ -223,4 +224,63 @@ class FileAppendBolt {
     }
 }
 exports.FileAppendBolt = FileAppendBolt;
+/** This bolt writes incoming messages to file in CSV format. */
+class CsvFileAppendBolt {
+    constructor() {
+        this.file_name = null;
+        this.transform = null;
+        this.current_data = [];
+    }
+    init(_name, config, _context, callback) {
+        this.file_name = config.file_name;
+        this.delimiter = config.delimiter || ",";
+        if (config.delete_existing) {
+            if (fs.existsSync(this.file_name)) {
+                fs.unlinkSync(this.file_name);
+            }
+        }
+        if (config.header) {
+            fs.appendFileSync(this.file_name, config.header + "\n");
+        }
+        let fields = config.fields;
+        let transform_template = {};
+        for (let i = 0; i < fields.length; i++) {
+            transform_template["field_" + i] = fields[i];
+        }
+        this.transform = new transform_bolt_1.TransformHelper(transform_template);
+        callback();
+    }
+    writeToFile(callback) {
+        if (this.current_data.length == 0) {
+            return callback();
+        }
+        let data = this.current_data;
+        this.current_data = [];
+        let lines = data.join("\n") + "\n";
+        fs.appendFile(this.file_name, lines, callback);
+    }
+    heartbeat() {
+        this.writeToFile(() => { });
+    }
+    shutdown(callback) {
+        this.writeToFile(callback);
+    }
+    receive(data, stream_id, callback) {
+        try {
+            // transform data into CSV
+            let result = this.transform.transform(data);
+            let line = Object.keys(result)
+                .map(x => "" + result[x])
+                .join(this.delimiter);
+            this.current_data.push(line);
+            callback();
+        }
+        catch (e) {
+            log.logger().error("Error in receive");
+            log.logger().exception(e);
+            return callback(e);
+        }
+    }
+}
+exports.CsvFileAppendBolt = CsvFileAppendBolt;
 //# sourceMappingURL=file_append_bolt.js.map
