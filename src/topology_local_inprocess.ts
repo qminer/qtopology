@@ -529,6 +529,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "process": return new prb.ProcessBoltContinuous();
             case "get": return new gb.GetBolt();
             case "router": return new rb.RouterBolt();
+            case "file_append_csv": return new fab.CsvFileAppendBolt();
             case "file_append": return new fab.FileAppendBolt();
             case "file_append_ex": return new fab2.FileAppendBoltEx();
             case "date_transform": return new ttb.TypeTransformBolt();

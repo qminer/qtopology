@@ -1,0 +1,85 @@
+{
+    "general": {
+        "heartbeat": 1000
+    },
+    "spouts": [
+        {
+            "name": "pump1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "timer",
+            "init": {
+                "title": "some title",
+                "extra_fields": {
+                    "field1": "a"
+                }
+            }
+        },
+        {
+            "name": "pump_test",
+            "type": "sys",
+            "working_dir": "",
+            "cmd": "test",
+            "init": {
+                "delay_between": 2000,
+                "tuples": [
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server2"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server1"
+                    },
+                    {
+                        "server": "server2"
+                    },
+                    {
+                        "server": "server1"
+                    }
+                ]
+            }
+        }
+    ],
+    "bolts": [
+        {
+            "name": "bolt1",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file_append_csv",
+            "inputs": [{ "source": "pump1" }],
+            "init": {
+                "file_name": "./log.txt",
+                "delete_existing": true,
+                "delimiter": ",",
+                "fields": ["ts", "title", "field1"],
+                "header": "ts,name,value"
+            }
+        },
+        {
+            "name": "bolt2",
+            "working_dir": ".",
+            "type": "sys",
+            "cmd": "file_append_csv",
+            "inputs": [{ "source": "pump_test" }],
+            "init": {
+                "file_name": "./log2.txt",
+                "delete_existing": true,
+                "delimiter": ",",
+                "fields": ["server"],
+                "header": "name"
+            }
+        }
+    ],
+    "variables": {}
+}
