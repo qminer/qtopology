@@ -28,6 +28,7 @@ List of standard bolts:
 - [Process bolt](#process-bolt)
 - [File-append bolt](#file-append-bolt)
 - [File-append bolt extended](#file-append-bolt-extended)
+- [CSV file-append bolt](#csv-file-append-bolt)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
 - [Type-transform bolt](#type-transform-bolt)
@@ -753,6 +754,41 @@ This bolt is in essence very similar to the `file_append` bolt type, but with th
     }
 }
 ```````````````````````````````
+
+## CSV file-append bolt
+
+`cmd=file_append_csv`
+
+This bolt attaches incoming messages as `JSON` and appends them to output file in CSV format.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "file_append_csv",
+    "inputs": [
+        { "source": "pump1" }
+    ],
+    "init": {
+        "file_name": "./logs/log.txt",
+        "delete_existing": true,
+        "delimiter": ",",
+        "fields": ["ts", "tags.name", "values.value1"],
+        "header": "ts,name,value"
+    }
+}
+```````````````````````````````
+
+This example will log all incoming data into file `log.txt` inside `logs` subdirectory of current directory. The directory must already exist.
+
+The output will be written in CSV format. The parameters are the following:
+
+- `file_name` - Name of the output file.
+- `delete_existing` - Should output file be deleted if it already exists. Optional, default is `false`.
+- `delimiter` - Deliemiter string between values. Optional, default is ",".
+- `fields` - List of CSV fields. The names in settings denote path to actual values in the data.
+- `header` - Header line. Optional. If skipped, no header line will be printed.
 
 ## Router bolt
 

@@ -28,3 +28,16 @@ export declare class FileAppendBolt implements intf.Bolt {
     shutdown(callback: intf.SimpleCallback): void;
     receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
 }
+/** This bolt writes incoming messages to file in CSV format. */
+export declare class CsvFileAppendBolt implements intf.Bolt {
+    private transform;
+    private file_name;
+    private delimiter;
+    private current_data;
+    constructor();
+    init(_name: string, config: any, _context: any, callback: intf.SimpleCallback): void;
+    private writeToFile;
+    heartbeat(): void;
+    shutdown(callback: intf.SimpleCallback): void;
+    receive(data: any, stream_id: string, callback: intf.SimpleCallback): void;
+}
