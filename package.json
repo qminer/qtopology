@@ -1,6 +1,6 @@
 {
   "name": "qtopology",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",

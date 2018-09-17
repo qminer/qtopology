@@ -4,6 +4,7 @@ import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 import * as zlib from 'zlib';
 import * as async from "async";
+import { TransformHelper } from "./transform_bolt";
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -245,6 +246,78 @@ export class FileAppendBolt implements intf.Bolt {
             } else {
                 return callback();
             }
+        }
+    }
+}
+
+
+/** This bolt writes incoming messages to file in CSV format. */
+export class CsvFileAppendBolt implements intf.Bolt {
+
+    private transform: TransformHelper;
+    private file_name: string;
+    private delimiter: string;
+    private current_data: string[];
+
+    constructor() {
+        this.file_name = null;
+        this.transform = null;
+        this.current_data = [];
+    }
+
+    init(_name: string, config: any, _context: any, callback: intf.SimpleCallback) {
+        this.file_name = config.file_name;
+        this.delimiter = config.delimiter || ",";
+        if (config.delete_existing) {
+            if (fs.existsSync(this.file_name)) {
+                fs.unlinkSync(this.file_name);
+            }
+        }
+        if (config.header) {
+            fs.appendFileSync(this.file_name, config.header + "\n");
+        }
+
+        let fields: string[] = config.fields;
+        let transform_template = {};
+        for (let i = 0; i < fields.length; i++) {
+            transform_template["field_" + i] = fields[i];
+        }
+        this.transform = new TransformHelper(transform_template);
+        callback();
+    }
+
+    private writeToFile(callback: intf.SimpleCallback) {
+        if (this.current_data.length == 0) {
+            return callback();
+        }
+        let data = this.current_data;
+        this.current_data = [];
+        let lines = data.join("\n") + "\n";
+        fs.appendFile(this.file_name, lines, callback);
+    }
+
+    heartbeat() {
+        this.writeToFile(() => { });
+    }
+
+    shutdown(callback: intf.SimpleCallback) {
+        this.writeToFile(callback);
+    }
+
+    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        try {
+            // transform data into CSV
+            data = JSON.parse(JSON.stringify(data));
+            let result = this.transform.transform(data);
+            let line = Object.keys(result)
+                .map(x => "" + result[x])
+                .join(this.delimiter);
+            this.current_data.push(line);
+            callback();
+        } catch (e) {
+            log.logger().error("Error in receive");
+            log.logger().exception(e);
+            return callback(e);
         }
     }
 }
