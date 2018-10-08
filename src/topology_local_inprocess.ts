@@ -362,9 +362,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         this.isError = false;
         this.init_params = config.init || {};
         this.init_params.onEmit = (data, stream_id, callback) => {
-            if (self.isShuttingDown) {
-                return callback(new Error(`Bolt (${this.name}) is shutting down`));
-            }
             config.onEmit(data, stream_id, callback);
         };
         this.emitCallback = this.init_params.onEmit;
@@ -453,7 +450,8 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             if (this.inSend === 0) {
                 return this.bolt.shutdown(callback);
             } else {
-                this.pendingShutdownCallback = callback;
+                let cb = () => { this.bolt.shutdown(callback); };
+                this.pendingShutdownCallback =  cb;
             }
         } catch (e) {
             callback(e);
@@ -503,8 +501,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
                             self.pendingSendRequests = self.pendingSendRequests.slice(1);
                             self.receive(d.data, d.stream_id, d.callback);
                         } else if (self.pendingShutdownCallback) {
-                            // self.shutdown(self.pendingShutdownCallback);
-                            // self.pendingShutdownCallback = null;
                             let cb = self.pendingShutdownCallback;
                             self.pendingShutdownCallback = null;
                             cb();
