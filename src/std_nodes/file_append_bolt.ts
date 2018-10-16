@@ -43,37 +43,41 @@ export class FileAppendBolt implements intf.Bolt {
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
-        this.name = name;
-        this.log_prefix = `[FileAppendBolt ${this.name}] `;
-        this.file_name_template = config.file_name_template;
-        this.prepend_timestamp = config.prepend_timestamp;
-        this.split_over_time = config.split_over_time;
-        this.split_period = config.split_period || 60 * 60 * 1000;
-        if (config.split_by_field) {
-            this.split_by_field = config.split_by_field.split(".");
-        }
-        this.compress = config.compress;
-        this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
+        try {
+            this.name = name;
+            this.log_prefix = `[FileAppendBolt ${this.name}] `;
+            this.file_name_template = config.file_name_template;
+            this.prepend_timestamp = config.prepend_timestamp;
+            this.split_over_time = config.split_over_time;
+            this.split_period = config.split_period || 60 * 60 * 1000;
+            if (config.split_by_field) {
+                this.split_by_field = config.split_by_field.split(".");
+            }
+            this.compress = config.compress;
+            this.propagate_errors = (config.propagate_errors == undefined) ? true : config.propagate_errors;
 
-        // prepare filename template for injection
-        if (this.split_over_time) {
-            let ext = path.extname(this.file_name_template);
-            this.next_split_after = Math.floor(Date.now() / this.split_period) * this.split_period;
-            this.file_name_template =
-                this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
-                "_" + injection_placeholder +
-                (this.split_by_field ? "_" + injection_placeholder_field : "") +
-                ext;
-        } else {
-            this.file_name_current = this.file_name_template;
-            if (config.delete_existing) {
-                if (fs.existsSync(this.file_name_current)) {
-                    fs.unlinkSync(this.file_name_current);
+            // prepare filename template for injection
+            if (this.split_over_time) {
+                let ext = path.extname(this.file_name_template);
+                this.next_split_after = Math.floor(Date.now() / this.split_period) * this.split_period;
+                this.file_name_template =
+                    this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
+                    "_" + injection_placeholder +
+                    (this.split_by_field ? "_" + injection_placeholder_field : "") +
+                    ext;
+            } else {
+                this.file_name_current = this.file_name_template;
+                if (config.delete_existing) {
+                    if (fs.existsSync(this.file_name_current)) {
+                        fs.unlinkSync(this.file_name_current);
+                    }
                 }
             }
-        }
 
-        callback();
+            callback();
+        } catch (e) {
+            callback(e);
+        }
     }
 
     private toISOFormatLocal(d: number): string {
@@ -266,24 +270,28 @@ export class CsvFileAppendBolt implements intf.Bolt {
     }
 
     init(_name: string, config: any, _context: any, callback: intf.SimpleCallback) {
-        this.file_name = config.file_name;
-        this.delimiter = config.delimiter || ",";
-        if (config.delete_existing) {
-            if (fs.existsSync(this.file_name)) {
-                fs.unlinkSync(this.file_name);
+        try {
+            this.file_name = config.file_name;
+            this.delimiter = config.delimiter || ",";
+            if (config.delete_existing) {
+                if (fs.existsSync(this.file_name)) {
+                    fs.unlinkSync(this.file_name);
+                }
             }
-        }
-        if (config.header) {
-            fs.appendFileSync(this.file_name, config.header + "\n");
-        }
+            if (config.header) {
+                fs.appendFileSync(this.file_name, config.header + "\n");
+            }
 
-        let fields: string[] = config.fields;
-        let transform_template = {};
-        for (let i = 0; i < fields.length; i++) {
-            transform_template["field_" + i] = fields[i];
+            let fields: string[] = config.fields;
+            let transform_template = {};
+            for (let i = 0; i < fields.length; i++) {
+                transform_template["field_" + i] = fields[i];
+            }
+            this.transform = new TransformHelper(transform_template);
+            callback();
+        } catch (e) {
+            callback(e);
         }
-        this.transform = new TransformHelper(transform_template);
-        callback();
     }
 
     private writeToFile(callback: intf.SimpleCallback) {

@@ -259,7 +259,7 @@ export class AccumulatorBolt implements intf.Bolt {
     catchUpTimestamp(ts, callback) {
         async.whilst(
             () => {
-                return Math.floor(ts / this.granularity) != this.last_ts;
+                return Math.floor(ts / this.granularity) > this.last_ts;
             },
             (xcallback) => {
                 this.sendAggregates(xcallback);
