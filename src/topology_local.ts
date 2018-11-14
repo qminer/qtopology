@@ -432,9 +432,21 @@ export class TopologyLocal {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function runLocalTopologyFromFile(file_name: string) {
+ /** This function injects override values into variables section of the configuration. */
+function injectOverrides(config: any, overrides: any) {
+    config.variables = config.variables || {};
+    for (let f in overrides) {
+        if (overrides.hasOwnProperty(f)) {
+            config.variables[f] = overrides[f];
+        }
+    }
+}
+
+/** This functin is used for running topology localy */
+export function runLocalTopologyFromFile(file_name: string, overrides?: any) {
     let config = readJsonFileSync(file_name);
     validate({ config: config, exitOnError: true });
+    injectOverrides(config, overrides || {});
 
     let comp = new TopologyCompiler(config);
     comp.compile();
