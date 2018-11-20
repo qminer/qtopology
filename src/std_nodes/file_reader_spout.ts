@@ -18,6 +18,8 @@ export class FileReaderSpout implements intf.Spout {
     private should_run: boolean;
     private line_reader: rl.ReadLine;
     private line_reader_paused: boolean;
+    private own_exit: boolean;
+    private own_exit_delay: number;
 
     constructor() {
         this.stream_id = null;
@@ -26,6 +28,8 @@ export class FileReaderSpout implements intf.Spout {
         this.file_name = null;
         this.should_run = false;
         this.line_reader_paused = false;
+        this.own_exit=false;
+        this.own_exit_delay=0;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
@@ -37,6 +41,8 @@ export class FileReaderSpout implements intf.Spout {
             config.separator = config.separator || ","
             this.csv_parser = new CsvParser(config);
         }
+        this.own_exit = config.own_exit;
+        this.own_exit_delay = +config.own_exit_delay || 10000; // default own-exit delay is 10 sec
 
         log.logger().log(`Reading file ${this.file_name}`);
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
@@ -55,6 +61,12 @@ export class FileReaderSpout implements intf.Spout {
         });
         this.line_reader.on("close", ()=>{
             log.logger().log(`Reached the end of file ${this.file_name}`);
+            if (this.own_exit) {
+                setTimeout(() => {
+                    // send Ctrl+C to self
+                    process.kill(process.pid, "SIGTERM");
+                }, this.own_exit_delay);
+            }
         });
 
         callback();

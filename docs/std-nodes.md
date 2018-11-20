@@ -62,12 +62,17 @@ Messages can be stored in several formats:
 
 - `raw` - reads text as lines and emits messages with a single field `content` that contains raw text line form the file.
 - `json` - each non-empty line of the file contains a JSON serialized object.
-- `csv` - the first line can contain a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
-    - All fields are emited as strings.
+- `csv` - the first line can contain a header and subsequent lines will contain a comma-separated list of matching values. The emitted objects will contain properties with names from header and values from each line.
+    - All fields are emitted as strings.
     - Separator character by default is comma (","). This can, however, be changed with additional parameter `csv_separator`.
     - Header line is optional. We can define a list of allowed fields with `csv_fields` parameter. If this setting is not present, the first line is assumed to be the header line that defines the fields of the emitted messages.
 
-> At the moment the implementation loads all data into memory first and then emits the messages. This is not suitable for larger files, so use this spout with care.
+Optional settings:
+
+- `csv_separator` - used for CSV format
+- `csv_fields` - used for CSV format
+- `own_exit` - set to `true` if you wish to exit the process after the file has been read entirely
+- `own_exit_delay` - used only when `own_exit` is `true`, the number of msec when the process exits after the file is read entirely. Default is 10,000 msec.
 
 ## Process spout
 
