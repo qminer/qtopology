@@ -28,8 +28,8 @@ export class FileReaderSpout implements intf.Spout {
         this.file_name = null;
         this.should_run = false;
         this.line_reader_paused = false;
-        this.own_exit=false;
-        this.own_exit_delay=0;
+        this.own_exit = false;
+        this.own_exit_delay = 0;
     }
 
     init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
@@ -59,7 +59,7 @@ export class FileReaderSpout implements intf.Spout {
                 this.line_reader_paused = true;
             }
         });
-        this.line_reader.on("close", ()=>{
+        this.line_reader.on("close", () => {
             log.logger().log(`Reached the end of file ${this.file_name}`);
             if (this.own_exit) {
                 setTimeout(() => {
