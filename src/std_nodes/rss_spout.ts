@@ -34,7 +34,7 @@ export class RssSpout implements intf.Spout {
     heartbeat() {
         if (Date.now() >= this.next_call_after && this.should_run) {
             let self = this;
-            log.logger().debug(this.logging_prefix + "Starting RSS crawl: "  + self.url);
+            log.logger().debug(this.logging_prefix + "Starting RSS crawl: " + self.url);
             self.client.get(self.url, (new_data, response) => {
                 for (let item of new_data.rss.channel.item) {
                     self.tuples.push(item);

@@ -11,7 +11,7 @@ export class Utils {
                 let json = JSON.parse(line);
                 tuples.push(json);
             } catch (e) {
-                if (pushError) { 
+                if (pushError) {
                     tuples.push(e);
                 }
             }

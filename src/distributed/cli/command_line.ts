@@ -89,7 +89,7 @@ export class CommandLineHandler {
                     let logger = log.logger();
                     for (let t of data) {
                         let status = (t.status == intf.Consts.WorkerStatus.alive ? colors.green(t.status) : t.status);
-                        let lstatus = (t.lstatus ==intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
+                        let lstatus = (t.lstatus == intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
                         logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }

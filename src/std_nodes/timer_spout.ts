@@ -3,7 +3,7 @@ import * as oo from "../util/object_override";
 
 /** This spout emits single tuple each heartbeat */
 export class TimerSpout implements intf.Spout {
-    
+
     private stream_id: string;
     private title: string;
     private should_run: boolean;

@@ -3,7 +3,7 @@ import * as rest from 'node-rest-client';
 
 /** This bolt sends POST request to specified url (fixed or provided inside data)
  * and forwards the request. */
-export class PostBolt implements intf.Bolt  {
+export class PostBolt implements intf.Bolt {
 
     private fixed_url: string;
     private client: rest.Client;
@@ -41,7 +41,7 @@ export class PostBolt implements intf.Bolt  {
         let req = self.client.post(url, args, (new_data, response) => {
             self.onEmit({ body: new_data }, null, callback);
         });
-        req.on('error', function (err) {
+        req.on("error", err => {
             callback(err);
         });
     }

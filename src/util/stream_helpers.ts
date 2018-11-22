@@ -45,14 +45,14 @@ export function importFileByLine(fname: string, line_parser: Parser, callback?: 
     let liner_obj = new Liner();
     let source = fs.createReadStream(fname);
     source.pipe(liner_obj);
-    liner_obj.on('readable', function () {
+    liner_obj.on("readable", () => {
         let chunk = liner_obj.read();
         while (chunk) {
             line_parser.addLine(chunk);
             chunk = liner_obj.read();
         }
     })
-    source.on("close", function () {
+    source.on("close", () => {
         if (callback) {
             callback();
         }

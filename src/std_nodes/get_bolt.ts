@@ -36,7 +36,7 @@ export class GetBolt implements intf.Bolt {
             (new_data, response) => {
                 self.onEmit({ body: new_data.toString() }, null, callback);
             });
-        req.on('error', function (err) {
+        req.on("error", err => {
             callback(err);
         });
     }

@@ -432,7 +432,7 @@ export class TopologyLocal {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
- /** This function injects override values into variables section of the configuration. */
+/** This function injects override values into variables section of the configuration. */
 function injectOverrides(config: any, overrides: any) {
     config.variables = config.variables || {};
     for (let f in overrides) {

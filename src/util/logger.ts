@@ -46,8 +46,8 @@ function makeErrString(msg: string, max_len?: number) {
 /** Simple logger into console */
 class ConsoleLogger implements Logger {
 
-     level: string;
-     curr_level: number;
+    level: string;
+    curr_level: number;
 
     /** Constructor */
     constructor() {

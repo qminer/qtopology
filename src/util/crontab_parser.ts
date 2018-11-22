@@ -2,7 +2,7 @@
 export class CronTabParser {
 
     private parts: number[][];
-    
+
     constructor(s: string) {
         let simple_regex = /^\*|\d\d?(\-\d\d?)?$/;
         let dow_regex = /^(sun|mon|tue|wed|thu|fri|sat)(\-(sun|mon|tue|wed|thu|fri|sat))?$/;

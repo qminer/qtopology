@@ -168,7 +168,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
 
     /** Utility function for making working dir absolute - used to avoid some problematic situations */
     private makeWorkingDirAbsolute() {
-        if (!path.isAbsolute(this.working_dir)){
+        if (!path.isAbsolute(this.working_dir)) {
             this.working_dir = path.resolve(this.working_dir);
         }
     }
@@ -406,7 +406,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
 
     /** Utility function for making working dir absolute - used to avoid some problematic situations */
     private makeWorkingDirAbsolute() {
-        if (!path.isAbsolute(this.working_dir)){
+        if (!path.isAbsolute(this.working_dir)) {
             this.working_dir = path.resolve(this.working_dir);
         }
     }
@@ -451,7 +451,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
                 return this.bolt.shutdown(callback);
             } else {
                 let cb = () => { this.bolt.shutdown(callback); };
-                this.pendingShutdownCallback =  cb;
+                this.pendingShutdownCallback = cb;
             }
         } catch (e) {
             callback(e);
