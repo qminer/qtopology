@@ -192,7 +192,7 @@ export class TopologyLeader {
         let alive_workers: intf.WorkerStatus[] = [];
         let worker_weights: Map<string, number> = new Map<string, number>();
 
-        let topologies_for_rebalance: lb.Topology[] = [];
+        let topologies_for_rebalance: lb.ITopology[] = [];
         let topologies_disabled: intf.TopologyStatus[] = [];
         let topologies_enabled: intf.TopologyStatus[] = [];
 
@@ -311,7 +311,7 @@ export class TopologyLeader {
      */
     private assignUnassignedTopologies(
         topologies_enabled: intf.TopologyStatus[],
-        topologies_for_rebalance: lb.Topology[],
+        topologies_for_rebalance: lb.ITopology[],
         alive_workers: intf.WorkerStatus[],
         worker_weights: Map<string, number>,
         callback: intf.SimpleCallback) {
@@ -378,7 +378,7 @@ export class TopologyLeader {
 
     /** This method will perform rebalance of topologies on workers if needed.
      */
-    private performRebalanceIfNeeded(workers: intf.WorkerStatus[], topologies: lb.Topology[], callback) {
+    private performRebalanceIfNeeded(workers: intf.WorkerStatus[], topologies: lb.ITopology[], callback) {
         let self = this;
         if (self.next_rebalance > Date.now()) {
             return callback();

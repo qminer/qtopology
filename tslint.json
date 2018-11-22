@@ -1,0 +1,26 @@
+{
+    "extends": ["tslint:recommended"],
+    "rules": {
+      "no-console": [ "log" ],
+      "max-classes-per-file": [true, 5, "exclude-class-expressions"],
+      "ordered-imports": false,
+      "triple-equals": false,
+      "no-consecutive-blank-lines": false,
+      "arrow-parens": [true, "ban-single-arg-parens"],
+      "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+      "variable-name": [
+        true,
+        "ban-keywords",
+        "check-format",
+        "allow-leading-underscore",
+        "allow-snake-case"
+      ]
+    },
+    "linterOptions": {
+      "exclude": [
+        "public/**/*.js",
+        "config/**/*.js",
+        "node_modules/**/*.ts"
+      ]
+    }
+  }

@@ -1,11 +1,11 @@
 /** Simple worker description */
-export interface Worker {
+export interface IWorker {
     name: string;
     weight: number;
 }
 
 /** Simple topology description */
-export interface Topology {
+export interface ITopology {
     uuid: string;
     worker: string;
     weight: number;
@@ -15,28 +15,28 @@ export interface Topology {
 
 /** This class represents a single needed change for rebalancing */
 export class RebalanceChange {
-    uuid: string;
-    worker_old: string;
-    worker_new: string;
+    public uuid: string;
+    public worker_old: string;
+    public worker_new: string;
 }
 
 export class RebalanceResult {
-    score: number;
-    changes: RebalanceChange[];
+    public score: number;
+    public changes: RebalanceChange[];
 }
 
 /** This simple class calculates load-balancing across workers.
  * Given list of workers and their current load, it returns a sequence of
  * worker names in which new load should be assigned.
-*/
+ */
 export class LoadBalancer {
 
-    private workers: Worker[];
+    private workers: IWorker[];
 
     /** Constructor received the list of workers. Each worker
      * contains a name and a weight (current load).
      */
-    constructor(wrkrs: Worker[]) {
+    constructor(wrkrs: IWorker[]) {
         if (wrkrs.length == 0) {
             throw new Error("Cannot perform load-balancing on empty list of workers");
         }
@@ -45,8 +45,8 @@ export class LoadBalancer {
     }
 
     /** Returns next worker to receive new load */
-    next(): string {
-        let res = this.workers[0].name;
+    public next(): string {
+        const res = this.workers[0].name;
         this.workers[0].weight++;
         this.sort();
         return res;
@@ -55,7 +55,9 @@ export class LoadBalancer {
     /** Internal utility method */
     private sort() {
         this.workers.sort((a, b) => {
-            if (a.weight === b.weight) return a.name.localeCompare(b.name);
+            if (a.weight === b.weight) {
+                return a.name.localeCompare(b.name);
+            }
             return a.weight - b.weight;
         });
     }
@@ -66,16 +68,16 @@ export class LoadBalancer {
  * to assign the load to. The twist is that it also accepts worker affinity
  * and load weight.
  * It also conatins method that calculates re-assignments in case of severely uneven loads.
-*/
+ */
 export class LoadBalancerEx {
 
-    private workers: Worker[];
+    private workers: IWorker[];
     private affinity_factor: number;
 
     /** Constructor received the list of workers. Each worker
      * contains a name and a weight (current load).
      */
-    constructor(wrkrs: Worker[], affinity_factor: number) {
+    constructor(wrkrs: IWorker[], affinity_factor: number) {
         if (!wrkrs || wrkrs.length == 0) {
             throw new Error("Cannot perform load-balancing on empty list of workers");
         }
@@ -86,24 +88,24 @@ export class LoadBalancerEx {
     }
 
     /** Gets a copy of internal state */
-    getCurrentStats(): Worker[] {
+    public getCurrentStats(): IWorker[] {
         return this.workers.map(x => {
             return { name: x.name, weight: x.weight };
         });
     }
 
     /** Returns next worker to receive new load */
-    next(affinity: string[], new_weight?: number): string {
+    public next(affinity: string[], new_weight?: number): string {
         affinity = affinity || [];
         new_weight = new_weight || 1;
 
-        let affinity_set = new Set<string>();
+        const affinity_set = new Set<string>();
         affinity.forEach(x => { affinity_set.add(x); });
 
-        let res: Worker;
+        let res: IWorker;
         let res_load = Number.MAX_VALUE;
 
-        for (let worker of this.workers) {
+        for (const worker of this.workers) {
             let worker_weight = worker.weight + new_weight;
             if (affinity_set.has(worker.name)) {
                 worker_weight /= this.affinity_factor;
@@ -121,17 +123,17 @@ export class LoadBalancerEx {
     /** This method calculates near-optimal load and if current composition
      * is too different, it creates rebalancing instructions.
      */
-    rebalance(topologies: Topology[]): RebalanceResult {
+    public rebalance(topologies: ITopology[]): RebalanceResult {
         // create inner empty load-balancer
-        let workers_tmp = this.workers.map(x => {
+        const workers_tmp = this.workers.map(x => {
             return { name: x.name, weight: 0 };
         });
-        let inner = new LoadBalancerEx(workers_tmp, this.affinity_factor);
+        const inner = new LoadBalancerEx(workers_tmp, this.affinity_factor);
 
         // sort topologies in smart way:
         // - first the ones with affinity, then the ones without
         // - when the same affinity length, compare by weight
-        let sorter = (a: Topology, b: Topology): number => {
+        const sorter = (a: ITopology, b: ITopology): number => {
             if (a.affinity.length > 0) {
                 if (b.affinity.length > 0) {
                     return a.affinity.length - b.affinity.length;
@@ -149,43 +151,43 @@ export class LoadBalancerEx {
                 }
             }
         };
-        let topologies_tmp = topologies
+        const topologies_tmp = topologies
             .slice(0)
             .sort(sorter); // shallow-copy and sort
 
         // loop greedily over topologies and insert them into load-balancer
         let changes: RebalanceChange[] = [];
-        for (let t of topologies_tmp) {
-            let worker_new = inner.next(t.affinity, t.weight);
+        for (const t of topologies_tmp) {
+            const worker_new = inner.next(t.affinity, t.weight);
             if (worker_new != t.worker) {
                 changes.push({
                     uuid: t.uuid,
-                    worker_new: worker_new,
+                    worker_new,
                     worker_old: t.worker
                 });
             }
         }
 
         // compare current state and "near-ideal" one
-        let semi_ideal = inner.getCurrentStats();
-        let current = this.getCurrentStats();
-        let score = compareScore(semi_ideal, current);
+        const semi_ideal = inner.getCurrentStats();
+        const current = this.getCurrentStats();
+        const score = compareScore(semi_ideal, current);
         // if score is below 1.5, then the current load is not severely uneven.
         if (score < 1.5) {
             changes = [];
         }
-        return { score: score, changes: changes };
+        return { score, changes };
     }
 }
 
 /** Calculates deviation score - how bad is the current load
-* in comparison to the near-optimal one.
-*/
-function compareScore(near_optimal: Worker[], current: Worker[]): number {
+ * in comparison to the near-optimal one.
+ */
+function compareScore(near_optimal: IWorker[], current: IWorker[]): number {
     let result = 0;
-    for (let xa of near_optimal) {
+    for (const xa of near_optimal) {
         let found = false;
-        for (let xb of current) {
+        for (const xb of current) {
             if (xa.name == xb.name) {
                 found = true;
                 if (xa.weight < xb.weight) {
@@ -202,29 +204,3 @@ function compareScore(near_optimal: Worker[], current: Worker[]): number {
     }
     return result / near_optimal.length; // average score per server
 }
-
-// function deepClone(x: any): any {
-//     return JSON.parse(JSON.stringify(x));
-// }
-
-// /** Utility function that performs local, greedy rebalance */
-// export function performLocalRebalance(workers: Worker[], affinity_factor: number, topologies: Topology[]): RebalanceResult {
-//     let res = new RebalanceResult();
-//     let workers_tmp: Worker[] = workers.map(x => deepClone(x));
-//     let topologies_tmp: Topology[] = topologies.map(x => deepClone(x));
-//     while (true) {
-//         let best = Number.MAX_VALUE;
-//         for (let t of topologies_tmp) {
-//             for (let w of workers_tmp) {
-//                 if (t.worker == w.name) continue;
-
-//             }
-//         }
-//         if (best < Number.MAX_VALUE) {
-
-//         } else {
-//             break;
-//         }
-//     }
-//     return res;
-// }

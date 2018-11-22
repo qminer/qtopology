@@ -24,5 +24,5 @@ export function overrideObject(baseObject: any, additional_data: any, createNew?
 
 /** Helper function */
 function isObjectAndNotArray(object) {
-    return (typeof object === 'object' && !Array.isArray(object));
+    return (typeof object === "object" && !Array.isArray(object));
 }
