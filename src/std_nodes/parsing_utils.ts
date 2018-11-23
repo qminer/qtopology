@@ -3,12 +3,14 @@ export class Utils {
 
     /** Reads and parses JSON data, one object per line. */
     public static readJsonFile(content: string, tuples: any[], pushError: boolean = true) {
-        let lines = content.split("\n");
+        const lines = content.split("\n");
         for (let line of lines) {
             line = line.trim();
-            if (line.length == 0) continue;
+            if (line.length == 0) {
+                continue;
+            }
             try {
-                let json = JSON.parse(line);
+                const json = JSON.parse(line);
                 tuples.push(json);
             } catch (e) {
                 if (pushError) {
@@ -20,10 +22,12 @@ export class Utils {
 
     /** Reads raw text data, one line at the time. */
     public static readRawFile(content: string, tuples: any[]) {
-        let lines = content.split("\n");
+        const lines = content.split("\n");
         for (let line of lines) {
             line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
+            if (line.length == 0) {
+                continue;
+            }
             tuples.push({ content: line });
         }
     }
@@ -53,7 +57,7 @@ export class CsvParser {
         // otherwise, the first line already contains data
         if (!this.header_read && this.csv_has_header) {
             // read first list and parse fields names
-            let header = lines[0].replace("\r", "");
+            const header = lines[0].replace("\r", "");
             this.csv_fields = header.split(this.csv_separator);
             lines = lines.slice(1);
             this.header_read = true;
@@ -61,9 +65,11 @@ export class CsvParser {
 
         for (let line of lines) {
             line = line.trim().replace("\r", "");
-            if (line.length == 0) continue;
-            let values = line.split(this.csv_separator);
-            let result = {};
+            if (line.length == 0) {
+                continue;
+            }
+            const values = line.split(this.csv_separator);
+            const result = {};
             for (let i = 0; i < this.csv_fields.length; i++) {
                 result[this.csv_fields[i]] = values[i];
             }

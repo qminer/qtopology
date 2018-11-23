@@ -2,8 +2,9 @@ import * as intf from "../topology_interfaces";
 
 /** This bolt transforms given date fields in incoming
  * messages either Date objects, numerics or booleans
- * and sends them forward. */
-export class TypeTransformBolt implements intf.Bolt {
+ * and sends them forward.
+ */
+export class TypeTransformBolt implements intf.IBolt {
 
     private date_transform_fields: string[];
     private numeric_transform_fields: string[];
@@ -17,7 +18,7 @@ export class TypeTransformBolt implements intf.Bolt {
         this.date_transform_fields = [];
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+   public  init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.date_transform_fields = config.date_transform_fields || [];
         this.numeric_transform_fields = config.numeric_transform_fields || [];
@@ -27,24 +28,26 @@ export class TypeTransformBolt implements intf.Bolt {
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        for (let date_field of this.date_transform_fields) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        for (const date_field of this.date_transform_fields) {
             if (data[date_field]) {
                 data[date_field] = new Date(data[date_field]);
             }
         }
-        for (let date_field of this.numeric_transform_fields) {
+        for (const date_field of this.numeric_transform_fields) {
             if (data[date_field]) {
                 data[date_field] = +data[date_field];
             }
         }
-        for (let date_field of this.bool_transform_fields) {
+        for (const date_field of this.bool_transform_fields) {
             if (data[date_field]) {
                 data[date_field] = (data[date_field] && data[date_field] != "false" ? true : false);
             }

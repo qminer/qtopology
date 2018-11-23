@@ -18,7 +18,7 @@ export interface TopologyWorkerParams {
     /** Worker name */
     name: string;
     /** Storage object to use */
-    storage: intf.CoordinationStorage;
+    storage: intf.ICoordinationStorage;
     /** Additional data inside an object that is injected into each topology definition. Optional. */
     overrides?: object;
     /** Optional. Either CRON-like expression or a function that tests if the worker should be dormant. */
@@ -160,7 +160,7 @@ export class TopologyWorker {
                         to_unassign,
                         (uuid, xxcallback) => {
                             log.logger().warn(this.log_prefix + "Topology is assigned to this worker, but it is not running here will be unassigned: " + uuid);
-                            self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.unassigned, "", xxcallback);
+                            self.coordinator.reportTopology(uuid, intf.CONSTS.TopologyStatus.unassigned, "", xxcallback);
                         },
                         xcallback);
                 }
@@ -193,13 +193,13 @@ export class TopologyWorker {
             if (err) {
                 self.removeAndReportError(rec, err, () => { }); // on exit with error
             } else {
-                self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.unassigned, "");
+                self.coordinator.reportTopology(rec.uuid, intf.CONSTS.TopologyStatus.unassigned, "");
                 self.removeTopology(rec.uuid); // on normal exit
             }
         });
         // report topology as running, then try to start it.
         // we do this because we don't know how long this initialization will take and we could run into trouble with leader.
-        self.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.running, ""); // TODO: why no callback?
+        self.coordinator.reportTopology(rec.uuid, intf.CONSTS.TopologyStatus.running, ""); // TODO: why no callback?
         rec.proxy.init(rec.uuid, rec.config, err => {
             if (err) {
                 // Three types of errors possible:
@@ -258,7 +258,7 @@ export class TopologyWorker {
         } catch (err) {
             log.logger().error(this.log_prefix + "Error while creating topology proxy for " + uuid);
             log.logger().exception(err);
-            self.coordinator.reportTopology(uuid, intf.Consts.TopologyStatus.error, "" + err, () => { });
+            self.coordinator.reportTopology(uuid, intf.CONSTS.TopologyStatus.error, "" + err, () => { });
         }
     }
 
@@ -361,10 +361,10 @@ export class TopologyWorker {
             if (err) {
                 log.logger().error(self.log_prefix + "Error while shutting down topology " + item.uuid);
                 log.logger().exception(err);
-                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
+                self.coordinator.reportTopology(item.uuid, intf.CONSTS.TopologyStatus.error, "" + err, callback);
             } else {
                 log.logger().important(self.log_prefix + "setting topology as unassigned: " + item.uuid);
-                self.coordinator.reportTopology(item.uuid, intf.Consts.TopologyStatus.unassigned, "", callback);
+                self.coordinator.reportTopology(item.uuid, intf.CONSTS.TopologyStatus.unassigned, "", callback);
             }
         }
         if (do_kill) {
@@ -377,6 +377,6 @@ export class TopologyWorker {
     /** Remove given topology from internal list and report an error */
     private removeAndReportError(rec: TopologyItem, err: Error, callback: intf.SimpleCallback) {
         this.removeTopology(rec.uuid);
-        this.coordinator.reportTopology(rec.uuid, intf.Consts.TopologyStatus.error, "" + err, callback);
+        this.coordinator.reportTopology(rec.uuid, intf.CONSTS.TopologyStatus.error, "" + err, callback);
     }
 }

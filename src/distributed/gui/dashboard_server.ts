@@ -12,7 +12,7 @@ import * as leader from "../topology_leader";
  */
 export interface DashboardServerOptions {
     /** Storage where the data is located */
-    storage: intf.CoordinationStorage;
+    storage: intf.ICoordinationStorage;
     /** Port number where the stand-alone table should run. Optional. */
     port?: number;
     /** Express application to inject routes into. Optional. */
@@ -26,7 +26,7 @@ export interface DashboardServerOptions {
     /** Link text to parent page. Optional */
     back_title?: string;
     /** Custom properties to present in GUI */
-    custom_props?: intf.StorageProperty[];
+    custom_props?: intf.IStorageProperty[];
 }
 
 /**
@@ -44,11 +44,11 @@ export class DashboardServer {
     /** Port number where the stand-alone table should run. */
     private port: number;
     /** Storage where the data is located */
-    private storage: intf.CoordinationStorage;
+    private storage: intf.ICoordinationStorage;
     /** Stand-alone web server */
     private server: http_server.MinimalHttpServer;
     /** Custom properties to present in GUI */
-    custom_props: intf.StorageProperty[];
+    custom_props: intf.IStorageProperty[];
 
     /** Simple constructor */
     constructor() {
@@ -62,7 +62,7 @@ export class DashboardServer {
     }
 
     /** Internal initialization step */
-    private initCommon(storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+    private initCommon(storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
         let self = this;
         self.storage = storage;
         self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
@@ -111,16 +111,16 @@ export class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("enable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("disable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
@@ -196,7 +196,7 @@ export class DashboardServer {
      * @param storage - Storage object
      * @param callback - Standard callback
      */
-    init(port: number, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+    init(port: number, storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
         this.initComplex({ port: port, storage: storage }, callback);
     }
 
@@ -207,7 +207,7 @@ export class DashboardServer {
      * @param storage - Storage object
      * @param callback - Standard callback
      */
-    initForExpress(app: any, prefix: string, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
+    initForExpress(app: any, prefix: string, storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
         let self = this;
         self.initComplex({ app: app, prefix: prefix, storage: storage }, (err) => {
             if (err) return callback(err);

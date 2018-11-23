@@ -117,7 +117,7 @@ export class TopologyLocalWrapper {
     }
 
     /** Internal main handler for incoming messages */
-    private handle(msg: intf.ParentMsg) {
+    private handle(msg: intf.IParentMsg) {
         let self = this;
         if (msg.cmd === intf.ParentMsgCode.init) {
             if (self.topology_local) {

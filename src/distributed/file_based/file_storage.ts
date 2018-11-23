@@ -43,7 +43,7 @@ export class FileStorage extends mem.MemoryStorage {
         }
     }
 
-    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+    getProperties(callback: intf.SimpleResultCallback<intf.IStorageProperty[]>) {
         let res = [];
         res.push({ key: "type", value: "FileStorage" });
         res.push({ key: "directory", value: this.dir_name });

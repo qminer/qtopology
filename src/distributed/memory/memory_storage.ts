@@ -3,16 +3,16 @@ import * as async from "async";
 
 //////////////////////////////////////////////////////////////////////
 
-class MessageRec implements intf.StorageResultMessage {
+class MessageRec implements intf.IStorageResultMessage {
     name: string;
     cmd: string;
     content: any;
     created: Date;
     valid_until: number;
 }
-class TopologyRec implements intf.TopologyStatus {
+class TopologyRec implements intf.ITopologyStatus {
     uuid: string;
-    config: intf.TopologyDefinition;
+    config: intf.ITopologyDefinition;
     status: string;
     worker: string;
     weight: number;
@@ -23,7 +23,7 @@ class TopologyRec implements intf.TopologyStatus {
     last_ping: number;
     last_ping_d: Date;
 }
-class WorkerRec implements intf.WorkerStatus {
+class WorkerRec implements intf.IWorkerStatus {
     name: string;
     status: string;
     pid: number;
@@ -36,13 +36,13 @@ class WorkerRec implements intf.WorkerStatus {
 
 /////////////////////////////////////////////////////////////////////
 
-export class MemoryStorage implements intf.CoordinationStorage {
+export class MemoryStorage implements intf.ICoordinationStorage {
 
     private workers: WorkerRec[];
     private topologies: TopologyRec[];
     private messages: MessageRec[];
-    private workers_history: intf.WorkerStatusHistory[];
-    private topologies_history: intf.TopologyStatusHistory[];
+    private workers_history: intf.IWorkerStatusHistory[];
+    private topologies_history: intf.ITopologyStatusHistory[];
 
     constructor() {
         this.workers = [];
@@ -52,14 +52,14 @@ export class MemoryStorage implements intf.CoordinationStorage {
         this.messages = [];
     }
 
-    getProperties(callback: intf.SimpleResultCallback<intf.StorageProperty[]>) {
+    getProperties(callback: intf.SimpleResultCallback<intf.IStorageProperty[]>) {
         let res = [];
         res.push({ key: "type", value: "MemoryStorage" });
         res.push({ key: "pending-messages", value: this.messages.length });
         callback(null, res);
     }
 
-    getWorkerStatus(callback: intf.SimpleResultCallback<intf.WorkerStatus[]>) {
+    getWorkerStatus(callback: intf.SimpleResultCallback<intf.IWorkerStatus[]>) {
         this.disableDefunctWorkers();
         let res = this.workers
             .map(x => {
@@ -77,7 +77,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getTopologyStatus(callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
+    getTopologyStatus(callback: intf.SimpleResultCallback<intf.ITopologyStatus[]>) {
         this.unassignWaitingTopologies();
         this.disableDefunctWorkers();
         let res = this.topologies
@@ -98,7 +98,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.TopologyStatus[]>) {
+    getTopologiesForWorker(worker: string, callback: intf.SimpleResultCallback<intf.ITopologyStatus[]>) {
         this.unassignWaitingTopologies();
         let res = this.topologies
             .filter(x => x.worker == worker)
@@ -119,7 +119,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res);
     }
 
-    getMessages(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage[]>) {
+    getMessages(name: string, callback: intf.SimpleResultCallback<intf.IStorageResultMessage[]>) {
         this.pingWorker(name);
         let res1 = this.messages
             .filter(x => x.name == name);
@@ -134,7 +134,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback(null, res.filter(x => x));
     }
 
-    getMessage(name: string, callback: intf.SimpleResultCallback<intf.StorageResultMessage>) {
+    getMessage(name: string, callback: intf.SimpleResultCallback<intf.IStorageResultMessage>) {
         this.pingWorker(name);
         let now = Date.now();
         let mIndex = this.messages
@@ -152,7 +152,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         }
     }
 
-    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyInfoResponse>) {
+    getTopologyInfo(uuid: string, callback: intf.SimpleResultCallback<intf.ITopologyInfoResponse>) {
         let res = this.topologies
             .filter(x => x.uuid == uuid)
             .map(x => {
@@ -183,21 +183,21 @@ export class MemoryStorage implements intf.CoordinationStorage {
             w = {
                 last_ping: Date.now(),
                 last_ping_d: new Date(),
-                lstatus: intf.Consts.WorkerLStatus.normal,
+                lstatus: intf.CONSTS.WorkerLStatus.normal,
                 lstatus_ts: Date.now(),
                 lstatus_ts_d: new Date(),
                 name: name,
-                status: intf.Consts.WorkerStatus.alive
+                status: intf.CONSTS.WorkerStatus.alive
             };
             this.workers.push(w);
         } else {
             w = existing[0];
             w.last_ping = Date.now();
             w.last_ping_d = new Date();
-            w.lstatus = intf.Consts.WorkerLStatus.normal;
+            w.lstatus = intf.CONSTS.WorkerLStatus.normal;
             w.lstatus_ts = Date.now();
             w.lstatus_ts_d = new Date();
-            w.status = intf.Consts.WorkerStatus.alive;
+            w.status = intf.CONSTS.WorkerStatus.alive;
         }
         this.notifyWorkerHistory(w);
         callback();
@@ -207,18 +207,18 @@ export class MemoryStorage implements intf.CoordinationStorage {
         let self = this;
         this.disableDefunctLeaders();
         let leaders = this.workers
-            .filter(x => x.name != name && x.lstatus == intf.Consts.WorkerLStatus.leader)
+            .filter(x => x.name != name && x.lstatus == intf.CONSTS.WorkerLStatus.leader)
             .length;
 
         let candidates = this.workers
-            .filter(x => x.name <= name && x.lstatus == intf.Consts.WorkerLStatus.candidate)
+            .filter(x => x.name <= name && x.lstatus == intf.CONSTS.WorkerLStatus.candidate)
             .length;
 
         if (leaders == 0 && candidates == 0) {
             this.workers
                 .filter(x => x.name == name)
                 .forEach(x => {
-                    x.lstatus = intf.Consts.WorkerLStatus.candidate;
+                    x.lstatus = intf.CONSTS.WorkerLStatus.candidate;
                     self.notifyWorkerHistory(x);
                 });
         }
@@ -234,23 +234,23 @@ export class MemoryStorage implements intf.CoordinationStorage {
             return callback(new Error("Specified worker not found: " + name));
         }
         let leaders = this.workers
-            .filter(x => x.name != name && x.lstatus == intf.Consts.WorkerLStatus.leader)
+            .filter(x => x.name != name && x.lstatus == intf.CONSTS.WorkerLStatus.leader)
             .length;
 
-        if (leaders == 0 && obj[0].lstatus == intf.Consts.WorkerLStatus.candidate) {
+        if (leaders == 0 && obj[0].lstatus == intf.CONSTS.WorkerLStatus.candidate) {
             this.workers
-                .filter(x => x.name != name && x.lstatus != intf.Consts.WorkerLStatus.candidate)
+                .filter(x => x.name != name && x.lstatus != intf.CONSTS.WorkerLStatus.candidate)
                 .forEach(x => {
-                    x.lstatus = intf.Consts.WorkerLStatus.normal;
+                    x.lstatus = intf.CONSTS.WorkerLStatus.normal;
                     self.notifyWorkerHistory(x);
                 });
-            obj[0].lstatus = intf.Consts.WorkerLStatus.leader;
+            obj[0].lstatus = intf.CONSTS.WorkerLStatus.leader;
             this.notifyWorkerHistory(obj[0]);
             callback(null, true);
-        } else if (obj[0].lstatus == intf.Consts.WorkerLStatus.leader) {
+        } else if (obj[0].lstatus == intf.CONSTS.WorkerLStatus.leader) {
             callback(null, true);
         } else {
-            obj[0].lstatus = intf.Consts.WorkerLStatus.normal;
+            obj[0].lstatus = intf.CONSTS.WorkerLStatus.normal;
             this.notifyWorkerHistory(obj[0]);
             callback(null, false);
         }
@@ -262,7 +262,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
             .forEach(x => {
                 if (x.uuid == uuid) {
                     x.worker = worker;
-                    x.status = intf.Consts.TopologyStatus.waiting;
+                    x.status = intf.CONSTS.TopologyStatus.waiting;
                     x.last_ping = Date.now();
                     self.notifyTopologyHistory(x);
                 }
@@ -275,7 +275,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
-    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.MsgQueueItem[]>) {
+    getMsgQueueContent(callback: intf.SimpleResultCallback<intf.IMsgQueueItem[]>) {
         let res = this.messages
             .map(x => {
                 return {
@@ -325,14 +325,14 @@ export class MemoryStorage implements intf.CoordinationStorage {
         callback();
     }
 
-    registerTopology(uuid: string, config: intf.TopologyDefinition, callback: intf.SimpleCallback) {
+    registerTopology(uuid: string, config: intf.ITopologyDefinition, callback: intf.SimpleCallback) {
         let existing = this.topologies.filter(x => x.uuid == uuid);
         let t = null;
         if (existing.length == 0) {
             t = {
                 enabled: false,
                 config: config,
-                status: intf.Consts.TopologyStatus.unassigned,
+                status: intf.CONSTS.TopologyStatus.unassigned,
                 uuid: uuid,
                 weight: config.general.weight,
                 worker: null,
@@ -383,7 +383,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
     stopTopology(uuid: string, callback: intf.SimpleCallback) {
         let self = this;
         let hits = self.topologies
-            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+            .filter(x => x.uuid == uuid && x.status == intf.CONSTS.TopologyStatus.running);
         if (hits.length > 0) {
             async.series(
                 [
@@ -391,7 +391,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
+                        self.sendMessageToWorker(hits[0].worker, intf.CONSTS.LeaderMessages.stop_topology, { uuid: uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback
@@ -404,7 +404,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
     killTopology(uuid: string, callback: intf.SimpleCallback) {
         let self = this;
         let hits = self.topologies
-            .filter(x => x.uuid == uuid && x.status == intf.Consts.TopologyStatus.running);
+            .filter(x => x.uuid == uuid && x.status == intf.CONSTS.TopologyStatus.running);
         if (hits.length > 0) {
             async.series(
                 [
@@ -412,7 +412,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
                         self.disableTopology(uuid, ycallback);
                     },
                     (ycallback) => {
-                        self.sendMessageToWorker(hits[0].worker, intf.Consts.LeaderMessages.kill_topology, { uuid: uuid }, 30 * 1000, ycallback);
+                        self.sendMessageToWorker(hits[0].worker, intf.CONSTS.LeaderMessages.kill_topology, { uuid: uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback
@@ -425,7 +425,7 @@ export class MemoryStorage implements intf.CoordinationStorage {
     deleteWorker(name: string, callback: intf.SimpleCallback) {
         let hits = this.workers.filter(x => x.name == name);
         if (hits.length > 0) {
-            if (hits[0].status == intf.Consts.WorkerStatus.unloaded) {
+            if (hits[0].status == intf.CONSTS.WorkerStatus.unloaded) {
                 this.workers = this.workers.filter(x => x.name != name);
                 callback();
             } else {
@@ -437,15 +437,15 @@ export class MemoryStorage implements intf.CoordinationStorage {
     }
 
     shutDownWorker(name: string, callback: intf.SimpleCallback) {
-        this.sendMessageToWorker(name, intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, callback);
+        this.sendMessageToWorker(name, intf.CONSTS.LeaderMessages.shutdown, {}, 60 * 1000, callback);
     }
 
-    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.TopologyStatusHistory[]>) {
+    getTopologyHistory(uuid: string, callback: intf.SimpleResultCallback<intf.ITopologyStatusHistory[]>) {
         let data = this.topologies_history.filter(x => x.uuid == uuid);
         callback(null, JSON.parse(JSON.stringify(data)));
     }
 
-    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.WorkerStatusHistory[]>) {
+    getWorkerHistory(name: string, callback: intf.SimpleResultCallback<intf.IWorkerStatusHistory[]>) {
         let data = this.workers_history.filter(x => x.name == name);
         callback(null, JSON.parse(JSON.stringify(data)));
     }
@@ -480,14 +480,14 @@ export class MemoryStorage implements intf.CoordinationStorage {
         }
         for (let topology of this.topologies) {
             let change = false;
-            if (topology.status == intf.Consts.TopologyStatus.waiting && topology.last_ping < d) {
-                topology.status = intf.Consts.TopologyStatus.unassigned;
+            if (topology.status == intf.CONSTS.TopologyStatus.waiting && topology.last_ping < d) {
+                topology.status = intf.CONSTS.TopologyStatus.unassigned;
                 topology.worker = null;
                 change = true;
             }
             if (topology.worker) {
-                if (worker_map[topology.worker] == intf.Consts.WorkerStatus.dead) {
-                    topology.status = intf.Consts.TopologyStatus.unassigned;
+                if (worker_map[topology.worker] == intf.CONSTS.WorkerStatus.dead) {
+                    topology.status = intf.CONSTS.TopologyStatus.unassigned;
                     topology.worker = null;
                     change = true;
                 }
@@ -502,8 +502,8 @@ export class MemoryStorage implements intf.CoordinationStorage {
         // disable workers that did not update their status
         let d = Date.now() - 30 * 1000;
         for (let worker of this.workers) {
-            if (worker.status == intf.Consts.WorkerStatus.alive && worker.last_ping < d) {
-                worker.status = intf.Consts.WorkerStatus.dead;
+            if (worker.status == intf.CONSTS.WorkerStatus.alive && worker.last_ping < d) {
+                worker.status = intf.CONSTS.WorkerStatus.dead;
                 this.notifyWorkerHistory(worker);
             }
         }
@@ -513,9 +513,9 @@ export class MemoryStorage implements intf.CoordinationStorage {
         // disable worker that did not perform their leadership duties
         let d = Date.now() - 10 * 1000;
         for (let worker of this.workers) {
-            if (worker.lstatus == intf.Consts.WorkerLStatus.leader || worker.lstatus == intf.Consts.WorkerLStatus.candidate) {
+            if (worker.lstatus == intf.CONSTS.WorkerLStatus.leader || worker.lstatus == intf.CONSTS.WorkerLStatus.candidate) {
                 if (worker.last_ping < d) {
-                    worker.lstatus = intf.Consts.WorkerLStatus.normal;
+                    worker.lstatus = intf.CONSTS.WorkerLStatus.normal;
                     this.notifyWorkerHistory(worker);
                 }
             }

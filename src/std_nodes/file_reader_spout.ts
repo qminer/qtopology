@@ -8,7 +8,7 @@ const high_water = 5000;
 const low_water = 50;
 
 /** This spout reads input file in several supported formats and emits tuples. */
-export class FileReaderSpout implements intf.Spout {
+export class FileReaderSpout implements intf.ISpout {
 
     private stream_id: string;
     private file_format: string;
@@ -32,13 +32,13 @@ export class FileReaderSpout implements intf.Spout {
         this.own_exit_delay = 0;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.file_name = config.file_name;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            config.separator = config.separator || ","
+            config.separator = config.separator || ",";
             this.csv_parser = new CsvParser(config);
         }
         this.own_exit = config.own_exit;
@@ -46,7 +46,7 @@ export class FileReaderSpout implements intf.Spout {
 
         log.logger().log(`Reading file ${this.file_name}`);
         this.line_reader = rl.createInterface({ input: fs.createReadStream(this.file_name) });
-        this.line_reader.on('line', (line) => {
+        this.line_reader.on("line", line => {
             if (this.file_format == "json") {
                 Utils.readJsonFile(line, this.tuples);
             } else if (this.file_format == "csv") {
@@ -72,21 +72,23 @@ export class FileReaderSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (!this.should_run) {
             return callback(null, null, null);
         }
@@ -98,11 +100,10 @@ export class FileReaderSpout implements intf.Spout {
         if (this.tuples.length === 0) {
             return callback(null, null, null);
         }
-        let data = this.tuples[0];
+        const data = this.tuples[0];
         this.tuples = this.tuples.slice(1);
-        let self = this;
         setImmediate(() => {
-            callback(null, data, self.stream_id);
+            callback(null, data, this.stream_id);
         });
     }
 }

@@ -55,7 +55,7 @@ export class TopologyLocalProxy {
         // wont be used for anything
         this.child = this.cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
         self.child.on("message", (msgx) => {
-            let msg = msgx as intf.ChildMsg;
+            let msg = msgx as intf.IChildMsg;
             if (msg.data.err) {
                 msg.data.err = deserialize_error(msg.data.err);
             }
@@ -289,7 +289,7 @@ export class TopologyLocalProxy {
 
     /** Internal method for sending messages to child process */
     private send(code: intf.ParentMsgCode, data: any) {
-        let msg = { cmd: code, data: data } as intf.ParentMsg;
+        let msg = { cmd: code, data: data } as intf.IParentMsg;
         if (this.child.connected) {
             this.child.send(msg);
         } else {

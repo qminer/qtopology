@@ -59,8 +59,7 @@ export class CmdLineParser {
     }
 
     public areFlags(letters: string) {
-        for (let k = 0; k < letters.length; k++) {
-            const letter = letters[k];
+        for (const letter of letters) {
             if (!this.shortnames[letter] || !this.shortnames[letter].flag) {
                 return false;
             }
@@ -72,8 +71,8 @@ export class CmdLineParser {
         if (!text) {
             return null;
         }
-        for (let k = 0; k < text.length; k++) {
-            if (text[k] < "0" || text[k] > "9") {
+        for (const letter of text) {
+            if (letter < "0" || letter > "9") {
                 return text;
             }
         }

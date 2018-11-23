@@ -2,7 +2,7 @@ import * as intf from "../topology_interfaces";
 import * as oo from "../util/object_override";
 
 /** This spout emits single tuple each heartbeat */
-export class TimerSpout implements intf.Spout {
+export class TimerSpout implements intf.ISpout {
 
     private stream_id: string;
     private title: string;
@@ -19,14 +19,14 @@ export class TimerSpout implements intf.Spout {
         this.should_run = false;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.title = config.title || "heartbeat";
         this.extra_fields = JSON.parse(JSON.stringify(config.extra_fields || {}));
         callback();
     }
 
-    heartbeat() {
+    public heartbeat() {
         if (!this.should_run) { return; }
         this.next_tuple = {
             title: this.title,
@@ -35,24 +35,24 @@ export class TimerSpout implements intf.Spout {
         oo.overrideObject(this.next_tuple, this.extra_fields, false);
     }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         this.should_run = false;
         callback();
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (!this.should_run) {
             return callback(null, null, null);
         }
-        let data = this.next_tuple;
+        const data = this.next_tuple;
         this.next_tuple = null;
         callback(null, data, this.stream_id);
     }

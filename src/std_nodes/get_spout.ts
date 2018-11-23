@@ -1,10 +1,10 @@
 import * as intf from "../topology_interfaces";
-import * as rest from 'node-rest-client';
+import * as rest from "node-rest-client";
 
 /** This spout sends GET request to the specified url in regular
  * time intervals and forwards the result.
- * */
-export class GetSpout implements intf.Spout {
+ */
+export class GetSpout implements intf.ISpout {
 
     private stream_id: string;
     private url: string;
@@ -24,7 +24,7 @@ export class GetSpout implements intf.Spout {
         this.next_ts = Date.now();
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.url = config.url;
         this.repeat = config.repeat;
         this.stream_id = config.stream_id;
@@ -32,33 +32,32 @@ export class GetSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() {
+    public heartbeat() {
         if (!this.should_run) {
             return;
         }
         if (this.next_ts < Date.now()) {
-            let self = this;
-            self.client.get(self.url, (new_data, response) => {
-                self.next_tuple = { body: new_data.toString() };
-                self.next_ts = Date.now() + self.repeat;
+            this.client.get(this.url, (new_data, response) => {
+                this.next_tuple = { body: new_data.toString() };
+                this.next_ts = Date.now() + this.repeat;
             });
         }
     }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
-        let data = this.next_tuple;
+    public next(callback: intf.SpoutNextCallback) {
+        const data = this.next_tuple;
         this.next_tuple = null;
         callback(null, data, this.stream_id);
     }

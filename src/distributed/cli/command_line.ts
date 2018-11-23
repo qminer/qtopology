@@ -26,11 +26,11 @@ function handleError(err: Error, callback: intf.SimpleCallback) {
 /** Class that handles command-line tool requests */
 export class CommandLineHandler {
 
-    private storage: intf.CoordinationStorage;
+    private storage: intf.ICoordinationStorage;
     private params: string[];
 
     /** Simple constructor, requires storage to execute the commands on. */
-    constructor(storage: intf.CoordinationStorage, params?: string[]) {
+    constructor(storage: intf.ICoordinationStorage, params?: string[]) {
         this.storage = storage;
         this.params = cmdline.parseCommandLine(params || process.argv.slice(2))._;
     }
@@ -67,15 +67,15 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 1 && params[0] == "list") {
-            this.storage.getTopologyStatus((err, data: intf.TopologyStatus[]) => {
+            this.storage.getTopologyStatus((err, data: intf.ITopologyStatus[]) => {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
                         let status = t.status;
                         switch (status) {
-                            case intf.Consts.TopologyStatus.running: status = colors.green(t.status); break;
-                            case intf.Consts.TopologyStatus.error: status = colors.red(t.status); break;
-                            case intf.Consts.TopologyStatus.waiting: status = colors.yellow(t.status); break;
+                            case intf.CONSTS.TopologyStatus.running: status = colors.green(t.status); break;
+                            case intf.CONSTS.TopologyStatus.error: status = colors.red(t.status); break;
+                            case intf.CONSTS.TopologyStatus.waiting: status = colors.yellow(t.status); break;
                         };
                         let enabled = (t.enabled ? colors.green("enabled") : "disabled");
                         logger.info(`${t.uuid} (enabled: ${enabled}) (status: ${status}) (worker: ${t.worker})`);
@@ -84,19 +84,19 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 1 && params[0] == "workers") {
-            this.storage.getWorkerStatus((err, data: intf.WorkerStatus[]) => {
+            this.storage.getWorkerStatus((err, data: intf.IWorkerStatus[]) => {
                 if (!err) {
                     let logger = log.logger();
                     for (let t of data) {
-                        let status = (t.status == intf.Consts.WorkerStatus.alive ? colors.green(t.status) : t.status);
-                        let lstatus = (t.lstatus == intf.Consts.WorkerLStatus.leader ? colors.yellow("yes") : "no");
+                        let status = (t.status == intf.CONSTS.WorkerStatus.alive ? colors.green(t.status) : t.status);
+                        let lstatus = (t.lstatus == intf.CONSTS.WorkerLStatus.leader ? colors.yellow("yes") : "no");
                         logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "details") {
-            this.storage.getTopologyInfo(params[1], (err, t: intf.TopologyInfoResponse) => {
+            this.storage.getTopologyInfo(params[1], (err, t: intf.ITopologyInfoResponse) => {
                 if (!err) {
                     let logger = log.logger();
                     logger.important(`Topology uuid=${t.uuid}`);
@@ -110,7 +110,7 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 3 && params[0] == "export") {
-            this.storage.getTopologyInfo(params[1], (err, t: intf.TopologyInfoResponse) => {
+            this.storage.getTopologyInfo(params[1], (err, t: intf.ITopologyInfoResponse) => {
                 if (!err) {
                     fs.writeFileSync(params[2], JSON.stringify(t.config, null, "    "), { encoding: "utf8" });
                 }
@@ -125,11 +125,11 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 3 && params[0] == "set-topology-error") {
-            this.storage.setTopologyStatus(params[1], null, intf.Consts.TopologyStatus.error, params[2], (err) => {
+            this.storage.setTopologyStatus(params[1], null, intf.CONSTS.TopologyStatus.error, params[2], (err) => {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "shut-down-worker") {
-            this.storage.sendMessageToWorker(params[1], intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, (err) => {
+            this.storage.sendMessageToWorker(params[1], intf.CONSTS.LeaderMessages.shutdown, {}, 60 * 1000, (err) => {
                 handleError(err, callback);
             });
         } else {
@@ -156,7 +156,7 @@ export class CommandLineHandler {
     }
 }
 
-export function runRepl(storage: intf.CoordinationStorage) {
+export function runRepl(storage: intf.ICoordinationStorage) {
     let logger = log.logger();
     logger.info("");
     logger.important("Welcome to QTopology REPL.");

@@ -1,4 +1,4 @@
-import * as validator from "./topology_validation"
+import * as validator from "./topology_validation";
 
 /** Helper function for injecting the variables in ${VARNAME} location.
  * Case-insensitive.
@@ -6,13 +6,13 @@ import * as validator from "./topology_validation"
 function injectVars(target: string | any, vars: any): string {
     if (target) {
         if (typeof target == "string") {
-            for (let v in vars) {
+            for (const v in vars) {
                 if (vars.hasOwnProperty(v)) {
                     target = target.replace(new RegExp("\\${" + v + "}", "i"), vars[v]);
                 }
             }
-        } else if (typeof target === 'object') {
-            for (let f in target) {
+        } else if (typeof target === "object") {
+            for (const f in target) {
                 if (target.hasOwnProperty(f)) {
                     target[f] = injectVars(target[f], vars);
                 }
@@ -33,7 +33,7 @@ export class TopologyCompiler {
     }
 
     /** Checks and compiles the topology. */
-    compile() {
+    public compile() {
 
         // first validate the definition
         validator.validate({
@@ -42,10 +42,10 @@ export class TopologyCompiler {
             throwOnError: true
         });
 
-        let vars = this.config.variables || {};
+        const vars = this.config.variables || {};
         this.resolveAllVars(vars);
         if (this.config.general.initialization) {
-            for (let init_top of this.config.general.initialization) {
+            for (const init_top of this.config.general.initialization) {
                 init_top.working_dir = injectVars(init_top.working_dir, vars);
                 if (init_top.init) {
                     init_top.init = injectVars(init_top.init, vars);
@@ -56,7 +56,7 @@ export class TopologyCompiler {
             }
         }
         if (this.config.general.shutdown) {
-            for (let shutdown_top of this.config.general.shutdown) {
+            for (const shutdown_top of this.config.general.shutdown) {
                 shutdown_top.working_dir = injectVars(shutdown_top.working_dir, vars);
                 if (shutdown_top.init) {
                     shutdown_top.init = injectVars(shutdown_top.init, vars);
@@ -67,8 +67,8 @@ export class TopologyCompiler {
             }
         }
 
-        let names = {};
-        for (let spout of this.config.spouts) {
+        const names = {};
+        for (const spout of this.config.spouts) {
             if (names[spout.name]) {
                 throw new Error(`Spout name '${spout.name}' occurs several times.`);
             }
@@ -82,7 +82,7 @@ export class TopologyCompiler {
             }
         }
 
-        for (let bolt of this.config.bolts) {
+        for (const bolt of this.config.bolts) {
             if (names[bolt.name]) {
                 throw new Error(`Bolt name '${bolt.name}' occurs several times. Could also be spout's name.`);
             }
@@ -95,7 +95,7 @@ export class TopologyCompiler {
                 bolt.disabled = (injectVars(bolt.disabled, vars) == "true");
             }
             if (bolt.inputs) {
-                for (let input of bolt.inputs) {
+                for (const input of bolt.inputs) {
                     if (input.disabled && typeof input.disabled == "string") {
                         input.disabled = (injectVars(input.disabled, vars) == "true");
                     }
@@ -104,8 +104,8 @@ export class TopologyCompiler {
         }
 
         // check bolt inputs
-        this.config.bolts.forEach((bolt) => {
-            for (let input of bolt.inputs) {
+        this.config.bolts.forEach(bolt => {
+            for (const input of bolt.inputs) {
                 if (!names[input.source]) {
                     throw new Error(`Bolt '${bolt.name}' is using unknown input source '${input.source}'.`);
                 }
@@ -114,7 +114,7 @@ export class TopologyCompiler {
     }
 
     /** Returns compiled configuration . */
-    getWholeConfig(): any {
+    public getWholeConfig(): any {
         return JSON.parse(JSON.stringify(this.config));
     }
 

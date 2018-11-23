@@ -6,7 +6,7 @@ import * as mem from "../memory/memory_storage";
 ////////////////////////////////////////////////////////////////////
 // Initialize simple REST server
 
-function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer {
+function initHttpServer(storage: intf.ICoordinationStorage): hs.MinimalHttpServer {
     let http_server = new hs.MinimalHttpServer();
     http_server.addHandler('/worker-statuses', (data, callback) => {
         storage.getWorkerStatus(callback);
@@ -104,13 +104,13 @@ function initHttpServer(storage: intf.CoordinationStorage): hs.MinimalHttpServer
         storage.deleteWorker(data.name, callback);
     });
     http_server.addHandler('/shut-down-worker', (data, callback) => {
-        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, 60 * 1000, callback);
+        storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.shutdown, {}, 60 * 1000, callback);
     });
     http_server.addHandler('/enable-worker', (data, callback) => {
-        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, 60 * 1000, callback);
+        storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_enabled, {}, 60 * 1000, callback);
     });
     http_server.addHandler('/disable-worker', (data, callback) => {
-        storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, 60 * 1000, callback);
+        storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_disabled, {}, 60 * 1000, callback);
     });
 
     http_server.addHandler('/topology-history', (data, callback) => {
