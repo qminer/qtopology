@@ -6,8 +6,9 @@
   "typings": "./built/index",
   "scripts": {
     "build": "tsc",
-    "test": "mocha tests --recursive --timeout 10000 && cd demo && bash run_demos.sh",
-    "prepare": "npm run format && npm run lint",
+    "test": "npm run test-unit && cd demo && bash run_demos.sh",
+    "test-unit": "mocha tests --recursive --timeout 10000",
+    "prepare": " #npm run format && npm run lint",
     "format": "./node_modules/.bin/tsfmt -r",
     "lint": "./node_modules/.bin/tslint --project ."
   },
@@ -45,6 +46,7 @@
     "express": "^4.16.3",
     "jsonschema": "^1.1.1",
     "node-rest-client": "^3.1.0",
+    "qewd-transform-json": "^1.10.0",
     "serialize-error": "^2.1.0"
   }
 }

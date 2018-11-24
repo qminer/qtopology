@@ -1,11 +1,17 @@
 import * as async from "async";
+import * as qewd from 'qewd-transform-json';
 
 import * as intf from "../topology_interfaces";
+
+/** Interfal interface for different implementations */
+interface ITransformHelper {
+    transform(data: any): any;
+}
 
 /** This class transforms input object
  * into predefined format for export. Single transformation.
  */
-export class TransformHelper {
+export class TransformHelper implements ITransformHelper {
 
     private compiled: string[][];
 
@@ -70,6 +76,28 @@ export class TransformHelper {
     }
 }
 
+/** This class transforms input object
+ * into predefined format for export. Single transformation.
+ * Uses Qewd library syntax.
+ */
+export class TransformHelperQewd implements ITransformHelper {
+
+    private template: any;
+
+    constructor(output_template: any) {
+        this.template = output_template;
+    }
+
+    /**
+     * Main method, transforms given object into result
+     * using predefined transformation.
+     * @param data Input data
+     */
+    public transform(data: any): any {
+        const result = qewd.transform(this.template, data);
+        return result;
+    }
+}
 
 /** This bolt transforms incoming messages
  * into predefined format.
@@ -77,7 +105,7 @@ export class TransformHelper {
 export class TransformBolt implements intf.IBolt {
 
     private onEmit: intf.BoltEmitCallback;
-    private transform: TransformHelper[];
+    private transform: ITransformHelper[];
 
     constructor() {
         this.onEmit = null;
@@ -91,8 +119,14 @@ export class TransformBolt implements intf.IBolt {
             output_template = [output_template];
         }
         this.transform = [];
+        const transformQewd = config.use_qewd;
+
         for (const ot of output_template) {
-            this.transform.push(new TransformHelper(ot));
+            if (transformQewd) {
+                this.transform.push(new TransformHelperQewd(ot));
+            } else {
+                this.transform.push(new TransformHelper(ot));
+            }
         }
         callback();
     }

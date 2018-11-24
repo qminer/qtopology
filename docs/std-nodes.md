@@ -6,34 +6,34 @@ To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriat
 
 List of standard spouts:
 
+- [Dir-watcher spout](#dir-spout)
 - [File spout](#file-reader-spout)
-- [Process spout](#process-spout)
-- [Process spout continuous](#process-spout-continuous)
-- [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
+- [Process spout continuous](#process-spout-continuous)
+- [Process spout](#process-spout)
 - [REST spout](#rest-spout)
 - [RSS spout](#rss-spout)
-- [Dir-watcher spout](#dir-spout)
 - [Test spout](#test-spout)
+- [Timer spout](#timer-spout)
 
 List of standard bolts:
 
 - [Accumulator bolt](#accumulator-bolt)
 - [Attacher bolt](#attacher-bolt)
-- [Transform bolt](#transform-bolt)
+- [Bomb bolt](#bomb-bolt)
+- [CSV file-append bolt](#csv-file-append-bolt)
+- [Console bolt](#console-bolt)
+- [Counter bolt](#counter-bolt)
+- [Date-transform bolt](#date-transform-bolt)
+- [File-append bolt extended](#file-append-bolt-extended)
+- [File-append bolt](#file-append-bolt)
 - [Filter bolt](#filter-bolt)
-- [Router bolt](#router-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [Process bolt](#process-bolt)
-- [File-append bolt](#file-append-bolt)
-- [File-append bolt extended](#file-append-bolt-extended)
-- [CSV file-append bolt](#csv-file-append-bolt)
-- [Counter bolt](#counter-bolt)
-- [Date-transform bolt](#date-transform-bolt)
+- [Router bolt](#router-bolt)
+- [Transform bolt](#transform-bolt)
 - [Type-transform bolt](#type-transform-bolt)
-- [Bomb bolt](#bomb-bolt)
-- [Console bolt](#console-bolt)
 
 Base classes that can be extended with custom logic:
 
@@ -479,9 +479,7 @@ This bolt will, upon receiving a new message like this one:
 {
     "ts": "2017-10-01",
     "country": "SI",
-    "user": {
-        "browser": "Chrome",
-    },
+    "user": { "browser": "Chrome" },
     "amount": 123.45,
     "duration": 432
 }
@@ -492,14 +490,8 @@ Emit a new message like this:
 ``````````````````````````````json
 {
     "ts": "2017-10-01",
-    "tags": {
-        "country": "SI",
-        "browser": "Chrome"
-    },
-    "values": {
-        "amount": 123.45,
-        "duration": 432
-    }
+    "tags": { "country": "SI", "browser": "Chrome" },
+    "values": { "amount": 123.45, "duration": 432 }
 }
 ``````````````````````````````
 
@@ -511,9 +503,7 @@ Multiple emits are supported. Just pass an array of templates as input of initia
     "working_dir": ".",
     "type": "sys",
     "cmd": "transform",
-    "inputs": [
-        { "source": "pump1" }
-    ],
+    "inputs": [{ "source": "pump1" }],
     "init": {
         "output_template": [
             { "ts": "ts" },
@@ -534,6 +524,50 @@ Emit 2 new messages like this:
 ``````````````````````````````json
 { "ts": "2017-10-01" }
 { "a": "2017-10-01", "b": "SI" }
+``````````````````````````````
+
+### QEWD syntax
+
+If needed one can use qewd syntax (uses mustache-like syntax `{{}}`) and its library. Just set option `use_qewd` to `true`:
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [{ "source": "pump1" }],
+    "init": {
+        "use_qewd": true,
+        "output_template": {
+            "ts": "{{ts}}",
+            "tags": { "composite": "{{country}}-{{user.browser}}" },
+            "values": { "amount": "{{amount}}" }
+        }
+    }
+}
+```````````````````````````````
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "country": "SI",
+    "user": { "browser": "Chrome", },
+    "amount": 123.45,
+    "duration": 432
+}
+``````````````````````````````
+
+Emit a new message like this:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "tags": { "composite": "SI-Chrome" },
+    "values": { "amount": 123.45 }
+}
 ``````````````````````````````
 
 ## Console bolt
