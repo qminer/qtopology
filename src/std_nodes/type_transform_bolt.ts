@@ -18,7 +18,7 @@ export class TypeTransformBolt implements intf.IBolt {
         this.date_transform_fields = [];
     }
 
-   public  init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.date_transform_fields = config.date_transform_fields || [];
         this.numeric_transform_fields = config.numeric_transform_fields || [];

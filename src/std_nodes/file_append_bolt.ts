@@ -83,7 +83,7 @@ export class FileAppendBolt implements intf.IBolt {
     public heartbeat() {
         this.writeToFile(() => {
             // no-op
-         });
+        });
     }
 
     public shutdown(callback: intf.SimpleCallback) {

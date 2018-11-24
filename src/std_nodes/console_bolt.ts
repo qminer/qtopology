@@ -14,7 +14,7 @@ export class ConsoleBolt implements intf.IBolt {
         this.onEmit = null;
     }
 
-    public  init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.prefix = `[${this.name}]`;
         this.onEmit = config.onEmit;
@@ -25,7 +25,7 @@ export class ConsoleBolt implements intf.IBolt {
         // no-op
     }
 
-    public  shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 

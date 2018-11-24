@@ -88,7 +88,7 @@ export class TopologyLocal {
         this.logging_prefix = null;
         this.onErrorHandler = onError || (() => {
             // no-op
-         });
+        });
         this.onErrorHandler = tryCallback(this.onErrorHandler);
     }
 

@@ -3,9 +3,9 @@ import * as fs from "fs";
 import * as path from "path";
 
 class FileChangeRec {
-    public  target_dir: string;
-    public  file_name: string;
-    public  change_type: string;
+    public target_dir: string;
+    public file_name: string;
+    public change_type: string;
     public ts: Date;
 }
 
@@ -42,13 +42,13 @@ export class DirWatcherSpout implements intf.ISpout {
 
     public heartbeat() {
         // no-op
-     }
+    }
 
     public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    public  run() {
+    public run() {
         this.should_run = true;
     }
 
@@ -56,7 +56,7 @@ export class DirWatcherSpout implements intf.ISpout {
         this.should_run = false;
     }
 
-public    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (!this.should_run || this.queue.length === 0) {
             return callback(null, null, null);
         }

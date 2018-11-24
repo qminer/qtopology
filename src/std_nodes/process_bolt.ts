@@ -80,7 +80,7 @@ export class ProcessBoltContinuous implements intf.IBolt {
             },
             () => {
                 // no-op
-             }
+            }
         );
     }
 }

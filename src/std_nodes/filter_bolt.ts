@@ -17,7 +17,7 @@ export class FilterBolt implements intf.IBolt {
     }
 
     /** Initializes filtering pattern */
-    public  init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.matcher = new pm.PaternMatcher(config.filter);
         callback();
@@ -27,7 +27,7 @@ export class FilterBolt implements intf.IBolt {
         // no-op
     }
 
-    public   shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
