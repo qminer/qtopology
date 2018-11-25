@@ -1,5 +1,5 @@
 import * as async from "async";
-import * as qewd from 'qewd-transform-json';
+import * as qewd from "qewd-transform-json";
 
 import * as intf from "../topology_interfaces";
 
