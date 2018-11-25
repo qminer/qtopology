@@ -1,7 +1,7 @@
 
 const port_default = 3000;
 
-import * as nrc from 'node-rest-client';
+import * as nrc from "node-rest-client";
 import * as intf from "../../topology_interfaces";
 
 //////////////////////////////////////////////////////////////////////
@@ -16,11 +16,11 @@ export class HttpStorage implements intf.ICoordinationStorage {
     constructor(port?: number) {
         this.port = port || port_default;
         this.client = new nrc.Client();
-        this.url_prefix = "http://localhost:" + this.port + "/"
+        this.url_prefix = "http://localhost:" + this.port + "/";
     }
 
     public getProperties(callback: intf.SimpleResultCallback<intf.IStorageProperty[]>) {
-        let res = [];
+        const res = [];
         res.push({ key: "type", value: "HttpCoordinator" });
         res.push({ key: "port", value: this.port });
         res.push({ key: "url_prefix", value: this.url_prefix });
@@ -71,10 +71,10 @@ export class HttpStorage implements intf.ICoordinationStorage {
         this.call("get-msg-queue-content", {}, callback);
     }
     public setWorkerStatus(name: string, status: string, callback: intf.SimpleCallback) {
-        this.call("set-worker-status", { name: name, status }, callback);
+        this.call("set-worker-status", { name, status }, callback);
     }
     public setWorkerLStatus(name: string, lstatus: string, callback: intf.SimpleCallback) {
-        this.call("set-worker-lstatus", { name: name, lstatus }, callback);
+        this.call("set-worker-lstatus", { name, lstatus }, callback);
     }
     public setTopologyPid(uuid: string, pid: number, callback: intf.SimpleCallback) {
         this.call("set-topology-pid", { uuid, pid }, callback);
@@ -116,12 +116,12 @@ export class HttpStorage implements intf.ICoordinationStorage {
 
 
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
-        let self = this;
-        let args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        let req = this.client.post(self.url_prefix + addr, args, (data, response) => {
+        const self = this;
+        const args = { data: req_data, headers: { "Content-Type": "application/json" } };
+        const req = this.client.post(self.url_prefix + addr, args, (data, response) => {
             callback(null, data);
         });
-        req.on('error', (err) => {
+        req.on("error",err => {
             callback(err);
         });
     }

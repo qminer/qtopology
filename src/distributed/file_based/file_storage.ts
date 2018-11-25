@@ -20,11 +20,11 @@ export class FileStorage extends mem.MemoryStorage {
         this.file_patterns_regex = this.file_patterns
             .map(x => this.createRegexpForPattern(x));
 
-        let items = fs.readdirSync(this.dir_name);
+        const items = fs.readdirSync(this.dir_name);
         log.logger().log("[FileStorage] Starting file-based coordination, from directory " + this.dir_name);
-        for (let item of items) {
+        for (const item of items) {
             let is_ok = false;
-            for (let pattern of this.file_patterns_regex) {
+            for (const pattern of this.file_patterns_regex) {
                 if (item.match(pattern)) {
                     is_ok = true;
                     continue;
@@ -34,17 +34,17 @@ export class FileStorage extends mem.MemoryStorage {
                 continue;
             }
 
-            let topology_uuid = item.slice(0, -path.extname(item).length); // file name without extension
+            const topology_uuid = item.slice(0, -path.extname(item).length); // file name without extension
             log.logger().log("[FileStorage] Found topology file " + item);
-            let config = require(path.join(this.dir_name, item));
+            const config = require(path.join(this.dir_name, item));
 
-            this.registerTopology(topology_uuid, config, (err) => { });
-            this.enableTopology(topology_uuid, (err) => { });
+            this.registerTopology(topology_uuid, config,err => { });
+            this.enableTopology(topology_uuid,err => { });
         }
     }
 
-    getProperties(callback: intf.SimpleResultCallback<intf.IStorageProperty[]>) {
-        let res = [];
+    public getProperties(callback: intf.SimpleResultCallback<intf.IStorageProperty[]>) {
+        const res = [];
         res.push({ key: "type", value: "FileStorage" });
         res.push({ key: "directory", value: this.dir_name });
         res.push({ key: "file_patterns", value: this.file_patterns });
@@ -53,7 +53,7 @@ export class FileStorage extends mem.MemoryStorage {
     }
 
     private createRegexpForPattern(str: string): RegExp {
-        if (!str) return /.*/g;
+        if (!str) { return /.*/g; }
         str = str
             .replace(/\./g, "\.")
             .replace(/\*/g, ".*");
