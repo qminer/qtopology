@@ -69,18 +69,18 @@ export class CommandLineHandler {
                 } catch (e) {
                     return handleError(e, callback);
                 }
-                this.storage.registerTopology(params[1], config,err => {
+                this.storage.registerTopology(params[1], config, err => {
                     handleError(err, callback);
                 });
             } catch (e) {
                 return handleError(e, callback);
             }
         } else if (params.length == 2 && params[0] == "enable") {
-            this.storage.enableTopology(params[1],err => {
+            this.storage.enableTopology(params[1], err => {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "disable") {
-            this.storage.disableTopology(params[1],err => {
+            this.storage.disableTopology(params[1], err => {
                 handleError(err, callback);
             });
         } else if (params.length == 1 && params[0] == "list") {
@@ -107,7 +107,8 @@ export class CommandLineHandler {
                     for (const t of data) {
                         const status = (t.status == intf.CONSTS.WorkerStatus.alive ? colors.green(t.status) : t.status);
                         const lstatus = (t.lstatus == intf.CONSTS.WorkerLStatus.leader ? colors.yellow("yes") : "no");
-                        logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) (last status: ${t.last_ping_d.toLocaleString()})`);
+                        logger.info(`${t.name} (status: ${status}) (leader: ${lstatus}) ` +
+                            `(last status: ${t.last_ping_d.toLocaleString()})`);
                     }
                 }
                 handleError(err, callback);
@@ -134,19 +135,19 @@ export class CommandLineHandler {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "stop-topology") {
-            this.storage.stopTopology(params[1],err => {
+            this.storage.stopTopology(params[1], err => {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "clear-topology-error") {
-            leader.TopologyLeader.clearTopologyError(params[1], this.storage,err => {
+            leader.TopologyLeader.clearTopologyError(params[1], this.storage, err => {
                 handleError(err, callback);
             });
         } else if (params.length == 3 && params[0] == "set-topology-error") {
-            this.storage.setTopologyStatus(params[1], null, intf.CONSTS.TopologyStatus.error, params[2],err => {
+            this.storage.setTopologyStatus(params[1], null, intf.CONSTS.TopologyStatus.error, params[2], err => {
                 handleError(err, callback);
             });
         } else if (params.length == 2 && params[0] == "shut-down-worker") {
-            this.storage.sendMessageToWorker(params[1], intf.CONSTS.LeaderMessages.shutdown, {}, 60 * 1000,err => {
+            this.storage.sendMessageToWorker(params[1], intf.CONSTS.LeaderMessages.shutdown, {}, 60 * 1000, err => {
                 handleError(err, callback);
             });
         } else {
@@ -164,7 +165,6 @@ export function runRepl(storage: intf.ICoordinationStorage) {
     logger.info("");
     const repl = require("repl");
     repl.start({
-        prompt: colors.yellow("\nrepl >") + " ",
         eval: (cmd, context, filename, callback) => {
             const dd = cmd.trim();
             if (dd == "exit" || dd == "quit" || dd == "gtfo") {
@@ -181,6 +181,7 @@ export function runRepl(storage: intf.ICoordinationStorage) {
 
             const cmdh = new CommandLineHandler(storage, dd.split(" "));
             cmdh.run(callback);
-        }
+        },
+        prompt: colors.yellow("\nrepl >") + " "
     });
 }

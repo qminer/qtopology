@@ -10,7 +10,7 @@ import * as leader from "../topology_leader";
 /**
  * List of options for QTopologyDashboard
  */
-export interface DashboardServerOptions {
+export interface IDashboardServerOptions {
     /** Storage where the data is located */
     storage: intf.ICoordinationStorage;
     /** Port number where the stand-alone table should run. Optional. */
@@ -66,19 +66,19 @@ export class DashboardServer {
      * @param options - object containing options for dashboard
      * @param callback - standard callback
      */
-    public initComplex(options: DashboardServerOptions, callback: intf.SimpleCallback) {
+    public initComplex(options: IDashboardServerOptions, callback: intf.SimpleCallback) {
         const self = this;
         self.port = options.port;
         self.back_title = options.back_title;
         self.back_url = options.back_url;
         self.title = options.title;
         self.custom_props = options.custom_props || [];
-        self.initCommon(options.storage,err => {
+        self.initCommon(options.storage, err => {
             if (err) { return callback(err); }
             if (options.app) {
                 const app = options.app;
                 const prefix = options.prefix;
-                const prepareAddr =url => {
+                const prepareAddr = url => {
                     return url.replace(`/${prefix}`, "");
                 };
 
@@ -115,10 +115,10 @@ export class DashboardServer {
      */
     public initForExpress(app: any, prefix: string, storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
         const self = this;
-        self.initComplex({ app, prefix, storage },err => {
+        self.initComplex({ app, prefix, storage }, err => {
             if (err) { return callback(err); }
 
-            const prepareAddr =url => {
+            const prepareAddr = url => {
                 return url.replace(`/${prefix}`, "");
             };
 
@@ -146,7 +146,7 @@ export class DashboardServer {
     }
 
     /** Internal initialization step */
-    private initCommon(storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
+    private initCommon(storage: intf.ICoordinationStorage, callback_outer: intf.SimpleCallback) {
         const self = this;
         self.storage = storage;
         self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
@@ -195,47 +195,51 @@ export class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("enable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("disable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.CONSTS.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
                 callback(err, {
-                    storage: props,
-                    custom: self.custom_props
+                    custom: self.custom_props,
+                    storage: props
                 });
             });
         });
         self.server.addHandler("display-data", (data, callback) => {
             callback(null, {
-                back_url: this.back_url,
                 back_title: this.back_title,
+                back_url: this.back_url,
                 title: this.title
             });
         });
         self.server.addHandler("msg-queue-content", (data, callback) => {
-            self.storage.getMsgQueueContent((err, data) => {
+            self.storage.getMsgQueueContent((err, data_inner) => {
                 if (err) { return callback(err); }
-                const res = data.map(x => {
+                const res = data_inner.map(x => {
                     return {
-                        ts: x.created.getTime(),
                         cmd: x.cmd,
-                        worker: x.name,
                         content: x.data,
-                        valid_until: x.valid_until.getTime()
+                        ts: x.created.getTime(),
+                        valid_until: x.valid_until.getTime(),
+                        worker: x.name
                     };
                 });
                 callback(null, { data: res });
             });
         });
-        callback();
+        callback_outer();
     }
 }

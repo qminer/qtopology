@@ -60,11 +60,17 @@ export class HttpStorage implements intf.ICoordinationStorage {
     public assignTopology(uuid: string, name: string, callback: intf.SimpleCallback) {
         this.call("assign-topology", { name, uuid }, callback);
     }
-    public sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback) {
+    public sendMessageToWorker(
+        worker: string, cmd: string, content: any, valid_msec: number,
+        callback: intf.SimpleCallback
+    ) {
         this.call("send-message", { worker, cmd, content, valid_msec }, callback);
     }
 
-    public setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: intf.SimpleCallback) {
+    public setTopologyStatus(
+        uuid: string, worker: string, status: string, error: string,
+        callback: intf.SimpleCallback
+    ) {
         this.call("set-topology-status", { uuid, status, error, worker }, callback);
     }
     public getMsgQueueContent(callback: intf.SimpleResultCallback<intf.IMsgQueueItem[]>) {
@@ -121,7 +127,7 @@ export class HttpStorage implements intf.ICoordinationStorage {
         const req = this.client.post(self.url_prefix + addr, args, (data, response) => {
             callback(null, data);
         });
-        req.on("error",err => {
+        req.on("error", err => {
             callback(err);
         });
     }

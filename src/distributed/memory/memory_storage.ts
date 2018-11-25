@@ -64,14 +64,14 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         const res = this.workers
             .map(x => {
                 return {
-                    name: x.name,
-                    status: x.status,
-                    lstatus: x.lstatus,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
+                    lstatus: x.lstatus,
                     lstatus_ts: x.lstatus_ts,
                     lstatus_ts_d: x.lstatus_ts_d,
-                    pid: x.pid
+                    name: x.name,
+                    pid: x.pid,
+                    status: x.status
                 };
             });
         callback(null, res);
@@ -83,16 +83,16 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         const res = this.topologies
             .map(x => {
                 return {
-                    uuid: x.uuid,
-                    status: x.status,
-                    worker: x.worker,
-                    weight: x.weight,
                     enabled: x.enabled,
                     error: x.error,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
-                    worker_affinity: x.worker_affinity,
-                    pid: x.pid
+                    pid: x.pid,
+                    status: x.status,
+                    uuid: x.uuid,
+                    weight: x.weight,
+                    worker: x.worker,
+                    worker_affinity: x.worker_affinity
                 };
             });
         callback(null, res);
@@ -104,16 +104,16 @@ export class MemoryStorage implements intf.ICoordinationStorage {
             .filter(x => x.worker == worker)
             .map(x => {
                 return {
-                    uuid: x.uuid,
-                    status: x.status,
-                    worker: x.worker,
-                    weight: x.weight,
                     enabled: x.enabled,
                     error: x.error,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
-                    worker_affinity: x.worker_affinity,
-                    pid: x.pid
+                    pid: x.pid,
+                    status: x.status,
+                    uuid: x.uuid,
+                    weight: x.weight,
+                    worker: x.worker,
+                    worker_affinity: x.worker_affinity
                 };
             });
         callback(null, res);
@@ -157,17 +157,17 @@ export class MemoryStorage implements intf.ICoordinationStorage {
             .filter(x => x.uuid == uuid)
             .map(x => {
                 return {
-                    uuid: x.uuid,
-                    status: x.status,
-                    worker: x.worker,
-                    weight: x.weight,
+                    config: x.config,
                     enabled: x.enabled,
                     error: x.error,
                     last_ping: x.last_ping,
                     last_ping_d: x.last_ping_d,
-                    worker_affinity: x.worker_affinity,
-                    config: x.config,
-                    pid: x.pid
+                    pid: x.pid,
+                    status: x.status,
+                    uuid: x.uuid,
+                    weight: x.weight,
+                    worker: x.worker,
+                    worker_affinity: x.worker_affinity
                 };
             });
         if (res.length == 0) {
@@ -270,7 +270,10 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         callback();
     }
 
-    public sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: intf.SimpleCallback) {
+    public sendMessageToWorker(
+        worker: string, cmd: string, content: any, valid_msec: number,
+        callback: intf.SimpleCallback
+    ) {
         this.messages.push({ cmd, name: worker, content, created: new Date(), valid_until: Date.now() + valid_msec });
         callback();
     }
@@ -279,17 +282,20 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         const res = this.messages
             .map(x => {
                 return {
-                    name: x.name,
                     cmd: x.cmd,
-                    data: x.content,
                     created: x.created,
+                    data: x.content,
+                    name: x.name,
                     valid_until: new Date(x.valid_until)
                 };
             });
         callback(null, res);
     }
 
-    public setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: intf.SimpleCallback) {
+    public setTopologyStatus(
+        uuid: string, worker: string, status: string,
+        error: string, callback: intf.SimpleCallback
+    ) {
         const self = this;
         this.topologies
             .filter(x => x.uuid == uuid && (!worker || worker == x.worker))
@@ -330,15 +336,15 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         let t = null;
         if (existing.length == 0) {
             t = {
-                enabled: false,
                 config,
+                enabled: false,
+                error: null,
+                last_ping: Date.now(),
                 status: intf.CONSTS.TopologyStatus.unassigned,
                 uuid,
                 weight: config.general.weight,
                 worker: null,
-                error: null,
-                worker_affinity: config.general.worker_affinity,
-                last_ping: Date.now()
+                worker_affinity: config.general.worker_affinity
             };
             this.topologies.push(t);
         } else {
@@ -386,10 +392,14 @@ export class MemoryStorage implements intf.ICoordinationStorage {
             .filter(x => x.uuid == uuid && x.status == intf.CONSTS.TopologyStatus.running);
         if (hits.length > 0) {
             async.series(
-                [ycallback => {
+                [
+                    ycallback => {
                         self.disableTopology(uuid, ycallback);
-                    },ycallback => {
-                        self.sendMessageToWorker(hits[0].worker, intf.CONSTS.LeaderMessages.stop_topology, { uuid }, 30 * 1000, ycallback);
+                    },
+                    ycallback => {
+                        self.sendMessageToWorker(
+                            hits[0].worker, intf.CONSTS.LeaderMessages.stop_topology,
+                            { uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback
@@ -405,10 +415,14 @@ export class MemoryStorage implements intf.ICoordinationStorage {
             .filter(x => x.uuid == uuid && x.status == intf.CONSTS.TopologyStatus.running);
         if (hits.length > 0) {
             async.series(
-                [ycallback => {
+                [
+                    ycallback => {
                         self.disableTopology(uuid, ycallback);
-                    },ycallback => {
-                        self.sendMessageToWorker(hits[0].worker, intf.CONSTS.LeaderMessages.kill_topology, { uuid }, 30 * 1000, ycallback);
+                    },
+                    ycallback => {
+                        self.sendMessageToWorker(
+                            hits[0].worker, intf.CONSTS.LeaderMessages.kill_topology,
+                            { uuid }, 30 * 1000, ycallback);
                     }
                 ],
                 callback
@@ -498,7 +512,10 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         // disable workers that did not update their status
         const d = Date.now() - 30 * 1000;
         for (const worker of this.workers) {
-            if (worker.status == intf.CONSTS.WorkerStatus.alive && worker.last_ping < d) {
+            if (
+                worker.status == intf.CONSTS.WorkerStatus.alive &&
+                worker.last_ping < d
+            ) {
                 worker.status = intf.CONSTS.WorkerStatus.dead;
                 this.notifyWorkerHistory(worker);
             }
@@ -509,7 +526,10 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         // disable worker that did not perform their leadership duties
         const d = Date.now() - 10 * 1000;
         for (const worker of this.workers) {
-            if (worker.lstatus == intf.CONSTS.WorkerLStatus.leader || worker.lstatus == intf.CONSTS.WorkerLStatus.candidate) {
+            if (
+                worker.lstatus == intf.CONSTS.WorkerLStatus.leader ||
+                worker.lstatus == intf.CONSTS.WorkerLStatus.candidate
+            ) {
                 if (worker.last_ping < d) {
                     worker.lstatus = intf.CONSTS.WorkerLStatus.normal;
                     this.notifyWorkerHistory(worker);
@@ -521,16 +541,16 @@ export class MemoryStorage implements intf.ICoordinationStorage {
     private notifyTopologyHistory(top: TopologyRec) {
         this.topologies_history.push({
             enabled: top.enabled,
+            error: top.error,
+            last_ping: top.last_ping,
+            last_ping_d: top.last_ping_d,
+            pid: top.pid,
             status: top.status,
             ts: new Date(),
             uuid: top.uuid,
             weight: top.weight,
             worker: top.worker,
-            error: top.error,
-            last_ping: top.last_ping,
-            last_ping_d: top.last_ping_d,
-            worker_affinity: top.worker_affinity,
-            pid: top.pid
+            worker_affinity: top.worker_affinity
         });
     }
 
@@ -538,8 +558,8 @@ export class MemoryStorage implements intf.ICoordinationStorage {
         this.workers_history.push({
             lstatus: w.lstatus,
             name: w.name,
-            status: w.status,
             pid: w.pid,
+            status: w.status,
             ts: new Date()
         });
     }

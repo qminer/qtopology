@@ -38,8 +38,12 @@ export class FileStorage extends mem.MemoryStorage {
             log.logger().log("[FileStorage] Found topology file " + item);
             const config = require(path.join(this.dir_name, item));
 
-            this.registerTopology(topology_uuid, config,err => { });
-            this.enableTopology(topology_uuid,err => { });
+            this.registerTopology(topology_uuid, config, err => {
+                // no-op
+            });
+            this.enableTopology(topology_uuid, err => {
+                // no-op
+             });
         }
     }
 
