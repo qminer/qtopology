@@ -41,7 +41,7 @@ export class TopologyLocalProxy {
         this.exit_code = null;
         this.child_exit_callback = child_exit_callback || (() => {
             // no-op
-         });
+        });
         this.child_exit_callback = tryCallback(this.child_exit_callback);
         this.child = null;
         this.cp = child_process || cp;

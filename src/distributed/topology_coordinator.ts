@@ -237,7 +237,7 @@ export class TopologyCoordinator {
                 this.handleSingleRequest(
                     {
                         cmd: intf.CONSTS.LeaderMessages.start_topology,
-                        content: {  uuid },
+                        content: { uuid },
                         created: new Date()
                     }, xcallback);
             }, (err: Error) => {

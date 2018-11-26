@@ -43,7 +43,7 @@ export class FileStorage extends mem.MemoryStorage {
             });
             this.enableTopology(topology_uuid, err => {
                 // no-op
-             });
+            });
         }
     }
 
