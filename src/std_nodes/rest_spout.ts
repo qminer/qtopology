@@ -1,10 +1,10 @@
 import * as intf from "../topology_interfaces";
-import * as http from 'http';
+import * as http from "http";
 
 /** This spout receives requests (messages/data) over REST interface.
  * It assumes data is in JSON format.
  */
-export class RestSpout implements intf.Spout {
+export class RestSpout implements intf.ISpout {
 
     private stream_id: string;
     private should_run: boolean;
@@ -25,69 +25,72 @@ export class RestSpout implements intf.Spout {
         this.max_queue_len = 1000;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.port = config.port;
         this.stream_id = config.stream_id;
         this.max_queue_len = config.max_queue_len || this.max_queue_len;
         this.send_request_metadata = config.send_request_metadata || this.send_request_metadata;
 
-        let self = this;
         this.server = http.createServer((req, res) => {
-            if (self.queue.length > self.max_queue_len) {
+            if (this.queue.length > this.max_queue_len) {
                 res.statusCode = 503;
                 res.statusMessage = "Server is busy";
                 res.end();
-            } else if (self.should_run) {
-                let body = [];
+            } else if (this.should_run) {
+                const body = [];
                 req
-                    .on('data', (chunk) => { body.push(chunk); })
-                    .on('end', () => {
-                        let body_s = Buffer.concat(body).toString();
+                    .on("data", chunk => {
+                        body.push(chunk);
+                    })
+                    .on("end", () => {
+                        const body_s = Buffer.concat(body).toString();
                         res.end();
-                        let body_obj = JSON.parse(body_s);
-                        if (self.send_request_metadata) {
+                        const body_obj = JSON.parse(body_s);
+                        if (this.send_request_metadata) {
                             // send both body and some request properties
-                            self.queue.push({
+                            this.queue.push({
+                                body: body_obj,
                                 request: {
                                     method: req.method,
                                     url: req.url
-                                },
-                                body: body_obj
+                                }
                             });
                         } else {
                             // send only body
-                            self.queue.push(body_obj);
+                            this.queue.push(body_obj);
                         }
                     });
             } else {
                 res.end();
             }
         });
-        self.server.on('clientError', (err, socket) => {
-            socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+        this.server.on("clientError", (err, socket) => {
+            socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
         });
-        self.server.listen(self.port, callback);
+        this.server.listen(this.port, callback);
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         this.server.close(callback);
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (this.queue.length === 0) {
             return callback(null, null, null);
         }
-        let data = this.queue[0];
+        const data = this.queue[0];
         this.queue = this.queue.slice(1);
         callback(null, data, this.stream_id);
     }

@@ -3,14 +3,14 @@ import * as log from "../util/logger";
 
 /** helper function that wraps a callback with try/catch and logs an error
  * if the callback threw an exception.
-*/
+ */
 export function tryCallback(callback: intf.SimpleCallback): intf.SimpleCallback {
     if (callback == undefined) {
         return (err?: Error) => {
             if (err) {
                 log.logger().exception(err);
             }
-        }
+        };
     }
     return (err?: Error) => {
         try {
@@ -19,5 +19,5 @@ export function tryCallback(callback: intf.SimpleCallback): intf.SimpleCallback 
             log.logger().error("THIS SHOULD NOT HAPPEN: exception THROWN in callback!");
             log.logger().exception(e);
         }
-    }
+    };
 }

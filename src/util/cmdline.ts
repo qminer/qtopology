@@ -1,9 +1,8 @@
 export function parseCommandLine(argv: string[]): any {
-    let res = { _: [] };
+    const res = { _: [] };
 
     let last_switch = null;
-    for (let i = 0; i < argv.length; i++) {
-        let curr = argv[i];
+    for (const curr of argv) {
         if (curr.slice(0, 2) == "--") {
             last_switch = curr.slice(2);
             res[last_switch] = true;
@@ -23,8 +22,8 @@ export function parseCommandLine(argv: string[]): any {
 
 export function parseCommandLineEx(argv: string[], map: any): any {
     map = map || {};
-    let res = parseCommandLine(argv);
-    for (let field in map) {
+    const res = parseCommandLine(argv);
+    for (const field in map) {
         if (map.hasOwnProperty(field) && res[field]) {
             res[map[field]] = res[field];
         }
@@ -33,12 +32,12 @@ export function parseCommandLineEx(argv: string[], map: any): any {
 }
 
 export class OptionsDescription {
-    shortname: string;
-    name: string;
-    default: string | number;
-    text: string;
-    target: string;
-    flag: string;
+    public shortname: string;
+    public name: string;
+    public default: string | number;
+    public text: string;
+    public target: string;
+    public flag: string;
 }
 
 export class CmdLineParser {
@@ -53,15 +52,14 @@ export class CmdLineParser {
         this.descriptions = [];
     }
 
-    clear() {
+    public clear() {
         this.shortnames.clear();
         this.names.clear();
         this.descriptions = [];
     }
 
-    areFlags(letters: string) {
-        for (let k = 0; k < letters.length; k++) {
-            let letter = letters[k];
+    public areFlags(letters: string) {
+        for (const letter of letters) {
             if (!this.shortnames[letter] || !this.shortnames[letter].flag) {
                 return false;
             }
@@ -69,19 +67,19 @@ export class CmdLineParser {
         return true;
     }
 
-    getValue(text: string): number | string {
+    public getValue(text: string): number | string {
         if (!text) {
             return null;
         }
-        for (let k = 0; k < text.length; k++) {
-            if (text[k] < '0' || text[k] > '9') {
+        for (const letter of text) {
+            if (letter < "0" || letter > "9") {
                 return text;
             }
         }
-        return parseInt(text);
+        return parseInt(text, 10);
     }
 
-    getTargetName(name: string, description: OptionsDescription): string {
+    public getTargetName(name: string, description: OptionsDescription): string {
         if (!description) {
             return name;
         }
@@ -91,16 +89,16 @@ export class CmdLineParser {
         return description.name;
     }
 
-    define(shortname: string, name: string, defaultValue: string | number, text: string, options?: any) {
+    public define(shortname: string, name: string, defaultValue: string | number, text: string, options?: any) {
         options = options || {};
 
-        let description = {
-            shortname: shortname,
-            name: name,
+        const description = {
             default: defaultValue,
-            text: text,
+            flag: null,
+            name,
+            shortname,
             target: null,
-            flag: null
+            text
         };
         if (options.name) {
             description.target = options.name;
@@ -115,33 +113,33 @@ export class CmdLineParser {
         return this;
     }
 
-    process(args: string[]): any {
-        let opts = {};
+    public process(args: string[]): any {
+        const opts = {};
 
-        this.descriptions.forEach((description) => {
+        this.descriptions.forEach(description => {
             if (description.default) {
                 opts[this.getTargetName(null, description)] = description.default;
             }
         });
 
         for (let k = 0; k < args.length; k++) {
-            let arg = args[k];
-            if (arg.length > 2 && arg[0] == '-' && arg[1] == '-') {
-                let name = arg.slice(2);
-                let description = this.names[name];
+            const arg = args[k];
+            if (arg.length > 2 && arg[0] == "-" && arg[1] == "-") {
+                const name = arg.slice(2);
+                const description = this.names[name];
                 if (description && description.flag) {
                     opts[this.getTargetName(name, description)] = true;
                 } else {
                     k++;
-                    let val = this.getValue(args[k]);
+                    const val = this.getValue(args[k]);
                     opts[this.getTargetName(name, description)] = val;
                 }
-            } else if (arg.length > 1 && arg[0] == '-') {
-                let shortname = arg.slice(1);
+            } else if (arg.length > 1 && arg[0] == "-") {
+                const shortname = arg.slice(1);
                 let description = this.shortnames[shortname];
                 if (!description && this.areFlags(shortname)) {
-                    for (let k = 0; k < shortname.length; k++) {
-                        let letter = this.shortnames[k];
+                    for (let j = 0; j < shortname.length; j++) {
+                        const letter = this.shortnames[j];
                         description = this.shortnames[letter];
                         opts[this.getTargetName(letter, description)] = true;
                     }
@@ -152,7 +150,7 @@ export class CmdLineParser {
                     opts[this.getTargetName(shortname, description)] = true;
                 } else {
                     k++;
-                    let val = this.getValue(args[k]);
+                    const val = this.getValue(args[k]);
                     opts[this.getTargetName(shortname, description)] = val;
                 }
             }
