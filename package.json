@@ -1,12 +1,16 @@
 {
   "name": "qtopology",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",
   "scripts": {
     "build": "tsc",
-    "test": "mocha tests --recursive --timeout 10000 && cd demo && bash run_demos.sh"
+    "test": "npm run test-unit && cd demo && bash run_demos.sh",
+    "test-unit": "mocha tests --recursive --timeout 10000",
+    "prepare": "npm run format && npm run lint",
+    "format": "./node_modules/.bin/tsfmt -r",
+    "lint": "./node_modules/.bin/tslint --project ."
   },
   "repository": "https://github.com/qminer/qtopology.git",
   "keywords": [
@@ -29,7 +33,10 @@
     "@types/async": "^2.0.45",
     "@types/colors": "^1.2.1",
     "@types/node": "^8.0.47",
-    "mocha": "^5.1.1"
+    "mocha": "^5.1.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6",
+    "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -39,6 +46,7 @@
     "express": "^4.16.3",
     "jsonschema": "^1.1.1",
     "node-rest-client": "^3.1.0",
+    "qewd-transform-json": "^1.10.0",
     "serialize-error": "^2.1.0"
   }
 }

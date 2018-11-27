@@ -10,9 +10,9 @@ import * as leader from "../topology_leader";
 /**
  * List of options for QTopologyDashboard
  */
-export interface DashboardServerOptions {
+export interface IDashboardServerOptions {
     /** Storage where the data is located */
-    storage: intf.CoordinationStorage;
+    storage: intf.ICoordinationStorage;
     /** Port number where the stand-alone table should run. Optional. */
     port?: number;
     /** Express application to inject routes into. Optional. */
@@ -26,7 +26,7 @@ export interface DashboardServerOptions {
     /** Link text to parent page. Optional */
     back_title?: string;
     /** Custom properties to present in GUI */
-    custom_props?: intf.StorageProperty[];
+    custom_props?: intf.IStorageProperty[];
 }
 
 /**
@@ -34,6 +34,8 @@ export interface DashboardServerOptions {
  * via injection into Express application.
  */
 export class DashboardServer {
+    /** Custom properties to present in GUI */
+    public custom_props: intf.IStorageProperty[];
 
     /** Custom page title. Optional */
     private title?: string;
@@ -44,11 +46,9 @@ export class DashboardServer {
     /** Port number where the stand-alone table should run. */
     private port: number;
     /** Storage where the data is located */
-    private storage: intf.CoordinationStorage;
+    private storage: intf.ICoordinationStorage;
     /** Stand-alone web server */
     private server: http_server.MinimalHttpServer;
-    /** Custom properties to present in GUI */
-    custom_props: intf.StorageProperty[];
 
     /** Simple constructor */
     constructor() {
@@ -61,9 +61,93 @@ export class DashboardServer {
         this.custom_props = [];
     }
 
+    /**
+     * The most flexible initialization method
+     * @param options - object containing options for dashboard
+     * @param callback - standard callback
+     */
+    public initComplex(options: IDashboardServerOptions, callback: intf.SimpleCallback) {
+        const self = this;
+        self.port = options.port;
+        self.back_title = options.back_title;
+        self.back_url = options.back_url;
+        self.title = options.title;
+        self.custom_props = options.custom_props || [];
+        self.initCommon(options.storage, err => {
+            if (err) { return callback(err); }
+            if (options.app) {
+                const app = options.app;
+                const prefix = options.prefix;
+                const prepareAddr = url => {
+                    return url.replace(`/${prefix}`, "");
+                };
+
+                app.get(`/${prefix}`, (req, res) => {
+                    res.redirect(`/${prefix}/qtopology_dashboard.html`);
+                });
+                app.get(`/${prefix}/*`, (req, res) => {
+                    self.handle(req.method, prepareAddr(req.url), req.body, res);
+                });
+                app.post(`/${prefix}/*`, (req, res) => {
+                    self.handle(req.method, prepareAddr(req.url), req.body, res);
+                });
+            }
+            callback();
+        });
+    }
+
+    /**
+     * Simple method for initialization as stand-alone server
+     * @param port - Port where stand-alone table should run
+     * @param storage - Storage object
+     * @param callback - Standard callback
+     */
+    public init(port: number, storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
+        this.initComplex({ port, storage }, callback);
+    }
+
+    /**
+     * Simple method for injection into Express application
+     * @param app - Express application where routes should be injected
+     * @param prefix - Injection prefix
+     * @param storage - Storage object
+     * @param callback - Standard callback
+     */
+    public initForExpress(app: any, prefix: string, storage: intf.ICoordinationStorage, callback: intf.SimpleCallback) {
+        const self = this;
+        self.initComplex({ app, prefix, storage }, err => {
+            if (err) { return callback(err); }
+
+            const prepareAddr = url => {
+                return url.replace(`/${prefix}`, "");
+            };
+
+            app.get(`/${prefix}`, (req, res) => {
+                res.redirect(`/${prefix}/qtopology_dashboard.html`);
+            });
+            app.get(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            app.post(`/${prefix}/*`, (req, res) => {
+                self.handle(req.method, prepareAddr(req.url), req.body, res);
+            });
+            callback();
+        });
+    }
+
+    /** Runs the stand-alone server */
+    public run() {
+        this.server.run(this.port);
+    }
+
+    /** Handles requests */
+    public handle(method: string, addr: string, body: any, resp: http.ServerResponse) {
+        this.server.handle(method, addr, body, resp);
+    }
+
     /** Internal initialization step */
-    private initCommon(storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
-        let self = this;
+    private initCommon(storage: intf.ICoordinationStorage, callback_outer: intf.SimpleCallback) {
+        const self = this;
         self.storage = storage;
         self.server = new http_server.MinimalHttpServer("[QTopology Dashboard]");
 
@@ -111,131 +195,51 @@ export class DashboardServer {
             self.storage.deleteWorker(data.name, callback);
         });
         self.server.addHandler("shut-down-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.shutdown, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("enable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.set_enabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("disable-worker", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.set_disabled, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("rebalance-leader", (data, callback) => {
-            self.storage.sendMessageToWorker(data.name, intf.Consts.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
+            self.storage.sendMessageToWorker(
+                data.name, intf.CONSTS.LeaderMessages.rebalance, {}, data.valid_msec || 60 * 1000, callback);
         });
         self.server.addHandler("storage-info", (data, callback) => {
             self.storage.getProperties((err, props) => {
                 callback(err, {
-                    storage: props,
-                    custom: self.custom_props
+                    custom: self.custom_props,
+                    storage: props
                 });
             });
         });
         self.server.addHandler("display-data", (data, callback) => {
             callback(null, {
-                back_url: this.back_url,
                 back_title: this.back_title,
+                back_url: this.back_url,
                 title: this.title
             });
         });
         self.server.addHandler("msg-queue-content", (data, callback) => {
-            self.storage.getMsgQueueContent((err, data) => {
-                if (err) return callback(err);
-                let res = data.map(x => {
+            self.storage.getMsgQueueContent((err, data_inner) => {
+                if (err) { return callback(err); }
+                const res = data_inner.map(x => {
                     return {
-                        ts: x.created.getTime(),
                         cmd: x.cmd,
-                        worker: x.name,
                         content: x.data,
-                        valid_until: x.valid_until.getTime()
+                        ts: x.created.getTime(),
+                        valid_until: x.valid_until.getTime(),
+                        worker: x.name
                     };
                 });
                 callback(null, { data: res });
             });
         });
-        callback();
-    }
-
-    /**
-     * The most flexible initialization method
-     * @param options - object containing options for dashboard
-     * @param callback - standard callback
-     */
-    initComplex(options: DashboardServerOptions, callback: intf.SimpleCallback) {
-        let self = this;
-        self.port = options.port;
-        self.back_title = options.back_title;
-        self.back_url = options.back_url;
-        self.title = options.title;
-        self.custom_props = options.custom_props || [];
-        self.initCommon(options.storage, (err) => {
-            if (err) return callback(err);
-            if (options.app) {
-                let app = options.app;
-                let prefix = options.prefix;
-                let prepareAddr = (url) => {
-                    return url.replace(`/${prefix}`, "");
-                };
-
-                app.get(`/${prefix}`, (req, res) => {
-                    res.redirect(`/${prefix}/qtopology_dashboard.html`);
-                });
-                app.get(`/${prefix}/*`, (req, res) => {
-                    self.handle(req.method, prepareAddr(req.url), req.body, res);
-                });
-                app.post(`/${prefix}/*`, (req, res) => {
-                    self.handle(req.method, prepareAddr(req.url), req.body, res);
-                });
-            }
-            callback();
-        });
-    }
-
-    /**
-     * Simple method for initialization as stand-alone server
-     * @param port - Port where stand-alone table should run
-     * @param storage - Storage object
-     * @param callback - Standard callback
-     */
-    init(port: number, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
-        this.initComplex({ port: port, storage: storage }, callback);
-    }
-
-    /**
-     * Simple method for injection into Express application
-     * @param app - Express application where routes should be injected
-     * @param prefix - Injection prefix
-     * @param storage - Storage object
-     * @param callback - Standard callback
-     */
-    initForExpress(app: any, prefix: string, storage: intf.CoordinationStorage, callback: intf.SimpleCallback) {
-        let self = this;
-        self.initComplex({ app: app, prefix: prefix, storage: storage }, (err) => {
-            if (err) return callback(err);
-
-            let prepareAddr = (url) => {
-                return url.replace(`/${prefix}`, "");
-            };
-
-            app.get(`/${prefix}`, (req, res) => {
-                res.redirect(`/${prefix}/qtopology_dashboard.html`);
-            });
-            app.get(`/${prefix}/*`, (req, res) => {
-                self.handle(req.method, prepareAddr(req.url), req.body, res);
-            });
-            app.post(`/${prefix}/*`, (req, res) => {
-                self.handle(req.method, prepareAddr(req.url), req.body, res);
-            });
-            callback();
-        });
-    }
-
-    /** Runs the stand-alone server */
-    run() {
-        this.server.run(this.port);
-    }
-
-    /** Handles requests */
-    handle(method: string, addr: string, body: any, resp: http.ServerResponse) {
-        this.server.handle(method, addr, body, resp);
+        callback_outer();
     }
 }

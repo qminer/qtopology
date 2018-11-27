@@ -39,7 +39,9 @@ export class TopologyLocalProxy {
         this.received_shutdown_response = false;
         this.has_exited = false;
         this.exit_code = null;
-        this.child_exit_callback = child_exit_callback || (() => { });
+        this.child_exit_callback = child_exit_callback || (() => {
+            // no-op
+        });
         this.child_exit_callback = tryCallback(this.child_exit_callback);
         this.child = null;
         this.cp = child_process || cp;
@@ -48,157 +50,24 @@ export class TopologyLocalProxy {
         this.lastPing = Date.now();
     }
 
-    /** Starts child process and sets up all event handlers */
-    private setUpChildProcess(uuid: string) {
-        let self = this;
-        // send uuid in command-line parameters so that it is visible in process list
-        // wont be used for anything
-        this.child = this.cp.fork(path.join(__dirname, "topology_local_wrapper_main"), ["uuid:" + uuid], { silent: false });
-        self.child.on("message", (msgx) => {
-            let msg = msgx as intf.ChildMsg;
-            if (msg.data.err) {
-                msg.data.err = deserialize_error(msg.data.err);
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_init) {
-                if (msg.data.err) { self.last_child_err = msg.data.err; }
-                if (self.init_cb) {
-                    let cb = self.init_cb;
-                    self.init_cb = null;
-                    cb(msg.data.err);
-                }
-            }
-            if (msg.cmd == intf.ChildMsgCode.error) {
-                self.last_child_err = msg.data.err;
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_run) {
-                if (msg.data.err) { self.last_child_err = msg.data.err; }
-                if (self.run_cb) {
-                    let cb = self.run_cb;
-                    self.run_cb = null;
-                    cb(msg.data.err);
-                }
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_pause) {
-                if (msg.data.err) { self.last_child_err = msg.data.err; }
-                if (self.pause_cb) {
-                    let cb = self.pause_cb;
-                    self.pause_cb = null;
-                    cb(msg.data.err);
-                }
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_ping) {
-                self.lastPing = Date.now();
-            }
-            if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
-                // on SIGINT, the child might exit before the
-                // parent requests it and shutdown callback
-                // will not exist yet.
-                self.received_shutdown_response = true;
-                if (msg.data.err) { self.last_child_err = msg.data.err; }
-                if (self.shutdown_cb) {
-                    let cb = self.shutdown_cb;
-                    self.shutdown_cb = null;
-                    cb(msg.data.err);
-                }
-            }
-        });
-        self.child.on("error", (e) => {
-            // Called when the process could not be spawned or killed or when message sending fails
-            // All of these are considered as bad state and we need to exit
-            self.has_exited = true;
-            if (self.onExit) { self.onExit(e); }
-            self.kill(() => { });
-        });
-        // Normally close and exit will both be called shortly one after
-        // the other.
-        self.child.once("close", (code, signal) => {
-            let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
-            let e = self.last_child_err || exitErr;
-            self.exit_code = code;
-            self.has_exited = true;
-            if (self.onExit) { self.onExit(e); }
-        });
-        self.child.once("exit", (code, signal) => {
-            let exitErr = (signal == null && code !== 0) ?
-                new Error(`Child process ${self.child.pid} exited with code ${code}`) : null;
-            let e = self.last_child_err || exitErr;
-            self.exit_code = code;
-            self.has_exited = true;
-            if (self.onExit) { self.onExit(e); }
-        });
-
-        self.setPingInterval();
-    }
-
-    private setPingInterval() {
-        let self = this;
-        if (self.pingIntervalId) {
-            clearInterval(self.pingIntervalId);
-        }
-        // send ping to child in regular intervals
-        self.pingIntervalId = setInterval(
-            () => {
-                let now = Date.now();
-                if (now - this.lastPing < this.pingTimeout) {
-                    self.send(intf.ParentMsgCode.ping, {});
-                } else {
-                    log.logger().error(self.log_prefix + "Too many un-answered pings, sending kill to child process...");
-                    self.last_child_err = new Error(self.log_prefix + "Maximal number of un-anwsered pings to child reached");
-                    self.kill(() => { });
-                }
-            },
-            self.pingInterval);
-    }
-
     /** Check if this object has exited */
-    hasExited(): boolean {
+    public hasExited(): boolean {
         return this.has_exited;
     }
 
     /** Check if this object has exited */
-    exitCode(): number {
+    public exitCode(): number {
         return this.exit_code;
     }
 
     /** Returns process PID */
-    getPid(): number {
+    public getPid(): number {
         if (!this.child) { return null; }
         return this.child.pid;
     }
 
-    /** Calls all pending callbacks with an exception
-     * (process exited before receving callback) and
-     * forwards the given error to child_exit_callback.
-     * Also clears ping interval.
-     */
-    private onExit(e: Error) {
-        this.onExit = null;
-        if (this.pingIntervalId) {
-            clearInterval(this.pingIntervalId);
-            this.pingIntervalId = null;
-        }
-        if (this.init_cb) {
-            this.init_cb(new Error(this.log_prefix + "Process exited before response_init from child was received."));
-            this.init_cb = null;
-        }
-        if (this.run_cb) {
-            this.run_cb(new Error(this.log_prefix + "Process exited before response_run from child was received."));
-            this.run_cb = null;
-        }
-        if (this.pause_cb) {
-            this.pause_cb(new Error(this.log_prefix + "Process exited before response_pause from child was received."));
-            this.pause_cb = null;
-        }
-        if (this.shutdown_cb) {
-            this.shutdown_cb(new Error(this.log_prefix + "Process exited before response_shutdown from child was received."));
-            this.shutdown_cb = null;
-        }
-        this.child_exit_callback(e);
-    }
-
     /** Sends initialization signal to underlaying process */
-    init(uuid: string, config: any, callback: intf.SimpleCallback) {
+    public init(uuid: string, config: any, callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (this.init_cb) {
             return callback(new Error(this.log_prefix + "Pending init callback already exists."));
@@ -221,7 +90,7 @@ export class TopologyLocalProxy {
     }
 
     /** Sends run signal to underlaying process */
-    run(callback: intf.SimpleCallback) {
+    public run(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (this.run_cb) {
             return callback(new Error(this.log_prefix + "Pending run callback already exists."));
@@ -233,7 +102,7 @@ export class TopologyLocalProxy {
     }
 
     /** Sends pause signal to underlaying process */
-    pause(callback: intf.SimpleCallback) {
+    public pause(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (this.pause_cb) {
             return callback(new Error(this.log_prefix + "Pending pause callback already exists."));
@@ -245,7 +114,7 @@ export class TopologyLocalProxy {
     }
 
     /** Sends shutdown signal to underlaying process */
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (this.shutdown_cb) { // this proxy is in the process of shutdown
             return callback(new Error(this.log_prefix + "Shutdown already in process"));
@@ -255,7 +124,9 @@ export class TopologyLocalProxy {
         if (this.received_shutdown_response) {
             // the child also exited and onExit was called before
             if (this.has_exited) {
-                this.shutdown_cb = () => { }; // just to guard against second call from parent
+                this.shutdown_cb = () => {
+                    // just to guard against second call from parent
+                };
                 return callback();
             } else {
                 // the child WILL exit soon (it calls killProcess right after sending response to parent)
@@ -275,7 +146,7 @@ export class TopologyLocalProxy {
      * This is a last resort - the child should normally
      * exit after receiving shutdown signal.
      */
-    kill(callback: intf.SimpleCallback) {
+    public kill(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if ((this.child == null) || // not initialized
             this.child.killed || // already sent SIGKILL
@@ -289,11 +160,156 @@ export class TopologyLocalProxy {
 
     /** Internal method for sending messages to child process */
     private send(code: intf.ParentMsgCode, data: any) {
-        let msg = { cmd: code, data: data } as intf.ParentMsg;
+        const msg = { cmd: code, data } as intf.IParentMsg;
         if (this.child.connected) {
             this.child.send(msg);
         } else {
-            log.logger().warn(this.log_prefix + 'Skipping send (child process not connected): ' + intf.ParentMsgCode[code]);
+            log.logger().warn(this.log_prefix +
+                "Skipping send (child process not connected): " + intf.ParentMsgCode[code]);
         }
+    }
+
+    /** Starts child process and sets up all event handlers */
+    private setUpChildProcess(uuid: string) {
+        // send uuid in command-line parameters so that it is visible in process list
+        // wont be used for anything
+        this.child = this.cp.fork(
+            path.join(__dirname, "topology_local_wrapper_main"),
+            ["uuid:" + uuid],
+            { silent: false });
+        this.child.on("message", msgx => {
+            const msg = msgx as intf.IChildMsg;
+            if (msg.data.err) {
+                msg.data.err = deserialize_error(msg.data.err);
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_init) {
+                if (msg.data.err) { this.last_child_err = msg.data.err; }
+                if (this.init_cb) {
+                    const cb = this.init_cb;
+                    this.init_cb = null;
+                    cb(msg.data.err);
+                }
+            }
+            if (msg.cmd == intf.ChildMsgCode.error) {
+                this.last_child_err = msg.data.err;
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_run) {
+                if (msg.data.err) { this.last_child_err = msg.data.err; }
+                if (this.run_cb) {
+                    const cb = this.run_cb;
+                    this.run_cb = null;
+                    cb(msg.data.err);
+                }
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_pause) {
+                if (msg.data.err) { this.last_child_err = msg.data.err; }
+                if (this.pause_cb) {
+                    const cb = this.pause_cb;
+                    this.pause_cb = null;
+                    cb(msg.data.err);
+                }
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_ping) {
+                this.lastPing = Date.now();
+            }
+            if (msg.cmd == intf.ChildMsgCode.response_shutdown) {
+                // on SIGINT, the child might exit before the
+                // parent requests it and shutdown callback
+                // will not exist yet.
+                this.received_shutdown_response = true;
+                if (msg.data.err) { this.last_child_err = msg.data.err; }
+                if (this.shutdown_cb) {
+                    const cb = this.shutdown_cb;
+                    this.shutdown_cb = null;
+                    cb(msg.data.err);
+                }
+            }
+        });
+        this.child.on("error", e => {
+            // Called when the process could not be spawned or killed or when message sending fails
+            // All of these are considered as bad state and we need to exit
+            this.has_exited = true;
+            if (this.onExit) { this.onExit(e); }
+            this.kill(() => {
+                // no-op
+            });
+        });
+        // Normally close and exit will both be called shortly one after
+        // the other.
+        this.child.once("close", (code, signal) => {
+            const exitErr = (signal == null && code !== 0) ?
+                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+            const e = this.last_child_err || exitErr;
+            this.exit_code = code;
+            this.has_exited = true;
+            if (this.onExit) { this.onExit(e); }
+        });
+        this.child.once("exit", (code, signal) => {
+            const exitErr = (signal == null && code !== 0) ?
+                new Error(`Child process ${this.child.pid} exited with code ${code}`) : null;
+            const e = this.last_child_err || exitErr;
+            this.exit_code = code;
+            this.has_exited = true;
+            if (this.onExit) { this.onExit(e); }
+        });
+
+        this.setPingInterval();
+    }
+
+    private setPingInterval() {
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+        }
+        // send ping to child in regular intervals
+        this.pingIntervalId = setInterval(
+            () => {
+                const now = Date.now();
+                if (now - this.lastPing < this.pingTimeout) {
+                    this.send(intf.ParentMsgCode.ping, {});
+                } else {
+                    log.logger().error(this.log_prefix +
+                        "Too many un-answered pings, sending kill to child process...");
+                    this.last_child_err = new Error(this.log_prefix +
+                        "Maximal number of un-anwsered pings to child reached");
+                    this.kill(() => {
+                        // no-op
+                    });
+                }
+            },
+            this.pingInterval);
+    }
+
+    /** Calls all pending callbacks with an exception
+     * (process exited before receving callback) and
+     * forwards the given error to child_exit_callback.
+     * Also clears ping interval.
+     */
+    private onExit(e: Error) {
+        this.onExit = null;
+        if (this.pingIntervalId) {
+            clearInterval(this.pingIntervalId);
+            this.pingIntervalId = null;
+        }
+        if (this.init_cb) {
+            this.init_cb(new Error(this.log_prefix +
+                "Process exited before response_init from child was received."));
+            this.init_cb = null;
+        }
+        if (this.run_cb) {
+            this.run_cb(new Error(this.log_prefix +
+                "Process exited before response_run from child was received."));
+            this.run_cb = null;
+        }
+        if (this.pause_cb) {
+            this.pause_cb(new Error(this.log_prefix +
+                "Process exited before response_pause from child was received."));
+            this.pause_cb = null;
+        }
+        if (this.shutdown_cb) {
+            this.shutdown_cb(new Error(this.log_prefix +
+                "Process exited before response_shutdown from child was received."));
+            this.shutdown_cb = null;
+        }
+        this.child_exit_callback(e);
     }
 }

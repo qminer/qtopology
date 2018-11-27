@@ -16,19 +16,19 @@ export class EventFrequencyScore {
         this.prev_val = 0;
     }
 
-    private estimateFrequencyNum(t1: number, t2: number, v1: number, v2: number, c: number): number {
-        return v2 + v1 * Math.exp(-c * (t2 - t1));
-    }
-
-    getEstimate(d: Date): number {
+    public getEstimate(d: Date): number {
         return this.estimateFrequencyNum(this.prev_time, d.getTime(), this.prev_val, 0, this.c);
     }
 
-    add(d: Date): number {
-        let dd = d.getTime();
-        let res = this.estimateFrequencyNum(this.prev_time, dd, this.prev_val, 1, this.c);
+    public add(d: Date): number {
+        const dd = d.getTime();
+        const res = this.estimateFrequencyNum(this.prev_time, dd, this.prev_val, 1, this.c);
         this.prev_time = dd;
         this.prev_val = res;
         return res;
+    }
+
+    private estimateFrequencyNum(t1: number, t2: number, v1: number, v2: number, c: number): number {
+        return v2 + v1 * Math.exp(-c * (t2 - t1));
     }
 }

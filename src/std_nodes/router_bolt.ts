@@ -3,8 +3,9 @@ import * as async from "async";
 import * as pm from "../util/pattern_matcher";
 
 /** This bolt routs incoming messages based on provided
- * queries and sends them forward using mapped stream ids. */
-export class RouterBolt implements intf.Bolt {
+ * queries and sends them forward using mapped stream ids.
+ */
+export class RouterBolt implements intf.IBolt {
 
     private matchers: any[];
     private onEmit: intf.BoltEmitCallback;
@@ -16,34 +17,35 @@ export class RouterBolt implements intf.Bolt {
     }
 
     /** Initializes routing patterns */
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
-        for (let stream_id in config.routes) {
+        for (const stream_id in config.routes) {
             if (config.routes.hasOwnProperty(stream_id)) {
-                let filter = config.routes[stream_id];
+                const filter = config.routes[stream_id];
                 this.matchers.push({
-                    stream_id: stream_id,
-                    matcher: new pm.PaternMatcher(filter)
+                    matcher: new pm.PaternMatcher(filter),
+                    stream_id
                 });
             }
         }
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        let self = this;
-        let tasks = [];
-        for (let item of self.matchers) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        const tasks = [];
+        for (const item of this.matchers) {
             if (item.matcher.isMatch(data)) {
                 /* jshint loopfunc:true */
-                tasks.push((xcallback) => {
-                    self.onEmit(data, item.stream_id, xcallback);
+                tasks.push(xcallback => {
+                    this.onEmit(data, item.stream_id, xcallback);
                 });
             }
         }

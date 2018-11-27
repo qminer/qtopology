@@ -4,10 +4,10 @@ import { logger } from "../util/logger";
 
 /** Internal class for storing statistics */
 export class Rec {
-    count: number;
-    min: number;
-    max: number;
-    avg: number;
+    public count: number;
+    public min: number;
+    public max: number;
+    public avg: number;
 
     constructor() {
         this.avg = 0;
@@ -16,26 +16,26 @@ export class Rec {
         this.min = Number.MAX_VALUE;
     }
 
-    reset(): void {
+    public reset(): void {
         this.avg = 0;
         this.count = 0;
         this.max = Number.MIN_VALUE;
         this.min = Number.MAX_VALUE;
     }
 
-    add(val: number): void {
+    public add(val: number): void {
         this.count++;
         this.avg = ((this.count - 1) / this.count) * this.avg + val / this.count;
         this.min = (this.min > val ? val : this.min);
         this.max = (this.max < val ? val : this.max);
     }
 
-    report() {
-        let res = {
-            count: this.count,
+    public report() {
+        const res = {
             avg: null,
-            min: null,
-            max: null
+            count: this.count,
+            max: null,
+            min: null
         };
         if (res.count > 0) {
             res.min = this.min;
@@ -48,18 +48,18 @@ export class Rec {
 
 /** Internal class that lives in a tree structure */
 export class Node {
-    data: Rec;
-    children: Map<string, Node>;
+    public data: Rec;
+    public children: Map<string, Node>;
 
     constructor() {
         this.data = new Rec();
         this.children = new Map<string, Node>();
     }
 
-    add(val: number, tags: string[], tag_index: number) {
+    public add(val: number, tags: string[], tag_index: number) {
         this.data.add(val);
         for (let tag_index2 = tag_index; tag_index2 < tags.length; tag_index2++) {
-            let tag = tags[tag_index2];
+            const tag = tags[tag_index2];
             if (!this.children.has(tag)) {
                 this.children.set(tag, new Node());
             }
@@ -67,17 +67,17 @@ export class Node {
         }
     }
 
-    report(prefix: string, result) {
+    public report(prefix: string, result) {
         result.push([prefix, this.data.report()]);
         prefix = prefix + (prefix.length > 0 ? "." : "");
-        for (let c of this.children.keys()) {
+        for (const c of this.children.keys()) {
             this.children.get(c).report(prefix + c, result);
         }
     }
 
-    reset() {
+    public reset() {
         this.data.reset();
-        for (let c of this.children.keys()) {
+        for (const c of this.children.keys()) {
             this.children.get(c).reset();
         }
     }
@@ -85,22 +85,22 @@ export class Node {
 
 /** Internal class that lives in a tree structure */
 export class PartitionNode {
-    child: Node;
-    pchildren: Map<string, PartitionNode>;
+    private child: Node;
+    private pchildren: Map<string, PartitionNode>;
 
     constructor() {
         this.child = null;
         this.pchildren = new Map<string, PartitionNode>();
     }
 
-    add(val: number, ptags: string[], tags: string[]) {
+    public add(val: number, ptags: string[], tags: string[]) {
         if (ptags.length == 0) {
             if (!this.child) {
                 this.child = new Node();
             }
             this.child.add(val, tags, 0);
         } else {
-            let ptag = ptags[0];
+            const ptag = ptags[0];
             ptags = ptags.slice(1);
             if (!this.pchildren.has(ptag)) {
                 this.pchildren.set(ptag, new PartitionNode());
@@ -109,22 +109,22 @@ export class PartitionNode {
         }
     }
 
-    report(prefix: string, result) {
+    public report(prefix: string, result) {
         if (this.child) {
             this.child.report(prefix, result);
         } else {
             prefix = prefix + (prefix.length > 0 ? "." : "");
-            for (let c of this.pchildren.keys()) {
+            for (const c of this.pchildren.keys()) {
                 this.pchildren.get(c).report(prefix + c, result);
             }
         }
     }
 
-    reset() {
+    public reset() {
         if (this.child) {
             this.child.reset();
         }
-        for (let pc of this.pchildren.keys()) {
+        for (const pc of this.pchildren.keys()) {
             this.pchildren[pc].reset();
         }
     }
@@ -133,39 +133,42 @@ export class PartitionNode {
 /**
  * This class processes incoming single-metric data
  * by counting and keeping various statistics
- * about it, and then publishing it when requested. */
+ * about it, and then publishing it when requested.
+ */
 
 export class SingleMetricAccumulator {
 
-    private map: PartitionNode;
     public name: string;
+
+    private map: PartitionNode;
 
     constructor(name: string) {
         this.name = name;
         this.map = new PartitionNode();
     }
 
-    add(val: number, ptags: string[], tags: string[]) {
-        let ttags = tags.slice(0);
+    public add(val: number, ptags: string[], tags: string[]) {
+        const ttags = tags.slice(0);
         ttags.sort();
         this.map.add(val, ptags, ttags);
     }
 
-    report() {
-        let result = [];
+    public report() {
+        const result = [];
         this.map.report("", result);
         return result;
     }
 
-    reset() {
+    public reset() {
         this.map.reset();
     }
 }
 
 /** This bolt processes incoming data by counting and keeping various statistics
- * about it, and then publishing them at regular intervals. */
+ * about it, and then publishing them at regular intervals.
+ */
 
-export class AccumulatorBolt implements intf.Bolt {
+export class AccumulatorBolt implements intf.IBolt {
 
     private last_ts: number;
     private emit_zero_counts: boolean;
@@ -185,7 +188,7 @@ export class AccumulatorBolt implements intf.Bolt {
         this.accumulators = [];
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.emit_zero_counts = config.emit_zero_counts;
         this.emit_gdr = !!(config.emit_gdr);
@@ -195,16 +198,18 @@ export class AccumulatorBolt implements intf.Bolt {
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         async.series(
             [
-                (xcallback) => {
+                xcallback => {
                     // process timestamp and send stats up until timestamp
                     let ts = data.ts;
                     if (data.ts instanceof Date) {
@@ -215,15 +220,15 @@ export class AccumulatorBolt implements intf.Bolt {
                     }
                     this.catchUpTimestamp(ts, xcallback);
                 },
-                (xcallback) => {
+                xcallback => {
                     // transform tags
-                    let partition_tags: string[] = [];
-                    let tags: string[] = [];
-                    for (let f of Object.getOwnPropertyNames(data.tags)) {
+                    const partition_tags: string[] = [];
+                    const tags: string[] = [];
+                    for (const f of Object.getOwnPropertyNames(data.tags)) {
                         if (this.ignore_tags.indexOf(f) >= 0) {
                             continue;
                         }
-                        let s = `${f}=${data.tags[f]}`;
+                        const s = `${f}=${data.tags[f]}`;
                         if (this.partition_tags.indexOf(f) >= 0) {
                             partition_tags.push(s);
                         } else {
@@ -232,9 +237,9 @@ export class AccumulatorBolt implements intf.Bolt {
                     }
 
                     // process each metric
-                    for (let f of Object.getOwnPropertyNames(data.values)) {
+                    for (const f of Object.getOwnPropertyNames(data.values)) {
                         let acc_match: SingleMetricAccumulator = null;
-                        for (let acc of this.accumulators) {
+                        for (const acc of this.accumulators) {
                             if (acc.name == f) {
                                 acc_match = acc;
                                 break;
@@ -255,13 +260,13 @@ export class AccumulatorBolt implements intf.Bolt {
 
     /** Repeatedly sends aggregates until aggregation watermark
      * reaches given timestamp.
-      */
-    catchUpTimestamp(ts, callback) {
+     */
+    private catchUpTimestamp(ts, callback) {
         async.whilst(
             () => {
                 return Math.floor(ts / this.granularity) > this.last_ts;
             },
-            (xcallback) => {
+            xcallback => {
                 this.sendAggregates(xcallback);
             },
             callback
@@ -269,44 +274,42 @@ export class AccumulatorBolt implements intf.Bolt {
     }
 
     /** Internal utility function that parses name into tag values */
-    name2tags(name: string): any {
-        let res = {}
-        name
-            .split(".")
-            .slice(1)
+    private name2tags(name: string): any {
+        const res = {};
+        name.split(".").slice(1)
             .forEach(x => {
-                let [n, v] = x.split("=");
+                const [n, v] = x.split("=");
                 res[n] = v;
             });
         return res;
     }
 
-    sendAggregates(callback) {
+    private sendAggregates(callback) {
         async.series(
             [
-                (xcallback) => {
+                xcallback => {
                     // prepare items to send
-                    let report = [];
-                    for (let acc of this.accumulators) {
-                        let stats = acc.report();
-                        for (let stat of stats) {
-                            let name = acc.name + (stat[0].length > 0 ? "." : "") + stat[0];
+                    const report = [];
+                    for (const acc of this.accumulators) {
+                        const stats = acc.report();
+                        for (const stat of stats) {
+                            const name = acc.name + (stat[0].length > 0 ? "." : "") + stat[0];
                             if (this.emit_gdr) {
-                                let tags = this.name2tags(name);
-                                tags["$name"] = name;
-                                tags["$metric"] = acc.name;
-                                report.push(
-                                    {
-                                        ts: this.last_ts * this.granularity,
-                                        tags: tags,
-                                        values: stat[1]
-                                    }
-                                );
+                                const tags = this.name2tags(name);
+                                tags.$name = name;
+                                tags.$metric = acc.name;
+                                report.push({
+                                    tags,
+                                    ts: this.last_ts * this.granularity,
+                                    values: stat[1]
+                                });
                             } else {
-                                report.push(
-                                    { ts: this.last_ts * this.granularity, name: name, stats: stat[1] }
-                                );
-                            };
+                                report.push({
+                                    name,
+                                    stats: stat[1],
+                                    ts: this.last_ts * this.granularity
+                                });
+                            }
                         }
                     }
 
@@ -320,11 +323,11 @@ export class AccumulatorBolt implements intf.Bolt {
                         xcallback
                     );
                 },
-                (xcallback) => {
+                xcallback => {
                     if (this.emit_zero_counts) {
-                        for (let acc of this.accumulators) {
+                        for (const acc of this.accumulators) {
                             acc.reset();
-                        };
+                        }
                     } else {
                         this.accumulators = [];
                     }

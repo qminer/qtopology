@@ -2,8 +2,9 @@ import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 
 /** This bolt counts incoming data and outputs statistics
- * to console and emits it as message to listeners. */
-export class CounterBolt implements intf.Bolt {
+ * to console and emits it as message to listeners.
+ */
+export class CounterBolt implements intf.IBolt {
 
     private name: string;
     private prefix: string;
@@ -20,7 +21,7 @@ export class CounterBolt implements intf.Bolt {
         this.last_output = Date.now();
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.name = name;
         this.onEmit = config.onEmit;
         this.prefix = `[${this.name}]`;
@@ -31,27 +32,29 @@ export class CounterBolt implements intf.Bolt {
         callback();
     }
 
-    heartbeat() {
-        let d = Date.now();
+    public heartbeat() {
+        const d = Date.now();
         if (d >= this.last_output + this.timeout) {
-            let sec = Math.round(d - this.last_output) / 1000;
+            const sec = Math.round(d - this.last_output) / 1000;
             log.logger().log(`${this.prefix} processed ${this.counter} in ${sec} sec`);
-            let msg = {
-                ts: new Date(),
+            const msg = {
                 counter: this.counter,
-                period: sec
+                period: sec,
+                ts: new Date()
             };
             this.counter = 0;
             this.last_output = d;
-            this.onEmit(msg, null, () => { });
+            this.onEmit(msg, null, () => {
+                // no-op
+            });
         }
     }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         this.counter++;
         this.onEmit(data, stream_id, callback);
     }

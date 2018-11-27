@@ -1,16 +1,16 @@
 import * as intf from "../topology_interfaces";
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
 class FileChangeRec {
-    target_dir: string;
-    file_name: string;
-    change_type: string;
-    ts: Date;
+    public target_dir: string;
+    public file_name: string;
+    public change_type: string;
+    public ts: Date;
 }
 
 /** This spout monitors directory for changes. */
-export class DirWatcherSpout implements intf.Spout {
+export class DirWatcherSpout implements intf.ISpout {
     private dir_name: string;
     private queue: FileChangeRec[];
     private should_run: boolean;
@@ -23,17 +23,16 @@ export class DirWatcherSpout implements intf.Spout {
         this.stream_id = null;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.dir_name = path.resolve(config.dir_name);
         this.stream_id = config.stream_id;
 
-        let self = this;
-        fs.watch(self.dir_name, { persistent: false }, (eventType, filename) => {
+        fs.watch(this.dir_name, { persistent: false }, (eventType, filename) => {
             if (filename) {
-                let rec = new FileChangeRec();
+                const rec = new FileChangeRec();
                 rec.change_type = eventType;
                 rec.file_name = "" + filename;
-                rec.target_dir = self.dir_name;
+                rec.target_dir = this.dir_name;
                 rec.ts = new Date();
                 this.queue.push(rec);
             }
@@ -41,25 +40,27 @@ export class DirWatcherSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (!this.should_run || this.queue.length === 0) {
             return callback(null, null, null);
         }
-        let data = this.queue[0];
+        const data = this.queue[0];
         this.queue = this.queue.slice(1);
         callback(null, data, this.stream_id);
     }
