@@ -7,6 +7,8 @@ export type InitContextCallback = (error?: Error, context?: any) => void;
 export type BoltEmitCallback = (data: any, stream_id: string, callback: SimpleCallback) => void;
 export type SpoutNextCallback = (err: Error, data: any, stream_id: string) => void;
 
+export type BoltEmitCallbackAsync = (data: any, stream_id: string) => Promise<void>;
+
 ////////////////////////////////////////////////////////////////////////
 // Options for validation
 
@@ -78,6 +80,32 @@ export interface ISpout {
     run(): void;
     pause(): void;
     next(callback: SpoutNextCallback): void;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Async classes
+
+export interface IBoltAsyncConfig {
+    onEmit: (data: any, stream_id: string) => Promise<void>;
+}
+export interface IBoltAsync {
+    init(name: string, config: IBoltAsyncConfig, context: any): Promise<void>;
+    heartbeat(): void;
+    shutdown(): Promise<void>;
+    receive(data: any, stream_id: string): Promise<void>;
+}
+
+export interface ISpoutAsyncNextResult {
+    data: any;
+    stream_id: string;
+}
+export interface ISpoutAsync {
+    init(name: string, config: any, context: any): Promise<void>;
+    heartbeat(): void;
+    shutdown(): Promise<void>;
+    run(): void;
+    pause(): void;
+    next(): Promise<ISpoutAsyncNextResult>;
 }
 
 ////////////////////////////////////////////////////////////////////////
