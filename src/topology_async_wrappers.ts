@@ -67,7 +67,13 @@ export class SpoutAsyncWrapper implements intf.ISpout {
 
     public next(callback: intf.SpoutNextCallback): void {
         this.obj.next()
-            .then(res => { callback(null, res.data, res.stream_id); })
+            .then(res => {
+                if (res) {
+                    callback(null, res.data, res.stream_id);
+                } else {
+                    callback(null, null, null);
+                }
+            })
             .catch(err => { callback(err, null, null); });
     }
 }

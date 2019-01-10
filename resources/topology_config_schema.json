@@ -146,8 +146,11 @@
                     "type": {
                         "enum": [
                             "module_class",
+                            "module_class_async",
                             "module_method",
+                            "module_method_async",
                             "inproc",
+                            "inproc_async",
                             "sys"
                         ]
                     },
@@ -191,8 +194,11 @@
                     "type": {
                         "enum": [
                             "module_class",
+                            "module_class_async",
                             "module_method",
+                            "module_method_async",
                             "inproc",
+                            "inproc_async",
                             "sys"
                         ]
                     },

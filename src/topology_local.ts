@@ -459,7 +459,7 @@ function injectOverrides(config: any, overrides: any) {
 }
 
 /** This functin is used for running topology localy */
-export function runLocalTopologyFromFile(file_name: string, overrides?: any) {
+export function runLocalTopologyFromFile(file_name: string, overrides?: any): TopologyLocal {
     let config = readJsonFileSync(file_name);
     validate({ config, exitOnError: true });
     injectOverrides(config, overrides || {});
@@ -510,4 +510,6 @@ export function runLocalTopologyFromFile(file_name: string, overrides?: any) {
         console.log(e);
         process.exit(1);
     });
+
+    return topology;
 }

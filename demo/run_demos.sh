@@ -96,6 +96,11 @@ cd quick_start
 node top.js
 cd ..
 
+title "Running async demo"
+cd async
+node top.js
+cd ..
+
 title "Demos finished"
 end=`date +%s`
 

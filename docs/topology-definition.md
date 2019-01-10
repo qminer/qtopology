@@ -18,7 +18,7 @@ Topology is defined via `JSON`. It follows this structure:
             - `disabled`: optional flag that this step is disabled. This means that it wont be run.
 - `spouts`: array of spout definitions
     - `name`: spout name
-    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), or `sys` (standard)
+    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), `module_method_async`, `module_class_async`, or `sys` (standard)
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
@@ -27,7 +27,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
     - `name`: bolt name
-    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), or `sys` (standard)
+    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), `module_method_async`, `module_class_async`, or `sys` (standard)
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.

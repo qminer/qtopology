@@ -29,6 +29,7 @@ import * as ds from "./std_nodes/dir_watcher_spout";
 
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
+import { SpoutAsyncWrapper, BoltAsyncWrapper } from "./topology_async_wrappers";
 
 const NEXT_SLEEP_TIMEOUT: number = 1 * 1000; // number of miliseconds to "sleep" when spout.next() returned no data
 
@@ -150,6 +151,19 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
                 this.spout = new module[this.cmd](this.subtype);
+                if (!this.spout) {
+                    throw new Error(
+                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+            } else if (config.type == "module_class_async") {
+                this.makeWorkingDirAbsolute();
+                const module = require(this.working_dir);
+                const inner_spout = new module[this.cmd](this.subtype);
+                if (!inner_spout) {
+                    throw new Error(
+                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                this.spout = new SpoutAsyncWrapper(inner_spout);
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
@@ -158,6 +172,23 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
+            } else if (config.type == "module_method_async") {
+                this.makeWorkingDirAbsolute();
+                const module = require(this.working_dir);
+                const inner_spout = module[this.cmd](this.subtype);
+                if (!inner_spout) {
+                    throw new Error(
+                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                this.spout = new SpoutAsyncWrapper(inner_spout);
+            } else if (config.type == "inproc_async") {
+                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
+                const module_path = path.join(this.working_dir, this.cmd);
+                const inner_spout = require(module_path).create(this.subtype);
+                if (!inner_spout) {
+                    throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                this.spout = new SpoutAsyncWrapper(inner_spout);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
@@ -424,15 +455,40 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
                 this.bolt = new module[this.cmd](this.subtype);
+            } else if (config.type == "module_class_async") {
+                this.makeWorkingDirAbsolute();
+                const module = require(this.working_dir);
+                const inner_bolt = new module[this.cmd](this.subtype);
+                if (!inner_bolt) {
+                    throw new Error(
+                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                this.bolt = new BoltAsyncWrapper(inner_bolt);
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
                 this.bolt = module[this.cmd](this.subtype);
                 if (!this.bolt) {
                     throw new Error(
-                        `Bolt factory returned null: ${this.working_dir}, ` +
-                        `cmd=${this.cmd}, subtype=${this.subtype}`);
+                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
+            } else if (config.type == "module_method_async") {
+                this.makeWorkingDirAbsolute();
+                const module = require(this.working_dir);
+                const inner_bolt = module[this.cmd](this.subtype);
+                if (!inner_bolt) {
+                    throw new Error(
+                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                this.bolt = new BoltAsyncWrapper(inner_bolt);
+            } else if (config.type == "inproc_async") {
+                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
+                const module_path = path.join(this.working_dir, this.cmd);
+                const inner_bolt = require(module_path).create(this.subtype);
+                if (!inner_bolt) {
+                    throw new Error(`Bolt factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                this.bolt = new BoltAsyncWrapper(inner_bolt);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
