@@ -459,7 +459,7 @@ function injectOverrides(config: any, overrides: any) {
 }
 
 /** This functin is used for running topology localy */
-export function runLocalTopologyFromFile(file_name: string, overrides?: any): ()=>void {
+export function runLocalTopologyFromFile(file_name: string, overrides?: any): (code: number) => void {
     let config = readJsonFileSync(file_name);
     validate({ config, exitOnError: true });
     injectOverrides(config, overrides || {});
@@ -487,23 +487,23 @@ export function runLocalTopologyFromFile(file_name: string, overrides?: any): ()
         }
     );
 
-    function shutdown() {
+    function shutdown(exit_code: number) {
         if (topology) {
             topology.shutdown(err => {
                 if (err) {
                     console.log("Error", err);
                 }
-                process.exit(1);
+                process.exit(exit_code);
             });
             topology = null;
         }
     }
 
     // do something when app is closing
-    process.on("exit", shutdown);
+    process.on("exit", () => { shutdown(0); });
 
     // catches ctrl+c event
-    process.on("SIGINT", shutdown);
+    process.on("SIGINT", () => { shutdown(1); });
 
     // catches uncaught exceptions
     process.on("uncaughtException", e => {
