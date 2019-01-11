@@ -5,7 +5,7 @@
 !docs
 !resources
 !src
-!test
+!tests
 !jshint*
 !ts*.json
 !package.json
