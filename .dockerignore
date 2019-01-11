@@ -1,0 +1,12 @@
+# Ignore all files by default
+*
+# White list only the required files
+!demo
+!docs
+!resources
+!src
+!test
+!jshint*
+!ts*.json
+!package.json
+!package-lock.json
