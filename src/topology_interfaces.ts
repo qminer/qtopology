@@ -85,9 +85,12 @@ export interface ISpout {
 ////////////////////////////////////////////////////////////////////////
 // Async classes
 
+export type BoltAsyncEmitCallback = (data: any, stream_id: string) => Promise<void>;
+
 export interface IBoltAsyncConfig {
-    onEmit: (data: any, stream_id: string) => Promise<void>;
+    onEmit: BoltAsyncEmitCallback;
 }
+
 export interface IBoltAsync {
     init(name: string, config: IBoltAsyncConfig, context: any): Promise<void>;
     heartbeat(): void;
