@@ -1,11 +1,12 @@
 import * as intf from "./topology_interfaces";
 
+/** Wrapper for async bolt that transforms it into normal, callback-based bolt */
 export class BoltAsyncWrapper implements intf.IBolt {
 
-    private obj: intf.IBoltAsync;
+    private inner: intf.IBoltAsync;
 
     constructor(obj: intf.IBoltAsync) {
-        this.obj = obj;
+        this.inner = obj;
     }
 
     public init(name: string, config: any, context: any, callback: intf.SimpleCallback): void {
@@ -21,52 +22,53 @@ export class BoltAsyncWrapper implements intf.IBolt {
                 });
             });
         };
-        this.obj.init(name, config, context)
+        this.inner.init(name, config, context)
             .then(() => { callback(); })
             .catch(callback);
     }
 
-    public heartbeat(): void { this.obj.heartbeat(); }
+    public heartbeat(): void { this.inner.heartbeat(); }
 
     public shutdown(callback: intf.SimpleCallback): void {
-        this.obj.shutdown()
+        this.inner.shutdown()
             .then(() => { callback(); })
             .catch(callback);
     }
 
     public receive(data: any, stream_id: string, callback: intf.SimpleCallback): void {
-        this.obj.receive(data, stream_id)
+        this.inner.receive(data, stream_id)
             .then(() => { callback(); })
             .catch(callback);
     }
 }
 
+/** Wrapper for async spout that transforms it into normal, callback-based spout */
 export class SpoutAsyncWrapper implements intf.ISpout {
 
-    private obj: intf.ISpoutAsync;
+    private inner: intf.ISpoutAsync;
 
     constructor(obj: intf.ISpoutAsync) {
-        this.obj = obj;
+        this.inner = obj;
     }
 
     public init(name: string, config: any, context: any, callback: intf.SimpleCallback): void {
-        this.obj.init(name, config, context)
+        this.inner.init(name, config, context)
             .then(() => { callback(); })
             .catch(callback);
     }
 
     public shutdown(callback: intf.SimpleCallback): void {
-        this.obj.shutdown()
+        this.inner.shutdown()
             .then(() => { callback(); })
             .catch(callback);
     }
 
-    public heartbeat(): void { this.obj.heartbeat(); }
-    public run(): void { this.obj.run(); }
-    public pause(): void { this.obj.pause(); }
+    public heartbeat(): void { this.inner.heartbeat(); }
+    public run(): void { this.inner.run(); }
+    public pause(): void { this.inner.pause(); }
 
     public next(callback: intf.SpoutNextCallback): void {
-        this.obj.next()
+        this.inner.next()
             .then(res => {
                 if (res) {
                     callback(null, res.data, res.stream_id);
