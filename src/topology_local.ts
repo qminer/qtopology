@@ -503,10 +503,14 @@ export function runLocalTopologyFromFile(file_name: string, overrides?: any): (c
     process.on("exit", () => { shutdown(0); });
 
     // catches ctrl+c event
-    process.on("SIGINT", () => { shutdown(1); });
+    process.on("SIGINT", () => {
+        console.log("SIGINT received, shutting down...");
+        shutdown(1);
+    });
 
     // catches uncaught exceptions
     process.on("uncaughtException", e => {
+        console.log("Uncaught exception found");
         console.log(e);
         process.exit(1);
     });
