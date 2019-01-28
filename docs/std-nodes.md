@@ -25,6 +25,7 @@ List of standard bolts:
 - [Console bolt](#console-bolt)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
+- [Date-to-numeric bolt](#date-to-numeric-bolt)
 - [File-append bolt extended](#file-append-bolt-extended)
 - [File-append bolt](#file-append-bolt)
 - [Filter bolt](#filter-bolt)
@@ -190,6 +191,26 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 > Using this bolt only makes sense when messages are passed in binary form.
 
 > **NOTE:** This bolt is obsolete, use `type_transform` bolt in the future.
+
+## Date-to-numeric bolt
+
+`cmd="date2numeric_transform"`
+
+This bolt takes incoming messages and transforms predefined fields from `Date` objects into their
+numeric value (Unix timestamp).
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "date2numeric_transform",
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
 
 ## Type-transform bolt
 
