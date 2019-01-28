@@ -216,7 +216,8 @@ numeric value (Unix timestamp).
 
 `cmd="type_transform"`
 
-This bolt takes incoming messages and transforms predefined fields into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
+This bolt takes incoming messages and transforms predefined fields 
+into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
 
 ```````````````````````````````json
 {
@@ -227,12 +228,20 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
     "inputs": [{ "source": "pump" }],
     "init": {
         "date_transform_fields": ["field1", "field2"],
+        "date_n_transform_fields": ["field1n", "field2n"],
         "numeric_transform_fields": ["field3"],
         "bool_transform_fields": ["field4"],
         "reuse_stream_id": true
     }
 }
 ```````````````````````````````
+
+The following settings can be used in `init` section:
+- `date_transform_fields` - list of fields that will be transformed into `Date` objects
+- `date_n_transform_fields` - list of fields that will be parsed as dates and transformed into Unix timestamps
+- `numeric_transform_fields` - these fields will be transformed into numeric values directly
+- `bool_transform_fields` - these fields will be transformed into boolean values
+- `reuse_stream_id` - flag if incoming stream id should be reused. Otherwise it is null.
 
 > Using this bolt only makes sense when messages are passed in binary form.
 

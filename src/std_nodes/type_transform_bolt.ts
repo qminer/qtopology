@@ -7,6 +7,7 @@ import * as intf from "../topology_interfaces";
 export class TypeTransformBolt implements intf.IBolt {
 
     private date_transform_fields: string[];
+    private date_n_transform_fields: string[];
     private numeric_transform_fields: string[];
     private bool_transform_fields: string[];
     private onEmit: intf.BoltEmitCallback;
@@ -16,6 +17,7 @@ export class TypeTransformBolt implements intf.IBolt {
     constructor() {
         this.onEmit = null;
         this.date_transform_fields = [];
+        this.date_n_transform_fields = [];
         this.bool_transform_fields = [];
         this.numeric_transform_fields = [];
         this.stream_id = null;
@@ -25,6 +27,7 @@ export class TypeTransformBolt implements intf.IBolt {
     public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.date_transform_fields = config.date_transform_fields || [];
+        this.date_n_transform_fields = config.date_n_transform_fields || [];
         this.numeric_transform_fields = config.numeric_transform_fields || [];
         this.bool_transform_fields = config.bool_transform_fields || [];
         this.stream_id = config.stream_id;
@@ -44,6 +47,11 @@ export class TypeTransformBolt implements intf.IBolt {
         for (const date_field of this.date_transform_fields) {
             if (data[date_field]) {
                 data[date_field] = new Date(data[date_field]);
+            }
+        }
+        for (const date_field of this.date_n_transform_fields) {
+            if (data[date_field]) {
+                data[date_field] = new Date(data[date_field]).getTime();
             }
         }
         for (const date_field of this.numeric_transform_fields) {
