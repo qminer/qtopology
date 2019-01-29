@@ -855,8 +855,8 @@ The output will be written in CSV format. The parameters are the following:
 
 - `file_name` - Name of the output file.
 - `delete_existing` - Should output file be deleted if it already exists. Optional, default is `false`.
-- `delimiter` - Deliemiter string between values. Optional, default is ",".
-- `fields` - List of CSV fields. The names in settings denote path to actual values in the data.
+- `delimiter` - Delimiter string between values. Optional, default is ",".
+- `fields` - List of CSV fields. Optional. The names in settings denote path to actual values in the data. If this field is not present, the sorted list of the top-level properties of the first received record are used as fields. 
 - `header` - Header line. Optional. If skipped, no header line will be printed.
 
 ## Router bolt

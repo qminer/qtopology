@@ -4,7 +4,7 @@ import * as qewd from "qewd-transform-json";
 import * as intf from "../topology_interfaces";
 
 /** Interfal interface for different implementations */
-interface ITransformHelper {
+export interface ITransformHelper {
     transform(data: any): any;
 }
 
