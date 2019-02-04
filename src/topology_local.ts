@@ -441,7 +441,7 @@ export class TopologyLocal {
                 }
             );
         } else {
-            callback(null, null);
+            callback(null, {});
         }
     }
 }

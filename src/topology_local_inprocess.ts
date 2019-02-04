@@ -133,7 +133,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context: any) {
+    constructor(config: any, context: any) {
         super(config.name, config.telemetry_timeout);
 
         this.name = config.name;
@@ -150,51 +150,40 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.spout = new module[this.cmd](this.subtype);
-                if (!this.spout) {
+                const obj = new module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-            } else if (config.type == "module_class_async") {
-                this.makeWorkingDirAbsolute();
-                const module = require(this.working_dir);
-                const inner_spout = new module[this.cmd](this.subtype);
-                if (!inner_spout) {
-                    throw new Error(
-                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                if (this.spout.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
                 }
-                this.spout = new SpoutAsyncWrapper(inner_spout);
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.spout = module[this.cmd](this.subtype);
-                if (!this.spout) {
+                const obj = module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-            } else if (config.type == "module_method_async") {
-                this.makeWorkingDirAbsolute();
-                const module = require(this.working_dir);
-                const inner_spout = module[this.cmd](this.subtype);
-                if (!inner_spout) {
-                    throw new Error(
-                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                if (this.spout.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
                 }
-                this.spout = new SpoutAsyncWrapper(inner_spout);
-            } else if (config.type == "inproc_async") {
-                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
-                const module_path = path.join(this.working_dir, this.cmd);
-                const inner_spout = require(module_path).create(this.subtype);
-                if (!inner_spout) {
-                    throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
-                }
-                this.spout = new SpoutAsyncWrapper(inner_spout);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
-                this.spout = require(module_path).create(this.subtype);
-                if (!this.spout) {
+                const obj = require(module_path).create(this.subtype);
+                if (!obj) {
                     throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                if (this.spout.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
                 }
             }
         } catch (e) {
@@ -424,7 +413,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context: any) {
+    constructor(config: any, context: any) {
         super(config.name, config.telemetry_timeout);
         this.name = config.name;
         this.context = context;
@@ -455,47 +444,40 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.bolt = new module[this.cmd](this.subtype);
-            } else if (config.type == "module_class_async") {
-                this.makeWorkingDirAbsolute();
-                const module = require(this.working_dir);
-                const inner_bolt = new module[this.cmd](this.subtype);
-                if (!inner_bolt) {
+                const obj = new module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
                         `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-                this.bolt = new BoltAsyncWrapper(inner_bolt);
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
+                }
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.bolt = module[this.cmd](this.subtype);
-                if (!this.bolt) {
+                const obj = module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
                         `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-            } else if (config.type == "module_method_async") {
-                this.makeWorkingDirAbsolute();
-                const module = require(this.working_dir);
-                const inner_bolt = module[this.cmd](this.subtype);
-                if (!inner_bolt) {
-                    throw new Error(
-                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
                 }
-                this.bolt = new BoltAsyncWrapper(inner_bolt);
-            } else if (config.type == "inproc_async") {
-                this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
-                const module_path = path.join(this.working_dir, this.cmd);
-                const inner_bolt = require(module_path).create(this.subtype);
-                if (!inner_bolt) {
-                    throw new Error(`Bolt factory returned null: ${module_path}, subtype=${this.subtype}`);
-                }
-                this.bolt = new BoltAsyncWrapper(inner_bolt);
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
-                this.bolt = require(module_path).create(this.subtype);
-                if (!this.bolt) {
+                const obj = require(module_path).create(this.subtype);
+                if (!obj) {
                     throw new Error(`Bolt factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
                 }
             }
         } catch (e) {
