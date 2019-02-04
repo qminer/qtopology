@@ -155,7 +155,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-                if (this.spout.init.length < 4) {
+                if (obj.init.length < 4) {
                     this.spout = new SpoutAsyncWrapper(obj);
                 } else {
                     this.spout = obj;
@@ -168,7 +168,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
                 }
-                if (this.spout.init.length < 4) {
+                if (obj.init.length < 4) {
                     this.spout = new SpoutAsyncWrapper(obj);
                 } else {
                     this.spout = obj;
@@ -180,7 +180,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
                 if (!obj) {
                     throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
                 }
-                if (this.spout.init.length < 4) {
+                if (obj.init.length < 4) {
                     this.spout = new SpoutAsyncWrapper(obj);
                 } else {
                     this.spout = obj;
