@@ -5,7 +5,7 @@
     "spouts": [
         {
             "name": "pump1",
-            "type": "inproc_async",
+            "type": "inproc",
             "working_dir": ".",
             "cmd": "my_spout.js",
             "init": {}
@@ -15,7 +15,7 @@
         {
             "name": "bolt1",
             "working_dir": ".",
-            "type": "inproc_async",
+            "type": "inproc",
             "cmd": "my_bolt.js",
             "inputs": [
                 { "source": "pump1", "stream_id": "stream1" }
