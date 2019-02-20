@@ -29,6 +29,7 @@ List of standard bolts:
 - [File-append bolt extended](#file-append-bolt-extended)
 - [File-append bolt](#file-append-bolt)
 - [Filter bolt](#filter-bolt)
+- [Forward bolt](#forward-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [Process bolt](#process-bolt)
@@ -666,6 +667,26 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
             }
         }
     }
+}
+```````````````````````````````
+
+## Forward bolt
+
+`cmd="forward"`
+
+This bolt forwards all incoming messages to all listeners. Useful for collecting many inputs and for broadcasting to many listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "filter",
+    "inputs": [
+        { "source": "pump1" },
+        { "source": "pump2" }
+    ],
+    "init": {}
 }
 ```````````````````````````````
 

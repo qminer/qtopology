@@ -30,6 +30,7 @@ import * as ds from "./std_nodes/dir_watcher_spout";
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
 import { SpoutAsyncWrapper, BoltAsyncWrapper } from "./topology_async_wrappers";
+import { ForwardrBolt as ForwardBolt } from "./std_nodes/forward_bolt";
 
 const NEXT_SLEEP_TIMEOUT: number = 1 * 1000; // number of miliseconds to "sleep" when spout.next() returned no data
 
@@ -378,6 +379,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
+            case "forward": return new ForwardBolt();
             case "attacher": return new ab.AttacherBolt();
             case "accumulator": return new ac.AccumulatorBolt();
             case "transform": return new tb.TransformBolt();

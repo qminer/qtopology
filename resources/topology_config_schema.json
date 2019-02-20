@@ -6,6 +6,9 @@
         "general": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "heartbeat": {
                     "type": "integer"
                 },
@@ -143,6 +146,9 @@
                     "name": {
                         "type": "string"
                     },
+                    "description": {
+                        "type": "string"
+                    },
                     "type": {
                         "enum": [
                             "module_class",
@@ -186,6 +192,9 @@
                 "type": "object",
                 "properties": {
                     "name": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string"
                     },
                     "type": {
