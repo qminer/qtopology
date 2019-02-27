@@ -15,5 +15,6 @@ RUN npm install
 # Copy the whitelisted files
 COPY . .
 
+RUN npm run prepare
 RUN npm run build
 RUN npm run test-unit
