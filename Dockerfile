@@ -5,7 +5,6 @@ RUN mkdir /srv/github-actions-app
 WORKDIR /srv/github-actions-app
 
 # Send over the dependency definitions to the container
-
 COPY package.json ./
 COPY package-lock.json ./
 
