@@ -217,7 +217,7 @@ numeric value (Unix timestamp).
 
 `cmd="type_transform"`
 
-This bolt takes incoming messages and transforms predefined fields 
+This bolt takes incoming messages and transforms predefined fields
 into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
 
 ```````````````````````````````json
@@ -298,7 +298,7 @@ Other options:
 - `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
 - `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
 - `partition_tags` - list of tag names (string) that are mandatory and will always be present in metric statistics. No statistics will be tracked for tag partitions without these metrics.
-- `emit_gdr` - (default=false) this option makes the bolt emit its data in GDR format. The result would be something like:
+- `emit_gdr` - (default=`false`) this option makes the bolt emit its data in GDR format. The result would be something like:
 
 ```````````````````````````````json
 {
@@ -877,7 +877,7 @@ The output will be written in CSV format. The parameters are the following:
 - `file_name` - Name of the output file.
 - `delete_existing` - Should output file be deleted if it already exists. Optional, default is `false`.
 - `delimiter` - Delimiter string between values. Optional, default is ",".
-- `fields` - List of CSV fields. Optional. The names in settings denote path to actual values in the data. If this field is not present, the sorted list of the top-level properties of the first received record are used as fields. 
+- `fields` - List of CSV fields. Optional. The names in settings denote path to actual values in the data. If this field is not present, the sorted list of the top-level properties of the first received record are used as fields.
 - `header` - Header line. Optional. If skipped, no header line will be printed.
 
 ## Router bolt
