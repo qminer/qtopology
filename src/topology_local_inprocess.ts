@@ -29,6 +29,8 @@ import * as ds from "./std_nodes/dir_watcher_spout";
 
 import * as tel from "./util/telemetry";
 import * as log from "./util/logger";
+import { SpoutAsyncWrapper, BoltAsyncWrapper } from "./topology_async_wrappers";
+import { ForwardrBolt as ForwardBolt } from "./std_nodes/forward_bolt";
 
 const NEXT_SLEEP_TIMEOUT: number = 1 * 1000; // number of miliseconds to "sleep" when spout.next() returned no data
 
@@ -132,7 +134,7 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context: any) {
+    constructor(config: any, context: any) {
         super(config.name, config.telemetry_timeout);
 
         this.name = config.name;
@@ -149,21 +151,40 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.spout = new module[this.cmd](this.subtype);
+                const obj = new module[this.cmd](this.subtype);
+                if (!obj) {
+                    throw new Error(
+                        `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
+                }
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.spout = module[this.cmd](this.subtype);
-                if (!this.spout) {
+                const obj = module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
                         `Spout factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
                 }
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
-                this.spout = require(module_path).create(this.subtype);
-                if (!this.spout) {
+                const obj = require(module_path).create(this.subtype);
+                if (!obj) {
                     throw new Error(`Spout factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.spout = new SpoutAsyncWrapper(obj);
+                } else {
+                    this.spout = obj;
                 }
             }
         } catch (e) {
@@ -358,6 +379,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         switch (bolt_config.cmd) {
             case "console": return new cb.ConsoleBolt();
             case "filter": return new fb.FilterBolt();
+            case "forward": return new ForwardBolt();
             case "attacher": return new ab.AttacherBolt();
             case "accumulator": return new ac.AccumulatorBolt();
             case "transform": return new tb.TransformBolt();
@@ -370,6 +392,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "file_append_ex": return new fab2.FileAppendBoltEx();
             case "date_transform": return new ttb.TypeTransformBolt();
             case "type_transform": return new ttb.TypeTransformBolt();
+            case "date2numeric_transform": return new ttb.DateToNumericTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
@@ -392,7 +415,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
     private emitCallback: intf.BoltEmitCallback;
 
     /** Constructor needs to receive all data */
-    constructor(config, context: any) {
+    constructor(config: any, context: any) {
         super(config.name, config.telemetry_timeout);
         this.name = config.name;
         this.context = context;
@@ -423,22 +446,40 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.bolt = new module[this.cmd](this.subtype);
+                const obj = new module[this.cmd](this.subtype);
+                if (!obj) {
+                    throw new Error(
+                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
+                }
             } else if (config.type == "module_method") {
                 this.makeWorkingDirAbsolute();
                 const module = require(this.working_dir);
-                this.bolt = module[this.cmd](this.subtype);
-                if (!this.bolt) {
+                const obj = module[this.cmd](this.subtype);
+                if (!obj) {
                     throw new Error(
-                        `Bolt factory returned null: ${this.working_dir}, ` +
-                        `cmd=${this.cmd}, subtype=${this.subtype}`);
+                        `Bolt factory returned null: ${this.working_dir}, cmd=${this.cmd}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
                 }
             } else {
                 this.working_dir = path.resolve(this.working_dir); // path may be relative to current working dir
                 const module_path = path.join(this.working_dir, this.cmd);
-                this.bolt = require(module_path).create(this.subtype);
-                if (!this.bolt) {
+                const obj = require(module_path).create(this.subtype);
+                if (!obj) {
                     throw new Error(`Bolt factory returned null: ${module_path}, subtype=${this.subtype}`);
+                }
+                if (obj.init.length < 4) {
+                    this.bolt = new BoltAsyncWrapper(obj);
+                } else {
+                    this.bolt = obj;
                 }
             }
         } catch (e) {

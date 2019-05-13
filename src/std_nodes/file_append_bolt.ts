@@ -4,7 +4,7 @@ import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
 import * as zlib from "zlib";
 import * as async from "async";
-import { TransformHelper } from "./transform_bolt";
+import { TransformHelper, ITransformHelper } from "./transform_bolt";
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -269,7 +269,8 @@ export class FileAppendBolt implements intf.IBolt {
 /** This bolt writes incoming messages to file in CSV format. */
 export class CsvFileAppendBolt implements intf.IBolt {
 
-    private transform: TransformHelper;
+    private transform: ITransformHelper;
+    private direct_fields: string[];
     private file_name: string;
     private delimiter: string;
     private current_data: string[];
@@ -277,6 +278,7 @@ export class CsvFileAppendBolt implements intf.IBolt {
     constructor() {
         this.file_name = null;
         this.transform = null;
+        this.direct_fields = null;
         this.current_data = [];
     }
 
@@ -293,12 +295,10 @@ export class CsvFileAppendBolt implements intf.IBolt {
                 fs.appendFileSync(this.file_name, config.header + "\n");
             }
 
-            const fields: string[] = config.fields;
-            const transform_template = {};
-            for (let i = 0; i < fields.length; i++) {
-                transform_template["field_" + i] = fields[i];
+            if (config.fields) {
+                const fields: string[] = config.fields;
+                this.prepareTransform(fields);
             }
-            this.transform = new TransformHelper(transform_template);
             callback();
         } catch (e) {
             callback(e);
@@ -319,11 +319,26 @@ export class CsvFileAppendBolt implements intf.IBolt {
         try {
             // transform data into CSV
             data = JSON.parse(JSON.stringify(data));
-            const result = this.transform.transform(data);
-            const line = Object.keys(result)
-                .map(x => "" + result[x])
-                .join(this.delimiter);
-            this.current_data.push(line);
+            // if output fields were not defined
+            if (!this.transform) {
+                // there is no transformation, export all fields
+                // if this is the first received record, collect the fields
+                if (!this.direct_fields) {
+                    this.direct_fields = Object.keys(data).sort();
+                    this.current_data.push(this.direct_fields.join(this.delimiter));
+                }
+                const line = this.direct_fields
+                    .map(x => "" + data[x])
+                    .join(this.delimiter);
+                this.current_data.push(line);
+            } else {
+                // perform the transformation
+                const result = this.transform.transform(data);
+                const line = Object.keys(result)
+                    .map(x => "" + result[x])
+                    .join(this.delimiter);
+                this.current_data.push(line);
+            }
             callback();
         } catch (e) {
             log.logger().error("Error in receive");
@@ -340,5 +355,13 @@ export class CsvFileAppendBolt implements intf.IBolt {
         this.current_data = [];
         const lines = data.join("\n") + "\n";
         fs.appendFile(this.file_name, lines, callback);
+    }
+
+    private prepareTransform(fields: string[]) {
+        const transform_template = {};
+        for (let i = 0; i < fields.length; i++) {
+            transform_template["field_" + i] = fields[i];
+        }
+        this.transform = new TransformHelper(transform_template);
     }
 }

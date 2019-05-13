@@ -99,7 +99,6 @@ exports.create = function (subtype) {
 Put code for custom spout into `my_spout.js`
 
 ```````````````````````javascript
-
 "use strict";
 
 class MySpout {
@@ -163,11 +162,75 @@ require("qtopology")
     .runLocalTopologyFromFile("./topology.json");
 ``````````````````````
 
+## Async bolts and spouts
+
+If you prefer, you can use promises-based implementation:
+
+`````javascript
+class MyAsyncBolt {
+
+    constructor() {
+        this._name = null;
+        this._onEmit = null;
+    }
+
+    async init(name, config, context) {
+        this._name = name;
+        this._onEmit = config.onEmit;
+    }
+
+    heartbeat() { }
+    async shutdown() { }
+
+    async receive(data, stream_id) {
+        // we just print the incoming data and pass it on
+        console.log(data, stream_id);
+        await this._onEmit(data, stream_id);
+    }
+}
+`````
+and
+
+`````javascript
+class MyAsyncSpout {
+
+    constructor() {
+        this._name = null;
+        this._data = [];
+        this._data_index = 0;
+    }
+
+    async init(name, config, context) {
+        this._name = name;
+        // we will emit dummy generated data
+        for (let i = 0; i < 100; i++) {
+            this._data.push({ id: i });
+        }
+    }
+
+    heartbeat() { }
+    async shutdown() { }
+    run() { }
+    pause() { }
+
+    async next() {
+        if (this._data_index >= this._data.length) {
+            return null;
+        } else {
+            return {
+                data: this._data[this._data_index++],
+                stream_id: "stream1"
+            };
+        }
+    }
+}
+`````
+
 ## Further steps
 
 To explore the capabilities further, one can:
 
-- Define new bolts and connect them **sequentially** and **parallely**.
+- Define new bolts and connect them **sequentially** and **in parallel**.
 - Use **stream ids** of messages for routing and filtering
 - Use **standard bolts and spouts** for common tasks such as filtering
 - Use **telemetry data** (`stream_id=$telemetry`) of nodes that comes out-of-the-box with the topology
@@ -185,7 +248,7 @@ Normally, there would be one worker instance per server. The steps to create a w
 - create an instance of your storage
 - initialize the storage
 - create an instance of worker object, passing storage to it
-- take care of shutdown event for a gracefull  
+- take care of shutdown event for a graceful
 
 `````````````````````````````````javascript
 "use strict";
