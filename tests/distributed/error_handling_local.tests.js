@@ -62,7 +62,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -93,7 +93,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -123,7 +123,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -159,7 +159,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.general.heartbeat = 5;
@@ -202,7 +202,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -241,7 +241,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -283,7 +283,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -326,7 +326,7 @@ describe('local: bolt errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.bolts.push(config);
@@ -376,7 +376,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -406,7 +406,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -448,7 +448,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -478,7 +478,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -539,7 +539,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.general.heartbeat = 5;
@@ -583,7 +583,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -624,7 +624,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -665,7 +665,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -707,7 +707,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -738,7 +738,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -781,7 +781,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -831,7 +831,7 @@ describe('local: spout errors', function () {
 
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -877,7 +877,7 @@ describe('local: spout errors', function () {
 
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -917,7 +917,7 @@ describe('local: spout errors', function () {
 
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -951,7 +951,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -995,7 +995,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);
@@ -1033,7 +1033,7 @@ describe('local: spout errors', function () {
             };
             let errors = [];
             let onError = (e) => { errors.push(e); }
-            // onError called by heartbeat or internal spout/bolt error         
+            // onError called by heartbeat or internal spout/bolt error
             let target = new tl.TopologyLocal(onError);
             let top_config = JSON.parse(JSON.stringify(topology_json));
             top_config.spouts.push(config);

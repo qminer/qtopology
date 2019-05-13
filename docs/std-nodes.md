@@ -25,9 +25,11 @@ List of standard bolts:
 - [Console bolt](#console-bolt)
 - [Counter bolt](#counter-bolt)
 - [Date-transform bolt](#date-transform-bolt)
+- [Date-to-numeric bolt](#date-to-numeric-bolt)
 - [File-append bolt extended](#file-append-bolt-extended)
 - [File-append bolt](#file-append-bolt)
 - [Filter bolt](#filter-bolt)
+- [Forward bolt](#forward-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [Process bolt](#process-bolt)
@@ -191,11 +193,32 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 
 > **NOTE:** This bolt is obsolete, use `type_transform` bolt in the future.
 
+## Date-to-numeric bolt
+
+`cmd="date2numeric_transform"`
+
+This bolt takes incoming messages and transforms predefined fields from `Date` objects into their
+numeric value (Unix timestamp).
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "date2numeric_transform",
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
+
 ## Type-transform bolt
 
 `cmd="type_transform"`
 
-This bolt takes incoming messages and transforms predefined fields into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
+This bolt takes incoming messages and transforms predefined fields
+into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
 
 ```````````````````````````````json
 {
@@ -206,12 +229,20 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
     "inputs": [{ "source": "pump" }],
     "init": {
         "date_transform_fields": ["field1", "field2"],
+        "date_n_transform_fields": ["field1n", "field2n"],
         "numeric_transform_fields": ["field3"],
         "bool_transform_fields": ["field4"],
         "reuse_stream_id": true
     }
 }
 ```````````````````````````````
+
+The following settings can be used in `init` section:
+- `date_transform_fields` - list of fields that will be transformed into `Date` objects
+- `date_n_transform_fields` - list of fields that will be parsed as dates and transformed into Unix timestamps
+- `numeric_transform_fields` - these fields will be transformed into numeric values directly
+- `bool_transform_fields` - these fields will be transformed into boolean values
+- `reuse_stream_id` - flag if incoming stream id should be reused. Otherwise it is null.
 
 > Using this bolt only makes sense when messages are passed in binary form.
 
@@ -267,7 +298,7 @@ Other options:
 - `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
 - `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
 - `partition_tags` - list of tag names (string) that are mandatory and will always be present in metric statistics. No statistics will be tracked for tag partitions without these metrics.
-- `emit_gdr` - (default=false) this option makes the bolt emit its data in GDR format. The result would be something like:
+- `emit_gdr` - (default=`false`) this option makes the bolt emit its data in GDR format. The result would be something like:
 
 ```````````````````````````````json
 {
@@ -639,6 +670,26 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
 }
 ```````````````````````````````
 
+## Forward bolt
+
+`cmd="forward"`
+
+This bolt forwards all incoming messages to all listeners. Useful for collecting many inputs and for broadcasting to many listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "filter",
+    "inputs": [
+        { "source": "pump1" },
+        { "source": "pump2" }
+    ],
+    "init": {}
+}
+```````````````````````````````
+
 ## File-append bolt
 
 `cmd="file_append"`
@@ -825,8 +876,8 @@ The output will be written in CSV format. The parameters are the following:
 
 - `file_name` - Name of the output file.
 - `delete_existing` - Should output file be deleted if it already exists. Optional, default is `false`.
-- `delimiter` - Deliemiter string between values. Optional, default is ",".
-- `fields` - List of CSV fields. The names in settings denote path to actual values in the data.
+- `delimiter` - Delimiter string between values. Optional, default is ",".
+- `fields` - List of CSV fields. Optional. The names in settings denote path to actual values in the data. If this field is not present, the sorted list of the top-level properties of the first received record are used as fields.
 - `header` - Header line. Optional. If skipped, no header line will be printed.
 
 ## Router bolt
