@@ -1,7 +1,7 @@
 import * as intf from "../topology_interfaces";
 
 /** This spout emits pre-defined tuples. Mainly used for testing. */
-export class TestSpout implements intf.Spout {
+export class TestSpout implements intf.ISpout {
 
     private stream_id: string;
     private tuples: any[];
@@ -19,7 +19,7 @@ export class TestSpout implements intf.Spout {
         this.ts_next_emit = 0;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.tuples = config.tuples || [];
         this.delay_between = config.delay_between || 0;
@@ -30,21 +30,23 @@ export class TestSpout implements intf.Spout {
         callback();
     }
 
-    heartbeat() { }
+    public heartbeat() {
+        // no-op
+    }
 
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback();
     }
 
-    run() {
+    public run() {
         this.should_run = true;
     }
 
-    pause() {
+    public pause() {
         this.should_run = false;
     }
 
-    next(callback: intf.SpoutNextCallback) {
+    public next(callback: intf.SpoutNextCallback) {
         if (!this.should_run) {
             return callback(null, null, null);
         }
@@ -54,7 +56,7 @@ export class TestSpout implements intf.Spout {
         if (this.ts_next_emit > Date.now()) {
             return callback(null, null, null);
         }
-        let data = this.tuples[0];
+        const data = this.tuples[0];
         this.tuples = this.tuples.slice(1);
         this.ts_next_emit = Date.now() + this.delay_between;
         callback(null, data, this.stream_id);

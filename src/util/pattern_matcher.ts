@@ -1,7 +1,7 @@
 class SingleFilter {
-    $like: RegExp[];
-    values: any[];
-    fields: string[];
+    public $like: RegExp[];
+    public values: any[];
+    public fields: string[];
 }
 
 /** Simple class for pattern matching */
@@ -15,16 +15,16 @@ export class PaternMatcher {
         this.pattern = JSON.parse(JSON.stringify(pattern));
         this.filters = [];
         // prepare RegEx objects in advance
-        for (let filter in this.pattern) {
+        for (const filter in this.pattern) {
             if (this.pattern.hasOwnProperty(filter)) {
-                let curr = this.pattern[filter];
-                let rec = new SingleFilter();
+                const curr = this.pattern[filter];
+                const rec = new SingleFilter();
                 rec.fields = filter.split(".");
                 if (typeof (curr) == "object" && curr.$like) {
                     rec.$like = [];
                     if (Array.isArray(curr.$like)) {
-                        for (let i = 0; i < curr.$like.length; i++) {
-                            rec.$like.push(new RegExp(curr.$like[i]));
+                        for (const like of curr.$like) {
+                            rec.$like.push(new RegExp(like));
                         }
                     } else if (typeof (curr.$like) == "string") {
                         rec.$like.push(new RegExp(curr.$like));
@@ -41,9 +41,21 @@ export class PaternMatcher {
         }
     }
 
+    /** Simple procedure for checking if given item
+     *  matches the pattern.
+     */
+    public isMatch(item: any) {
+        for (const filter of this.filters) {
+            if (!this.matchSingleFilter(item, filter)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private matchSingleFilter(item: any, filter: SingleFilter): boolean {
         let target_value = item;
-        for (let field of filter.fields) {
+        for (const field of filter.fields) {
             if (target_value[field] === undefined) {
                 return false;
             }
@@ -51,31 +63,19 @@ export class PaternMatcher {
         }
 
         if (filter.values) {
-            for (let val of filter.values) {
+            for (const val of filter.values) {
                 if (target_value === val) {
                     return true;
                 }
             }
         } else {
-            for (let like of filter.$like) {
+            for (const like of filter.$like) {
                 if (like.test(target_value)) {
                     return true;
                 }
             }
         }
         return false;
-    }
-
-    /** Simple procedure for checking if given item
-     *  matches the pattern.
-     */
-    isMatch(item: any) {
-        for (let filter of this.filters) {
-            if (!this.matchSingleFilter(item, filter)) {
-                return false;
-            }
-        }
-        return true;
     }
 }
 

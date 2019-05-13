@@ -1,8 +1,9 @@
 import * as intf from "../topology_interfaces";
 
 /** This bolt base object server as base class for simple tasks
- * that are repeated every X milliseconds. */
-export class TaskBoltBase implements intf.Bolt {
+ * that are repeated every X milliseconds.
+ */
+export class TaskBoltBase implements intf.IBolt {
 
     protected onEmit: intf.BoltEmitCallback;
     private is_running: boolean;
@@ -16,39 +17,44 @@ export class TaskBoltBase implements intf.Bolt {
         this.next_run = 0;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.repeat_after = config.repeat_after || 60000; // each minute
         callback();
     }
 
-    heartbeat() {
-        if (this.is_running) return;
-        if (this.next_run > Date.now()) return;
+    public heartbeat() {
+        if (this.is_running) {
+            return;
+        }
+        if (this.next_run > Date.now()) {
+            return;
+        }
 
         this.is_running = true;
         this.next_run = Date.now() + this.repeat_after;
-        let self = this;
-        this.runInternal((err) => {
-            self.is_running = false;
-            if (self.shutdown_cb) {
-                let cb = self.shutdown_cb;
-                self.shutdown_cb = null;
+        this.runInternal(err => {
+            this.is_running = false;
+            if (this.shutdown_cb) {
+                const cb = this.shutdown_cb;
+                this.shutdown_cb = null;
                 cb();
             }
         });
     }
 
-    protected runInternal(callback: intf.SimpleCallback) {
-        callback();
-    }
-
-    shutdown(callback: intf.SimpleCallback) {
-        if (!this.is_running) return callback();
+    public shutdown(callback: intf.SimpleCallback) {
+        if (!this.is_running) {
+            return callback();
+        }
         this.shutdown_cb = callback;
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        callback();
+    }
+
+    protected runInternal(callback: intf.SimpleCallback) {
         callback();
     }
 }

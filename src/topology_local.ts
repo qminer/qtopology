@@ -12,8 +12,8 @@ import { TopologyCompiler } from "./topology_compiler";
 
 /** Internal record for router mapping */
 class OutputRouterDestination {
-    destination: string;
-    stream_id: string;
+    public destination: string;
+    public stream_id: string;
 }
 
 /** Class that performs redirection of messages after they are emited from nodes */
@@ -31,23 +31,23 @@ export class OutputRouter {
      * @param {string} destination - Name of destination
      * @param {string} stream_id - Stream ID used for routing
      */
-    register(source: string, destination: string, stream_id: string) {
+    public register(source: string, destination: string, stream_id: string) {
         if (!this.sources[source]) {
             this.sources[source] = [];
         }
-        this.sources[source].push({ destination: destination, stream_id: stream_id || null });
+        this.sources[source].push({ destination, stream_id: stream_id || null });
     }
 
     /** Returns list of names that are destinations for data, emitted by source.
      * @param {*} source - Name of source
      * @param {string} stream_id - Stream ID used for routing
      */
-    getDestinationsForSource(source: string, stream_id: string): string[] {
+    public getDestinationsForSource(source: string, stream_id: string): string[] {
         if (!this.sources[source]) {
             return [];
         }
         return this.sources[source]
-            .filter(x => { return x.stream_id == stream_id; })
+            .filter(x => x.stream_id == stream_id)
             .map(x => x.destination);
     }
 }
@@ -86,82 +86,88 @@ export class TopologyLocal {
         this.shutdownHardCalled = false;
         this.heartbeatTimer = null;
         this.logging_prefix = null;
-        this.onErrorHandler = onError || (() => { });
+        this.onErrorHandler = onError || (() => {
+            // no-op
+        });
         this.onErrorHandler = tryCallback(this.onErrorHandler);
-    }
-
-    /** Handler for all internal errors */
-    private onInternalError(e: Error) {
-        this.onErrorHandler(e);
     }
 
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    init(uuid: string, config: any, callback: intf.SimpleCallback) {
+    public init(uuid: string, config: any, callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         try {
-            let self = this;
-            if (self.isInitialized) { return callback(new Error(self.logging_prefix + "Already initialized")); }
-            self.config = config;
-            self.uuid = uuid;
-            self.logging_prefix = `[TopologyLocal ${uuid}] `;
-            self.heartbeatTimeout = config.general.heartbeat;
-            self.pass_binary_messages = config.general.pass_binary_messages || false;
-            self.isInitialized = true;
-            self.initContext((err, context) => {
-                if (err) { return callback(err); }
+            if (this.isInitialized) {
+                return callback(new Error(this.logging_prefix + "Already initialized"));
+            }
+            this.config = config;
+            this.uuid = uuid;
+            this.logging_prefix = `[TopologyLocal ${uuid}] `;
+            this.heartbeatTimeout = config.general.heartbeat;
+            this.pass_binary_messages = config.general.pass_binary_messages || false;
+            this.isInitialized = true;
+            this.initContext((err, context) => {
+                if (err) {
+                    return callback(err);
+                }
                 try {
-                    let tasks = [];
-                    self.config.bolts.forEach((bolt_config) => {
+                    const tasks = [];
+                    this.config.bolts.forEach(bolt_config => {
                         if (bolt_config.disabled) {
-                            log.logger().debug(self.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
+                            log.logger().debug(this.logging_prefix + `Skipping disabled bolt - ${bolt_config.name}`);
                             return;
                         }
                         bolt_config.onEmit = (data, stream_id, xcallback) => {
-                            self.redirect(bolt_config.name, data, stream_id, xcallback);
+                            this.redirect(bolt_config.name, data, stream_id, xcallback);
                         };
                         bolt_config.onError = (e: Error) => {
-                            self.onInternalError(e);
+                            this.onInternalError(e);
                         };
-                        let bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
-                        self.bolts.push(bolt);
-                        tasks.push((xcallback) => { bolt.init(xcallback); });
-                        for (let input of bolt_config.inputs) {
+                        const bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
+                        this.bolts.push(bolt);
+                        tasks.push(xcallback => { bolt.init(xcallback); });
+                        for (const input of bolt_config.inputs) {
                             if (input.disabled) {
-                                log.logger().debug(self.logging_prefix + `Skipping disabled source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
+                                log.logger().debug(
+                                    this.logging_prefix + `Skipping disabled source - ${input.source} -> ` +
+                                    `${bolt_config.name} (stream ${input.stream_id})`);
                                 continue;
                             }
-                            log.logger().debug(self.logging_prefix + `Establishing source - ${input.source} -> ${bolt_config.name} (stream ${input.stream_id})`);
-                            self.router.register(input.source, bolt_config.name, input.stream_id);
+                            log.logger().debug(
+                                this.logging_prefix + `Establishing source - ${input.source} -> ` +
+                                `${bolt_config.name} (stream ${input.stream_id})`);
+                            this.router.register(input.source, bolt_config.name, input.stream_id);
                         }
                     });
-                    self.config.spouts.forEach((spout_config) => {
+                    this.config.spouts.forEach(spout_config => {
                         if (spout_config.disabled) {
-                            log.logger().debug(self.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
+                            log.logger().debug(this.logging_prefix + `Skipping disabled spout - ${spout_config.name}`);
                             return;
                         }
                         spout_config.onEmit = (data, stream_id, xcallback) => {
-                            self.redirect(spout_config.name, data, stream_id, xcallback);
+                            this.redirect(spout_config.name, data, stream_id, xcallback);
                         };
                         spout_config.onError = (e: Error) => {
-                            self.onInternalError(e);
+                            this.onInternalError(e);
                         };
-                        let spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
-                        self.spouts.push(spout);
-                        tasks.push((xcallback) => { spout.init(xcallback); });
+                        const spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
+                        this.spouts.push(spout);
+                        tasks.push(xcallback => {
+                            spout.init(xcallback);
+                        });
                     });
-                    async.series(tasks, (err: Error) => {
-                        if (err) {
-                            log.logger().error(self.logging_prefix + "Error while initializing topology");
-                            log.logger().exception(err);
+                    async.series(tasks, (err_inner: Error) => {
+                        if (err_inner) {
+                            log.logger().error(this.logging_prefix + "Error while initializing topology");
+                            log.logger().exception(err_inner);
                         } else {
-                            self.runHeartbeat();
+                            this.runHeartbeat();
                         }
-                        return callback(err);
+                        return callback(err_inner);
                     });
                 } catch (e) {
-                    log.logger().error(self.logging_prefix + "Error while initializing topology");
+                    log.logger().error(this.logging_prefix + "Error while initializing topology");
                     log.logger().exception(e);
                     return callback(e);
                 }
@@ -172,7 +178,7 @@ export class TopologyLocal {
     }
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    run(callback: intf.SimpleCallback) {
+    public run(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
@@ -184,14 +190,14 @@ export class TopologyLocal {
         log.logger().log(this.logging_prefix + "Local topology started");
         // spouts pass internal exceptions to errorCallback
         // no exceptions are expected to be thrown here
-        for (let spout of this.spouts) {
+        for (const spout of this.spouts) {
             spout.run();
         }
         return callback();
     }
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
-    pause(callback: intf.SimpleCallback) {
+    public pause(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
@@ -202,51 +208,53 @@ export class TopologyLocal {
         this.isRunning = false;
         // spouts pass internal exceptions to errorCallback
         // no exceptions are expected to be thrown here
-        for (let spout of this.spouts) {
+        for (const spout of this.spouts) {
             spout.pause();
         }
         return callback();
     }
 
     /** Sends shutdown signal to all child processes */
-    shutdown(callback: intf.SimpleCallback) {
+    public shutdown(callback: intf.SimpleCallback) {
         callback = tryCallback(callback);
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
-        } if (this.isShuttingDown) {
-            // without an exception the caller will think that everything shut down nicely already when we call shutdown twice by mistake
+        }
+        if (this.isShuttingDown) {
+            // without an exception the caller will think that everything shut down nicely already
+            // when we call shutdown twice by mistake
             return callback(new Error(this.logging_prefix + "Topology is already shutting down."));
         }
-        let self = this;
-        self.isShuttingDown = true;
+
+        this.isShuttingDown = true;
         // disable heartbeat
-        if (self.heartbeatTimer) {
-            clearInterval(self.heartbeatTimer);
+        if (this.heartbeatTimer) {
+            clearInterval(this.heartbeatTimer);
         }
 
-        let shutdownTasks = () => {
-            let tasks = [];
-            for (let spout of self.spouts) {
-                tasks.push((xcallback) => {
+        const shutdownTasks = () => {
+            const tasks = [];
+            for (const spout of this.spouts) {
+                tasks.push(xcallback => {
                     try {
                         spout.shutdown(xcallback);
                     } catch (e) {
                         xcallback(e);
                     }
                 });
-            };
-            for (let bolt of self.bolts) {
-                tasks.push((xcallback) => {
+            }
+            for (const bolt of this.bolts) {
+                tasks.push(xcallback => {
                     try {
                         bolt.shutdown(xcallback);
                     } catch (e) {
                         xcallback(e);
                     }
                 });
-            };
-            if (self.config.general.shutdown) {
-                let factory = (module_path) => {
-                    return (xcallback) => {
+            }
+            if (this.config.general.shutdown) {
+                const factory = module_path => {
+                    return xcallback => {
                         try {
                             require(module_path).shutdown(xcallback);
                         } catch (e) {
@@ -254,18 +262,20 @@ export class TopologyLocal {
                         }
                     };
                 };
-                for (let shutdown_conf of self.config.general.shutdown) {
-                    if (shutdown_conf.disabled) continue; // skip if disabled
-                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
-                    let module_path = path.join(dir, shutdown_conf.cmd);
+                for (const shutdown_conf of this.config.general.shutdown) {
+                    if (shutdown_conf.disabled) {
+                        continue; // skip if disabled
+                    }
+                    const dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    const module_path = path.join(dir, shutdown_conf.cmd);
                     tasks.push(factory(module_path));
                 }
             }
             async.series(tasks, (e: Error) => {
                 // call hard shutdown regardless of the error
-                if (self.config.general.shutdown_hard) {
+                if (this.config.general.shutdown_hard) {
                     try {
-                        self.shutdownHard();
+                        this.shutdownHard();
                     } catch (e) {
                         log.logger().exception(e);
                         /* do nothing extra */
@@ -274,8 +284,8 @@ export class TopologyLocal {
                 callback(e);
             });
         };
-        if (self.isRunning) {
-            self.pause((err) => {
+        if (this.isRunning) {
+            this.pause(err => {
                 if (err) {
                     // only possible error is when isInit is false
                     log.logger().error("THIS SHOULD NOT HAPPEN!");
@@ -290,15 +300,19 @@ export class TopologyLocal {
     }
 
     /** Runs hard-core shutdown sequence */
-    shutdownHard() {
+    public shutdownHard() {
         if (this.config.general.shutdown_hard) {
-            if (this.shutdownHardCalled) return;
+            if (this.shutdownHardCalled) {
+                return;
+            }
             this.shutdownHardCalled = true;
-            for (let shutdown_conf of this.config.general.shutdown_hard) {
+            for (const shutdown_conf of this.config.general.shutdown_hard) {
                 try {
-                    if (shutdown_conf.disabled) continue; // skip if disabled
-                    let dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
-                    let module_path = path.join(dir, shutdown_conf.cmd);
+                    if (shutdown_conf.disabled) {
+                        continue; // skip if disabled
+                    }
+                    const dir = path.resolve(shutdown_conf.working_dir); // path may be relative to current working dir
+                    const module_path = path.join(dir, shutdown_conf.cmd);
                     require(module_path).shutdown_hard();
                 } catch (e) {
                     log.logger().exception(e);
@@ -309,20 +323,24 @@ export class TopologyLocal {
     }
 
     /** Returns uuid of the topology that is running. */
-    getUuid(): string {
+    public getUuid(): string {
         return this.uuid;
+    }
+
+    /** Handler for all internal errors */
+    private onInternalError(e: Error) {
+        this.onErrorHandler(e);
     }
 
     /** Runs heartbeat pump until this object shuts down */
     private runHeartbeat() {
-        let self = this;
-        self.heartbeatTimer = setInterval(
+        this.heartbeatTimer = setInterval(
             () => {
-                if (self.isRunning) {
-                    self.heartbeat();
-                };
+                if (this.isRunning) {
+                    this.heartbeat();
+                }
             },
-            self.heartbeatTimeout);
+            this.heartbeatTimeout);
     }
 
     /** Sends heartbeat signal to all child processes */
@@ -330,7 +348,7 @@ export class TopologyLocal {
         if (!this.isInitialized) {
             return;
         }
-        for (let spout of this.spouts) {
+        for (const spout of this.spouts) {
             try {
                 spout.heartbeat();
             } catch (e) {
@@ -340,7 +358,7 @@ export class TopologyLocal {
                 return this.onInternalError(e);
             }
         }
-        for (let bolt of this.bolts) {
+        for (const bolt of this.bolts) {
             try {
                 bolt.heartbeat();
             } catch (e) {
@@ -360,20 +378,19 @@ export class TopologyLocal {
      * @param {Function} callback - standard callback
      */
     private redirect(source: string, data: any, stream_id: string, callback: intf.SimpleCallback) {
-        let self = this;
-        let destinations = self.router.getDestinationsForSource(source, stream_id);
+        const destinations = this.router.getDestinationsForSource(source, stream_id);
         // by default, each successor should receive a copy of current message
         // this encapsulates down-stream processing and changes.
         // This behavoir is opt-out, using "pass_binary_messages".
-        let s = JSON.stringify(data);
+        const s = JSON.stringify(data);
         async.each(
             destinations,
             (destination, xcallback) => {
                 let data_clone = data;
-                if (!self.pass_binary_messages) {
+                if (!this.pass_binary_messages) {
                     data_clone = JSON.parse(s);
                 }
-                let bolt = self.getBolt(destination);
+                const bolt = this.getBolt(destination);
                 try {
                     bolt.receive(data_clone, stream_id, xcallback);
                 } catch (e) {
@@ -388,7 +405,7 @@ export class TopologyLocal {
      * @param {string} name - Name of the bolt that we need to find
      */
     private getBolt(name: string) {
-        let hits = this.bolts.filter(x => x.getName() == name);
+        const hits = this.bolts.filter(x => x.getName() == name);
         if (hits.length === 0) {
             return null;
         }
@@ -400,21 +417,20 @@ export class TopologyLocal {
      * @param {Function} callback - standard callback
      */
     private initContext(callback: intf.InitContextCallback) {
-        let self = this;
-        if (self.config.general.initialization) {
-            let common_context = {};
+        if (this.config.general.initialization) {
+            const common_context = {};
             async.eachSeries(
-                self.config.general.initialization,
+                this.config.general.initialization,
                 (init_conf: any, xcallback) => {
                     try {
                         if (init_conf.disabled) {
                             // skip if disabled
                             return xcallback();
                         }
-                        let dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
-                        let module_path = path.join(dir, init_conf.cmd);
+                        const dir = path.resolve(init_conf.working_dir); // path may be relative to current working dir
+                        const module_path = path.join(dir, init_conf.cmd);
                         init_conf.init = init_conf.init || {};
-                        init_conf.init.$name = self.uuid;
+                        init_conf.init.$name = this.uuid;
                         require(module_path).init(init_conf.init, common_context, xcallback);
                     } catch (e) {
                         xcallback(e);
@@ -425,33 +441,45 @@ export class TopologyLocal {
                 }
             );
         } else {
-            callback(null, null);
+            callback(null, {});
         }
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function runLocalTopologyFromFile(file_name: string) {
-    let config = readJsonFileSync(file_name);
-    validate({ config: config, exitOnError: true });
+/** This function injects override values into variables section of the configuration. */
+function injectOverrides(config: any, overrides: any) {
+    config.variables = config.variables || {};
+    for (const f in overrides) {
+        if (overrides.hasOwnProperty(f)) {
+            config.variables[f] = overrides[f];
+        }
+    }
+}
 
-    let comp = new TopologyCompiler(config);
+/** This functin is used for running topology localy */
+export function runLocalTopologyFromFile(file_name: string, overrides?: any): (code: number) => void {
+    let config = readJsonFileSync(file_name);
+    validate({ config, exitOnError: true });
+    injectOverrides(config, overrides || {});
+
+    const comp = new TopologyCompiler(config);
     comp.compile();
     config = comp.getWholeConfig();
     let topology = new TopologyLocal();
 
     async.series(
         [
-            (xcallback) => {
+            xcallback => {
                 topology.init("topology.1", config, xcallback);
             },
-            (xcallback) => {
+            xcallback => {
                 console.log("Init done");
                 topology.run(xcallback);
             }
         ],
-        (err) => {
+        err => {
             if (err) {
                 console.log("Error in shutdown", err);
             }
@@ -459,30 +487,33 @@ export function runLocalTopologyFromFile(file_name: string) {
         }
     );
 
-    function shutdown() {
+    function shutdown(exit_code: number) {
         if (topology) {
-            topology.shutdown((err) => {
+            topology.shutdown(err => {
                 if (err) {
                     console.log("Error", err);
                 }
-                process.exit(1);
+                process.exit(exit_code);
             });
             topology = null;
         }
     }
 
-    //do something when app is closing
-    process.on('exit', shutdown);
+    // do something when app is closing
+    process.on("exit", () => { shutdown(0); });
 
-    //catches ctrl+c event
-    process.on('SIGINT', shutdown);
+    // catches ctrl+c event
+    process.on("SIGINT", () => {
+        console.log("SIGINT received, shutting down...");
+        shutdown(1);
+    });
 
-    //catches uncaught exceptions
-    process.on('uncaughtException',
-        (e) => {
-            console.log(e);
-            process.exit(1);
-        }
-        //shutdown
-    );
+    // catches uncaught exceptions
+    process.on("uncaughtException", e => {
+        console.log("Uncaught exception found");
+        console.log(e);
+        process.exit(1);
+    });
+
+    return shutdown;
 }

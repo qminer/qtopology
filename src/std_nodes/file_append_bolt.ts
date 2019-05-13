@@ -2,9 +2,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as intf from "../topology_interfaces";
 import * as log from "../util/logger";
-import * as zlib from 'zlib';
+import * as zlib from "zlib";
 import * as async from "async";
-import { TransformHelper } from "./transform_bolt";
+import { TransformHelper, ITransformHelper } from "./transform_bolt";
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -12,7 +12,7 @@ const injection_placeholder = "##INJECT##";
 const injection_placeholder_field = "##INJECT2##";
 
 /** This bolt writes incoming messages to file. */
-export class FileAppendBolt implements intf.Bolt {
+export class FileAppendBolt implements intf.IBolt {
 
     private name: string;
     private log_prefix: string;
@@ -42,7 +42,7 @@ export class FileAppendBolt implements intf.Bolt {
         this.propagate_errors = true;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         try {
             this.name = name;
             this.log_prefix = `[FileAppendBolt ${this.name}] `;
@@ -58,7 +58,7 @@ export class FileAppendBolt implements intf.Bolt {
 
             // prepare filename template for injection
             if (this.split_over_time) {
-                let ext = path.extname(this.file_name_template);
+                const ext = path.extname(this.file_name_template);
                 this.next_split_after = Math.floor(Date.now() / this.split_period) * this.split_period;
                 this.file_name_template =
                     this.file_name_template.slice(0, this.file_name_template.length - ext.length) +
@@ -80,149 +80,37 @@ export class FileAppendBolt implements intf.Bolt {
         }
     }
 
-    private toISOFormatLocal(d: number): string {
-        let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
-        let s = (new Date(d - tzoffset)).toISOString().slice(0, -1);
-        return s;
+    public heartbeat() {
+        this.writeToFile(() => {
+            // no-op
+        });
     }
 
-    private fileNameTimestampValue(): string {
-        let d = Math.floor(Date.now() / this.split_period) * this.split_period;
-        let s = this.toISOFormatLocal(d);
-        s = s.slice(0, s.indexOf("."));
-        s = s.replace(/\:/ig, "_").replace(/\-/ig, "_");
-        return s;
-    }
-
-    private writeToFile(callback: intf.SimpleCallback) {
-        if (this.current_data.size == 0) return callback();
-
-        let d = Date.now();
-        let do_file_split = (this.split_over_time && this.next_split_after < d);
-        let self = this;
-        async.series(
-            [
-                (xcallback) => {
-                    if (!do_file_split) return xcallback();
-                    // perform compression of existing file if it exists.
-                    // only used when file split will occur
-                    // otherwise we just zip at shutdown.
-                    this.zipCurrentFile(xcallback);
-                },
-                (xcallback) => {
-                    if (!do_file_split) return xcallback();
-                    // calculate new file name
-                    self.current_file_contains_data = false;
-                    self.file_name_current = self.file_name_template.replace(injection_placeholder, self.fileNameTimestampValue());
-                    log.logger().debug(`${self.log_prefix} new file generated: ${self.file_name_current}`);
-                    self.next_split_after = d + self.split_period;
-                    xcallback();
-                },
-                (xcallback) => {
-                    // write data to current file
-                    self.current_data.forEach((value, key) => {
-                        let lines = value;
-                        this.split_value.add(key);
-                        let fname = self.file_name_current.replace(injection_placeholder_field, key);
-                        for (let line of lines) {
-                            fs.appendFileSync(fname, line);
-                        }
-                    });
-                    self.current_data.clear();
-                    self.current_file_contains_data = true;
-                    xcallback();
-                },
-            ],
-            callback
-        );
-    }
-
-    /** Zip current file if it exists  */
-    private zipCurrentFile(callback: intf.SimpleCallback) {
-        let self = this;
-        if (self.compress && self.current_file_contains_data) {
-            let fnames = [];
-            self.split_value.forEach((value, key) => {
-                let fname = self.file_name_current.replace(injection_placeholder_field, key);
-                fnames.push(fname);
-            });
-            async.eachLimit(
-                fnames, 3,
-                (item, xcallback) => {
-                    if (fs.existsSync(item)) {
-                        log.logger().debug(`${self.log_prefix} compressing current file: ${item}`);
-                        self.zipFile(item, xcallback);
-                    } else {
-                        xcallback();
-                    }
-                },
-                callback);
-        } else {
-            callback();
-        }
-    }
-
-    /** Perform low-level zipping */
-    private zipFile(fname: string, callback: intf.SimpleCallback) {
-        const filePath = path.resolve(fname);
-        if (!fs.existsSync(filePath)) {
-            return callback(new Error("Cannot zip, filename is missing: " + filePath));
-        }
-        let counter = 0;
-        let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
-        while (fs.existsSync(gzFilePath)) {
-            counter++;
-            gzFilePath = path.resolve(fname + "_" + counter + ".gz");
-        }
-        try {
-            let gzOption = {
-                level: zlib.Z_BEST_SPEED,
-                memLevel: zlib.Z_BEST_SPEED
-            };
-            let gzip = zlib.createGzip(gzOption);
-            const inputStream = fs.createReadStream(filePath);
-            const outStream = fs.createWriteStream(gzFilePath);
-            inputStream.pipe(gzip).pipe(outStream);
-            outStream.on('finish', (err) => {
-                if (err) return callback(err);
-                fs.unlink(filePath, callback);
-            });
-        } catch (e) {
-            if (fs.existsSync(gzFilePath)) {
-                fs.unlinkSync(gzFilePath);
-            }
-            callback(e);
-        }
-    }
-
-    heartbeat() {
-        this.writeToFile(() => { });
-    }
-
-    shutdown(callback: intf.SimpleCallback) {
-        let self = this;
-        let cb = (err) => {
+    public shutdown(callback: intf.SimpleCallback) {
+        const cb = err => {
             if (err) {
                 log.logger().error(this.log_prefix + "Error in shutdown");
                 log.logger().exception(err);
             }
-            if (err && self.propagate_errors) {
+            if (err && this.propagate_errors) {
                 return callback(err);
             } else {
                 return callback();
             }
-        }
-        this.writeToFile((err) => {
-            if (err) return cb(err);
-            if (self.compress && self.current_file_contains_data) {
-                self.zipCurrentFile(cb);
+        };
+        this.writeToFile(err => {
+            if (err) {
+                return cb(err);
+            }
+            if (this.compress && this.current_file_contains_data) {
+                this.zipCurrentFile(cb);
             } else {
                 cb(null);
             }
         });
     }
 
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         let s = "";
         try {
             if (this.prepend_timestamp) {
@@ -252,13 +140,137 @@ export class FileAppendBolt implements intf.Bolt {
             }
         }
     }
+
+    private toISOFormatLocal(d: number): string {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000; // offset in milliseconds
+        const s = (new Date(d - tzoffset)).toISOString().slice(0, -1);
+        return s;
+    }
+
+    private fileNameTimestampValue(): string {
+        const d = Math.floor(Date.now() / this.split_period) * this.split_period;
+        let s = this.toISOFormatLocal(d);
+        s = s.slice(0, s.indexOf("."));
+        s = s.replace(/\:/ig, "_").replace(/\-/ig, "_");
+        return s;
+    }
+
+    private writeToFile(callback: intf.SimpleCallback) {
+        if (this.current_data.size == 0) {
+            return callback();
+        }
+
+        const d = Date.now();
+        const do_file_split = (this.split_over_time && this.next_split_after < d);
+        async.series(
+            [
+                xcallback => {
+                    if (!do_file_split) {
+                        return xcallback();
+                    }
+                    // perform compression of existing file if it exists.
+                    // only used when file split will occur
+                    // otherwise we just zip at shutdown.
+                    this.zipCurrentFile(xcallback);
+                },
+                xcallback => {
+                    if (!do_file_split) {
+                        return xcallback();
+                    }
+                    // calculate new file name
+                    this.current_file_contains_data = false;
+                    this.file_name_current = this.file_name_template.replace(
+                        injection_placeholder,
+                        this.fileNameTimestampValue());
+                    log.logger().debug(`${this.log_prefix} new file generated: ${this.file_name_current}`);
+                    this.next_split_after = d + this.split_period;
+                    xcallback();
+                },
+                xcallback => {
+                    // write data to current file
+                    this.current_data.forEach((value, key) => {
+                        const lines = value;
+                        this.split_value.add(key);
+                        const fname = this.file_name_current.replace(injection_placeholder_field, key);
+                        for (const line of lines) {
+                            fs.appendFileSync(fname, line);
+                        }
+                    });
+                    this.current_data.clear();
+                    this.current_file_contains_data = true;
+                    xcallback();
+                }
+            ],
+            callback
+        );
+    }
+
+    /** Zip current file if it exists  */
+    private zipCurrentFile(callback: intf.SimpleCallback) {
+        if (this.compress && this.current_file_contains_data) {
+            const fnames = [];
+            this.split_value.forEach((value, key) => {
+                const fname = this.file_name_current.replace(injection_placeholder_field, key);
+                fnames.push(fname);
+            });
+            async.eachLimit(
+                fnames, 3,
+                (item, xcallback) => {
+                    if (fs.existsSync(item)) {
+                        log.logger().debug(`${this.log_prefix} compressing current file: ${item}`);
+                        this.zipFile(item, xcallback);
+                    } else {
+                        xcallback();
+                    }
+                },
+                callback);
+        } else {
+            callback();
+        }
+    }
+
+    /** Perform low-level zipping */
+    private zipFile(fname: string, callback: intf.SimpleCallback) {
+        const filePath = path.resolve(fname);
+        if (!fs.existsSync(filePath)) {
+            return callback(new Error("Cannot zip, filename is missing: " + filePath));
+        }
+        let counter = 0;
+        let gzFilePath = path.resolve(fname + "_" + counter + ".gz");
+        while (fs.existsSync(gzFilePath)) {
+            counter++;
+            gzFilePath = path.resolve(fname + "_" + counter + ".gz");
+        }
+        try {
+            const gzOption = {
+                level: zlib.Z_BEST_SPEED,
+                memLevel: zlib.Z_BEST_SPEED
+            };
+            const gzip = zlib.createGzip(gzOption);
+            const inputStream = fs.createReadStream(filePath);
+            const outStream = fs.createWriteStream(gzFilePath);
+            inputStream.pipe(gzip).pipe(outStream);
+            outStream.on("finish", err => {
+                if (err) {
+                    return callback(err);
+                }
+                fs.unlink(filePath, callback);
+            });
+        } catch (e) {
+            if (fs.existsSync(gzFilePath)) {
+                fs.unlinkSync(gzFilePath);
+            }
+            callback(e);
+        }
+    }
 }
 
 
 /** This bolt writes incoming messages to file in CSV format. */
-export class CsvFileAppendBolt implements intf.Bolt {
+export class CsvFileAppendBolt implements intf.IBolt {
 
-    private transform: TransformHelper;
+    private transform: ITransformHelper;
+    private direct_fields: string[];
     private file_name: string;
     private delimiter: string;
     private current_data: string[];
@@ -266,10 +278,11 @@ export class CsvFileAppendBolt implements intf.Bolt {
     constructor() {
         this.file_name = null;
         this.transform = null;
+        this.direct_fields = null;
         this.current_data = [];
     }
 
-    init(_name: string, config: any, _context: any, callback: intf.SimpleCallback) {
+    public init(_name: string, config: any, _context: any, callback: intf.SimpleCallback) {
         try {
             this.file_name = config.file_name;
             this.delimiter = config.delimiter || ",";
@@ -282,15 +295,55 @@ export class CsvFileAppendBolt implements intf.Bolt {
                 fs.appendFileSync(this.file_name, config.header + "\n");
             }
 
-            let fields: string[] = config.fields;
-            let transform_template = {};
-            for (let i = 0; i < fields.length; i++) {
-                transform_template["field_" + i] = fields[i];
+            if (config.fields) {
+                const fields: string[] = config.fields;
+                this.prepareTransform(fields);
             }
-            this.transform = new TransformHelper(transform_template);
             callback();
         } catch (e) {
             callback(e);
+        }
+    }
+
+    public heartbeat() {
+        this.writeToFile(() => {
+            // no-op
+        });
+    }
+
+    public shutdown(callback: intf.SimpleCallback) {
+        this.writeToFile(callback);
+    }
+
+    public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
+        try {
+            // transform data into CSV
+            data = JSON.parse(JSON.stringify(data));
+            // if output fields were not defined
+            if (!this.transform) {
+                // there is no transformation, export all fields
+                // if this is the first received record, collect the fields
+                if (!this.direct_fields) {
+                    this.direct_fields = Object.keys(data).sort();
+                    this.current_data.push(this.direct_fields.join(this.delimiter));
+                }
+                const line = this.direct_fields
+                    .map(x => "" + data[x])
+                    .join(this.delimiter);
+                this.current_data.push(line);
+            } else {
+                // perform the transformation
+                const result = this.transform.transform(data);
+                const line = Object.keys(result)
+                    .map(x => "" + result[x])
+                    .join(this.delimiter);
+                this.current_data.push(line);
+            }
+            callback();
+        } catch (e) {
+            log.logger().error("Error in receive");
+            log.logger().exception(e);
+            return callback(e);
         }
     }
 
@@ -298,34 +351,17 @@ export class CsvFileAppendBolt implements intf.Bolt {
         if (this.current_data.length == 0) {
             return callback();
         }
-        let data = this.current_data;
+        const data = this.current_data;
         this.current_data = [];
-        let lines = data.join("\n") + "\n";
+        const lines = data.join("\n") + "\n";
         fs.appendFile(this.file_name, lines, callback);
     }
 
-    heartbeat() {
-        this.writeToFile(() => { });
-    }
-
-    shutdown(callback: intf.SimpleCallback) {
-        this.writeToFile(callback);
-    }
-
-    receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
-        try {
-            // transform data into CSV
-            data = JSON.parse(JSON.stringify(data));
-            let result = this.transform.transform(data);
-            let line = Object.keys(result)
-                .map(x => "" + result[x])
-                .join(this.delimiter);
-            this.current_data.push(line);
-            callback();
-        } catch (e) {
-            log.logger().error("Error in receive");
-            log.logger().exception(e);
-            return callback(e);
+    private prepareTransform(fields: string[]) {
+        const transform_template = {};
+        for (let i = 0; i < fields.length; i++) {
+            transform_template["field_" + i] = fields[i];
         }
+        this.transform = new TransformHelper(transform_template);
     }
 }

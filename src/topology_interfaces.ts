@@ -1,26 +1,18 @@
 /////////////////////////////////////////////////////////////////////////
 // Different callbacks
 
-export interface SimpleCallback {
-    (error?: Error): void;
-}
-export interface SimpleResultCallback<T> {
-    (error?: Error, data?: T): void;
-}
-export interface InitContextCallback {
-    (error?: Error, context?: any): void;
-}
-export interface BoltEmitCallback {
-    (data: any, stream_id: string, callback: SimpleCallback): void;
-}
-export interface SpoutNextCallback {
-    (err: Error, data: any, stream_id: string): void;
-}
+export type SimpleCallback = (error?: Error) => void;
+export type SimpleResultCallback<T> = (error?: Error, data?: T) => void;
+export type InitContextCallback = (error?: Error, context?: any) => void;
+export type BoltEmitCallback = (data: any, stream_id: string, callback: SimpleCallback) => void;
+export type SpoutNextCallback = (err: Error, data: any, stream_id: string) => void;
+
+export type BoltEmitCallbackAsync = (data: any, stream_id: string) => Promise<void>;
 
 ////////////////////////////////////////////////////////////////////////
 // Options for validation
 
-export interface ValidationOptions {
+export interface IValidationOptions {
     config: any;
     exitOnError?: boolean;
     throwOnError?: boolean;
@@ -29,21 +21,21 @@ export interface ValidationOptions {
 ////////////////////////////////////////////////////////////////////////
 // Basic topology-definition type
 
-export interface TopologyDefinition {
-    general: TopologyDefinitionGeneral;
-    spouts: TopologyDefinitionSpout[];
-    bolts: TopologyDefinitionBolt[];
+export interface ITopologyDefinition {
+    general: ITopologyDefinitionGeneral;
+    spouts: ITopologyDefinitionSpout[];
+    bolts: ITopologyDefinitionBolt[];
     variables: any;
 }
 
-export interface TopologyDefinitionGeneral {
+export interface ITopologyDefinitionGeneral {
     heartbeat: number;
     weight?: number;
     worker_affinity?: string[];
     pass_binary_messages?: boolean;
 }
 
-export interface TopologyDefinitionSpout {
+export interface ITopologyDefinitionSpout {
     name: string;
     type?: string;
     disabled?: boolean;
@@ -53,7 +45,7 @@ export interface TopologyDefinitionSpout {
     telemetry_timeout?: number;
     init: any;
 }
-export interface TopologyDefinitionBolt {
+export interface ITopologyDefinitionBolt {
     name: string;
     type?: string;
     disabled?: boolean;
@@ -61,11 +53,11 @@ export interface TopologyDefinitionBolt {
     cmd: string;
     subtype?: string;
     telemetry_timeout?: number;
-    inputs: TopologyDefinitionBoltInput[];
+    inputs: ITopologyDefinitionBoltInput[];
     init: any;
     allow_parallel?: boolean;
 }
-export interface TopologyDefinitionBoltInput {
+export interface ITopologyDefinitionBoltInput {
     source: string;
     stream_id?: string;
     disabled?: boolean;
@@ -74,26 +66,55 @@ export interface TopologyDefinitionBoltInput {
 ////////////////////////////////////////////////////////////////////////
 // Inetrface that need to be implemented by custom bolts and spouts
 
-export interface Bolt {
-    init(name: string, config: any, context: any, callback: SimpleCallback);
-    heartbeat();
-    shutdown(callback: SimpleCallback);
-    receive(data: any, stream_id: string, callback: SimpleCallback);
+export interface IBolt {
+    init(name: string, config: any, context: any, callback: SimpleCallback): void;
+    heartbeat(): void;
+    shutdown(callback: SimpleCallback): void;
+    receive(data: any, stream_id: string, callback: SimpleCallback): void;
 }
 
-export interface Spout {
-    init(name: string, config: any, context: any, callback: SimpleCallback);
-    heartbeat();
-    shutdown(callback: SimpleCallback);
-    run();
-    pause();
-    next(callback: SpoutNextCallback);
+export interface ISpout {
+    init(name: string, config: any, context: any, callback: SimpleCallback): void;
+    heartbeat(): void;
+    shutdown(callback: SimpleCallback): void;
+    run(): void;
+    pause(): void;
+    next(callback: SpoutNextCallback): void;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Async classes
+
+export type BoltAsyncEmitCallback = (data: any, stream_id: string) => Promise<void>;
+
+export interface IBoltAsyncConfig {
+    onEmit: BoltAsyncEmitCallback;
+}
+
+export interface IBoltAsync {
+    init(name: string, config: IBoltAsyncConfig, context: any): Promise<void>;
+    heartbeat(): void;
+    shutdown(): Promise<void>;
+    receive(data: any, stream_id: string): Promise<void>;
+}
+
+export interface ISpoutAsyncNextResult {
+    data: any;
+    stream_id: string;
+}
+export interface ISpoutAsync {
+    init(name: string, config: any, context: any): Promise<void>;
+    heartbeat(): void;
+    shutdown(): Promise<void>;
+    run(): void;
+    pause(): void;
+    next(): Promise<ISpoutAsyncNextResult>;
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Messages that are sent from parent process to child process
 
-export interface ParentMsg {
+export interface IParentMsg {
     cmd: ParentMsgCode;
     data: any;
 }
@@ -109,7 +130,7 @@ export enum ParentMsgCode {
 ////////////////////////////////////////////////////////////////////////
 // Messages that are sent from child process to parent process
 
-export interface ChildMsg {
+export interface IChildMsg {
     cmd: ChildMsgCode;
     data: any;
 }
@@ -143,47 +164,47 @@ export enum ChildExitCode {
 /**
  * Constants for using distributed functionality.
  */
-export var Consts = {
+export const CONSTS = {
+    LeaderMessages: {
+        kill_topology: "kill_topology",
+        rebalance: "rebalance",
+        set_disabled: "set_disabled",
+        set_enabled: "set_enabled",
+        shutdown: "shutdown",
+        start_topologies: "start_topologies",
+        start_topology: "start_topology",
+        stop_topologies: "stop_topologies",
+        stop_topology: "stop_topology"
+    },
     LeadershipStatus: {
-        vacant: "vacant",
+        ok: "ok",
         pending: "pending",
-        ok: "ok"
+        vacant: "vacant"
+    },
+    TopologyStatus: {
+        error: "error",
+        running: "running",
+        unassigned: "unassigned",
+        waiting: "waiting"
+    },
+    WorkerLStatus: {
+        candidate: "candidate",
+        leader: "leader",
+        normal: "normal"
     },
     WorkerStatus: {
         alive: "alive",
         closing: "closing",
-        disabled: "disabled",
         dead: "dead",
+        disabled: "disabled",
         unloaded: "unloaded"
-    },
-    WorkerLStatus: {
-        leader: "leader",
-        candidate: "candidate",
-        normal: "normal"
-    },
-    TopologyStatus: {
-        running: "running",
-        waiting: "waiting",
-        error: "error",
-        unassigned: "unassigned"
-    },
-    LeaderMessages: {
-        rebalance: "rebalance",
-        set_enabled: "set_enabled",
-        set_disabled: "set_disabled",
-        start_topology: "start_topology",
-        start_topologies: "start_topologies",
-        stop_topology: "stop_topology",
-        stop_topologies: "stop_topologies",
-        kill_topology: "kill_topology",
-        shutdown: "shutdown"
     }
-}
+};
 
-export interface LeadershipResultStatus {
-    leadership: string
+export interface ILeadershipResultStatus {
+    leadership: string;
 }
-export interface WorkerStatus {
+export interface IWorkerStatus {
     name: string;
     status: string;
     lstatus: string;
@@ -191,14 +212,14 @@ export interface WorkerStatus {
     last_ping_d: Date;
     pid: number;
 }
-export interface WorkerStatusHistory {
+export interface IWorkerStatusHistory {
     name: string;
     status: string;
     lstatus: string;
     ts: Date;
     pid: number;
 }
-export interface TopologyStatus {
+export interface ITopologyStatus {
     uuid: string;
     status: string;
     worker: string;
@@ -210,22 +231,22 @@ export interface TopologyStatus {
     last_ping_d: Date;
     worker_affinity: string[];
 }
-export interface TopologyStatusHistory extends TopologyStatus {
+export interface ITopologyStatusHistory extends ITopologyStatus {
     ts: Date;
 }
-export interface StorageResultMessage {
+export interface IStorageResultMessage {
     cmd: string;
     content: any;
     created: Date;
 }
-export interface StorageProperty {
+export interface IStorageProperty {
     key: string;
     value: string | number | boolean;
 }
-export interface TopologyInfoResponse extends TopologyStatus {
-    config: TopologyDefinition;
+export interface ITopologyInfoResponse extends ITopologyStatus {
+    config: ITopologyDefinition;
 }
-export interface MsgQueueItem {
+export interface IMsgQueueItem {
     name: string;
     cmd: string;
     data: any;
@@ -236,40 +257,40 @@ export interface MsgQueueItem {
 /**
  * Interface that needs to be implemented by all storage implementations.
  */
-export interface CoordinationStorage {
+export interface ICoordinationStorage {
 
-    getWorkerStatus(callback: SimpleResultCallback<WorkerStatus[]>);
-    getTopologyStatus(callback: SimpleResultCallback<TopologyStatus[]>);
-    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<TopologyStatus[]>);
-    getMessages(name: string, callback: SimpleResultCallback<StorageResultMessage[]>);
-    getMessage(name: string, callback: SimpleResultCallback<StorageResultMessage>);
-    getTopologyInfo(uuid: string, callback: SimpleResultCallback<TopologyInfoResponse>);
+    getWorkerStatus(callback: SimpleResultCallback<IWorkerStatus[]>): void;
+    getTopologyStatus(callback: SimpleResultCallback<ITopologyStatus[]>): void;
+    getTopologiesForWorker(worker: string, callback: SimpleResultCallback<ITopologyStatus[]>): void;
+    getMessages(name: string, callback: SimpleResultCallback<IStorageResultMessage[]>): void;
+    getMessage(name: string, callback: SimpleResultCallback<IStorageResultMessage>): void;
+    getTopologyInfo(uuid: string, callback: SimpleResultCallback<ITopologyInfoResponse>): void;
 
-    getTopologyHistory(uuid: string, callback: SimpleResultCallback<TopologyStatusHistory[]>);
-    getWorkerHistory(name: string, callback: SimpleResultCallback<WorkerStatusHistory[]>);
+    getTopologyHistory(uuid: string, callback: SimpleResultCallback<ITopologyStatusHistory[]>): void;
+    getWorkerHistory(name: string, callback: SimpleResultCallback<IWorkerStatusHistory[]>): void;
 
-    registerWorker(name: string, callback: SimpleCallback);
-    pingWorker(name: string, callback?: SimpleCallback);
-    announceLeaderCandidacy(name: string, callback: SimpleCallback);
-    checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>);
+    registerWorker(name: string, callback: SimpleCallback): void;
+    pingWorker(name: string, callback?: SimpleCallback): void;
+    announceLeaderCandidacy(name: string, callback: SimpleCallback): void;
+    checkLeaderCandidacy(name: string, callback: SimpleResultCallback<boolean>): void;
 
-    assignTopology(uuid: string, worker: string, callback: SimpleCallback);
-    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: SimpleCallback);
-    setTopologyPid(uuid: string, pid: number, callback: SimpleCallback);
-    setWorkerStatus(worker: string, status: string, callback: SimpleCallback);
-    setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback);
+    assignTopology(uuid: string, worker: string, callback: SimpleCallback): void;
+    setTopologyStatus(uuid: string, worker: string, status: string, error: string, callback: SimpleCallback): void;
+    setTopologyPid(uuid: string, pid: number, callback: SimpleCallback): void;
+    setWorkerStatus(worker: string, status: string, callback: SimpleCallback): void;
+    setWorkerLStatus(worker: string, lstatus: string, callback: SimpleCallback): void;
 
-    sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback);
-    getMsgQueueContent(callback: SimpleResultCallback<MsgQueueItem[]>);
+    sendMessageToWorker(worker: string, cmd: string, content: any, valid_msec: number, callback: SimpleCallback): void;
+    getMsgQueueContent(callback: SimpleResultCallback<IMsgQueueItem[]>): void;
 
-    registerTopology(uuid: string, config: TopologyDefinition, callback: SimpleCallback);
-    disableTopology(uuid: string, callback: SimpleCallback);
-    enableTopology(uuid: string, callback: SimpleCallback);
-    stopTopology(uuid: string, callback: SimpleCallback);
-    killTopology(uuid: string, callback: SimpleCallback);
-    deleteTopology(uuid: string, callback: SimpleCallback);
+    registerTopology(uuid: string, config: ITopologyDefinition, callback: SimpleCallback): void;
+    disableTopology(uuid: string, callback: SimpleCallback): void;
+    enableTopology(uuid: string, callback: SimpleCallback): void;
+    stopTopology(uuid: string, callback: SimpleCallback): void;
+    killTopology(uuid: string, callback: SimpleCallback): void;
+    deleteTopology(uuid: string, callback: SimpleCallback): void;
 
-    deleteWorker(name: string, callback: SimpleCallback);
+    deleteWorker(name: string, callback: SimpleCallback): void;
 
-    getProperties(callback: SimpleResultCallback<StorageProperty[]>);
+    getProperties(callback: SimpleResultCallback<IStorageProperty[]>): void;
 }

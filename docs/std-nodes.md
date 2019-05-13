@@ -6,34 +6,36 @@ To use such bolts and spouts, set it's `type` to `"sys"` and `cmd` to appropriat
 
 List of standard spouts:
 
+- [Dir-watcher spout](#dir-spout)
 - [File spout](#file-reader-spout)
-- [Process spout](#process-spout)
-- [Process spout continuous](#process-spout-continuous)
-- [Timer spout](#timer-spout)
 - [GET spout](#get-spout)
+- [Process spout continuous](#process-spout-continuous)
+- [Process spout](#process-spout)
 - [REST spout](#rest-spout)
 - [RSS spout](#rss-spout)
-- [Dir-watcher spout](#dir-spout)
 - [Test spout](#test-spout)
+- [Timer spout](#timer-spout)
 
 List of standard bolts:
 
 - [Accumulator bolt](#accumulator-bolt)
 - [Attacher bolt](#attacher-bolt)
-- [Transform bolt](#transform-bolt)
+- [Bomb bolt](#bomb-bolt)
+- [CSV file-append bolt](#csv-file-append-bolt)
+- [Console bolt](#console-bolt)
+- [Counter bolt](#counter-bolt)
+- [Date-transform bolt](#date-transform-bolt)
+- [Date-to-numeric bolt](#date-to-numeric-bolt)
+- [File-append bolt extended](#file-append-bolt-extended)
+- [File-append bolt](#file-append-bolt)
 - [Filter bolt](#filter-bolt)
-- [Router bolt](#router-bolt)
+- [Forward bolt](#forward-bolt)
 - [GET bolt](#get-bolt)
 - [POST bolt](#post-bolt)
 - [Process bolt](#process-bolt)
-- [File-append bolt](#file-append-bolt)
-- [File-append bolt extended](#file-append-bolt-extended)
-- [CSV file-append bolt](#csv-file-append-bolt)
-- [Counter bolt](#counter-bolt)
-- [Date-transform bolt](#date-transform-bolt)
+- [Router bolt](#router-bolt)
+- [Transform bolt](#transform-bolt)
 - [Type-transform bolt](#type-transform-bolt)
-- [Bomb bolt](#bomb-bolt)
-- [Console bolt](#console-bolt)
 
 Base classes that can be extended with custom logic:
 
@@ -62,12 +64,17 @@ Messages can be stored in several formats:
 
 - `raw` - reads text as lines and emits messages with a single field `content` that contains raw text line form the file.
 - `json` - each non-empty line of the file contains a JSON serialized object.
-- `csv` - the first line can contain a header and subsequent lines will contain a comma-separated list of matching values. The emited objects will contain properties with names from header and values from each line.
-    - All fields are emited as strings.
+- `csv` - the first line can contain a header and subsequent lines will contain a comma-separated list of matching values. The emitted objects will contain properties with names from header and values from each line.
+    - All fields are emitted as strings.
     - Separator character by default is comma (","). This can, however, be changed with additional parameter `csv_separator`.
     - Header line is optional. We can define a list of allowed fields with `csv_fields` parameter. If this setting is not present, the first line is assumed to be the header line that defines the fields of the emitted messages.
 
-> At the moment the implementation loads all data into memory first and then emits the messages. This is not suitable for larger files, so use this spout with care.
+Optional settings:
+
+- `csv_separator` - used for CSV format
+- `csv_fields` - used for CSV format
+- `own_exit` - set to `true` if you wish to exit the process after the file has been read entirely
+- `own_exit_delay` - used only when `own_exit` is `true`, the number of msec when the process exits after the file is read entirely. Default is 10,000 msec.
 
 ## Process spout
 
@@ -186,11 +193,32 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
 
 > **NOTE:** This bolt is obsolete, use `type_transform` bolt in the future.
 
+## Date-to-numeric bolt
+
+`cmd="date2numeric_transform"`
+
+This bolt takes incoming messages and transforms predefined fields from `Date` objects into their
+numeric value (Unix timestamp).
+
+```````````````````````````````json
+{
+    "name": "pump1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "date2numeric_transform",
+    "init": {
+        "date_transform_fields": ["field1", "field2"],
+        "reuse_stream_id": true
+    }
+}
+```````````````````````````````
+
 ## Type-transform bolt
 
 `cmd="type_transform"`
 
-This bolt takes incoming messages and transforms predefined fields into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
+This bolt takes incoming messages and transforms predefined fields
+into `Date` objects, numerics or booleans. It is a successor of `date_transform` bolt.
 
 ```````````````````````````````json
 {
@@ -201,12 +229,20 @@ This bolt takes incoming messages and transforms predefined fields into `Date` o
     "inputs": [{ "source": "pump" }],
     "init": {
         "date_transform_fields": ["field1", "field2"],
+        "date_n_transform_fields": ["field1n", "field2n"],
         "numeric_transform_fields": ["field3"],
         "bool_transform_fields": ["field4"],
         "reuse_stream_id": true
     }
 }
 ```````````````````````````````
+
+The following settings can be used in `init` section:
+- `date_transform_fields` - list of fields that will be transformed into `Date` objects
+- `date_n_transform_fields` - list of fields that will be parsed as dates and transformed into Unix timestamps
+- `numeric_transform_fields` - these fields will be transformed into numeric values directly
+- `bool_transform_fields` - these fields will be transformed into boolean values
+- `reuse_stream_id` - flag if incoming stream id should be reused. Otherwise it is null.
 
 > Using this bolt only makes sense when messages are passed in binary form.
 
@@ -262,7 +298,7 @@ Other options:
 - `emit_zero_counts` - By default the bolt emits only stats for tag combination that have been observed in the given interval. To have it emit zero counts for all tag combinations that have been observed in the past, set flag `emit_zero_counts` to `true`.
 - `ignore_tags` - list of tag names (string) to ignore and not calculate metrics on.
 - `partition_tags` - list of tag names (string) that are mandatory and will always be present in metric statistics. No statistics will be tracked for tag partitions without these metrics.
-- `emit_gdr` - (default=false) this option makes the bolt emit its data in GDR format. The result would be something like:
+- `emit_gdr` - (default=`false`) this option makes the bolt emit its data in GDR format. The result would be something like:
 
 ```````````````````````````````json
 {
@@ -474,9 +510,7 @@ This bolt will, upon receiving a new message like this one:
 {
     "ts": "2017-10-01",
     "country": "SI",
-    "user": {
-        "browser": "Chrome",
-    },
+    "user": { "browser": "Chrome" },
     "amount": 123.45,
     "duration": 432
 }
@@ -487,14 +521,8 @@ Emit a new message like this:
 ``````````````````````````````json
 {
     "ts": "2017-10-01",
-    "tags": {
-        "country": "SI",
-        "browser": "Chrome"
-    },
-    "values": {
-        "amount": 123.45,
-        "duration": 432
-    }
+    "tags": { "country": "SI", "browser": "Chrome" },
+    "values": { "amount": 123.45, "duration": 432 }
 }
 ``````````````````````````````
 
@@ -506,9 +534,7 @@ Multiple emits are supported. Just pass an array of templates as input of initia
     "working_dir": ".",
     "type": "sys",
     "cmd": "transform",
-    "inputs": [
-        { "source": "pump1" }
-    ],
+    "inputs": [{ "source": "pump1" }],
     "init": {
         "output_template": [
             { "ts": "ts" },
@@ -529,6 +555,50 @@ Emit 2 new messages like this:
 ``````````````````````````````json
 { "ts": "2017-10-01" }
 { "a": "2017-10-01", "b": "SI" }
+``````````````````````````````
+
+### QEWD syntax
+
+If needed one can use qewd syntax (uses mustache-like syntax `{{}}`) and its library. Just set option `use_qewd` to `true`:
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "transform",
+    "inputs": [{ "source": "pump1" }],
+    "init": {
+        "use_qewd": true,
+        "output_template": {
+            "ts": "{{ts}}",
+            "tags": { "composite": "{{country}}-{{user.browser}}" },
+            "values": { "amount": "{{amount}}" }
+        }
+    }
+}
+```````````````````````````````
+
+This bolt will, upon receiving a new message like this one:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "country": "SI",
+    "user": { "browser": "Chrome", },
+    "amount": 123.45,
+    "duration": 432
+}
+``````````````````````````````
+
+Emit a new message like this:
+
+``````````````````````````````json
+{
+    "ts": "2017-10-01",
+    "tags": { "composite": "SI-Chrome" },
+    "values": { "amount": 123.45 }
+}
 ``````````````````````````````
 
 ## Console bolt
@@ -597,6 +667,26 @@ This bolt filters incoming messages and only forwards the ones that pass its fil
             }
         }
     }
+}
+```````````````````````````````
+
+## Forward bolt
+
+`cmd="forward"`
+
+This bolt forwards all incoming messages to all listeners. Useful for collecting many inputs and for broadcasting to many listeners.
+
+```````````````````````````````json
+{
+    "name": "bolt1",
+    "working_dir": ".",
+    "type": "sys",
+    "cmd": "filter",
+    "inputs": [
+        { "source": "pump1" },
+        { "source": "pump2" }
+    ],
+    "init": {}
 }
 ```````````````````````````````
 
@@ -786,8 +876,8 @@ The output will be written in CSV format. The parameters are the following:
 
 - `file_name` - Name of the output file.
 - `delete_existing` - Should output file be deleted if it already exists. Optional, default is `false`.
-- `delimiter` - Deliemiter string between values. Optional, default is ",".
-- `fields` - List of CSV fields. The names in settings denote path to actual values in the data.
+- `delimiter` - Delimiter string between values. Optional, default is ",".
+- `fields` - List of CSV fields. Optional. The names in settings denote path to actual values in the data. If this field is not present, the sorted list of the top-level properties of the first received record are used as fields.
 - `header` - Header line. Optional. If skipped, no header line will be printed.
 
 ## Router bolt

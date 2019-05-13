@@ -12,15 +12,15 @@ import * as fs from "fs";
 
 const singleComment = 1;
 const multiComment = 2;
-const stripWithoutWhitespace = () => '';
-const stripWithWhitespace = (str, start?, end?) => str.slice(start, end).replace(/\S/g, ' ');
+const stripWithoutWhitespace = () => "";
+const stripWithWhitespace = (str, start?, end?) => str.slice(start, end).replace(/\S/g, " ");
 
 /**
  * Reads given file and transforms it into object.
  * It allows non-standard JSON comments.
  */
 export function readJsonFileSync(fname: string): any {
-    let s = fs.readFileSync(fname, "utf8");
+    const s = fs.readFileSync(fname, "utf8");
     return JSON.parse(stripJsonComments(s));
 }
 
@@ -38,14 +38,14 @@ export function stripJsonComments(str: string, opts?: any): string {
     let insideString = false;
     let insideComment = 0;
     let offset = 0;
-    let ret = '';
+    let ret = "";
 
     for (let i = 0; i < str.length; i++) {
         const currentChar = str[i];
         const nextChar = str[i + 1];
 
-        if (!insideComment && currentChar === '"') {
-            const escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
+        if (!insideComment && currentChar === "\"") {
+            const escaped = str[i - 1] === "\\" && str[i - 2] !== "\\";
             if (!escaped) {
                 insideString = !insideString;
             }
@@ -55,28 +55,28 @@ export function stripJsonComments(str: string, opts?: any): string {
             continue;
         }
 
-        if (!insideComment && currentChar + nextChar === '//') {
+        if (!insideComment && currentChar + nextChar === "//") {
             ret += str.slice(offset, i);
             offset = i;
             insideComment = singleComment;
             i++;
-        } else if (insideComment === singleComment && currentChar + nextChar === '\r\n') {
+        } else if (insideComment === singleComment && currentChar + nextChar === "\r\n") {
             i++;
             insideComment = 0;
             ret += strip(str, offset, i);
             offset = i;
             continue;
-        } else if (insideComment === singleComment && currentChar === '\n') {
+        } else if (insideComment === singleComment && currentChar === "\n") {
             insideComment = 0;
             ret += strip(str, offset, i);
             offset = i;
-        } else if (!insideComment && currentChar + nextChar === '/*') {
+        } else if (!insideComment && currentChar + nextChar === "/*") {
             ret += str.slice(offset, i);
             offset = i;
             insideComment = multiComment;
             i++;
             continue;
-        } else if (insideComment === multiComment && currentChar + nextChar === '*/') {
+        } else if (insideComment === multiComment && currentChar + nextChar === "*/") {
             i++;
             insideComment = 0;
             ret += strip(str, offset, i + 1);
@@ -86,4 +86,4 @@ export function stripJsonComments(str: string, opts?: any): string {
     }
 
     return ret + (insideComment ? strip(str.substr(offset)) : str.substr(offset));
-};
+}

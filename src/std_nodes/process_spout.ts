@@ -4,7 +4,7 @@ import { Utils, CsvParser } from "./parsing_utils";
 import { logger } from "../index";
 
 /** This spout executes specified process, collects its stdout, parses it and emits tuples. */
-export class ProcessSpout implements intf.Spout {
+export class ProcessSpout implements intf.ISpout {
 
     private stream_id: string;
     private cmd_line: string;
@@ -23,13 +23,13 @@ export class ProcessSpout implements intf.Spout {
         this.should_run = false;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.file_format = config.file_format || "json";
         this.tuples = [];
         if (this.file_format == "csv") {
-            config.separator = config.separator || ","
+            config.separator = config.separator || ",";
             this.csv_parser = new CsvParser(config);
         }
         if (config.run_interval) {
@@ -44,12 +44,50 @@ export class ProcessSpout implements intf.Spout {
         }
     }
 
+    public heartbeat() {
+        const d = Date.now();
+        if (d >= this.next_run) {
+            this.next_run = d + this.run_interval;
+            this.runProcessAndCollectOutput(err => {
+                if (!err) {
+                    return;
+                }
+                logger().error("Error while running child process");
+                logger().exception(err);
+            });
+        }
+    }
+
+    public shutdown(callback: intf.SimpleCallback) {
+        callback();
+    }
+
+    public run() {
+        this.should_run = true;
+    }
+
+    public pause() {
+        this.should_run = false;
+    }
+
+    public next(callback: intf.SpoutNextCallback) {
+        if (!this.should_run) {
+            return callback(null, null, null);
+        }
+        if (this.tuples.length === 0) {
+            return callback(null, null, null);
+        }
+        const data = this.tuples[0];
+        this.tuples = this.tuples.slice(1);
+        callback(null, data, this.stream_id);
+    }
+
     private runProcessAndCollectOutput(callback: intf.SimpleCallback) {
         let args = this.cmd_line.split(" ");
-        let cmd = args[0];
+        const cmd = args[0];
         args = args.slice(1);
-        let content2 = cp.spawnSync(cmd, args).output[1];
-        let content = content2.toString();
+        const content2 = cp.spawnSync(cmd, args).output[1];
+        const content = content2.toString();
         if (this.file_format == "json") {
             Utils.readJsonFile(content, this.tuples);
         } else if (this.file_format == "csv") {
@@ -61,46 +99,10 @@ export class ProcessSpout implements intf.Spout {
         }
         callback();
     }
-
-    heartbeat() {
-        let d = Date.now();
-        if (d >= this.next_run) {
-            this.next_run = d + this.run_interval;
-            this.runProcessAndCollectOutput((err) => {
-                if (!err) return;
-                logger().error("Error while running child process");
-                logger().exception(err);
-            });
-        }
-    }
-
-    shutdown(callback: intf.SimpleCallback) {
-        callback();
-    }
-
-    run() {
-        this.should_run = true;
-    }
-
-    pause() {
-        this.should_run = false;
-    }
-
-    next(callback: intf.SpoutNextCallback) {
-        if (!this.should_run) {
-            return callback(null, null, null);
-        }
-        if (this.tuples.length === 0) {
-            return callback(null, null, null);
-        }
-        let data = this.tuples[0];
-        this.tuples = this.tuples.slice(1);
-        callback(null, data, this.stream_id);
-    }
 }
 
 /** This spout spawns specified process and starts collecting its stdout, parsing it and emiting the tuples. */
-export class ProcessSpoutContinuous implements intf.Spout {
+export class ProcessSpoutContinuous implements intf.ISpout {
 
     private stream_id: string;
     private cmd_line: string;
@@ -121,7 +123,7 @@ export class ProcessSpoutContinuous implements intf.Spout {
         this.should_run = false;
     }
 
-    init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
+    public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.stream_id = config.stream_id;
         this.cmd_line = config.cmd_line;
         this.cwd = config.cwd || null;
@@ -131,38 +133,70 @@ export class ProcessSpoutContinuous implements intf.Spout {
         this.emit_error_on_exit = config.emit_error_on_exit != null ? config.emit_error_on_exit : false;
         this.tuples = [];
         if (this.file_format == "csv") {
-            config.separator = config.separator || ","
+            config.separator = config.separator || ",";
             this.csv_parser = new CsvParser(config);
         }
 
-        let self = this;
         let args = this.cmd_line.split(" ");
-        let cmd = args[0];
+        const cmd = args[0];
         args = args.slice(1);
         this.child_process = cp.spawn(cmd, args, { cwd: this.cwd });
-        this.child_process.stdout.on("data", (data) => {
+        this.child_process.stdout.on("data", data => {
             // errors will be pushed to tuples if emit_parse_errors is true
-            self.handleNewData(data.toString());
+            this.handleNewData(data.toString());
         });
-        this.child_process.stderr.on("data", (data) => {
+        this.child_process.stderr.on("data", data => {
             // errors will be pushed to tuples if emit_parse_errors is true
-            if (self.emit_stderr_errors) {
-                self.tuples = [new Error(data.toString())];
+            if (this.emit_stderr_errors) {
+                this.tuples = [new Error(data.toString())];
             }
         });
-        this.child_process.on("error", (error) => {
-            self.tuples = [error];
+        this.child_process.on("error", error => {
+            this.tuples = [error];
         });
         this.child_process.on("close", (code, signal) => {
-            if (self.emit_error_on_exit) {
+            if (this.emit_error_on_exit) {
                 if (code != null) {
-                    self.tuples = [new Error("Child process exited with code " + code)];
+                    this.tuples = [new Error("Child process exited with code " + code)];
                 } else {
-                    self.tuples = [new Error("Child process exited, got signal " + signal)];
+                    this.tuples = [new Error("Child process exited, got signal " + signal)];
                 }
             }
         });
         callback();
+    }
+
+    public heartbeat() {
+        // no-op
+    }
+
+    public shutdown(callback: intf.SimpleCallback) {
+        this.child_process.kill("SIGTERM");
+        callback();
+    }
+
+    public run() {
+        this.should_run = true;
+    }
+
+    public pause() {
+        this.should_run = false;
+    }
+
+    public next(callback: intf.SpoutNextCallback) {
+        if (!this.should_run) {
+            return callback(null, null, null);
+        }
+        if (this.tuples.length === 0) {
+            return callback(null, null, null);
+        }
+        const data = this.tuples[0];
+        this.tuples = this.tuples.slice(1);
+        if (data instanceof Error) {
+            callback(data, null, this.stream_id);
+        } else {
+            callback(null, data, this.stream_id);
+        }
     }
 
     private handleNewData(content: string) {
@@ -174,37 +208,6 @@ export class ProcessSpoutContinuous implements intf.Spout {
             Utils.readRawFile(content, this.tuples);
         } else {
             throw new Error("Unsupported file format: " + this.file_format);
-        }
-    }
-
-    heartbeat() { }
-
-    shutdown(callback: intf.SimpleCallback) {
-        this.child_process.kill("SIGTERM");
-        callback();
-    }
-
-    run() {
-        this.should_run = true;
-    }
-
-    pause() {
-        this.should_run = false;
-    }
-
-    next(callback: intf.SpoutNextCallback) {
-        if (!this.should_run) {
-            return callback(null, null, null);
-        }
-        if (this.tuples.length === 0) {
-            return callback(null, null, null);
-        }
-        let data = this.tuples[0];
-        this.tuples = this.tuples.slice(1);
-        if (data instanceof Error) {
-            callback(data, null, this.stream_id);
-        } else {
-            callback(null, data, this.stream_id);
         }
     }
 }

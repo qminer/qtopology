@@ -3,9 +3,7 @@ import * as fe from "./freq_estimator";
 import * as logger from "./logger";
 
 /** Simple interface that defined standard callback */
-export interface SimpleCallbackChildProcRestarter {
-    (error?: Error): void;
-}
+export type SimpleCallbackChildProcRestarter = (error?: Error) => void;
 
 /** This utility method outputs data to console, clipping training new-line if present. */
 function outputToConsole(data) {
@@ -18,12 +16,12 @@ function outputToConsole(data) {
 
 /** This class defines options for ChildProcessRestarter */
 export class ChildProcRestarterOptions {
-    cmd: string;
-    args: string[];
-    args_restart?: string[];
-    cwd: string;
-    use_fork: boolean;
-    stop_score?: number;
+    public cmd: string;
+    public args: string[];
+    public args_restart?: string[];
+    public cwd: string;
+    public use_fork: boolean;
+    public stop_score?: number;
 }
 
 /** Simple class that starts child process, monitors it
@@ -58,9 +56,26 @@ export class ChildProcRestarter {
         }
     }
 
+    /** Starts child process */
+    public start() {
+        this.paused = false;
+        this._start();
+    }
+
+    /** Stops child process and doesn't restart it. */
+    public stop(cb: SimpleCallbackChildProcRestarter) {
+        this.paused = true;
+        this.pending_exit_cb = cb || (() => {
+            // no-op
+        });
+        if (this.proc) {
+            this.proc.kill("SIGINT");
+        }
+    }
+
     /** Internal method for starting the child process */
     private _start() {
-        let self = this;
+        const self = this;
         if (this.proc) {
             return;
         }
@@ -73,14 +88,14 @@ export class ChildProcRestarter {
             args = this.cmd_line_args;
         }
         if (this.use_fork) {
-            let options = {} as cp.ForkOptions;
+            const options = {} as cp.ForkOptions;
             options.silent = false;
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
             this.proc = cp.fork(this.cmd, args, options);
         } else {
-            let options = {} as cp.SpawnOptions;
+            const options = {} as cp.SpawnOptions;
             if (this.cwd) {
                 options.cwd = this.cwd;
             }
@@ -97,8 +112,8 @@ export class ChildProcRestarter {
             }
             if (this.stop_score) {
                 // check if topology restarted a lot recently
-                let score = this.error_frequency_score.add(new Date());
-                let too_often = (score >= this.stop_score);
+                const score = this.error_frequency_score.add(new Date());
+                const too_often = (score >= this.stop_score);
                 if (too_often) {
                     logger.logger().error(`Child process restarted too often ${this.cmd} ${this.cmd_line_args}`);
                     logger.logger().error(`Stopping restart`);
@@ -111,21 +126,6 @@ export class ChildProcRestarter {
             }, 1000);
         });
     }
-
-    /** Starts child process */
-    start() {
-        this.paused = false;
-        this._start();
-    }
-
-    /** Stops child process and doesn't restart it. */
-    stop(cb: SimpleCallbackChildProcRestarter) {
-        this.paused = true;
-        this.pending_exit_cb = cb || (() => { });
-        if (this.proc) {
-            this.proc.kill("SIGINT");
-        }
-    }
 }
 
 /** Simple class that starts child process, monitors it
@@ -135,7 +135,7 @@ export class ChildProcRestarterSpawn extends ChildProcRestarter {
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: false });
+        super({ cmd, args, cwd, use_fork: false });
     }
 }
 
@@ -146,6 +146,6 @@ export class ChildProcRestarterFork extends ChildProcRestarter {
 
     /** Simple constructor */
     constructor(cmd: string, args: string[], cwd?: string) {
-        super({ cmd: cmd, args: args, cwd: cwd, use_fork: true });
+        super({ cmd, args, cwd, use_fork: true });
     }
 }
