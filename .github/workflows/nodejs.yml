@@ -15,9 +15,9 @@ jobs:
         version: 10.x
     - name: npm install, build, and test
       run: |
-        npm install
         npm install -g typescript@2.9.2
         npm install -g mocha
+        npm install
         npm run prepare
         npm run build --if-present
         npm run test-unit
