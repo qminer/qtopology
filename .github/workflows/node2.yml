@@ -1,4 +1,4 @@
-name: Node CI
+name: Node basic CI
 
 on: [push, pull_request]
 
