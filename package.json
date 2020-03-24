@@ -30,23 +30,23 @@
   "license": "BSD-2-Clause",
   "readmeFilename": "README.md",
   "devDependencies": {
-    "@types/async": "^2.0.45",
+    "@types/async": "^2.4.2",
     "@types/colors": "^1.2.1",
-    "@types/node": "^8.0.47",
-    "mocha": "^5.1.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.1.6",
+    "@types/node": "^8.10.59",
+    "mocha": "^7.0.0",
+    "tslint": "^5.20.1",
+    "typescript": "^3.8.3",
     "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "async": "^1.5.2",
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.19.0",
     "colors": "1.2.1",
     "deserialize-error": "0.0.3",
-    "express": "^4.16.3",
-    "jsonschema": "^1.1.1",
+    "express": "^4.17.1",
+    "jsonschema": "^1.2.5",
     "node-rest-client": "^3.1.0",
-    "qewd-transform-json": "^1.10.0",
+    "qewd-transform-json": "^1.11.0",
     "serialize-error": "^2.1.0"
   }
 }
