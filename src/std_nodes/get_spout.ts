@@ -1,5 +1,5 @@
 import * as intf from "../topology_interfaces";
-import * as rest from "node-rest-client";
+import * as rest from "../distributed/http_based/rest_client";
 
 /** This spout sends GET request to the specified url in regular
  * time intervals and forwards the result.
@@ -12,7 +12,7 @@ export class GetSpout implements intf.ISpout {
     private should_run: boolean;
     private next_tuple: any;
     private next_ts: number;
-    private client: rest.Client;
+    private client: rest.IApiClient;
 
     constructor() {
         this.url = null;
@@ -28,7 +28,7 @@ export class GetSpout implements intf.ISpout {
         this.url = config.url;
         this.repeat = config.repeat;
         this.stream_id = config.stream_id;
-        this.client = new rest.Client();
+        this.client = rest.create({});
         callback();
     }
 
@@ -37,10 +37,14 @@ export class GetSpout implements intf.ISpout {
             return;
         }
         if (this.next_ts < Date.now()) {
-            this.client.get(this.url, (new_data, response) => {
-                this.next_tuple = { body: new_data.toString() };
-                this.next_ts = Date.now() + this.repeat;
-            });
+            this.client.get(this.url)
+                .then(res => {
+                    this.next_tuple = { body: res.data.toString() };
+                    this.next_ts = Date.now() + this.repeat;
+                })
+                .catch(() => {
+                    // do nothing
+                });
         }
     }
 
