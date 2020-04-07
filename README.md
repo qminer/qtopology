@@ -1,16 +1,12 @@
 # QTopology
 
 [![npm](https://img.shields.io/npm/v/qtopology.svg)]()
-[![Build status](https://img.shields.io/travis/bergloman/qtopology/master.svg)]()
-
 
 QTopology is a distributed stream processing layer, written in `node.js`.
 
 NPM package: [https://www.npmjs.com/package/qtopology](https://www.npmjs.com/package/qtopology)
 
 Documentation [https://qminer.github.io/qtopology](https://qminer.github.io/qtopology)
-
-Travis CI: [https://travis-ci.org/qminer/qtopology](https://travis-ci.org/qminer/qtopology)
 
 ## Installation
 

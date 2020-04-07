@@ -1,7 +1,6 @@
-
 const port_default = 3000;
 
-import * as nrc from "node-rest-client";
+import * as rest from "./rest_client";
 import * as intf from "../../topology_interfaces";
 
 //////////////////////////////////////////////////////////////////////
@@ -10,12 +9,12 @@ import * as intf from "../../topology_interfaces";
 export class HttpStorage implements intf.ICoordinationStorage {
 
     private port: number;
-    private client: nrc.Client;
+    private client: rest.IApiClient;
     private url_prefix: string;
 
     constructor(port?: number) {
         this.port = port || port_default;
-        this.client = new nrc.Client();
+        this.client = rest.create({});
         this.url_prefix = "http://localhost:" + this.port + "/";
     }
 
@@ -123,12 +122,8 @@ export class HttpStorage implements intf.ICoordinationStorage {
 
     private call(addr: string, req_data: any, callback: intf.SimpleResultCallback<any>) {
         const self = this;
-        const args = { data: req_data, headers: { "Content-Type": "application/json" } };
-        const req = this.client.post(self.url_prefix + addr, args, (data, response) => {
-            callback(null, data);
-        });
-        req.on("error", err => {
-            callback(err);
-        });
+        this.client.post(self.url_prefix + addr, req_data)
+            .then(res => callback(null, res.data))
+            .catch(err => callback(err));
     }
 }
