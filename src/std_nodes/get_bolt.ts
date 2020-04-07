@@ -1,5 +1,5 @@
 import * as intf from "../topology_interfaces";
-import * as rest from "node-rest-client";
+import * as rest from "../distributed/http_based/rest_client";
 
 /** This bolt sends GET request to specified url
  * and forwards the result.
@@ -7,7 +7,7 @@ import * as rest from "node-rest-client";
 export class GetBolt implements intf.IBolt {
 
     private fixed_url: string;
-    private client: rest.Client;
+    private client: rest.IApiClient;
     private onEmit: intf.BoltEmitCallback;
 
     constructor() {
@@ -18,7 +18,7 @@ export class GetBolt implements intf.IBolt {
     public init(name: string, config: any, context: any, callback: intf.SimpleCallback) {
         this.onEmit = config.onEmit;
         this.fixed_url = config.url;
-        this.client = new rest.Client();
+        this.client = rest.create({});
         callback();
     }
 
@@ -32,13 +32,8 @@ export class GetBolt implements intf.IBolt {
 
     public receive(data: any, stream_id: string, callback: intf.SimpleCallback) {
         const url = this.fixed_url || data.url;
-        const req = this.client.get(
-            url,
-            (new_data, response) => {
-                this.onEmit({ body: new_data.toString() }, null, callback);
-            });
-        req.on("error", err => {
-            callback(err);
-        });
+        this.client.get(url)
+            .then(res => this.onEmit({ body: res.data.toString() }, null, callback))
+            .catch(err => callback(err));
     }
 }
