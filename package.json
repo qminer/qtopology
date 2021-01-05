@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "async": "^1.5.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "colors": "1.2.1",
     "deserialize-error": "0.0.3",
