@@ -18,11 +18,11 @@ Topology is defined via `JSON`. It follows this structure:
             - `disabled`: optional flag that this step is disabled. This means that it wont be run.
 - `spouts`: array of spout definitions
     - `name`: spout name
-    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), or `sys` (standard)
+    - `type`: `inproc` (in-process), `module_method` (created by calling a method in specified module), `module_class` (created by instantiating an instance of specified class from specified module), `sys` (standard) or `custom` by passing constructor function
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this spout is disabled. This means that it wont be instantiated.
-    - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()`.
+    - `cmd`: name of the file that where spout is defined. If spout runs in-process, this file is loaded using `require()` and if `type` is `custom` cmd is a function that build the spout.
     - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple spouts inside single source file.
     - `init`: initialization object that is sent to spout in `init()` method
 - `bolts`: array of bolt definitions
@@ -31,7 +31,7 @@ Topology is defined via `JSON`. It follows this structure:
     - `working_dir`: working directory where main file is located
     - `telemetry_timeout`: Optional time (in milliseconds) that will elapse between two subsequent telemetry messages. Default is 1 minute.
     - `disabled`: optional flag that this bolt is disabled. This means that it wont be instantiated.
-    - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()`.
+    - `cmd`: name of the file that where bolt is defined. If bolt runs in-process, this file is loaded using `require()` and if `type` is `custom` cmd is a function that build the bolt.
     - `subtype`: Optional. String parameter that is passed to factory method for creation of spout. This enables the developers to provide multiple bolts inside single source file.
     - `inputs`: array of input nodes (spouts and bolts) for this bolt
         - `name`: logical name of the input node
@@ -42,7 +42,7 @@ Topology is defined via `JSON`. It follows this structure:
 
 An example:
 
-```````````json
+```````````javascript
 {
     "general": {
         "heartbeat": 3200,
@@ -107,6 +107,16 @@ An example:
             "working_dir": "some-module",
             "type": "module_method",
             "cmd": "methodName",
+            "subtype": "some-name",
+            "inputs": [{ "source": "bolt2" }],
+            "init": {
+                "forward": false
+            }
+        },
+        {
+            "name": "bolt5",
+            "type": "custom",
+            "cmd": (bolt_config) => new CustomBolt(bolt_config),
             "subtype": "some-name",
             "inputs": [{ "source": "bolt2" }],
             "init": {
