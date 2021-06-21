@@ -16,6 +16,14 @@ class OutputRouterDestination {
     public stream_id: string;
 }
 
+/** States for the Local Process */
+export enum TopologyLocalStatus {
+    RUNNING = 'RUNNING',
+    PAUSED = 'PAUSED',
+    STOPPED = 'STOPPED',
+    UNKNOWN = 'UNKNOWN'
+}
+
 /** Class that performs redirection of messages after they are emited from nodes */
 export class OutputRouter {
 
@@ -92,6 +100,23 @@ export class TopologyLocal {
         this.onErrorHandler = tryCallback(this.onErrorHandler);
     }
 
+    /** Get the status for the current process
+     */
+    public get status(): TopologyLocalStatus {
+        if (this.isRunning) {
+            return TopologyLocalStatus.RUNNING;
+        }
+
+        if (!this.isRunning && !this.isShuttingDown) {
+            return TopologyLocalStatus.PAUSED;
+        }
+
+        if(!this.isRunning && this.isShuttingDown) {
+            return TopologyLocalStatus.STOPPED;
+        }
+
+        return TopologyLocalStatus.UNKNOWN;
+    }
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
