@@ -36,6 +36,14 @@ const NEXT_SLEEP_TIMEOUT: number = 1 * 1000; // number of miliseconds to "sleep"
 
 /** Base class for spouts and bolts - contains telemetry support */
 export class TopologyNodeBase {
+    /** Factory Method For Custom Sys Nodes */
+    public static createCustomNode(bolt_config: any) {
+        let obj = bolt_config.cmd(bolt_config);
+        if (obj.init.length < 4) {
+            obj = new BoltAsyncWrapper(obj);
+        }
+        return obj
+    }
 
     protected name: string;
     protected isError: boolean;
@@ -146,7 +154,9 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         this.isError = false;
 
         try {
-            if (config.type == "sys") {
+            if (config.type == "custom") {
+                this.spout = createCustomNode(config);
+            } else if (config.type == "sys") {
                 this.spout = createSysSpout(config);
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
@@ -395,6 +405,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "date2numeric_transform": return new ttb.DateToNumericTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
+            case "custom": return createCustomNode(bolt_config);
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }
@@ -441,7 +452,9 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         this.pendingShutdownCallback = null;
 
         try {
-            if (config.type == "sys") {
+            if (config.type == "custom") {
+                this.bolt = createCustomNode(config);
+            } else if (config.type == "sys") {
                 this.bolt = createSysBolt(config);
             } else if (config.type == "module_class") {
                 this.makeWorkingDirAbsolute();
@@ -619,4 +632,8 @@ export function createSysSpout(config) {
 }
 export function createSysBolt(config) {
     return TopologyBoltWrapper.createSysBolt(config);
+}
+
+export function createCustomNode(config) {
+    return TopologyNodeBase.createCustomNode(config);
 }

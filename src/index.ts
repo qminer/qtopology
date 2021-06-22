@@ -1,6 +1,6 @@
 export * from "./topology_compiler";
 export * from "./topology_local";
-export { createSysBolt, createSysSpout } from "./topology_local_inprocess";
+export { createSysBolt, createSysSpout, createCustomNode } from "./topology_local_inprocess";
 export * from "./topology_validation";
 export * from "./topology_interfaces";
 

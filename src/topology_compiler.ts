@@ -29,7 +29,7 @@ export class TopologyCompiler {
 
     /** Simple constructor, receives the topology. */
     constructor(topology_config: any) {
-        this.config = JSON.parse(JSON.stringify(topology_config));
+        this.config = topology_config;
     }
 
     /** Checks and compiles the topology. */
