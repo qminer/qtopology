@@ -154,7 +154,8 @@
                             "module_class",
                             "module_method",
                             "inproc",
-                            "sys"
+                            "sys",
+                            "custom"
                         ]
                     },
                     "disabled": {
