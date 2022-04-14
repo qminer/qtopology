@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^2.6.1",
+    "async": "^3.2.2",
     "node-plantuml": "^0.8.1"
   }
 }
